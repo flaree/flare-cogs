@@ -4,7 +4,7 @@
   ],
   "install_msg": "Simple R6 API.",
   "name": "Rainbow6",
-  "disabled": false,
+  "disabled": true,
   "short": "Show R6 playeri info",
   "description": "List R6 stats from whatever season and/or operator stats.",
   "tags": [
@@ -12,5 +12,5 @@
     "stats",
     "operators"
   ],
-  "hidden": false
+  "hidden": true
 }
