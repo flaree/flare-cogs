@@ -14,7 +14,7 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     async def profile(self, ctx, account: str, *platform: str):
-        """R6 Profile Stats for Season 12"""
+        """R6 Profile Stats for Season 12 - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
         platform = "".join(platform)
         if platform == "psn" or platform == "xbl":
             r = requests.post(
@@ -42,7 +42,7 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     async def season(self, ctx, account: str, season: int, platform=None):
-        """R6 Profile Stats for a custom season"""
+        """R6 Profile Stats for a custom season - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
         if 0 > season or season > 12:
             season = 12
         if platform == "psn" or platform == "xbl":
@@ -70,7 +70,7 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     async def operator(self, ctx, operator: str, account: str, platform=None):
-        """R6 Profile Stats for a certain Operator"""
+        """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
         if platform == "psn" or platform == "xbl":
             r = requests.post(
                 "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account, platform))
@@ -92,13 +92,13 @@ class Rainbow6(commands.Cog):
         embed.add_field(name="Time Played:", value=round(int(p['operatorpvp_timeplayed']) / 60), inline=True)
         await ctx.send(embed=embed)
 
-    @r6.command()
-    async def listoperators(self, ctx):
-        """List all R6 Operators"""
-        r = requests.post("https://flareee.com/r6/getOperators.php?name=flareee&platform=uplay&appcode=flare")
-        colour = discord.Color.from_hsv(random.random(), 1, 1)
-        my_too_long_string = (r.json()["players"]["5702e49a-7e4d-4a2a-80e5-50b2bfabfcf9"])
-        embed = discord.Embed(title="Operators Information for {}".format(ctx.author), colour=colour)
-        for operators in my_too_long_string:
-            embed.add_field(name=str(operators).capitalize(), value="-", inline=True)
-        await ctx.send(embed=embed)
+#    @r6.command()
+#    async def listoperators(self, ctx):
+#        """List all R6 Operators"""
+#        r = requests.post("https://flareee.com/r6/getOperators.php?name=flareee&platform=uplay&appcode=flare")
+#        colour = discord.Color.from_hsv(random.random(), 1, 1)
+#        my_too_long_string = (r.json()["players"]["5702e49a-7e4d-4a2a-80e5-50b2bfabfcf9"])
+#        embed = discord.Embed(title="Operators Information for {}".format(ctx.author), colour=colour)
+#        for operators in my_too_long_string:
+#            embed.add_field(name=str(operators).capitalize(), value="-", inline=True)
+#        await ctx.send(embed=embed)
