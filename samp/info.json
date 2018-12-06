@@ -1,0 +1,16 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Simple SA:MP server lookup.",
+  "name": "samp",
+  "disabled": false,
+  "short": "Show server info",
+  "description": "List players, website etc of a samp server.",
+  "tags": [
+    "samp",
+    "server",
+    "lookup"
+  ],
+  "hidden": false
+}
