@@ -7,7 +7,7 @@ import random
 class Samp(commands.Cog):
     """SA:MP Related Commands"""
 
-    @commands.command(aliases=["ow"])
+    @commands.command()
     async def samp(self, ctx, ip: str):
         """SA:MP Server Lookup"""
         ip = ip.split(":")
