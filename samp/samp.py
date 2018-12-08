@@ -10,7 +10,6 @@ class Samp(commands.Cog):
     @commands.command()
     async def samp(self, ctx, ip: str):
         """SA:MP Server Lookup"""
-        port = 0
         serv_ip = ip
         if ip[len(ip) - 5] == ":":
             ips = ip.split(":")
