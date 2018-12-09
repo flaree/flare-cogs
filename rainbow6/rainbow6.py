@@ -98,27 +98,29 @@ class Rainbow6(commands.Cog):
         """R6 Profile Stats for a certain Operator - Stats can be kills, roundwon or timeplayed,Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
-
-        r = requests.get(
-            "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                               platform))
-        t = requests.get(
-            "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                               platform))
-        q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
-        colour = discord.Color.from_hsv(random.random(), 1, 1)
-        embed = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
-        i = 0
-        while i < len(ops):
-            if stats == "timeplayed":
-                embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
-                                inline=True)
-            else:
-                embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                value=q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)], inline=True)
-            i += 1
-        await ctx.send(embed=embed)
+        try:
+            r = requests.get(
+                "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                                   platform))
+            t = requests.get(
+                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                                   platform))
+            q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
+            colour = discord.Color.from_hsv(random.random(), 1, 1)
+            embed = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
+            i = 0
+            while i < len(ops):
+                if stats == "timeplayed":
+                    embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                                    value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                    inline=True)
+                else:
+                    embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                                    value=q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)], inline=True)
+                i += 1
+            await ctx.send(embed=embed)
+        except:
+            await ctx.send("Failed, ensure you've entered the correct name and preferred stat")
 
 #    @r6.command()
 #    async def listoperators(self, ctx):
