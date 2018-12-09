@@ -28,7 +28,7 @@ class Overwatch(commands.Cog):
             embed.add_field(name="Name:", value=r.json()['name'], inline=True)
             embed.add_field(name="Level:", value=r.json()['level'], inline=True)
             embed.add_field(name="Prestige:", value=r.json()['prestige'], inline=True)
-            if r.json()['private'] == "false":
+            if r.json()['private'] == False:
                 embed.add_field(name="Games Won:", value=r.json()['gamesWon'], inline=True)
             else:
                 embed.set_footer(text="Please set your profile status to public for more stats.")
