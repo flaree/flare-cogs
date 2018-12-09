@@ -31,6 +31,7 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="Name:", value=p['nickname'], inline=True)
             embed.add_field(name="Rank:", value=p['rankInfo']['name'], inline=True)
             embed.add_field(name="Season:", value=p['season'], inline=True)
+            embed.add_field(name="Level:", value=p['level'], inline=True)
             embed.add_field(name="Games Won:", value=p['wins'], inline=True)
             embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
             embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
