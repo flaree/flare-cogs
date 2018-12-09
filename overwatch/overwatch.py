@@ -7,12 +7,12 @@ import random
 class Overwatch(commands.Cog):
     """SA:MP Related Commands"""
 
-    @commands.group(autohelp=True)
+    @commands.group(autohelp=True, aliases=["overwatch"])
     async def ow(self, ctx):
         """OW Commands"""
         pass
 
-    @ow.command()
+    @ow.command(alias="stats")
     async def profile(self, ctx, account: str, region: str, platform=None):
         """OW Profile Stats - Account must include the ID. Ensure profile is public for full stats"""
         account = account.replace("#", "-")
@@ -37,7 +37,7 @@ class Overwatch(commands.Cog):
             await ctx.send("Request failed, please ensure you're entering the details correctly.")
 
     @ow.command()
-    async def heroes(self, ctx, account: str, region: str, hero: str, platform=None):
+    async def hero(self, ctx, account: str, region: str, hero: str, platform=None):
         """OW Hero Stats - Account must include the ID. Profile must be public"""
         account = account.replace("#", "-")
         if platform != "psn" or platform != "xbl":
@@ -67,7 +67,8 @@ class Overwatch(commands.Cog):
                                     'eliminationsPerLife'],
                                 inline=True)
                 embed.add_field(name="Weapon Accuracy",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)]['weaponAccuracy'],
+                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                          'weaponAccuracy'] + "%",
                                 inline=True)
                 await ctx.send(embed=embed)
             else:
