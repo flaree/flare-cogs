@@ -18,7 +18,7 @@ class Samp(commands.Cog):
         else:
             port = "7777"
         try:
-            r = requests.post(
+            r = requests.get(
                 "http://monitor.sacnr.com/api/?IP={}&Port={}&Action=info&Format=json".format(serv_ip, port))
             colour = discord.Color.from_hsv(random.random(), 1, 1)  # Random Hex Value for embed colour.
             embed = discord.Embed(title="SA:MP Server Information", colour=colour)

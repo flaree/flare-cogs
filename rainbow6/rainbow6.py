@@ -18,9 +18,9 @@ class Rainbow6(commands.Cog):
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
-            r = requests.post(
+            r = requests.get(
                 "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(account, platform))
-            t = requests.post(
+            t = requests.get(
                 "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account,
                                                                                                       platform))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
@@ -46,9 +46,9 @@ class Rainbow6(commands.Cog):
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
-            r = requests.post(
+            r = requests.get(
                 f"https://flareee.com/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
-            t = requests.post(
+            t = requests.get(
                 f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
@@ -72,10 +72,10 @@ class Rainbow6(commands.Cog):
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
-            r = requests.post(
+            r = requests.get(
                 "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                    platform))
-            t = requests.post(
+            t = requests.get(
                 "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                    platform))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])]["{}".format(operator)])

@@ -14,7 +14,7 @@ class Csgo(commands.Cog):
         s = "%20".join(skin).title()
         c = currency.upper()
         try:
-            r = requests.post("https://csgobackpack.net/api/GetItemPrice/?currency={}&id={}&time=7&icon=1".format(c, s))
+            r = requests.get("https://csgobackpack.net/api/GetItemPrice/?currency={}&id={}&time=7&icon=1".format(c, s))
             if c == "USD":
                 curr = "$"
             elif c == "EUR":
