@@ -95,7 +95,7 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     async def operators(self, ctx, account: str, stats: str, platform=None):
-        """R6 Profile Stats for a certain Operator - Stats can be kills, roundwon or timeplayed,Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        """R6 Profile Stats for all operators - Stats can be kills, roundwon or timeplayed,Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
