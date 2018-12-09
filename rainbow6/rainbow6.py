@@ -13,21 +13,16 @@ class Rainbow6(commands.Cog):
         pass
 
     @r6.command()
-    async def profile(self, ctx, account: str, *platform: str):
-        """R6 Profile Stats for Season 12 - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
-        platform = "".join(platform)
+    async def profile(self, ctx, account: str, platform=None):
+        """R6 Profile Stats for Season 12 - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        if platform != "psn" or platform != "xbl":
+            platform = "uplay"
         try:
-            if platform == "psn" or platform == "xbl":
-                r = requests.post(
-                    "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(account, platform))
-                t = requests.post(
-                    "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account,
-                                                                                                          platform))
-            else:
-                r = requests.post(
-                    "https://flareee.com/r6/getUser.php?name={}&appcode=flare".format(account))
-                t = requests.post(
-                    "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account))
+            r = requests.post(
+                "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(account, platform))
+            t = requests.post(
+                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account,
+                                                                                                      platform))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(title="R6 Profile for {}".format(account), colour=colour)
@@ -40,25 +35,21 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
             embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
             await ctx.send(embed=embed)
-        except ValueError:
+        except:
             await ctx.send('Failed, ensure your name and platform are both valid. Check the help for more info.')
 
     @r6.command()
     async def season(self, ctx, account: str, season: int, platform=None):
-        """R6 Profile Stats for a custom season - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
+        """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if 0 > season or season > 12:
             season = 12
+        if platform != "psn" or platform != "xbl":
+            platform = "uplay"
         try:
-            if platform == "psn" or platform == "xbl":
-                r = requests.post(
-                    f"https://flareee.com/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
-                t = requests.post(
-                    f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
-            else:
-                r = requests.post(
-                    f"https://flareee.com/r6/getUser.php?name={account}&appcode=flare&season={season}")
-                t = requests.post(
-                    f"https://flareee.com/r6/getSmallUser.php?name={account}&appcode=flare")
+            r = requests.post(
+                f"https://flareee.com/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
+            t = requests.post(
+                f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(title="R6 Profile for {}".format(account), colour=colour)
@@ -71,25 +62,22 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
             embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
             await ctx.send(embed=embed)
-        except ValueError:
-            await ctx.send('Failed, ensure your name and platform are both valid. Check the help for more info.')
+        except:
+            await ctx.send(
+                'Failed, ensure your name, season number and platform are valid. Check the help for more info.')
 
     @r6.command()
     async def operator(self, ctx, operator: str, account: str, platform=None):
-        """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Ohter choices: "xbl" and "psn" """
+        """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        if platform != "psn" or platform != "xbl":
+            platform = "uplay"
         try:
-            if platform == "psn" or platform == "xbl":
-                r = requests.post(
-                    "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                       platform))
-                t = requests.post(
-                    "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                       platform))
-            else:
-                r = requests.post(
-                    "https://flareee.com/r6/getOperators.php?name={}&appcode=flare".format(account))
-                t = requests.post(
-                    "https://flareee.com/r6/getSmallUser.php?name={}&appcode=flare".format(account))
+            r = requests.post(
+                "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                                   platform))
+            t = requests.post(
+                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                                   platform))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])]["{}".format(operator)])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(title="Operator Information for {}".format(ctx.author), colour=colour)
@@ -100,7 +88,7 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="Deaths:", value=p['operatorpvp_death'], inline=True)
             embed.add_field(name="Time Played:", value=round(int(p['operatorpvp_timeplayed']) / 60), inline=True)
             await ctx.send(embed=embed)
-        except ValueError:
+        except:
             await ctx.send(
                 'Failed, ensure your name, platform & operator name are valid. Check the help for more info.')
 #    @r6.command()
