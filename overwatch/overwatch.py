@@ -2,6 +2,7 @@ from redbot.core import commands
 import discord
 import requests
 import random
+from redbot.core.utils.chat_formatting import pagify
 
 
 class Overwatch(commands.Cog):
@@ -119,13 +120,8 @@ class Overwatch(commands.Cog):
         except:
             await ctx.send("Unable to retrieve results, please ensure you're entering the command correctly")
 
-    @ow.group()
-    async def console(self, ctx):
-        """OW Commands"""
-        pass
-
-    @console.command()
-    async def heroes(self, ctx, console: str, account: str, *heroes: str):
+    @ow.command()
+    async def consoleheroes(self, ctx, console: str, account: str, *heroes: str):
         """OW Multiple Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         heroes = ",".join(heroes)
         r = requests.get(
@@ -167,8 +163,8 @@ class Overwatch(commands.Cog):
         except:
             await ctx.send("Unable to retrieve results, please ensure you're entering the command correctly")
 
-    @console.command()
-    async def hero(self, ctx, console: str, account: str, hero: str):
+    @ow.command()
+    async def consolehero(self, ctx, console: str, account: str, hero: str):
         """OW Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         try:
             r = requests.get(
@@ -205,8 +201,8 @@ class Overwatch(commands.Cog):
         except:
             await ctx.send("Request failed, please ensure you're entering the details correctly.")
 
-    @console.command(alias="stats")
-    async def profile(self, ctx, console: str, account: str):
+    @ow.command(alias="stats")
+    async def consoleprofile(self, ctx, console: str, account: str):
         """OW Profile Stats - Account must be your PSN or Gamertag. Ensure profile is public for full stats"""
         try:
             r = requests.get(
