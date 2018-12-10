@@ -99,18 +99,20 @@ class Rainbow6(commands.Cog):
         """R6 Profile Stats for all operators - Stats can be kills, roundwon or timeplayed,Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
-        try:
-            r = requests.get(
-                "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
-            colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
-            i = 0
-            while i < len(ops):
+
+        r = requests.get(
+            "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        t = requests.get(
+            "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
+        colour = discord.Color.from_hsv(random.random(), 1, 1)
+        embed = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
+        emb = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
+        i = 0
+        while i < len(ops):
+            if i < 21:
                 if stats == "timeplayed":
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                                     value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
@@ -118,18 +120,14 @@ class Rainbow6(commands.Cog):
                 else:
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                                     value=q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)], inline=True)
-                i += 1
-            await ctx.send(embed=embed)
-        except:
-            await ctx.send("Failed, ensure you've entered the correct name and preferred stat")
-
-#    @r6.command()
-#    async def listoperators(self, ctx):
-#        """List all R6 Operators"""
-#        r = requests.post("https://flareee.com/r6/getOperators.php?name=flareee&platform=uplay&appcode=flare")
-#        colour = discord.Color.from_hsv(random.random(), 1, 1)
-#        my_too_long_string = (r.json()["players"]["5702e49a-7e4d-4a2a-80e5-50b2bfabfcf9"])
-#        embed = discord.Embed(title="Operators Information for {}".format(ctx.author), colour=colour)
-#        for operators in my_too_long_string:
-#            embed.add_field(name=str(operators).capitalize(), value="-", inline=True)
-#        await ctx.send(embed=embed)
+            else:
+                if stats == "timeplayed":
+                    emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                                  value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                  inline=True)
+                else:
+                    emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                                  value=q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)], inline=True)
+            i += 1
+        await ctx.send(embed=embed)
+        await ctx.send(embed=emb)

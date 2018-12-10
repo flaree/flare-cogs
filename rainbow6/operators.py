@@ -40,4 +40,6 @@ ops = [
     "vigil",
     "ying",
     "zofia",
+    "nomad",
+    "kaid",
 ]
