@@ -21,11 +21,13 @@ class Rainbow6(commands.Cog):
         pass
 
     @r6.command()
-    async def setprofile(self, ctx, word: str, platforms):
+    async def setprofile(self, ctx, account: str, platforms=None):
         """Set profile for automatic lookup via r6 profile"""
+        if platforms != "psn" or platforms != "xbl":
+            platforms = "uplay"
         async with self.database.guild(ctx.guild).Profiles() as profiles:
             key1 = ctx.author.id
-            profiles[key1] = word
+            profiles[key1] = account
         async with self.database.guild(ctx.guild).Platform() as platform:
             key1 = ctx.author.id
             platform[key1] = platforms
