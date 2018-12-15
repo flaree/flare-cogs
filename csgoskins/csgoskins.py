@@ -14,22 +14,30 @@ class Csgo(commands.Cog):
         s = "%20".join(skin).title()
         c = currency.upper()
         try:
-            r = requests.get("https://csgobackpack.net/api/GetItemPrice/?currency={}&id={}&time=7&icon=1".format(c, s))
+            r = requests.get(
+                "https://csgobackpack.net/api/GetItemPrice/?currency={}&id={}&time=7&icon=1".format(c, s))
             if c == "USD":
                 curr = "$"
             elif c == "EUR":
                 curr = "€"
             elif c == "GBP":
                 curr = "£"
-            colour = discord.Color.from_hsv(random.random(), 1, 1)  # Random Hex Value for embed colour.
+            # Random Hex Value for embed colour.
+            colour = discord.Color.from_hsv(random.random(), 1, 1)
             if r.json()['success'] == True:
-                embed = discord.Embed(title="CS:GO Skin Information", colour=colour)
+                embed = discord.Embed(
+                    title="CS:GO Skin Information", colour=colour)
                 embed.set_thumbnail(url=r.json()['icon'])
-                embed.add_field(name="Skin/Item", value=" ".join(skin).title(), inline=False)
-                embed.add_field(name="Lowest Price:", value=curr + r.json()['lowest_price'], inline=True)
-                embed.add_field(name="Average Price:", value=curr + r.json()['average_price'], inline=True)
-                embed.add_field(name="Highest Price:", value=curr + r.json()['highest_price'], inline=True)
-                embed.add_field(name="Median Price:", value=curr + r.json()['median_price'], inline=True)
+                embed.add_field(name="Skin/Item",
+                                value=" ".join(skin).title(), inline=False)
+                embed.add_field(name="Lowest Price:", value=curr +
+                                                            r.json()['lowest_price'], inline=True)
+                embed.add_field(name="Average Price:", value=curr +
+                                                             r.json()['average_price'], inline=True)
+                embed.add_field(name="Highest Price:", value=curr +
+                                                             r.json()['highest_price'], inline=True)
+                embed.add_field(name="Median Price:", value=curr +
+                                                            r.json()['median_price'], inline=True)
                 await ctx.send(embed=embed)
                 await message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
             else:

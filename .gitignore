@@ -2,3 +2,6 @@ accounts/
 utils/
 .idea/
 */__pycache__/
+test/
+workspace.code-workspace
+.vscode/settings.json

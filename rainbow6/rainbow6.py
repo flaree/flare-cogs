@@ -12,7 +12,8 @@ class Rainbow6(commands.Cog):
     """Rainbow6 Related Commands"""
 
     def __init__(self):
-        self.database = Config.get_conf(self, identifier=7258295620, force_registration=True)
+        self.database = Config.get_conf(
+            self, identifier=7258295620, force_registration=True)
         self.database.register_guild(**defaults)
 
     @commands.group(autohelp=True)
@@ -51,7 +52,8 @@ class Rainbow6(commands.Cog):
                                   colour=colour)
             embed.set_thumbnail(url=p['rankInfo']['image'])
             embed.add_field(name="Name:", value=p['nickname'], inline=True)
-            embed.add_field(name="Rank:", value=p['rankInfo']['name'], inline=True)
+            embed.add_field(
+                name="Rank:", value=p['rankInfo']['name'], inline=True)
             embed.add_field(name="Season:", value=p['season'], inline=True)
             embed.add_field(name="Level:", value=p['level'], inline=True)
             embed.add_field(name="Games Won:", value=p['wins'], inline=True)
@@ -75,10 +77,12 @@ class Rainbow6(commands.Cog):
                                                                                                       platform))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(title="R6 Profile for {}".format(account), colour=colour)
+            embed = discord.Embed(
+                title="R6 Profile for {}".format(account), colour=colour)
             embed.set_thumbnail(url=p['rankInfo']['image'])
             embed.add_field(name="Name:", value=p['nickname'], inline=True)
-            embed.add_field(name="Rank:", value=p['rankInfo']['name'], inline=True)
+            embed.add_field(
+                name="Rank:", value=p['rankInfo']['name'], inline=True)
             embed.add_field(name="Season:", value=p['season'], inline=True)
             embed.add_field(name="Level:", value=p['level'], inline=True)
             embed.add_field(name="Games Won:", value=p['wins'], inline=True)
@@ -103,10 +107,12 @@ class Rainbow6(commands.Cog):
                 f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(title="R6 Profile for {}".format(account), colour=colour)
+            embed = discord.Embed(
+                title="R6 Profile for {}".format(account), colour=colour)
             embed.set_thumbnail(url=p['rankInfo']['image'])
             embed.add_field(name="Name:", value=p['nickname'], inline=True)
-            embed.add_field(name="Rank:", value=p['rankInfo']['name'], inline=True)
+            embed.add_field(
+                name="Rank:", value=p['rankInfo']['name'], inline=True)
             embed.add_field(name="Season:", value=p['season'], inline=True)
             embed.add_field(name="Games Won:", value=p['wins'], inline=True)
             embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
@@ -129,15 +135,23 @@ class Rainbow6(commands.Cog):
             t = requests.get(
                 "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                    platform))
-            p = (r.json()["players"]["{}".format(list(t.json().keys())[0])]["{}".format(operator)])
+            p = (r.json()["players"]["{}".format(
+                list(t.json().keys())[0])]["{}".format(operator)])
             colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(title="Operator Information for {}".format(ctx.author), colour=colour)
-            embed.add_field(name="Operator:", value=operator.capitalize(), inline=True)
-            embed.add_field(name="Rounds Won:", value=p['operatorpvp_roundwon'], inline=True)
-            embed.add_field(name="Rounds Lost:", value=p['operatorpvp_roundlost'], inline=True)
-            embed.add_field(name="Kills:", value=p['operatorpvp_kills'], inline=True)
-            embed.add_field(name="Deaths:", value=p['operatorpvp_death'], inline=True)
-            embed.add_field(name="Time Played:", value=round(int(p['operatorpvp_timeplayed']) / 60), inline=True)
+            embed = discord.Embed(
+                title="Operator Information for {}".format(ctx.author), colour=colour)
+            embed.add_field(name="Operator:",
+                            value=operator.capitalize(), inline=True)
+            embed.add_field(name="Rounds Won:",
+                            value=p['operatorpvp_roundwon'], inline=True)
+            embed.add_field(name="Rounds Lost:",
+                            value=p['operatorpvp_roundlost'], inline=True)
+            embed.add_field(
+                name="Kills:", value=p['operatorpvp_kills'], inline=True)
+            embed.add_field(
+                name="Deaths:", value=p['operatorpvp_death'], inline=True)
+            embed.add_field(name="Time Played:", value=round(
+                int(p['operatorpvp_timeplayed']) / 60), inline=True)
             await ctx.send(embed=embed)
         except:
             await ctx.send(
@@ -157,14 +171,17 @@ class Rainbow6(commands.Cog):
                                                                                                platform))
         q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
         colour = discord.Color.from_hsv(random.random(), 1, 1)
-        embed = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
-        emb = discord.Embed(title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
+        embed = discord.Embed(
+            title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
+        emb = discord.Embed(
+            title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
         i = 0
         while i < len(ops):
             if i < 21:
                 if stats == "timeplayed":
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                    value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                    value=round(
+                                        int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
                                     inline=True)
                 else:
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
@@ -172,7 +189,8 @@ class Rainbow6(commands.Cog):
             else:
                 if stats == "timeplayed":
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                  value=round(int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                  value=round(
+                                      int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
                                   inline=True)
                 else:
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
