@@ -1,7 +1,7 @@
-from redbot.core import commands, Config
+import random
 import discord
 import requests
-import random
+from redbot.core import commands, Config
 from .operators import ops
 
 defaults = {"Profiles": {},
@@ -27,42 +27,68 @@ class Rainbow6(commands.Cog):
         if platforms != "psn" or platforms != "xbl":
             platforms = "uplay"
         async with self.database.guild(ctx.guild).Profiles() as profiles:
-            key1 = ctx.author.id
+            key1 = ctx.author
             profiles[key1] = account
         async with self.database.guild(ctx.guild).Platform() as platform:
-            key1 = ctx.author.id
+            key1 = ctx.author
             platform[key1] = platforms
         await ctx.send(f"Profile and platform updated successfully.")
 
     @r6.command()
-    async def profile(self, ctx):
+    async def profile(self, ctx, member: discord.Member = None):
         """R6 Profile Stats for your set account. """
         data = await self.database.guild(ctx.guild).all()
-        profile = ctx.author.id
-        try:
-            r = requests.get(
-                "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
-                    data['Profiles']['{}'.format(profile)], data['Platform']['{}'.format(profile)]))
-            t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
-                    data['Profiles']['{}'.format(profile)], data['Platform']['{}'.format(profile)]))
-            p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
-            colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(title="R6 Profile for {}".format(data['Profiles']['{}'.format(profile)]),
-                                  colour=colour)
-            embed.set_thumbnail(url=p['rankInfo']['image'])
-            embed.add_field(name="Name:", value=p['nickname'], inline=True)
-            embed.add_field(
-                name="Rank:", value=p['rankInfo']['name'], inline=True)
-            embed.add_field(name="Season:", value=p['season'], inline=True)
-            embed.add_field(name="Level:", value=p['level'], inline=True)
-            embed.add_field(name="Games Won:", value=p['wins'], inline=True)
-            embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
-            embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-            embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
-            await ctx.send(embed=embed)
-        except KeyError:
-            await ctx.send("Ensure you've set your profile via [p]set profile.")
+        if member is None:
+            profile = ctx.author
+            try:
+                r = requests.get(
+                    "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
+                        data['Profiles']['{}'.format(profile)], data['Platform']['{}'.format(profile)]))
+                t = requests.get(
+                    "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
+                        data['Profiles']['{}'.format(profile)], data['Platform']['{}'.format(profile)]))
+                p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
+                colour = discord.Color.from_hsv(random.random(), 1, 1)
+                embed = discord.Embed(title="R6 Profile for {}".format(data['Profiles']['{}'.format(profile)]),
+                                      colour=colour)
+                embed.set_thumbnail(url=p['rankInfo']['image'])
+                embed.add_field(name="Name:", value=p['nickname'], inline=True)
+                embed.add_field(
+                    name="Rank:", value=p['rankInfo']['name'], inline=True)
+                embed.add_field(name="Season:", value=p['season'], inline=True)
+                embed.add_field(name="Level:", value=p['level'], inline=True)
+                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
+                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
+                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
+                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
+                await ctx.send(embed=embed)
+            except KeyError:
+                await ctx.send("Ensure you've set your profile via [p]r6 set profile.")
+        else:
+            try:
+                r = requests.get(
+                    "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
+                        data['Profiles']['{}'.format(member)], data['Platform']['{}'.format(member)]))
+                t = requests.get(
+                    "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
+                        data['Profiles']['{}'.format(member)], data['Platform']['{}'.format(member)]))
+                p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
+                colour = discord.Color.from_hsv(random.random(), 1, 1)
+                embed = discord.Embed(title="R6 Profile for {}".format(data['Profiles']['{}'.format(member)]),
+                                      colour=colour)
+                embed.set_thumbnail(url=p['rankInfo']['image'])
+                embed.add_field(name="Name:", value=p['nickname'], inline=True)
+                embed.add_field(
+                    name="Rank:", value=p['rankInfo']['name'], inline=True)
+                embed.add_field(name="Season:", value=p['season'], inline=True)
+                embed.add_field(name="Level:", value=p['level'], inline=True)
+                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
+                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
+                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
+                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
+                await ctx.send(embed=embed)
+            except KeyError:
+                await ctx.send("Ensure you've set your profile via [p]set profile.")
 
     @r6.command()
     async def lookup(self, ctx, account: str, platform=None):
