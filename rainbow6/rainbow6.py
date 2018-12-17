@@ -14,7 +14,7 @@ class Rainbow6(commands.Cog):
     def __init__(self):
         self.database = Config.get_conf(
             self, identifier=7258295620, force_registration=True)
-        self.database.register_guild(**defaults)
+        self.database.register_global(**defaults)
 
     @commands.group(autohelp=True)
     async def r6(self, ctx):
@@ -26,10 +26,10 @@ class Rainbow6(commands.Cog):
         """Set profile for automatic lookup via r6 profile"""
         if platforms != "psn" or platforms != "xbl":
             platforms = "uplay"
-        async with self.database.guild(ctx.guild).Profiles() as profiles:
+        async with self.database.Profiles() as profiles:
             key1 = ctx.author
             profiles[key1] = account
-        async with self.database.guild(ctx.guild).Platform() as platform:
+        async with self.database.Platform() as platform:
             key1 = ctx.author
             platform[key1] = platforms
         await ctx.send(f"Profile and platform updated successfully.")
@@ -37,7 +37,7 @@ class Rainbow6(commands.Cog):
     @r6.command()
     async def profile(self, ctx, member: discord.Member = None):
         """R6 Profile Stats for your set account. """
-        data = await self.database.guild(ctx.guild).all()
+        data = await self.database.all()
         if member is None:
             member = ctx.author
         try:

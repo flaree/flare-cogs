@@ -19,16 +19,16 @@ class Overwatch(commands.Cog):
     def __init__(self):
         self.database = Config.get_conf(
             self, identifier=4268355870, force_registration=True)
-        self.database.register_guild(**defaults)
+        self.database.register_global(**defaults)
 
     @ow.command()
     async def setprofile(self, ctx, account: str, region: str):
         """Set profile for automatic lookup via ow profile"""
-        async with self.database.guild(ctx.guild).Profiles() as profiles:
+        async with self.database.Profiles() as profiles:
             key1 = ctx.author.id
             account = account.replace("#", "-")
             profiles[key1] = account
-        async with self.database.guild(ctx.guild).Region() as regions:
+        async with self.database.Region() as regions:
             key1 = ctx.author.id
             regions[key1] = region
         await ctx.send(f"Profile and region updated successfully.")
@@ -36,7 +36,7 @@ class Overwatch(commands.Cog):
     @ow.command(alias="stats")
     async def profile(self, ctx):
         """OW Profile Stats using set account"""
-        data = await self.database.guild(ctx.guild).all()
+        data = await self.database.all()
         profile = ctx.author.id
         try:
             r = requests.get(
