@@ -5,3 +5,5 @@ utils/
 test/
 workspace.code-workspace
 .vscode/settings.json
+venv/
+.debris/
