@@ -71,10 +71,13 @@ class Rainbow6(commands.Cog):
         data = await self.database.all()
         if member is None:
             member = ctx.author
-        profile = data['Profiles']['{}'.format(member)]
-        platform = data['Platform']['{}'.format(member)]
-        await ctx.send(f"Profile Name: {profile}")
-        await ctx.send(f"Platform: {platform}")
+        try:
+            profile = data['Profiles']['{}'.format(member)]
+            platform = data['Platform']['{}'.format(member)]
+            await ctx.send(f"Profile Name: {profile}")
+            await ctx.send(f"Platform: {platform}")
+        except KeyError:
+            await ctx.send("You do not have an account set, please set one via .r6 setprofile")
 
     @r6.command()
     async def lookup(self, ctx, account: str, platform=None):
