@@ -63,7 +63,7 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
             await ctx.send(embed=embed)
         except KeyError:
-            await ctx.send("Ensure you've set your profile via [p]set profile.")
+            await ctx.send("Ensure you've set your profile via [p]r6 setprofile. (Replace [p] with the bot prefix.")
 
     @r6.command()
     async def lookup(self, ctx, account: str, platform=None):
