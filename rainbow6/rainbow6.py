@@ -63,7 +63,18 @@ class Rainbow6(commands.Cog):
             embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
             await ctx.send(embed=embed)
         except KeyError:
-            await ctx.send("Ensure you've set your profile via [p]r6 setprofile. (Replace [p] with the bot prefix.")
+            await ctx.send("Ensure you've set your profile via [p]r6 setprofile. (Replace [p] with the bot prefix.)")
+
+    @commands.command()
+    async def accinfo(self, ctx, member: discord.Member = None):
+        """Account Info"""
+        data = await self.database.all()
+        if member is None:
+            member = ctx.author
+        profile = data['Profiles']['{}'.format(member)]
+        platform = data['Platform']['{}'.format(member)]
+        await ctx.send(f"Profile Name: {profile}")
+        await ctx.send(f"Platform: {platform}")
 
     @r6.command()
     async def lookup(self, ctx, account: str, platform=None):
