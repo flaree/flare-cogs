@@ -27,14 +27,6 @@ class Samp(commands.Cog):
             embed.add_field(name="Server:", value=r.json()['Hostname'], inline=True)
             embed.add_field(name="IP:", value='{}'.format(ip), inline=True)
             embed.add_field(name="Players:", value=r.json()['Players'], inline=True)
-            try:
-                embed.add_field(name="Version:", value=r.json()['Version'], inline=True)
-            except:
-                embed.add_field(name="Version:", value="No Info", inline=True)
-            try:
-                embed.add_field(name="Website:", value=r.json()['WebURL'], inline=True)
-            except:
-                embed.add_field(name="Website:", value="No Info", inline=True)
             await ctx.send(embed=embed)
         except ValueError:
             await ctx.send('Failed, ensure the server IP is correct and that it is monitored by SACNR.')
