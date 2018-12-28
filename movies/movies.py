@@ -15,13 +15,12 @@ class Movies(commands.Cog):
             "http://omdbapi.com/?t={}?&apikey=39937064".format(movie))
         colour = discord.Color.from_hsv(random.random(), 1, 1)
         try:
-            if r.json()['Website'][0:4] == "http":
-                embed = discord.Embed(title="{}".format(r.json()['Title']), url=r.json()['Website'], colour=colour,
-                                      description=r.json()['Plot'])
-                embed.set_thumbnail(url=r.json()['Poster'])
-            else:
-                embed = discord.Embed(title="{}".format(r.json()['Title']), colour=colour,
-                                      description=r.json()['Plot'])
+            embed = discord.Embed(title="{}".format(r.json()['Title']), colour=colour,
+                                  description=r.json()['Plot'])
+            embed.set_thumbnail(url=r.json()['Poster'])
+        except:
+            await ctx.send("Unable to lookup film poster and/or title/plot.")
+        try:
             embed.set_thumbnail(url=r.json()['Poster'])
             embed.add_field(name="Year:", value=r.json()['Year'], inline=True)
             embed.add_field(name="Released:", value=r.json()
