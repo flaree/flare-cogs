@@ -18,6 +18,7 @@ class Movies(commands.Cog):
             if r.json()['Website'][0:4] == "http":
                 embed = discord.Embed(title="{}".format(r.json()['Title']), url=r.json()['Website'], colour=colour,
                                       description=r.json()['Plot'])
+                embed.set_thumbnail(url=r.json()['Poster'])
             else:
                 embed = discord.Embed(title="{}".format(r.json()['Title']), colour=colour,
                                       description=r.json()['Plot'])
