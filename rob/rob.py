@@ -6,7 +6,7 @@ from redbot.core import commands, Config, checks, bank
 class Rob(commands.Cog):
 
     @commands.command()
-    @commands.cooldown(rate=1, per=120, type=commands.BucketType.user)
+    @commands.cooldown(rate=1, per=300, type=commands.BucketType.guild)
     async def rob(self, ctx, user: discord.Member):
         """Rob a member for some sweet moola"""
         author = ctx.author
