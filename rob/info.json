@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Simple robbing cog.",
+  "name": "rob",
+  "disabled": false,
+  "short": "rob people",
+  "description": "rob people.",
+  "tags": [
+    "rob"
+  ],
+  "hidden": false
+}
