@@ -19,7 +19,8 @@ class Rob(commands.Cog):
                 cred = round(bal2 * 0.25)
                 await bank.withdraw_credits(author, cred)
                 await ctx.send(
-                    f"You try to rob {user} however you dropped your own wallet losing {cred} {currency} in the process.")
+                    f"You try to rob {user} however you dropped your own wallet allowing {user} to pick it up. You lost {cred} {currency} in the process.")
+                await bank.deposit_credits(user, cred)
             elif roll > 9 and roll <= 12:
                 cred = round(bal2 * 0.02)
                 await bank.withdraw_credits(user, cred)

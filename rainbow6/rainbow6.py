@@ -61,7 +61,6 @@ class Rainbow6(commands.Cog):
         else:
             await ctx.send(f"Valid choices are True of False.")
 
-
     @r6.command()
     async def setprofile(self, ctx, account: str, platforms=None):
         """Set profile for automatic lookup via r6 profile"""
@@ -76,6 +75,7 @@ class Rainbow6(commands.Cog):
         await ctx.send(f"Profile and platform updated successfully.")
 
     @r6.command()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
     async def profile(self, ctx, member: discord.Member = None):
         """R6 Profile Stats for your set account. """
         data = await self.database.all()
@@ -105,10 +105,10 @@ class Rainbow6(commands.Cog):
                 img.paste(im, (14, 15))
                 draw = ImageDraw.Draw(img)
                 font2 = ImageFont.truetype(
-                    "/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/ARIALUNI.ttf",
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
                     22)
                 font = ImageFont.truetype(
-                    "/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/ARIALUNI.ttf",
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
                     24)
                 draw.text((162, 14), f"{data['Profiles']['{}'.format(member)]}", fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
@@ -125,8 +125,8 @@ class Rainbow6(commands.Cog):
                 kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
                 draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
-                img.save("/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/r6.png")
-                image = discord.File("/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/r6.png")
+                img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+                image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 await ctx.send(file=image)
             else:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
@@ -163,54 +163,19 @@ class Rainbow6(commands.Cog):
             await ctx.send("You do not have an account set, please set one via .r6 setprofile")
 
     @r6.command()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
     async def lookup(self, ctx, account: str, platform=None):
         """R6 Profile Stats for Season 12 - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        data = await self.database.all()
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
             r = requests.get(
                 "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(account, platform))
             t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
+                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account))
             s = requests.get(
                 "https://flareee.com/r6/getStats.php?name={}&platform={}&appcode=flare".format(account, platform))
-            p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
-            q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
-            colour = discord.Color.from_hsv(random.random(), 1, 1)
-            embed = discord.Embed(
-                title="R6 Profile for {}".format(account), colour=colour)
-            embed.set_thumbnail(url=p['rankInfo']['image'])
-            embed.add_field(name="Name:", value=p['nickname'], inline=True)
-            embed.add_field(
-                name="Rank:", value=p['rankInfo']['name'], inline=True)
-            embed.add_field(name="Season:", value=p['season'], inline=True)
-            embed.add_field(name="Level:", value=p['level'], inline=True)
-            embed.add_field(name="Games Won:", value=p['wins'], inline=True)
-            embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
-            embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-            embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
-            embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
-            embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
-            await ctx.send(embed=embed)
-        except:
-            await ctx.send('Failed, ensure your name and platform are both valid. Check the help for more info.')
-
-    @r6.command()
-    async def season(self, ctx, account: str, season: int, platform=None):
-        """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
-        if 0 > season or season > 12:
-            season = 12
-        if platform != "psn" or platform != "xbl":
-            platform = "uplay"
-        try:
-            r = requests.get(
-                f"https://flareee.com/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
-            t = requests.get(
-                f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
-
-            s = requests.get("https://flareee.com/r6/getStats.php?name={}&platform={}&appcode=flare".format(account),
-                             platform)
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
             if data["Picture"][0] == "True":
@@ -226,10 +191,85 @@ class Rainbow6(commands.Cog):
                 img.paste(im, (14, 15))
                 draw = ImageDraw.Draw(img)
                 font2 = ImageFont.truetype(
-                    "/home/flare/.local/share/Red-DiscordBot/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
                     22)
                 font = ImageFont.truetype(
-                    "/home/flare/.local/share/Red-DiscordBot/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                    24)
+                draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
+                draw.text((162, 40), "Level: {}".format(p['level']), fill=(255, 255, 255, 255), font=font)
+                draw.text((162, 70), f"Season 12 Stats", fill=(255, 255, 255, 255), font=font2)
+                draw.text((10, 220), "Wins: {}".format(p['wins']), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 380), "Casual Kills: {}".format(q['casualpvp_kills']), fill=(255, 255, 255, 255),
+                          font=font)
+                draw.text((10, 420), "Casual Deaths: {}".format(q['casualpvp_death']), fill=(255, 255, 255, 255),
+                          font=font)
+                kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
+                draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
+
+                img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+                image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+                await ctx.send(file=image)
+            else:
+                colour = discord.Color.from_hsv(random.random(), 1, 1)
+                embed = discord.Embed(
+                    title="R6 Profile for {}".format(account), colour=colour)
+                embed.set_thumbnail(url=p['rankInfo']['image'])
+                embed.add_field(name="Name:", value=p['nickname'], inline=True)
+                embed.add_field(
+                    name="Rank:", value=p['rankInfo']['name'], inline=True)
+                embed.add_field(name="Season:", value=p['season'], inline=True)
+                embed.add_field(name="Level:", value=p['level'], inline=True)
+                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
+                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
+                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
+                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
+                embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
+                embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
+                await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send(e)
+
+    @r6.command()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
+    async def season(self, ctx, account: str, season: int, platform=None):
+        """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        data = await self.database.all()
+        if 0 > season or season > 12:
+            season = 12
+        if platform != "psn" or platform != "xbl":
+            platform = "uplay"
+        try:
+            r = requests.get(
+                f"https://flareee.com/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
+            t = requests.get(
+                f"https://flareee.com/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
+
+            s = requests.get("https://flareee.com/r6/getStats.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                                            platform))
+            p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
+            q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
+            if data["Picture"][0] == "True":
+                img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
+                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+                nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
+                img.paste(nameplate, (155, 10), nameplate)
+                img.paste(aviholder, (10, 10), aviholder)
+                url = p['rankInfo']['image']
+                im = Image.open(requests.get(url, stream=True).raw)
+                im_size = 130, 130
+                im.thumbnail(im_size)
+                img.paste(im, (14, 15))
+                draw = ImageDraw.Draw(img)
+                font2 = ImageFont.truetype(
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                    22)
+                font = ImageFont.truetype(
+                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
                     24)
                 draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
@@ -246,8 +286,8 @@ class Rainbow6(commands.Cog):
                 kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
                 draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
-                img.save("/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/r6.png")
-                image = discord.File("/home/jamie/.local/share/Red-DiscordBot/cogs/CogManager/cogs/test/r6.png")
+                img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+                image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 await ctx.send(file=image)
             else:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
