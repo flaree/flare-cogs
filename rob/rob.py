@@ -17,32 +17,32 @@ class Rob(commands.Cog):
         try:
             if roll > 1 and roll <= 9:
                 cred = round(bal2 * 0.25)
-                bank.withdraw_credits(author, cred)
+                await bank.withdraw_credits(author, cred)
                 await ctx.send(
                     f"You try to rob {user} however you dropped your own wallet losing {cred} {currency} in the process.")
             elif roll > 9 and roll <= 12:
                 cred = round(bal2 * 0.02)
-                bank.withdraw_credits(user, cred)
+                await bank.withdraw_credits(user, cred)
                 await ctx.send(
                     f"You sneak up behind {user} and grab the cash out of his hand. Your earned {cred} {currency}.")
-                bank.deposit_credits(author, cred)
+                await bank.deposit_credits(author, cred)
             elif roll > 12 and roll <= 17:
                 cred = round(bal2 * 0.05)
-                bank.withdraw_credits(user, cred)
+                await bank.withdraw_credits(user, cred)
                 await ctx.send(
                     f"You sneak up behind {user} and pluck the wallet put of his back pocket. Your earned {cred} {currency}.")
                 bank.deposit_credits(author, cred)
             elif roll > 17 and roll <= 20:
                 cred = round(bal2 * 0.07)
-                bank.withdraw_credits(user, cred)
+                await bank.withdraw_credits(user, cred)
                 await ctx.send(
                     f"You break into {user}'s house and take the car keys lying on the table, you proceed to scrap the car for money. Your earned {cred} {currency}.")
-                bank.deposit_credits(author, cred)
+                await bank.deposit_credits(author, cred)
             elif roll == 21:
                 cred = round(bal2 * 0.25)
-                bank.withdraw_credits(user, cred)
+                await bank.withdraw_credits(user, cred)
                 await ctx.send(
                     f"You break into {user}'s house and break into the safe, stealing the contents. Your earned {cred} {currency}.")
-                bank.deposit_credits(author, cred)
+                await bank.deposit_credits(author, cred)
         except ValueError:
             await ctx.send("You or the target does not have any money to rob, try again on a new target.")
