@@ -124,7 +124,7 @@ class Rainbow6(commands.Cog):
                           font=font)
                 kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
                 draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
-                wlr = (int(p['wins']) + int(p['losses'])) / int(p['losses']) * 100
+                wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']))) * 100
                 draw.text((10, 500), "Ranked W/LR: {}".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
