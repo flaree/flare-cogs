@@ -93,7 +93,7 @@ class Rainbow6(commands.Cog):
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
             if data["Picture"][0] == "True":
-                img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
+                img = Image.new("RGBA", (340, 560), (17, 17, 17, 0))
                 aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
                 nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
                 img.paste(nameplate, (155, 10), nameplate)
@@ -124,7 +124,7 @@ class Rainbow6(commands.Cog):
                           font=font)
                 kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
                 draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
-                wlr = (int(p['wins']) / int(p['losses']))
+                wlr = (int(p['wins']) + int(p['losses'])) / int(p['losses']) * 100
                 draw.text((10, 500), "Ranked W/LR: {}".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
