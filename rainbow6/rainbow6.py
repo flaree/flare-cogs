@@ -118,12 +118,12 @@ class Rainbow6(commands.Cog):
                 draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 380), "Casual Kills: {}".format(q['casualpvp_kills']), fill=(255, 255, 255, 255),
+                draw.text((10, 380), "Ranked Kills: {}".format(q['rankedpvp_kills']), fill=(255, 255, 255, 255),
                           font=font)
-                draw.text((10, 420), "Casual Deaths: {}".format(q['casualpvp_death']), fill=(255, 255, 255, 255),
+                draw.text((10, 420), "Ranked Deaths: {}".format(q['rankedpvp_death']), fill=(255, 255, 255, 255),
                           font=font)
-                kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
-                draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
+                kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
+                draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
@@ -367,7 +367,7 @@ class Rainbow6(commands.Cog):
                 if stats == "timeplayed":
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                                     value=round(
-                                        int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                        int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600),
                                     inline=True)
                 else:
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
@@ -376,7 +376,7 @@ class Rainbow6(commands.Cog):
                 if stats == "timeplayed":
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                                   value=round(
-                                      int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 60),
+                                      int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600),
                                   inline=True)
                 else:
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
