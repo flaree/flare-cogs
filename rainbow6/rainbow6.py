@@ -76,112 +76,28 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
-    async def profile(self, ctx, member: discord.Member = None):
+    async def profile(self, ctx, account: str = None):
         """R6 Profile Stats for your set account. """
         data = await self.database.all()
-        if member is None:
+        if account is None:
             member = ctx.author
-        try:
-            r = requests.get(
-                "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
-                    data['Profiles']['{}'.format(member)], data['Platform']['{}'.format(member)]))
-            t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
-                    data['Profiles']['{}'.format(member)], data['Platform']['{}'.format(member)]))
-            s = requests.get("https://flareee.com/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
-                data['Profiles']['{}'.format(member)]))
-            p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
-            q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
-            if data["Picture"][0] == "True":
-                img = Image.new("RGBA", (340, 560), (17, 17, 17, 0))
-                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
-                nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
-                img.paste(nameplate, (155, 10), nameplate)
-                img.paste(aviholder, (10, 10), aviholder)
-                url = p['rankInfo']['image']
-                im = Image.open(requests.get(url, stream=True).raw)
-                im_size = 130, 130
-                im.thumbnail(im_size)
-                img.paste(im, (14, 15))
-                draw = ImageDraw.Draw(img)
-                font2 = ImageFont.truetype(
-                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
-                    22)
-                font = ImageFont.truetype(
-                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
-                    24)
-                draw.text((162, 14), f"{data['Profiles']['{}'.format(member)]}", fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
-                draw.text((162, 40), "Level: {}".format(p['level']), fill=(255, 255, 255, 255), font=font)
-                draw.text((162, 70), "Season 12 Stats", fill=(255, 255, 255, 255), font=font2)
-                draw.text((10, 220), "Wins: {}".format(p['wins']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 380), "Ranked Kills: {}".format(q['rankedpvp_kills']), fill=(255, 255, 255, 255),
-                          font=font)
-                draw.text((10, 420), "Ranked Deaths: {}".format(q['rankedpvp_death']), fill=(255, 255, 255, 255),
-                          font=font)
-                kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
-                draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
-                wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']))) * 100
-                draw.text((10, 500), "Ranked W/LR: {}".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
-
-                img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
-                image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
-                await ctx.send(file=image)
-            else:
-                colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(title="R6 Profile for {}".format(data['Profiles']['{}'.format(member)]),
-                                      colour=colour)
-                embed.set_thumbnail(url=p['rankInfo']['image'])
-                embed.add_field(name="Name:", value=p['nickname'], inline=True)
-                embed.add_field(
-                    name="Rank:", value=p['rankInfo']['name'], inline=True)
-                embed.add_field(name="Season:", value=p['season'], inline=True)
-                embed.add_field(name="Level:", value=p['level'], inline=True)
-                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
-                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
-                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
-                embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
-                embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
-                await ctx.send(embed=embed)
-        except KeyError:
-            await ctx.send("Ensure you've set your profile via [p]r6 setprofile. (Replace [p] with the bot prefix.)")
-
-    @commands.command()
-    async def accinfo(self, ctx, member: discord.Member = None):
-        """Account Info"""
-        data = await self.database.all()
-        if member is None:
-            member = ctx.author
-        try:
-            profile = data['Profiles']['{}'.format(member)]
+            account = data['Profiles']['{}'.format(member)]
             platform = data['Platform']['{}'.format(member)]
-            await ctx.send(f"Profile Name: {profile}")
-            await ctx.send(f"Platform: {platform}")
-        except KeyError:
-            await ctx.send("You do not have an account set, please set one via .r6 setprofile")
-
-    @r6.command()
-    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
-    async def lookup(self, ctx, account: str, platform=None):
-        """R6 Profile Stats for Season 12 - Platform defaults to uplay. Other choices: "xbl" and "psn" """
-        data = await self.database.all()
-        if platform != "psn" or platform != "xbl":
+        else:
             platform = "uplay"
         try:
             r = requests.get(
-                "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(account, platform))
+                "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
+                    account, platform))
             t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(account))
-            s = requests.get(
-                "https://flareee.com/r6/getStats.php?name={}&platform={}&appcode=flare".format(account, platform))
+                "https://flareee.com/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
+                    account, platform))
+            s = requests.get("https://flareee.com/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
+                account))
             p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
             q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
             if data["Picture"][0] == "True":
-                img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
+                img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
                 aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
                 nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
                 img.paste(nameplate, (155, 10), nameplate)
@@ -201,25 +117,34 @@ class Rainbow6(commands.Cog):
                 draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
                 draw.text((162, 40), "Level: {}".format(p['level']), fill=(255, 255, 255, 255), font=font)
-                draw.text((162, 70), f"Season 12 Stats", fill=(255, 255, 255, 255), font=font2)
-                draw.text((10, 220), "Wins: {}".format(p['wins']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
+                draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
+                draw.text((10, 220), "S12 Wins: {}".format(p['wins']), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 260), "S12 Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
+                draw.text((180, 220), "Total Wins: {}".format(q['rankedpvp_matchwon']), fill=(255, 255, 255, 255),
+                          font=font)
+                draw.text((180, 260), "Total Losses: {}".format(q['rankedpvp_matchlost']), fill=(255, 255, 255, 255),
+                          font=font)
                 draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 380), "Casual Kills: {}".format(q['casualpvp_kills']), fill=(255, 255, 255, 255),
+                draw.text((10, 380), "Ranked Kills: {}".format(q['rankedpvp_kills']), fill=(255, 255, 255, 255),
                           font=font)
-                draw.text((10, 420), "Casual Deaths: {}".format(q['casualpvp_death']), fill=(255, 255, 255, 255),
+                draw.text((10, 420), "Ranked Deaths: {}".format(q['rankedpvp_death']), fill=(255, 255, 255, 255),
                           font=font)
-                kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
-                draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
+                kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
+                draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
+                wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']) + int(p['abandons']))) * 100
+                draw.text((10, 500), "S12 Ranked W/LR: {}".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
+                twlr = (q['rankedpvp_matchwon'] / (q['rankedpvp_matchlost'] + q['rankedpvp_matchwon'])) * 100
+                draw.text((10, 540), "Total Ranked W/LR: {}".format(round(twlr, 2)), fill=(255, 255, 255, 255),
+                          font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 await ctx.send(file=image)
             else:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(
-                    title="R6 Profile for {}".format(account), colour=colour)
+                embed = discord.Embed(title="R6 Profile for {}".format(member),
+                                      colour=colour)
                 embed.set_thumbnail(url=p['rankInfo']['image'])
                 embed.add_field(name="Name:", value=p['nickname'], inline=True)
                 embed.add_field(
@@ -229,12 +154,27 @@ class Rainbow6(commands.Cog):
                 embed.add_field(name="Games Won:", value=p['wins'], inline=True)
                 embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
                 embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
+                embed.add_field(name="MMR:", value=round(int(p['mmr'])), inline=True)
                 embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
                 embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
                 await ctx.send(embed=embed)
-        except Exception as e:
-            await ctx.send(e)
+        except KeyError:
+            await ctx.send(
+                "Ensure you have a valid profile set via the r6 setprofile command or if you're looking for an account ensure it's valid.")
+
+    @commands.command()
+    async def accinfo(self, ctx, member: discord.Member = None):
+        """Account Info"""
+        data = await self.database.all()
+        if member is None:
+            member = ctx.author
+        try:
+            profile = data['Profiles']['{}'.format(member)]
+            platform = data['Platform']['{}'.format(member)]
+            await ctx.send(f"Profile Name: {profile}")
+            await ctx.send(f"Platform: {platform}")
+        except KeyError:
+            await ctx.send("You do not have an account set, please set one via .r6 setprofile")
 
     @r6.command()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
@@ -281,12 +221,6 @@ class Rainbow6(commands.Cog):
                 draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 380), "Casual Kills: {}".format(q['casualpvp_kills']), fill=(255, 255, 255, 255),
-                          font=font)
-                draw.text((10, 420), "Casual Deaths: {}".format(q['casualpvp_death']), fill=(255, 255, 255, 255),
-                          font=font)
-                kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
-                draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
