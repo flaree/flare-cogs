@@ -130,12 +130,19 @@ class Rainbow6(commands.Cog):
                           font=font)
                 draw.text((10, 420), "Ranked Deaths: {}".format(q['rankedpvp_death']), fill=(255, 255, 255, 255),
                           font=font)
+
                 kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
                 draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
-                wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']) + int(p['abandons']))) * 100
-                draw.text((10, 500), "S12 Ranked W/LR: {}".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
-                twlr = (q['rankedpvp_matchwon'] / (q['rankedpvp_matchlost'] + q['rankedpvp_matchwon'])) * 100
-                draw.text((10, 540), "Total Ranked W/LR: {}".format(round(twlr, 2)), fill=(255, 255, 255, 255),
+                if (int(p['wins']) + int(p['losses']) + int(p['abandons'])) != 0:
+                    wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']) + int(p['abandons']))) * 100
+                else:
+                    wlr = 0
+                draw.text((10, 500), "S12 Ranked W/LR: {}%".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
+                if (int(q['rankedpvp_matchlost']) + int(q['rankedpvp_matchwon'])) != 0:
+                    twlr = (q['rankedpvp_matchwon'] / (q['rankedpvp_matchlost'] + q['rankedpvp_matchwon'])) * 100
+                else:
+                    twlr = 0
+                draw.text((10, 540), "Total Ranked W/LR: {}%".format(round(twlr, 2)), fill=(255, 255, 255, 255),
                           font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
@@ -221,6 +228,12 @@ class Rainbow6(commands.Cog):
                 draw.text((10, 260), "Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 300), "MMR: {}".format(round(p['mmr'])), fill=(255, 255, 255, 255), font=font)
                 draw.text((10, 340), "Abandons: {}".format(p['abandons']), fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 380), "Casual Kills: {}".format(q['casualpvp_kills']), fill=(255, 255, 255, 255),
+                          font=font)
+                draw.text((10, 420), "Casual Deaths: {}".format(q['casualpvp_death']), fill=(255, 255, 255, 255),
+                          font=font)
+                kdr = (int(q['casualpvp_kills']) / int(q['casualpvp_death']))
+                draw.text((10, 460), "Casual KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
                 img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
@@ -248,17 +261,57 @@ class Rainbow6(commands.Cog):
     @r6.command()
     async def operator(self, ctx, account: str, operator: str, platform=None):
         """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        data = await self.database.all()
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
-        try:
-            r = requests.get(
-                "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            p = (r.json()["players"]["{}".format(
-                list(t.json().keys())[0])]["{}".format(operator)])
+
+        r = requests.get(
+            "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        t = requests.get(
+            "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        p = (r.json()["players"]["{}".format(
+            list(t.json().keys())[0])]["{}".format(operator)])
+        if data["Picture"][0] == "True":
+            img = Image.new("RGBA", (540, 480), (17, 17, 17, 0))
+            aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+            nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
+            img.paste(nameplate, (155, 10), nameplate)
+            img.paste(aviholder, (10, 10), aviholder)
+            url = (r.json()['operators'][f'{operator}']['images']['badge']).replace("\\", "")
+            im = Image.open(requests.get(url, stream=True).raw)
+            im_size = 130, 130
+            im.thumbnail(im_size)
+            img.paste(im, (14, 15))
+            draw = ImageDraw.Draw(img)
+            font2 = ImageFont.truetype(
+                "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                22)
+            font = ImageFont.truetype(
+                "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                24)
+            draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+            draw.text((162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font)
+
+            i = 180
+            for stats in p:
+                if stats[0:11] == "operatorpvp":
+                    stat = str(stats[12:]).replace("_", " ").title()
+                    if stat == "Timeplayed":
+                        p[stats] = round((p[stats] / 60), 2)
+                    t = len(operator)
+                    if stat[:t] == operator.capitalize():
+                        stat = stat[t + 1:]
+                    draw.text((10, i), "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
+                              fill=(255, 255, 255, 255),
+                              font=font)
+
+                i += 40
+            img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+            image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+            await ctx.send(file=image)
+        else:
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="Operator Information for {}".format(ctx.author), colour=colour)
@@ -273,15 +326,16 @@ class Rainbow6(commands.Cog):
             embed.add_field(
                 name="Deaths:", value=p['operatorpvp_death'], inline=True)
             embed.add_field(name="Time Played:", value=round(
-                int(p['operatorpvp_timeplayed']) / 60), inline=True)
+                int(p['operatorpvp_timeplayed']) / 3600), inline=True)
             await ctx.send(embed=embed)
-        except:
-            await ctx.send(
-                'Failed, ensure your name, platform & operator name are valid. Check the help for more info.')
 
     @r6.command()
     async def operators(self, ctx, account: str, stats: str, platform=None):
-        """R6 Profile Stats for all operators - Stats can be kills, roundwon or timeplayed,Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        """
+            R6
+            Profile
+            Stats
+            for all operators - Stats can be kills, roundwon or timeplayed, Platform defaults to uplay.Other choices: "xbl" and "psn" """
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
 
