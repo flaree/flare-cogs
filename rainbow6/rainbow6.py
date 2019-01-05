@@ -265,78 +265,81 @@ class Rainbow6(commands.Cog):
         operator = operator.lower()
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
-        try:
-            r = requests.get(
-                "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            t = requests.get(
-                "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
-                                                                                                   platform))
-            p = (r.json()["players"]["{}".format(
-                list(t.json().keys())[0])]["{}".format(operator)])
-            if data["Picture"][0] == "True":
-                img = Image.new("RGBA", (540, 480), (17, 17, 17, 0))
-                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
-                nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
-                img.paste(nameplate, (155, 10), nameplate)
-                img.paste(aviholder, (10, 10), aviholder)
-                url = (r.json()['operators'][f'{operator}']['images']['badge']).replace("\\", "")
-                im = Image.open(requests.get(url, stream=True).raw)
-                im_size = 130, 130
-                im.thumbnail(im_size)
-                img.paste(im, (14, 15))
-                draw = ImageDraw.Draw(img)
-                font2 = ImageFont.truetype(
-                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
-                    22)
-                font = ImageFont.truetype(
-                    "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
-                    24)
-                draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
-                draw.text((162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font)
-                draw.text((10, 180), f"{operator.capitalize()} KDR: {p['operatorpvp_kills'] / p['operatorpvp_kills']}",
-                          fill=(255, 255, 255, 255), font=font)
+        r = requests.get(
+            "https://flareee.com/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        t = requests.get(
+            "https://flareee.com/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
+                                                                                               platform))
+        p = (r.json()["players"]["{}".format(
+            list(t.json().keys())[0])]["{}".format(operator)])
+        if data["Picture"][0] == "True":
+            img = Image.new("RGBA", (540, 520), (17, 17, 17, 0))
+            aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+            nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
+            img.paste(nameplate, (155, 10), nameplate)
+            img.paste(aviholder, (10, 10), aviholder)
+            url = (r.json()['operators'][f'{operator}']['images']['badge']).replace("\\", "")
+            im = Image.open(requests.get(url, stream=True).raw)
+            im_size = 130, 130
+            im.thumbnail(im_size)
+            img.paste(im, (14, 15))
+            draw = ImageDraw.Draw(img)
+            font2 = ImageFont.truetype(
+                "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                22)
+            font = ImageFont.truetype(
+                "/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/ARIALUNI.ttf",
+                24)
+            draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+            draw.text((162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font)
+            if p['operatorpvp_kills'] == 0 and p['operatorpvp_death'] == 0:
+                kdr = 0
+            else:
+                kdr = p['operatorpvp_kills'] / p['operatorpvp_death']
+            draw.text((10, 180), f"{operator.capitalize()} KDR: {kdr}",
+                      fill=(255, 255, 255, 255), font=font)
+            if p['operatorpvp_roundwon'] == 0 and p['operatorpvp_roundlost'] == 0:
+                opwlr = 0
+            else:
                 opwlr = round(
                     (p['operatorpvp_roundwon'] / (p['operatorpvp_roundwon'] + p['operatorpvp_roundlost'])) * 100, 2)
-                draw.text((10, 220), f"{operator.capitalize()} WLR: {opwlr}", fill=(255, 255, 255, 255), font=font)
+            draw.text((10, 220), f"{operator.capitalize()} WLR: {opwlr}%", fill=(255, 255, 255, 255), font=font)
 
-                i = 260
-                for stats in p:
-                    if stats[0:11] == "operatorpvp":
-                        stat = str(stats[12:]).replace("_", " ").title()
-                        if stat == "Timeplayed":
-                            p[stats] = round((p[stats] / 60), 2)
-                        t = len(operator)
-                        if stat[:t] == operator.capitalize():
-                            stat = stat[t + 1:]
-                        draw.text((10, i), "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
-                                  fill=(255, 255, 255, 255),
-                                  font=font)
+            i = 260
+            for stats in p:
+                if stats[0:11] == "operatorpvp":
+                    stat = str(stats[12:]).replace("_", " ").title()
+                    if stat == "Timeplayed":
+                        p[stats] = round((p[stats] / 60), 2)
+                    t = len(operator)
+                    if stat[:t] == operator.capitalize():
+                        stat = stat[t + 1:]
+                    draw.text((10, i), "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
+                              fill=(255, 255, 255, 255),
+                              font=font)
 
-                    i += 40
-                img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
-                image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
-                await ctx.send(file=image)
-            else:
-                colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(
-                    title="Operator Information for {}".format(ctx.author), colour=colour)
-                embed.add_field(name="Operator:",
-                                value=operator.capitalize(), inline=True)
-                embed.add_field(name="Rounds Won:",
-                                value=p['operatorpvp_roundwon'], inline=True)
-                embed.add_field(name="Rounds Lost:",
-                                value=p['operatorpvp_roundlost'], inline=True)
-                embed.add_field(
-                    name="Kills:", value=p['operatorpvp_kills'], inline=True)
-                embed.add_field(
-                    name="Deaths:", value=p['operatorpvp_death'], inline=True)
-                embed.add_field(name="Time Played:", value=round(
-                    int(p['operatorpvp_timeplayed']) / 3600), inline=True)
-                await ctx.send(embed=embed)
-        except:
-            await ctx.send(
-                "Ensure you've entered the acc name and operator correctly. If you have then please contact flare#0001")
+                i += 40
+            img.save("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+            image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
+            await ctx.send(file=image)
+        else:
+            colour = discord.Color.from_hsv(random.random(), 1, 1)
+            embed = discord.Embed(
+                title="Operator Information for {}".format(ctx.author), colour=colour)
+            embed.add_field(name="Operator:",
+                            value=operator.capitalize(), inline=True)
+            embed.add_field(name="Rounds Won:",
+                            value=p['operatorpvp_roundwon'], inline=True)
+            embed.add_field(name="Rounds Lost:",
+                            value=p['operatorpvp_roundlost'], inline=True)
+            embed.add_field(
+                name="Kills:", value=p['operatorpvp_kills'], inline=True)
+            embed.add_field(
+                name="Deaths:", value=p['operatorpvp_death'], inline=True)
+            embed.add_field(name="Time Played:", value=round(
+                int(p['operatorpvp_timeplayed']) / 3600), inline=True)
+            await ctx.send(embed=embed)
 
     @r6.command()
     async def operators(self, ctx, account: str, stats: str, platform=None):
