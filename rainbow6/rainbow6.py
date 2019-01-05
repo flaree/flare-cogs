@@ -296,7 +296,7 @@ class Rainbow6(commands.Cog):
             if p['operatorpvp_kills'] == 0 and p['operatorpvp_death'] == 0:
                 kdr = 0
             else:
-                kdr = p['operatorpvp_kills'] / p['operatorpvp_death']
+                kdr = round(p['operatorpvp_kills'] / p['operatorpvp_death'], 2)
             draw.text((10, 180), f"{operator.capitalize()} KDR: {kdr}",
                       fill=(255, 255, 255, 255), font=font)
             if p['operatorpvp_roundwon'] == 0 and p['operatorpvp_roundlost'] == 0:
