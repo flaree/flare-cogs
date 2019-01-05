@@ -294,8 +294,13 @@ class Rainbow6(commands.Cog):
                     24)
                 draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
                 draw.text((162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font)
+                draw.text((10, 180), f"{operator.capitalize()} KDR: {p['operatorpvp_kills'] / p['operatorpvp_kills']}",
+                          fill=(255, 255, 255, 255), font=font)
+                opwlr = round(
+                    (p['operatorpvp_roundwon'] / (p['operatorpvp_roundwon'] + p['operatorpvp_roundlost'])) * 100, 2)
+                draw.text((10, 220), f"{operator.capitalize()} WLR: {opwlr}", fill=(255, 255, 255, 255), font=font)
 
-                i = 180
+                i = 260
                 for stats in p:
                     if stats[0:11] == "operatorpvp":
                         stat = str(stats[12:]).replace("_", " ").title()
