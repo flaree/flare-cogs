@@ -262,6 +262,7 @@ class Rainbow6(commands.Cog):
     async def operator(self, ctx, account: str, operator: str, platform=None):
         """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         data = await self.database.all()
+        operator = operator.lower()
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
         try:
