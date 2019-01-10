@@ -13,10 +13,11 @@ defaults = {"Profiles": {},
 class Rainbow6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    def __init__(self):
+    def __init__(self, bot):
         self.database = Config.get_conf(
             self, identifier=7258295620, force_registration=True)
         self.database.register_global(**defaults)
+        self.bot = bot
 
     def round_corner(self, radius):
         """Draw a round corner"""
@@ -79,13 +80,13 @@ class Rainbow6(commands.Cog):
     async def profile(self, ctx, account: str = None):
         """R6 Profile Stats for your set account. """
         data = await self.database.all()
-        if account is None:
-            member = ctx.author
-            account = data['Profiles']['{}'.format(member)]
-            platform = data['Platform']['{}'.format(member)]
-        else:
-            platform = "uplay"
         try:
+            if account is None:
+                member = ctx.author
+                account = data['Profiles']['{}'.format(member)]
+                platform = data['Platform']['{}'.format(member)]
+            else:
+                platform = "uplay"
             r = requests.get(
                 "https://flareee.com/r6/getUser.php?name={}&platform={}&appcode=flare".format(
                     account, platform))
@@ -165,9 +166,11 @@ class Rainbow6(commands.Cog):
                 embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
                 embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
                 await ctx.send(embed=embed)
-        except KeyError:
+        except Exception as e:
             await ctx.send(
                 "Ensure you have a valid profile set via the r6 setprofile command or if you're looking for an account ensure it's valid.")
+            user = self.bot.get_user(95932766180343808)
+            await user.send("r6 profile command issued by {}.\n Error: {}".format(ctx.author, e))
 
     @commands.command()
     async def accinfo(self, ctx, member: discord.Member = None):
