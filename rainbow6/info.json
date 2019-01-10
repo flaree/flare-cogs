@@ -12,5 +12,5 @@
     "stats",
     "operators"
   ],
-  "hidden": false
+  "hidden": true,
 }
