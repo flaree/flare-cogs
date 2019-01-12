@@ -1,6 +1,7 @@
 {
   "author": [
-    "flare(flare#0001)"
+    "flare(flare#0001)",
+    "malarne"
   ],
   "install_msg": "Simple R6 API.",
   "name": "Rainbow6",
