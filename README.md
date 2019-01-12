@@ -1,4 +1,5 @@
 # Flare-Cogs
+# Note - These are not optimized WHATSOEVER. Please use at your own risk.
 
 | Name | Description 
 | --- | --- |

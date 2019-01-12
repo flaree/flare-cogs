@@ -49,13 +49,13 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     @checks.admin_or_permissions(administrator=True)
-    async def picture(self, ctx, type: str):
+    async def picture(self, ctx, result: str):
         """Set picture/embed lookup"""
-        if type == "True":
+        if result == "True":
             async with self.database.Picture() as picture:
                 picture[0] = "True"
             await ctx.send("The bot will now send pictures instead of embeds.")
-        elif type == "False":
+        elif result == "False":
             async with self.database.Picture() as picture:
                 picture[0] = "False"
             await ctx.send("The bot will now send embeds instead of pictures.")
@@ -150,22 +150,23 @@ class Rainbow6(commands.Cog):
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 await ctx.send(file=image)
             else:
-                colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(title="R6 Profile for {}".format(member),
-                                      colour=colour)
-                embed.set_thumbnail(url=p['rankInfo']['image'])
-                embed.add_field(name="Name:", value=p['nickname'], inline=True)
-                embed.add_field(
-                    name="Rank:", value=p['rankInfo']['name'], inline=True)
-                embed.add_field(name="Season:", value=p['season'], inline=True)
-                embed.add_field(name="Level:", value=p['level'], inline=True)
-                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
-                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
-                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-                embed.add_field(name="MMR:", value=round(int(p['mmr'])), inline=True)
-                embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
-                embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
-                await ctx.send(embed=embed)
+                # colour = discord.Color.from_hsv(random.random(), 1, 1)
+                # embed = discord.Embed(title="R6 Profile for {}".format(account),
+                #                      colour=colour)
+                # embed.set_thumbnail(url=p['rankInfo']['image'])
+                # embed.add_field(name="Name:", value=p['nickname'], inline=True)
+                # embed.add_field(
+                #    name="Rank:", value=p['rankInfo']['name'], inline=True)
+                # embed.add_field(name="Season:", value=p['season'], inline=True)
+                # embed.add_field(name="Level:", value=p['level'], inline=True)
+                # embed.add_field(name="Games Won:", value=p['wins'], inline=True)
+                # embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
+                # embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
+                # embed.add_field(name="MMR:", value=str(round(int(p['mmr']))), inline=True)
+                # embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
+                # embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
+                # await ctx.send(embed=embed)
+                await ctx.send("Currently disabled.")
         except Exception as e:
             await ctx.send(
                 "Ensure you have a valid profile set via the r6 setprofile command or if you're looking for an account ensure it's valid.")
@@ -242,21 +243,22 @@ class Rainbow6(commands.Cog):
                 image = discord.File("/home/flare/.loca./share/R6-Stats-Red/cogs/CogManager/cogs/rainbow6/r6.png")
                 await ctx.send(file=image)
             else:
-                colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(
-                    title="R6 Profile for {}".format(account), colour=colour)
-                embed.set_thumbnail(url=p['rankInfo']['image'])
-                embed.add_field(name="Name:", value=p['nickname'], inline=True)
-                embed.add_field(
-                    name="Rank:", value=p['rankInfo']['name'], inline=True)
-                embed.add_field(name="Season:", value=p['season'], inline=True)
-                embed.add_field(name="Games Won:", value=p['wins'], inline=True)
-                embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
-                embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
-                embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
-                embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
-                embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
-                await ctx.send(embed=embed)
+                # colour = discord.Color.from_hsv(random.random(), 1, 1)
+                # embed = discord.Embed(
+                #    title="R6 Profile for {}".format(account), colour=colour)
+                # embed.set_thumbnail(url=p['rankInfo']['image'])
+                # embed.add_field(name="Name:", value=p['nickname'], inline=True)
+                # embed.add_field(
+                #    name="Rank:", value=p['rankInfo']['name'], inline=True)
+                # embed.add_field(name="Season:", value=p['season'], inline=True)
+                # embed.add_field(name="Games Won:", value=p['wins'], inline=True)
+                # embed.add_field(name="Games Lost:", value=p['losses'], inline=True)
+                # embed.add_field(name="Abandons:", value=p['abandons'], inline=True)
+                # embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
+                # embed.add_field(name="Casual Kills:", value=q['casualpvp_kills'], inline=True)
+                # embed.add_field(name="Casual Deaths:", value=q['casualpvp_death'], inline=True)
+                # await ctx.send(embed=embed)
+                await ctx.send("Currently disabled")
         except:
             await ctx.send(
                 'Failed, ensure your name, season number and platform are valid. Check the help for more info.')
@@ -340,8 +342,8 @@ class Rainbow6(commands.Cog):
                 name="Kills:", value=p['operatorpvp_kills'], inline=True)
             embed.add_field(
                 name="Deaths:", value=p['operatorpvp_death'], inline=True)
-            embed.add_field(name="Time Played:", value=round(
-                int(p['operatorpvp_timeplayed']) / 3600), inline=True)
+            embed.add_field(name="Time Played:", value=str(round(
+                int(p['operatorpvp_timeplayed']) / 3600)), inline=True)
             await ctx.send(embed=embed)
 
     @r6.command()
@@ -371,8 +373,8 @@ class Rainbow6(commands.Cog):
             if i < 21:
                 if stats == "timeplayed":
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                    value=round(
-                                        int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600),
+                                    value=str(round(
+                                        int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600)),
                                     inline=True)
                 else:
                     embed.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
@@ -380,8 +382,8 @@ class Rainbow6(commands.Cog):
             else:
                 if stats == "timeplayed":
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                                  value=round(
-                                      int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600),
+                                  value=str(round(
+                                      int(q["{}".format(ops[i])]['operatorpvp_{}'.format(stats)]) / 3600)),
                                   inline=True)
                 else:
                     emb.add_field(name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
