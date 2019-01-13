@@ -23,6 +23,19 @@ class Accounts(commands.Cog):
             "Successfully added your {} name: {} to the list of accounts.".format(platform.capitalize(), name))
 
     @commands.command()
+    async def delaccount(self, ctx, platform: str):
+        """Add an account to your current list."""
+        userdata = await self.config.user(ctx.author).all()
+        key = platform.capitalize()
+        try:
+            del userdata[key]
+            await self.config.user(ctx.author).set(userdata)
+            await ctx.send(
+                "Successfully removed {} from your list of accounts.".format(platform.capitalize()))
+        except KeyError:
+            await ctx.send("The platform {} does not exist.".format(platform.capitalize()))
+
+    @commands.command()
     async def accounts(self, ctx, *, user: discord.Member = None):
         """Show all your accounts."""
         if user is None:
