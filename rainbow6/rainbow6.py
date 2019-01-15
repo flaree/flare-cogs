@@ -52,6 +52,7 @@ class Rainbow6(commands.Cog):
 
     @r6.command()
     async def setpicture(self, ctx, value: bool):
+        """Return pictures or embeds for stats."""
         pic = await self.database.user(ctx.author).all()
         if value:
             pic['picture'] = True

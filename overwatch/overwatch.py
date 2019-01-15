@@ -192,7 +192,7 @@ class Overwatch(commands.Cog):
                 await ctx.send("Your profile is set to private, we were unable to retrieve your stats.")
         except:
             await ctx.send("Unable to retrieve results, please ensure you're entering the command correctly")
-
+            
     @ow.command()
     async def consoleheroes(self, ctx, console: str, account: str, *heroes: str):
         """OW Multiple Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
