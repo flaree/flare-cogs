@@ -106,6 +106,7 @@ class Rainbow6(commands.Cog):
         else:
             twlr = 0
         kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
+        season = p['season']
         if pic['picture']:
             img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
@@ -124,8 +125,8 @@ class Rainbow6(commands.Cog):
             draw.text((10, 180), "Rank: {}".format(p['rankInfo']['name']), fill=(255, 255, 255, 255), font=font)
             draw.text((162, 40), "Level: {}".format(p['level']), fill=(255, 255, 255, 255), font=font)
             draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
-            draw.text((10, 220), "S12 Wins: {}".format(p['wins']), fill=(255, 255, 255, 255), font=font)
-            draw.text((10, 260), "S12 Losses: {}".format(p['losses']), fill=(255, 255, 255, 255), font=font)
+            draw.text((10, 220), "S{} Wins: {}".format(season, p['wins']), fill=(255, 255, 255, 255), font=font)
+            draw.text((10, 260), "S{} Losses: {}".format(season, p['losses']), fill=(255, 255, 255, 255), font=font)
             draw.text((180, 220), "Total Wins: {}".format(q['rankedpvp_matchwon']), fill=(255, 255, 255, 255),
                       font=font)
             draw.text((180, 260), "Total Losses: {}".format(q['rankedpvp_matchlost']), fill=(255, 255, 255, 255),
@@ -137,7 +138,8 @@ class Rainbow6(commands.Cog):
             draw.text((10, 420), "Ranked Deaths: {}".format(q['rankedpvp_death']), fill=(255, 255, 255, 255),
                       font=font)
             draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
-            draw.text((10, 500), "S12 Ranked W/LR: {}%".format(round(wlr, 2)), fill=(255, 255, 255, 255), font=font)
+            draw.text((10, 500), "S{} Ranked W/LR: {}%".format(season, round(wlr, 2)), fill=(255, 255, 255, 255),
+                      font=font)
             draw.text((10, 540), "Total Ranked W/LR: {}%".format(round(twlr, 2)), fill=(255, 255, 255, 255),
                       font=font)
 
@@ -153,16 +155,16 @@ class Rainbow6(commands.Cog):
             embed.add_field(
                 name="Rank:", value=p['rankInfo']['name'], inline=True)
             embed.add_field(name="Season:", value=p['season'], inline=True)
-            embed.add_field(name="S12 Games Won:", value=p['wins'], inline=True)
-            embed.add_field(name="S12Games Lost:", value=p['losses'], inline=True)
-            embed.add_field(name="S12 Abandons:", value=p['abandons'], inline=True)
+            embed.add_field(name="S{} Games Won:".format(season), value=p['wins'], inline=True)
+            embed.add_field(name="S{} Games Lost:".format(season), value=p['losses'], inline=True)
+            embed.add_field(name="S{} Abandons:".format(season), value=p['abandons'], inline=True)
             embed.add_field(name="MMR:", value=round(p['mmr']), inline=True)
             embed.add_field(name="Total Wins:", value=q['rankedpvp_matchwon'], inline=True)
             embed.add_field(name="Total Losses:", value=q['rankedpvp_matchlost'], inline=True)
             embed.add_field(name="Ranked Kills:", value=q['rankedpvp_matchwon'], inline=True)
             embed.add_field(name="Ranked Deaths:", value=q['rankedpvp_matchlost'], inline=True)
             embed.add_field(name="Ranked KDR:", value=f"{round(kdr, 2)}%", inline=True)
-            embed.add_field(name="S12 Ranked W/R:", value=f"{int(round(wlr, 2))}%", inline=True)
+            embed.add_field(name="S{} Ranked W/R:".format(season), value=f"{int(round(wlr, 2))}%", inline=True)
             embed.add_field(name="Total Ranked W/R:", value=f"{int(round(twlr, 2))}%", inline=True)
             await ctx.send(embed=embed)
 
