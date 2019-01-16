@@ -9,6 +9,7 @@ class Forward(commands.Cog):
         self.bot = bot
 
     async def on_message(self, message):
+        await self.bot.is_owner(discord.Object(id=None))
         owner = self.bot.get_user(self.bot.owner_id)
         if message.guild != None:
             return
