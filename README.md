@@ -3,6 +3,7 @@
 
 | Name | Description 
 | --- | --- |
+| Forward | Forward all non-command messages to the bot owner. |
 | Rainbow6 | Uses a self hosted API to check account/operator stats. ** Font is inside the directory.|
 | SA:MP | Query SACNR Monitor and retrieve basic stats. |
 | CSGOSkins | Lookup csgoback prices of csgo skins/items and reveal lowest - highest price etc. |
