@@ -143,8 +143,8 @@ class Rainbow6(commands.Cog):
             draw.text((10, 540), "Total Ranked W/LR: {}%".format(round(twlr, 2)), fill=(255, 255, 255, 255),
                       font=font)
 
-            img.save(os.path.join(__path__[0], "r6.png"))
-            image = discord.File(os.path.join(__path__[0], "r6.png"))
+            img.save(os.path.join(__path__[0], "profile.png"))
+            image = discord.File(os.path.join(__path__[0], "profile.png"))
             await ctx.send(file=image)
         else:
             colour = discord.Color.from_hsv(random.random(), 1, 1)
@@ -232,8 +232,8 @@ class Rainbow6(commands.Cog):
                       font=font)
             draw.text((10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font)
 
-            img.save(os.path.join(__path__[0], "r6.png"))
-            image = discord.File(os.path.join(__path__[0], "r6.png"))
+            img.save(os.path.join(__path__[0], "season.png"))
+            image = discord.File(os.path.join(__path__[0], "season.png"))
             await ctx.send(file=image)
         else:
             colour = discord.Color.from_hsv(random.random(), 1, 1)
@@ -311,8 +311,8 @@ class Rainbow6(commands.Cog):
                               font=font)
 
                 i += 40
-            img.save(os.path.join(__path__[0], "r6.png"))
-            image = discord.File(os.path.join(__path__[0], "r6.png"))
+            img.save(os.path.join(__path__[0], "operator.png"))
+            image = discord.File(os.path.join(__path__[0], "operator.png"))
             await ctx.send(file=image)
         else:
             colour = discord.Color.from_hsv(random.random(), 1, 1)
