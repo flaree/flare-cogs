@@ -1,0 +1,16 @@
+{
+  "author": [
+    "flare(flare#0001)",
+    "Aikaterna"
+  ],
+  "install_msg": "Forward messages to the bot owner.",
+  "name": "Foward",
+  "disabled": false,
+  "short": "Forward messages to bot owner.",
+  "description": "Forward DMs to the bot to the bot owner.",
+  "tags": [
+    "forward",
+    "forwarding"
+  ],
+  "hidden": false
+}
