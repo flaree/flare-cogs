@@ -14,9 +14,9 @@ class Forward(commands.Cog):
         await owner.send(embed=embed2)
 
     async def on_message(self, message):
-        if message.guild is None:
+        if message.guild is not None:
             return
-        if message.channel.recipient.id != self.bot.owner_id:
+        if message.channel.recipient.id == self.bot.owner_id:
             return
         if message.author == self.bot.user:
             embed = discord.Embed(title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
