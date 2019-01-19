@@ -20,6 +20,7 @@ class Forward(commands.Cog):
             return
         if message.author == self.bot.user:
             embed = discord.Embed(title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
+                                  description=message.content,
                                   timestamp=message.created_at)
             await self.sendowner(embed)
         else:

@@ -6,6 +6,7 @@ from redbot.core.utils.chat_formatting import pagify
 
 defaults = {"Profiles": {},
             "Region": {}}
+defaults_user = {"picture": True}
 
 
 class Overwatch(commands.Cog):
@@ -16,10 +17,28 @@ class Overwatch(commands.Cog):
         """Overwatch Commands"""
         pass
 
+    @ow.group(autohelp=True, aliases=["overwatch"])
+    async def console(self, ctx):
+        """Overwatch Console Commands"""
+        pass
+
     def __init__(self):
         self.database = Config.get_conf(
             self, identifier=4268355870, force_registration=True)
         self.database.register_global(**defaults)
+        self.database.register_user(**defaults_user)
+
+    @ow.command()
+    async def setpicture(self, ctx, value: bool):
+        """Return pictures or embeds for stats."""
+        pic = await self.database.user(ctx.author).all()
+        if value:
+            pic['picture'] = True
+            await ctx.send("You will now be sent a picture instead of an embed.")
+        if not value:
+            pic['picture'] = False
+            await ctx.send("You will now be sent an embed instead of a picture.")
+        await self.database.user(ctx.author).set(pic)
 
     @ow.command()
     async def setprofile(self, ctx, account: str, region: str):
@@ -192,9 +211,9 @@ class Overwatch(commands.Cog):
                 await ctx.send("Your profile is set to private, we were unable to retrieve your stats.")
         except:
             await ctx.send("Unable to retrieve results, please ensure you're entering the command correctly")
-            
-    @ow.command()
-    async def consoleheroes(self, ctx, console: str, account: str, *heroes: str):
+
+    @console.command(name="heroes")
+    async def _heroes(self, ctx, console: str, account: str, *heroes: str):
         """OW Multiple Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         heroes = ",".join(heroes)
         r = requests.get(
@@ -247,8 +266,8 @@ class Overwatch(commands.Cog):
         except:
             await ctx.send("Unable to retrieve results, please ensure you're entering the command correctly")
 
-    @ow.command()
-    async def consolehero(self, ctx, console: str, account: str, hero: str):
+    @console.command(name="hero")
+    async def _hero(self, ctx, console: str, account: str, hero: str):
         """OW Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         try:
             r = requests.get(
@@ -294,8 +313,8 @@ class Overwatch(commands.Cog):
         except:
             await ctx.send("Request failed, please ensure you're entering the details correctly.")
 
-    @ow.command(alias="stats")
-    async def consoleprofile(self, ctx, console: str, account: str):
+    @console.command(name="profile")
+    async def _profile(self, ctx, console: str, account: str):
         """OW Profile Stats - Account must be your PSN or Gamertag. Ensure profile is public for full stats"""
         try:
             r = requests.get(
