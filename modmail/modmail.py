@@ -23,17 +23,13 @@ class Modmail(commands.Cog):
     async def on_message(self, message):
         if message.guild is not None:
             return
-        if message.channel.recipient.id == self.bot.owner_id:
-            return
         if message.author == self.bot.user:
             return
-        if message.content[0] not in await self.bot.get_prefix(message):
+        if message.attachments != [] or message.content[0] not in await self.bot.get_prefix(message):
             embed = discord.Embed(description=message.content, timestamp=message.created_at)
             embed.set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
-            try:
-                embed.set_image(url=message.attachments[0])
-            except:
-                print("No image found")
+            if message.attachments != []:
+                embed.set_image(url=message.attachments[0].url)
             await self.channelsend(embed)
 
     @checks.is_owner()
