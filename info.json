@@ -2,12 +2,13 @@
   "author": [
     "flare (flare#0001)"
   ],
-  "install_msg": "Most cogs listed here will most likely not work, they're monkeypatched to work locally so yeah..",
+  "install_msg": "Assortment of cogs.",
   "name": "Flare's Cogs",
   "short": "Random assortment of cogs I attempted while learning python.",
   "description": "Assortment of cogs using shitty APIs",
   "tags": [
     "Apis",
-    "Games"
+    "Games",
+    "rewrites"
   ]
 }

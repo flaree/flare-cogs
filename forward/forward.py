@@ -27,5 +27,5 @@ class Forward(commands.Cog):
             if message.content[0] not in await self.bot.get_prefix(message):
                 embed = discord.Embed(description=message.content, timestamp=message.created_at)
                 embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-                embed.set_footer(text=message.author.id)
+                embed.set_footer(text=f"User ID: {message.author.id}")
                 await self.sendowner(embed)
