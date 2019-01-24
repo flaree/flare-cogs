@@ -30,6 +30,10 @@ class Modmail(commands.Cog):
         if message.content[0] not in await self.bot.get_prefix(message):
             embed = discord.Embed(description=message.content, timestamp=message.created_at)
             embed.set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
+            try:
+                embed.set_image(url=message.attachments[0])
+            except:
+                print("No image found")
             await self.channelsend(embed)
 
     @checks.is_owner()
