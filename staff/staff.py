@@ -15,7 +15,7 @@ class Staff(BaseCog):
         defaults_global = {"staff": {}, "management": {}}
         self.database.register_global(**defaults_global)
 
-    @commands.has_any_roles("Lead Administrator", "Server Manager", "Server Owner")
+    @commands.has_any_role("Lead Administrator", "Server Manager", "Server Owner")
     @commands.command()
     async def addstaff(self, ctx, name: str, *, rank: str):
         """Add staff members"""
@@ -24,7 +24,7 @@ class Staff(BaseCog):
             staff[key] = rank
         await ctx.send("Done.")
 
-    @commands.has_any_roles("Lead Administrator", "Server Manager", "Server Owner")
+    @commands.has_any_role("Lead Administrator", "Server Manager", "Server Owner")
     @commands.command()
     async def addmanagement(self, ctx, name: str, *, rank: str):
         """Add Management members"""
@@ -55,7 +55,7 @@ class Staff(BaseCog):
                 embed.add_field(name=staff[name], value=name, inline=True)
         await ctx.send(embed=embed)
 
-    @commands.has_any_roles("Lead Administrator", "Server Manager", "Server Owner")
+    @commands.has_any_role("Lead Administrator", "Server Manager", "Server Owner")
     @commands.command()
     async def remstaff(self, ctx, name: str):
         """Remove staff members"""
@@ -64,7 +64,7 @@ class Staff(BaseCog):
                 del staff[name]
             await ctx.send("done")
 
-    @commands.has_any_roles("Lead Administrator", "Server Manager", "Server Owner")
+    @commands.has_any_role("Lead Administrator", "Server Manager", "Server Owner")
     @commands.command()
     async def remmanagement(self, ctx, name: str):
         """Remove management members"""
