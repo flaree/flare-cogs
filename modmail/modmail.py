@@ -34,19 +34,19 @@ class Modmail(commands.Cog):
 
     @checks.is_owner()
     @commands.group(autohelp=True)
-    async def modmail(self, ctx):
+    async def modmailset(self, ctx):
         """Modmail Commands"""
         pass
 
-    @modmail.command()
-    async def set(self, ctx, channel: discord.TextChannel):
+    @modmailset.command()
+    async def channel(self, ctx, channel: discord.TextChannel):
         """Set the channel that the bot will post to - Mention the channel."""
         async with self.config.modmail() as modmail:
             key = str(ctx.message.guild.id)
             modmail[key] = channel.id
         await ctx.send("Channel added successfully.")
 
-    @modmail.command()
+    @modmailset.command()
     async def list(self, ctx):
         """List all current modmail channels."""
         async with self.config.modmail() as modmail:
@@ -55,7 +55,7 @@ class Modmail(commands.Cog):
             for stats in modmail:
                 await ctx.send(modmail[stats])
 
-    @modmail.command()
+    @modmailset.command()
     async def toggle(self, ctx, mode: bool):
         """Toggle modmail."""
         async with self.config.toggle() as toggle:
