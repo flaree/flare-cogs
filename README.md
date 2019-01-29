@@ -1,4 +1,4 @@
-# Flare-Cogs
+# Flare-Cogs - (flare#0001)
 Note - **Some of these cogs are not optimized whatsoever. Please use at your own risk.**
 
 | Name | Release | Description 
