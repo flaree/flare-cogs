@@ -1,5 +1,5 @@
 # Flare-Cogs - (flare#0001)
-Note - **Some of these cogs are not optimized whatsoever. Please use at your own risk.**
+Note - Moved unoptimzed cogs to another branch.
 
 | Name | Release | Description 
 | --- | --- | --- |
