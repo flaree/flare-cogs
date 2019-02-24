@@ -28,7 +28,7 @@ class Modmail(commands.Cog):
         if message.attachments or not any(message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
             embeds = []
             attachments_urls = []
-            embeds.append(discord.Embed(description=message.content, timestamp=message.created_at))
+            embeds.append(discord.Embed(description=message.content))
             embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
             for attachment in message.attachments:
                 if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
