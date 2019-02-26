@@ -25,12 +25,26 @@ class Modmail(commands.Cog):
             return
         if message.author == self.bot.user:
             return
-        if message.attachments != [] or message.content[0] not in await self.bot.get_prefix(message):
-            embed = discord.Embed(description=message.content, timestamp=message.created_at)
-            embed.set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
-            if message.attachments != []:
-                embed.set_image(url=message.attachments[0].url)
-            await self.channelsend(embed)
+        if message.attachments or not any(message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+            embeds = []
+            attachments_urls = []
+            embeds.append(discord.Embed(description=message.content))
+            embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
+            for attachment in message.attachments:
+                if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                    if embeds[0].image:
+                        embed = discord.Embed()
+                        embed.set_image(url=attachment.url)
+                        embeds.append(embed)
+                    else:
+                        embeds[0].set_image(url=attachment.url)
+                else:
+                    attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+            if attachments_urls:
+                embeds[0].add_field(name = "Attachments", value = "\n".join(attachments_urls))
+            embeds[-1].timestamp = message.created_at
+            for embed in embeds:
+                await self.channelsend(embed)
 
     @checks.is_owner()
     @commands.group(autohelp=True)
@@ -50,7 +64,7 @@ class Modmail(commands.Cog):
     async def list(self, ctx):
         """List all current modmail channels."""
         async with self.config.modmail() as modmail:
-            if len(modmail) == 0:
+            if not modmail:
                 await ctx.send("No channels are currently set.")
             for stats in modmail:
                 await ctx.send(modmail[stats])
