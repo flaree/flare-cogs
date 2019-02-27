@@ -8,3 +8,5 @@ workspace.code-workspace
 venv/
 .debris/
 rainbow6/r6.png
+foco/
+wcrp/
