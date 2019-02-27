@@ -21,6 +21,14 @@ class Rainbow6(commands.Cog):
         self.database.register_user(**defaults_user)
         self.database.register_global(**defaults)
         self.bot = bot
+        self._session = aiohttp.ClientSession()
+
+        async def __unload(self):
+            asyncio.get_event_loop().create_task(self._session.close())
+
+        async def get(self, url):
+            async with self._session.get(url) as response:
+                return await response.json()
 
     def round_corner(self, radius):
         """Draw a round corner"""
@@ -87,16 +95,17 @@ class Rainbow6(commands.Cog):
             platform = data['Platform']['{}'.format(member)]
         else:
             platform = "uplay"
-        r = requests.get(
-            "http://slapsquadrecords.me/r6/getUser.php?name={}&platform={}&appcode=flare".format(
-                account, platform))
-        t = requests.get(
-            "http://slapsquadrecords.me/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
-                account, platform))
-        s = requests.get("http://slapsquadrecords.me/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
-            account))
-        p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
-        q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
+        req1 = "http://slapsquadrecords.me/r6/getUser.php?name={}&platform={}&appcode=flare".format(
+            account, platform)
+        req2 = "http://slapsquadrecords.me/r6/getSmallUser.php?name={}&platform=uplay&appcode=flare".format(
+            account, platform)
+        req3 = "http://slapsquadrecords.me/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
+            account)
+        r = await self.get(req1)
+        t = await self.get(req2)
+        s = await self.get(req3)
+        p = (r["players"]["{}".format(list(t.keys())[0])])
+        q = (s["players"]["{}".format(list(t.keys())[0])])
         if (int(p['wins']) + int(p['losses']) + int(p['abandons'])) != 0:
             wlr = (int(p['wins']) / (int(p['wins']) + int(p['losses']) + int(p['abandons']))) * 100
         else:
