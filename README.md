@@ -4,6 +4,7 @@ Note - Moved unoptimzed cogs to another branch.
 | Name | Release | Description 
 | --- | --- | --- |
 | Forward | Beta | Forward all non-command messages to the bot owner. |
-| ModMail | Beta | Forward all non-command messages to set channels. |
+| Modmail | Beta | Forward all non-command messages to set channels. |
+| Highlight | Alpha | Highlight key words said in a channel and be DM'ed when they're said. |
 | SA:MP | Alpha | Query SACNR Monitor and retrieve basic stats. |
 | Movies | Beta | Simple movie lookup.
