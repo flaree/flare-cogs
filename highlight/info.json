@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Highlight certain words to be notified - 1 highlighted word per channel.",
+  "name": "Highlight",
+  "disabled": false,
+  "short": "Get notified on certain words.",
+  "description": "Highlight certain words to be notified of if said in that channel.",
+  "tags": [
+    "highlight"
+  ],
+  "hidden": false
+}
