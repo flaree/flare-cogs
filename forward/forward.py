@@ -25,7 +25,7 @@ class Forward(commands.Cog):
             await self.sendowner(embed)
         else:
             if message.attachments or not any(
-                    essage.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+                    message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
                 embeds = []
                 attachments_urls = []
                 embeds.append(discord.Embed(description=message.content))
