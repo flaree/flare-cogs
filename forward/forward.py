@@ -24,8 +24,24 @@ class Forward(commands.Cog):
                                   timestamp=message.created_at)
             await self.sendowner(embed)
         else:
-            if message.content[0] not in await self.bot.get_prefix(message):
-                embed = discord.Embed(description=message.content, timestamp=message.created_at)
-                embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-                embed.set_footer(text=f"User ID: {message.author.id}")
-                await self.sendowner(embed)
+            if message.attachments or not any(
+                    essage.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+                embeds = []
+                attachments_urls = []
+                embeds.append(discord.Embed(description=message.content))
+                embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
+                for attachment in message.attachments:
+                    if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                        if embeds[0].image:
+                            embed = discord.Embed()
+                            embed.set_image(url=attachment.url)
+                            embeds.append(embed)
+                        else:
+                            embeds[0].set_image(url=attachment.url)
+                    else:
+                        attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+                if attachments_urls:
+                    embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+                embeds[-1].timestamp = message.created_at
+                for embed in embeds:
+                    await self.sendowner(embed)
