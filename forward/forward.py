@@ -52,8 +52,17 @@ class Forward(commands.Cog):
         """PMs a person.
            Separate version of [p]dm but allows for guild owners."""
         user = discord.utils.get(ctx.bot.get_all_members(), id=user_id)
-        if user is None:
-            await ctx.send("Invalid ID or the user not found. Ensure the user is in a shared server with me.")
-            return
-        await user.send(message)
-        await ctx.send("Sent message to {}.".format(destination))
+        e = discord.Embed(colour=discord.Colour.red(), description=message)
+
+        if ctx.bot.user.avatar_url:
+            e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}", icon_url=ctx.bot.user.avatar_url)
+        else:
+            e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
+
+        try:
+            await user.send(embed=e)
+        except discord.HTTPException:
+            await ctx.send(
+                "Sorry, I couldn't deliver your message to {}").format(user)
+        else:
+            await ctx.send("Message delivered to {}".format(user))
