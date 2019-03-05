@@ -1,4 +1,4 @@
-from redbot.core import commands, checks
+from redbot.core import commands, checks, Config
 import discord
 
 
@@ -7,6 +7,9 @@ class Forward(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, identifier=1398467138476)
+        default_global = {"toggles": {"botmessages": True}}
+        self.config.register_global(**default_global)
 
     async def sendowner(self, embed2):
         await self.bot.is_owner(discord.Object(id=None))
@@ -19,6 +22,9 @@ class Forward(commands.Cog):
         if message.channel.recipient.id == self.bot.owner_id:
             return
         if message.author == self.bot.user:
+            async with self.config.toggles() as toggle:
+                if not toggle['botmessages']:
+                    return
             embed = discord.Embed(title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
                                   description=message.content,
                                   timestamp=message.created_at)
@@ -45,6 +51,23 @@ class Forward(commands.Cog):
                 embeds[-1].timestamp = message.created_at
                 for embed in embeds:
                     await self.sendowner(embed)
+
+    @checks.is_owner()
+    @commands.group(autohelp=True)
+    async def forwardset(self, ctx):
+        """Forwarding Commands"""
+        pass
+
+    @forwardset.command(aliases=["botmessage"])
+    async def botmsg(self, ctx, type: bool):
+        """Set whether to send notifications when the bot sends a message."""
+        async with self.config.toggles() as toggles:
+            if type:
+                toggles['botmessages'] = True
+                await ctx.send("Bot message notifications have been enabled.")
+            else:
+                toggles['botmessages'] = False
+                await ctx.send("Bot message notifications have been disabled.")
 
     @commands.command()
     @checks.guildowner()

@@ -8,7 +8,7 @@ class Modmail(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"modmail": {}, "toggle": {"status": True}}
+        default_global = {"modmail": {}, "toggle": {"status": True}, "types": {"type": True}}
         self.config.register_global(**default_global)
 
     async def channelsend(self, embed2):
@@ -25,7 +25,8 @@ class Modmail(commands.Cog):
             return
         if message.author == self.bot.user:
             return
-        if message.attachments or not any(message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+        if message.attachments or not any(
+                message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
             embeds = []
             attachments_urls = []
             embeds.append(discord.Embed(description=message.content))
@@ -41,7 +42,7 @@ class Modmail(commands.Cog):
                 else:
                     attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
             if attachments_urls:
-                embeds[0].add_field(name = "Attachments", value = "\n".join(attachments_urls))
+                embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
             embeds[-1].timestamp = message.created_at
             for embed in embeds:
                 await self.channelsend(embed)
@@ -51,6 +52,32 @@ class Modmail(commands.Cog):
     async def modmailset(self, ctx):
         """Modmail Commands"""
         pass
+
+    @commands.command()
+    async def modmail(self, ctx, message):
+        """Set the channel that the bot will post to - Mention the channel."""
+        message = discord.message
+        await ctx.send(message)
+        if message.attachments:
+            embeds = []
+            attachments_urls = []
+            embeds.append(discord.Embed(description=message.content))
+            embeds[0].set_author(name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url)
+            for attachment in message.attachments:
+                if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                    if embeds[0].image:
+                        embed = discord.Embed()
+                        embed.set_image(url=attachment.url)
+                        embeds.append(embed)
+                    else:
+                        embeds[0].set_image(url=attachment.url)
+                else:
+                    attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+            if attachments_urls:
+                embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+            embeds[-1].timestamp = message.created_at
+            for embed in embeds:
+                await self.channelsend(embed)
 
     @modmailset.command()
     async def channel(self, ctx, channel: discord.TextChannel):
@@ -79,3 +106,15 @@ class Modmail(commands.Cog):
             else:
                 toggle['status'] = False
                 await ctx.send("ModMail is now disabled.")
+
+    @modmailset.command()
+    async def command(self, ctx, mode: bool):
+        """Toggle modmail between command or forwarding.
+           True """
+        async with self.config.types() as type:
+            if mode:
+                type['type'] = True
+                await ctx.send("ModMail will now only be triggerd via [p]modmail.")
+            else:
+                type['type'] = False
+                await ctx.send("ModMail will not forward every message sent via DM.")
