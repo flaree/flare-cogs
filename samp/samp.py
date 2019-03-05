@@ -32,7 +32,6 @@ class Samp(commands.Cog):
         try:
             req = "https://api.samp-servers.net/v2/server/{}:{}".format(serv_ip, port)
             r = await self.get(req)
-            # Random Hex Value for embed colour.
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="SA:MP Server Information", colour=colour)

@@ -6,7 +6,7 @@
   "name": "samp",
   "disabled": false,
   "short": "Show server info",
-  "description": "List players, website etc of a samp server.",
+  "description": "List players, website etc of a samp server. Server must be hosted on https://samp-servers.net/",
   "tags": [
     "samp",
     "server",
