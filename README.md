@@ -1,5 +1,5 @@
 # Flare-Cogs - (flare#0001)
-####Note - Moved unoptimzed cogs to another branch.
+Note - Moved unoptimzed cogs to another branch.
 
 | Name | Release | Description 
 | --- | --- | --- |
