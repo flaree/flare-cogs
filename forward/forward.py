@@ -1,4 +1,4 @@
-from redbot.core import commands
+from redbot.core import commands, checks
 import discord
 
 
@@ -45,3 +45,15 @@ class Forward(commands.Cog):
                 embeds[-1].timestamp = message.created_at
                 for embed in embeds:
                     await self.sendowner(embed)
+
+    @commands.command()
+    @checks.guildowner()
+    async def pm(self, ctx, user_id: int, *, message: str):
+        """PMs a person.
+           Separate version of [p]dm but allows for guild owners."""
+        user = discord.utils.get(ctx.bot.get_all_members(), id=user_id)
+        if user is None:
+            await ctx.send("Invalid ID or the user not found. Ensure the user is in a shared server with me.")
+            return
+        await user.send(message)
+        await ctx.send("Sent message to {}.".format(destination))
