@@ -62,7 +62,6 @@ class Forward(commands.Cog):
         try:
             await user.send(embed=e)
         except discord.HTTPException:
-            await ctx.send(
-                "Sorry, I couldn't deliver your message to {}").format(user)
+            await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
         else:
             await ctx.send("Message delivered to {}".format(user))
