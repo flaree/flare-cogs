@@ -1,10 +1,8 @@
 from redbot.core import commands, Config
 import discord
-import requests
 import aiohttp
 import asyncio
 import random
-from redbot.core.utils.chat_formatting import pagify
 
 defaults = {"Profiles": {},
             "Region": {}}
