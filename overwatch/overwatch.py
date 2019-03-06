@@ -1,6 +1,8 @@
 from redbot.core import commands, Config
 import discord
 import requests
+import aiohttp
+import asyncio
 import random
 from redbot.core.utils.chat_formatting import pagify
 
@@ -22,11 +24,20 @@ class Overwatch(commands.Cog):
         """Overwatch Console Commands"""
         pass
 
-    def __init__(self):
+    def __init__(self, bot):
         self.database = Config.get_conf(
             self, identifier=4268355870, force_registration=True)
         self.database.register_global(**defaults)
         self.database.register_user(**defaults_user)
+        self.bot = bot
+        self._session = aiohttp.ClientSession()
+
+    async def __unload(self):
+        asyncio.get_event_loop().create_task(self._session.close())
+
+    async def get(self, url):
+        async with self._session.get(url) as response:
+            return await response.json()
 
     @ow.command()
     async def setpicture(self, ctx, value: bool):
@@ -58,21 +69,18 @@ class Overwatch(commands.Cog):
         data = await self.database.all()
         profile = ctx.author.id
         try:
-            r = requests.get(
+            r = await self.get(
                 f"https://ow-api.com/v1/stats/pc/{data['Region']['{}'.format(profile)]}/{data['Profiles']['{}'.format(profile)]}/profile")
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="Overwatch Profile Information", colour=colour)
-            embed.set_author(name=r.json()['name'], icon_url=r.json()['icon'])
-            embed.set_thumbnail(url=r.json()['icon'])
-            embed.add_field(name="Name:", value=r.json()['name'], inline=True)
-            embed.add_field(name="Level:", value=r.json()
-            ['level'], inline=True)
-            embed.add_field(name="Prestige:", value=r.json()
-            ['prestige'], inline=True)
-            if not r.json()['private']:
-                embed.add_field(name="Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+            embed.set_author(name=r['name'], icon_url=r['icon'])
+            embed.set_thumbnail(url=r['icon'])
+            embed.add_field(name="Name:", value=r['name'], inline=True)
+            embed.add_field(name="Level:", value=r['level'], inline=True)
+            embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+            if not r['private']:
+                embed.add_field(name="Games Won:", value=r['gamesWon'], inline=True)
             else:
                 embed.set_footer(
                     text="Please set your profile status to public for more stats.")
@@ -85,21 +93,18 @@ class Overwatch(commands.Cog):
         """OW Profile Stats - Account must include the ID. Ensure profile is public for full stats"""
         account = account.replace("#", "-")
         try:
-            r = requests.get(
+            r = await self.get(
                 f"https://ow-api.com/v1/stats/pc/{region}/{account}/profile")
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="Overwatch Profile Information", colour=colour)
-            embed.set_author(name=r.json()['name'], icon_url=r.json()['icon'])
-            embed.set_thumbnail(url=r.json()['icon'])
-            embed.add_field(name="Name:", value=r.json()['name'], inline=True)
-            embed.add_field(name="Level:", value=r.json()
-            ['level'], inline=True)
-            embed.add_field(name="Prestige:", value=r.json()
-            ['prestige'], inline=True)
-            if not r.json()['private']:
-                embed.add_field(name="Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+            embed.set_author(name=r['name'], icon_url=r['icon'])
+            embed.set_thumbnail(url=r['icon'])
+            embed.add_field(name="Name:", value=r['name'], inline=True)
+            embed.add_field(name="Level:", value=r['level'], inline=True)
+            embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+            if not r['private']:
+                embed.add_field(name="Games Won:", value=r['gamesWon'], inline=True)
             else:
                 embed.set_footer(
                     text="Please set your profile status to public for more stats.")
@@ -112,40 +117,36 @@ class Overwatch(commands.Cog):
         """OW Hero Stats - Account must include the ID. Profile must be public"""
         account = account.replace("#", "-")
         try:
-            r = requests.get(
+            r = await self.get(
                 f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{hero}")
-            if not r.json()['private']:
+            if not r['private']:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
                 embed = discord.Embed(
                     title="Overwatch Profile Information", colour=colour)
                 embed.set_author(
-                    name=r.json()['name'], icon_url=r.json()['icon'])
-                embed.set_thumbnail(url=r.json()['icon'])
-                embed.add_field(name="Name:", value=r.json()
-                ['name'], inline=True)
-                embed.add_field(name="Level:", value=r.json()
-                ['level'], inline=True)
-                embed.add_field(name="Prestige:", value=r.json()[
-                    'prestige'], inline=True)
-                embed.add_field(name="Total Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+                    name=r['name'], icon_url=r['icon'])
+                embed.set_thumbnail(url=r['icon'])
+                embed.add_field(name="Name:", value=r['name'], inline=True)
+                embed.add_field(name="Level:", value=r['level'], inline=True)
+                embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+                embed.add_field(name="Total Games Won:", value=r['gamesWon'], inline=True)
                 embed.add_field(name="---", value="---", inline=False)
                 embed.add_field(
                     name="Hero:", value=hero.capitalize(), inline=True)
                 embed.add_field(name=hero.capitalize() + " Playtime:",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(
                                     hero)]['timePlayed'],
                                 inline=True)
                 embed.add_field(name="Games Won:",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(
                                     hero)]['gamesWon'],
                                 inline=True)
                 embed.add_field(name="Elims Per Life",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                     'eliminationsPerLife'],
                                 inline=True)
                 embed.add_field(name="Weapon Accuracy",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                           'weaponAccuracy'] + "%",
                                 inline=True)
                 await ctx.send(embed=embed)
@@ -162,47 +163,43 @@ class Overwatch(commands.Cog):
         heroes = ",".join(heroes)
         if platform != "psn" or platform != "xbl":
             platform = "pc"
-        r = requests.get(
+        r = await self.get(
             f"https://ow-api.com/v1/stats/{platform}/{region}/{account}/heroes/{heroes}")
         try:
-            if not r.json()['private']:
+            if not r['private']:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
                 embed = discord.Embed(
                     title="Overwatch Profile Information", colour=colour)
                 embed.set_author(
-                    name=r.json()['name'], icon_url=r.json()['icon'])
-                embed.set_thumbnail(url=r.json()['icon'])
-                embed.add_field(name="Name:", value=r.json()
-                ['name'], inline=True)
-                embed.add_field(name="Level:", value=r.json()
-                ['level'], inline=True)
-                embed.add_field(name="Prestige:", value=r.json()[
-                    'prestige'], inline=True)
-                embed.add_field(name="Total Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+                    name=r['name'], icon_url=r['icon'])
+                embed.set_thumbnail(url=r['icon'])
+                embed.add_field(name="Name:", value=r['name'], inline=True)
+                embed.add_field(name="Level:", value=r['level'], inline=True)
+                embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+                embed.add_field(name="Total Games Won:", value=r['gamesWon'], inline=True)
                 await ctx.send(embed=embed)
-                for hero in (r.json()['quickPlayStats']['topHeroes']):
+                for hero in (r['quickPlayStats']['topHeroes']):
                     embed = discord.Embed(title="{} Information".format(
                         hero.capitalize()), colour=colour)
                     embed.set_author(
-                        name=r.json()['name'], icon_url=r.json()['icon'])
-                    embed.set_thumbnail(url=r.json()['icon'])
+                        name=r['name'], icon_url=r['icon'])
+                    embed.set_thumbnail(url=r['icon'])
                     embed.add_field(
                         name="Hero:", value=hero.capitalize(), inline=True)
                     embed.add_field(name=hero.capitalize() + " Playtime:",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(
                                         hero)]['timePlayed'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Games Won:",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(
                                         hero)]['gamesWon'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Elims Per Life",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                         'eliminationsPerLife'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Weapon Accuracy",
-                                    value=str(r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                    value=str(r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                                   'weaponAccuracy']) + "%",
                                     inline=True)
                     await ctx.send(embed=embed)
@@ -216,47 +213,43 @@ class Overwatch(commands.Cog):
     async def _heroes(self, ctx, console: str, account: str, *heroes: str):
         """OW Multiple Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         heroes = ",".join(heroes)
-        r = requests.get(
+        r = await self.get(
             f"https://ow-api.com/v1/stats/{console}/{account}/heroes/{heroes}")
         try:
-            if not r.json()['private']:
+            if not r['private']:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
                 embed = discord.Embed(
                     title="Overwatch Profile Information", colour=colour)
                 embed.set_author(
-                    name=r.json()['name'], icon_url=r.json()['icon'])
-                embed.set_thumbnail(url=r.json()['icon'])
-                embed.add_field(name="Name:", value=r.json()
-                ['name'], inline=True)
-                embed.add_field(name="Level:", value=r.json()
-                ['level'], inline=True)
-                embed.add_field(name="Prestige:", value=r.json()[
-                    'prestige'], inline=True)
-                embed.add_field(name="Total Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+                    name=r['name'], icon_url=r['icon'])
+                embed.set_thumbnail(url=r['icon'])
+                embed.add_field(name="Name:", value=r['name'], inline=True)
+                embed.add_field(name="Level:", value=r['level'], inline=True)
+                embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+                embed.add_field(name="Total Games Won:", value=r['gamesWon'], inline=True)
                 await ctx.send(embed=embed)
-                for hero in (r.json()['quickPlayStats']['topHeroes']):
+                for hero in (r['quickPlayStats']['topHeroes']):
                     embed = discord.Embed(title="{} Information".format(
                         hero.capitalize()), colour=colour)
                     embed.set_author(
-                        name=r.json()['name'], icon_url=r.json()['icon'])
-                    embed.set_thumbnail(url=r.json()['icon'])
+                        name=r['name'], icon_url=r['icon'])
+                    embed.set_thumbnail(url=r['icon'])
                     embed.add_field(
                         name="Hero:", value=hero.capitalize(), inline=True)
                     embed.add_field(name=hero.capitalize() + " Playtime:",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(
                                         hero)]['timePlayed'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Games Won:",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(
                                         hero)]['gamesWon'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Elims Per Life",
-                                    value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                    value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                         'eliminationsPerLife'],
                                     inline=True)
                     embed.add_field(name=hero.capitalize() + " Weapon Accuracy",
-                                    value=str(r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                    value=str(r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                                   'weaponAccuracy']) + "%",
                                     inline=True)
                     await ctx.send(embed=embed)
@@ -270,40 +263,36 @@ class Overwatch(commands.Cog):
     async def _hero(self, ctx, console: str, account: str, hero: str):
         """OW Hero Stats - Account = PSN Name or Gamertag!. Profile must be public"""
         try:
-            r = requests.get(
+            r = await self.get(
                 f"https://ow-api.com/v1/stats/{console}/{account}/heroes/{hero}")
-            if not r.json()['private']:
+            if not r['private']:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
                 embed = discord.Embed(
                     title="Overwatch Profile Information", colour=colour)
                 embed.set_author(
-                    name=r.json()['name'], icon_url=r.json()['icon'])
-                embed.set_thumbnail(url=r.json()['icon'])
-                embed.add_field(name="Name:", value=r.json()
-                ['name'], inline=True)
-                embed.add_field(name="Level:", value=r.json()
-                ['level'], inline=True)
-                embed.add_field(name="Prestige:", value=r.json()[
-                    'prestige'], inline=True)
-                embed.add_field(name="Total Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+                    name=r['name'], icon_url=r['icon'])
+                embed.set_thumbnail(url=r['icon'])
+                embed.add_field(name="Name:", value=r['name'], inline=True)
+                embed.add_field(name="Level:", value=r['level'], inline=True)
+                embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+                embed.add_field(name="Total Games Won:", value=r['gamesWon'], inline=True)
                 embed.add_field(name="---", value="---", inline=False)
                 embed.add_field(
                     name="Hero:", value=hero.capitalize(), inline=True)
                 embed.add_field(name=hero.capitalize() + " Playtime:",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(
                                     hero)]['timePlayed'],
                                 inline=True)
                 embed.add_field(name="Games Won:",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(
                                     hero)]['gamesWon'],
                                 inline=True)
                 embed.add_field(name="Elims Per Life",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                     'eliminationsPerLife'],
                                 inline=True)
                 embed.add_field(name="Weapon Accuracy",
-                                value=r.json()['quickPlayStats']['topHeroes']['{}'.format(hero)][
+                                value=r['quickPlayStats']['topHeroes']['{}'.format(hero)][
                                           'weaponAccuracy'] + "%",
                                 inline=True)
                 await ctx.send(embed=embed)
@@ -317,21 +306,18 @@ class Overwatch(commands.Cog):
     async def _profile(self, ctx, console: str, account: str):
         """OW Profile Stats - Account must be your PSN or Gamertag. Ensure profile is public for full stats"""
         try:
-            r = requests.get(
+            r = await self.get(
                 f"https://ow-api.com/v1/stats/{console}/{account}/profile")
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="Overwatch Profile Information", colour=colour)
-            embed.set_author(name=r.json()['name'], icon_url=r.json()['icon'])
-            embed.set_thumbnail(url=r.json()['icon'])
-            embed.add_field(name="Name:", value=r.json()['name'], inline=True)
-            embed.add_field(name="Level:", value=r.json()
-            ['level'], inline=True)
-            embed.add_field(name="Prestige:", value=r.json()
-            ['prestige'], inline=True)
-            if not r.json()['private']:
-                embed.add_field(name="Games Won:", value=r.json()[
-                    'gamesWon'], inline=True)
+            embed.set_author(name=r['name'], icon_url=r['icon'])
+            embed.set_thumbnail(url=r['icon'])
+            embed.add_field(name="Name:", value=r['name'], inline=True)
+            embed.add_field(name="Level:", value=r['level'], inline=True)
+            embed.add_field(name="Prestige:", value=r['prestige'], inline=True)
+            if not r['private']:
+                embed.add_field(name="Games Won:", value=r['gamesWon'], inline=True)
             else:
                 embed.set_footer(
                     text="Please set your profile status to public for more stats.")
