@@ -47,7 +47,6 @@ class Highlight(commands.Cog):
             elif not state:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send("You've disabled highlighting on this server.")
-            await ctx.send(toggle)
 
     @highlight.command()
     async def list(self, ctx, *, text: str):
