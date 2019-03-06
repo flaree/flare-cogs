@@ -12,16 +12,6 @@ defaults_user = {"picture": True}
 class Overwatch(commands.Cog):
     """Overwatch Related Commands"""
 
-    @commands.group(autohelp=True, aliases=["overwatch"])
-    async def ow(self, ctx):
-        """Overwatch Commands"""
-        pass
-
-    @ow.group(autohelp=True, aliases=["overwatch"])
-    async def console(self, ctx):
-        """Overwatch Console Commands"""
-        pass
-
     def __init__(self, bot):
         self.database = Config.get_conf(
             self, identifier=4268355870, force_registration=True)
@@ -36,6 +26,17 @@ class Overwatch(commands.Cog):
     async def get(self, url):
         async with self._session.get(url) as response:
             return await response.json()
+
+
+    @commands.group(autohelp=True, aliases=["overwatch"])
+    async def ow(self, ctx):
+        """Overwatch Commands"""
+        pass
+
+    @ow.group(autohelp=True)
+    async def console(self, ctx):
+        """Overwatch Console Commands"""
+        pass
 
     @ow.command()
     async def setpicture(self, ctx, value: bool):
