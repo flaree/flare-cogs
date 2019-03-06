@@ -1,5 +1,7 @@
 import random
 import discord
+import aiohttp
+import asyncio
 import requests
 from redbot.core import commands, Config, checks
 from . import __path__
@@ -23,12 +25,12 @@ class Rainbow6(commands.Cog):
         self.bot = bot
         self._session = aiohttp.ClientSession()
 
-        async def __unload(self):
-            asyncio.get_event_loop().create_task(self._session.close())
+    async def __unload(self):
+        asyncio.get_event_loop().create_task(self._session.close())
 
-        async def get(self, url):
-            async with self._session.get(url) as response:
-                return await response.json()
+    async def get(self, url):
+        async with self._session.get(url) as response:
+            return await response.json()
 
     def round_corner(self, radius):
         """Draw a round corner"""
@@ -202,16 +204,16 @@ class Rainbow6(commands.Cog):
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
 
-        r = requests.get(
+        r = await self.get(
             f"http://slapsquadrecords.me/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}")
-        t = requests.get(
+        t = await self.get(
             f"http://slapsquadrecords.me/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare")
 
-        s = requests.get(
+        s = await self.get(
             "http://slapsquadrecords.me/r6/getStats.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                   platform))
-        p = (r.json()["players"]["{}".format(list(t.json().keys())[0])])
-        q = (s.json()["players"]["{}".format(list(t.json().keys())[0])])
+        p = (r["players"]["{}".format(list(t.keys())[0])])
+        q = (s["players"]["{}".format(list(t.keys())[0])])
         kdr = (int(q['rankedpvp_kills']) / int(q['rankedpvp_death']))
         if pic['picture']:
             img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
@@ -270,14 +272,14 @@ class Rainbow6(commands.Cog):
         pic = await self.database.user(ctx.author).all()
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
-        r = requests.get(
+        r = await self.get(
             "http://slapsquadrecords.me/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                       platform))
-        t = requests.get(
+        t = await self.get(
             "http://slapsquadrecords.me/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                       platform))
-        p = (r.json()["players"]["{}".format(
-            list(t.json().keys())[0])]["{}".format(operator)])
+        p = (r["players"]["{}".format(
+            list(t.keys())[0])]["{}".format(operator)])
         if p['operatorpvp_kills'] == 0 and p['operatorpvp_death'] == 0:
             kdr = 0
         else:
@@ -287,7 +289,7 @@ class Rainbow6(commands.Cog):
         else:
             opwlr = round(
                 (p['operatorpvp_roundwon'] / (p['operatorpvp_roundwon'] + p['operatorpvp_roundlost'])) * 100, 2)
-        url = (r.json()['operators'][f'{operator}']['images']['badge']).replace("\\", "")
+        url = (r['operators'][f'{operator}']['images']['badge']).replace("\\", "")
         if pic['picture']:
             img = Image.new("RGBA", (540, 520), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
@@ -352,13 +354,13 @@ class Rainbow6(commands.Cog):
         if platform != "psn" or platform != "xbl":
             platform = "uplay"
 
-        r = requests.get(
+        r = await self.get(
             "http://slapsquadrecords.me/r6/getOperators.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                       platform))
-        t = requests.get(
+        t = await self.get(
             "http://slapsquadrecords.me/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(account,
                                                                                                       platform))
-        q = r.json()["players"]["{}".format(list(t.json().keys())[0])]
+        q = r["players"]["{}".format(list(t.keys())[0])]
         colour = discord.Color.from_hsv(random.random(), 1, 1)
         embed = discord.Embed(
             title="Operator Information for {}/{}".format(account, ctx.author), colour=colour)
