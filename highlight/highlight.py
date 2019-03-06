@@ -37,6 +37,7 @@ class Highlight(commands.Cog):
             await ctx.send("Done.")
 
     @highlight.command()
+    @checks.guildowner()
     async def toggle(self, ctx, state: bool):
         """Toggle highlighting - must be a valid bool."""
         async with self.config.channel(ctx.channel).toggle() as toggle:
