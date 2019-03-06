@@ -42,10 +42,10 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).toggle() as toggle:
             if state:
                 toggle[f"{ctx.author.id}"] = state
-                await ctx.send("You've enabled highlighting on this server.")
+                await ctx.send("You've enabled highlighting on this channel.")
             elif not state:
                 toggle[f"{ctx.author.id}"] = state
-                await ctx.send("You've disabled highlighting on this server.")
+                await ctx.send("You've disabled highlighting on this channel.")
 
     @highlight.command()
     async def list(self, ctx, *, text: str):
