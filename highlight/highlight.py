@@ -35,7 +35,6 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).highlight() as highlight:
             highlight[f"{ctx.author.id}"] = text
             await ctx.send("Done.")
-            await ctx.send(highlight)
 
     @highlight.command()
     async def toggle(self, ctx, state: bool):
