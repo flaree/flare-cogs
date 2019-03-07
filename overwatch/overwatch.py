@@ -6,7 +6,6 @@ import random
 
 defaults = {"Profiles": {},
             "Region": {}}
-defaults_user = {"picture": True}
 
 
 class Overwatch(commands.Cog):
@@ -16,7 +15,6 @@ class Overwatch(commands.Cog):
         self.database = Config.get_conf(
             self, identifier=4268355870, force_registration=True)
         self.database.register_global(**defaults)
-        self.database.register_user(**defaults_user)
         self.bot = bot
         self._session = aiohttp.ClientSession()
 
@@ -37,18 +35,6 @@ class Overwatch(commands.Cog):
     async def console(self, ctx):
         """Overwatch Console Commands"""
         pass
-
-    @ow.command()
-    async def setpicture(self, ctx, value: bool):
-        """Return pictures or embeds for stats."""
-        pic = await self.database.user(ctx.author).all()
-        if value:
-            pic['picture'] = True
-            await ctx.send("You will now be sent a picture instead of an embed.")
-        if not value:
-            pic['picture'] = False
-            await ctx.send("You will now be sent an embed instead of a picture.")
-        await self.database.user(ctx.author).set(pic)
 
     @ow.command()
     async def setprofile(self, ctx, account: str, region: str):
