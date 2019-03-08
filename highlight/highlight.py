@@ -19,7 +19,7 @@ class Highlight(commands.Cog):
                             return
                     highlighted = self.bot.get_user(int(user))
                     await highlighted.send(
-                        "You've been mentioned in <#{}> on {}.\nContext: {}".format(message.channel.id,
+                        "You've been mentioned by {} in <#{}> on {}.\nContext: {}".format(message.author.display_name, message.channel.id,
                                                                                     message.guild.name,
                                                                                     message.content))
 
