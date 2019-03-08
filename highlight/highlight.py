@@ -7,7 +7,7 @@ class Highlight(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1398467138476)
+        self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         default_channel = {"highlight": {}, "toggle": {}}
         self.config.register_channel(**default_channel)
 
@@ -50,7 +50,6 @@ class Highlight(commands.Cog):
                 await ctx.send("You currently do not have a highlighted word setup in this channel.")
 
     @highlight.command()
-    @checks.guildowner()
     async def toggle(self, ctx, state: bool):
         """Toggle highlighting - must be a valid bool."""
         async with self.config.channel(ctx.channel).toggle() as toggle:
@@ -67,9 +66,15 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).highlight() as highlight:
             if str(ctx.author.id) in highlight:
                 async with self.config.channel(ctx.channel).toggle() as toggle:
-                    embed = discord.Embed(
-                        title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
-                        description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: {toggle[f'{ctx.author.id}']}")
+                    try:
+                        embed = discord.Embed(
+                            title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
+                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: {toggle[f'{ctx.author.id}']}")
+                    except KeyError:
+                        embed = discord.Embed(
+                            title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
+                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: Use [p]highlight toggle")
+
                 await ctx.send(embed=embed)
             else:
                 await ctx.send("You currently do not have any highlighted text set up in this channel.")
