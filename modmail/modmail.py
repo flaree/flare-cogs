@@ -3,12 +3,12 @@ import discord
 
 
 class Modmail(commands.Cog):
-    """Forward messages to a set channel."""
+    """Forward messages to set channels."""
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"modmail": {}, "toggle": {"status": True}, "type": {"command": False}}
+        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True}}
         self.config.register_global(**default_global)
 
     async def channelsend(self, embed2):
@@ -25,8 +25,8 @@ class Modmail(commands.Cog):
             return
         if message.author == self.bot.user:
             return
-        async with self.config.type() as type:
-            if type['command']:
+        async with self.config.toggle() as toggle:
+            if not toggle['dms']:
                 return
         if message.attachments or not any(
                 message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
@@ -59,10 +59,6 @@ class Modmail(commands.Cog):
     @commands.command()
     async def modmail(self, ctx, *, content: str = None):
         """Manually send modmail."""
-        async with self.config.type() as type:
-            if not type['command']:
-                await ctx.send("Modmail is currently set to be recieved via DMs, this can be changed via [p]modmailset")
-                return
         if ctx.message.attachments or content:
             embeds = []
             attachments_urls = []
@@ -107,19 +103,20 @@ class Modmail(commands.Cog):
         async with self.config.toggle() as toggle:
             if mode:
                 toggle['status'] = True
-                await ctx.send("ModMail is now enabled.")
+                await ctx.send("Modmail is now enabled.")
             else:
                 toggle['status'] = False
-                await ctx.send("ModMail is now disabled.")
+                await ctx.send("Modmail is now disabled.")
 
     @modmailset.command()
-    async def command(self, ctx, mode: bool):
-        """Toggle modmail between command or forwarding.
-           True """
-        async with self.config.type() as type:
+    async def dms(self, ctx, mode: bool):
+        """Toggle modmail forwarding from DMs
+           True - Allow DM Forwarding
+           False - Disallow DM Forwarding"""
+        async with self.config.toggle() as toggle:
             if mode:
-                type['command'] = True
-                await ctx.send("ModMail will now only be triggerd via [p]modmail.")
+                toggle['dms'] = True
+                await ctx.send("Modmail will now forward all DMs.")
             else:
-                type['command'] = False
-                await ctx.send("ModMail will no longer forward every message sent via DM.")
+                toggle['dms'] = False
+                await ctx.send("Modmail will no longer forward every message sent via DM.")
