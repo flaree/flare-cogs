@@ -39,6 +39,9 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).highlight() as highlight:
             highlight[f"{ctx.author.id}"] = text
             await ctx.send(f"The word `{text}` has been added to your highlight list.")
+        async with self.config.channel(ctx.channel).toggle() as toggle:
+            if str(ctx.author.id) not in toggle:
+                toggle[f"{ctx.author.id}"] = False
 
     @highlight.command()
     async def remove(self, ctx):
