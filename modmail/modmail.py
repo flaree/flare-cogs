@@ -89,6 +89,17 @@ class Modmail(commands.Cog):
         await ctx.send("Channel added successfully.")
 
     @modmailset.command()
+    async def remove(self, ctx, channel: discord.TextChannel):
+        """Remove a current channel from the modmail listing."""
+        async with self.config.modmail() as modmail:
+            key = str(ctx.message.guild.id)
+            if key in modmail:
+                del modmail[key]
+                await ctx.send("Channel removed successfully.")
+            else:
+                await ctx.send("This channel does not current have a modmail channel configured.")
+
+    @modmailset.command()
     async def list(self, ctx):
         """List all current modmail channels."""
         async with self.config.modmail() as modmail:
