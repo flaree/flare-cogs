@@ -12,6 +12,8 @@ class Highlight(commands.Cog):
         self.config.register_channel(**default_channel)
 
     async def on_message(self, message):
+        if isinstance(message.channel, discord.abc.PrivateChannel):
+            return
         async with self.config.channel(message.channel).highlight() as highlight:
             for user in highlight:
                 if highlight[user].lower() in message.content:
@@ -36,7 +38,7 @@ class Highlight(commands.Cog):
            Note: 1 notification setting per channel."""
         async with self.config.channel(ctx.channel).highlight() as highlight:
             highlight[f"{ctx.author.id}"] = text
-            await ctx.send("The word `{text}` has been added to your highlight list..")
+            await ctx.send(f"The word `{text}` has been added to your highlight list.")
 
     @highlight.command()
     async def remove(self, ctx):
