@@ -16,7 +16,7 @@ class Highlight(commands.Cog):
             return
         async with self.config.channel(message.channel).highlight() as highlight:
             for user in highlight:
-                if highlight[user].lower() in message.content:
+                if highlight[user].lower() in message.content.lower():
                     async with self.config.channel(message.channel).toggle() as toggle:
                         if not toggle[user]:
                             return
