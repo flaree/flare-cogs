@@ -23,7 +23,7 @@ class Overwatch(commands.Cog):
 
     async def get(self, url):
         async with self._session.get(url) as response:
-            return await response.json()
+            return await response.json(content_type='text/html')
 
 
     @commands.group(autohelp=True, aliases=["overwatch"])
