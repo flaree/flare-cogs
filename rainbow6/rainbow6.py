@@ -30,7 +30,7 @@ class Rainbow6(commands.Cog):
 
     async def get(self, url):
         async with self._session.get(url) as response:
-            return await response.json()
+            return await response.json(content_type='text/html')
 
     def round_corner(self, radius):
         """Draw a round corner"""
