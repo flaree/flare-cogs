@@ -4,6 +4,7 @@ from redbot.core.utils.chat_formatting import pagify
 from random import randint, choice
 from samp_client.client import SampClient
 import aiohttp
+import asyncio
 from prettytable import PrettyTable
 
 BaseCog = getattr(commands, "Cog", object)
