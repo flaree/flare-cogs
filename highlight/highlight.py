@@ -22,10 +22,13 @@ class Highlight(commands.Cog):
                             return
                     highlighted = self.bot.get_user(int(user))
                     await highlighted.send(
-                        "You've been mentioned by {} in <#{}> on {}.\nContext: {}".format(message.author.display_name,
-                                                                                          message.channel.id,
-                                                                                          message.guild.name,
-                                                                                          message.content))
+                        "You've been mentioned by {} in <#{}> on {}.\nContext: {}".format(
+                            message.author.display_name,
+                            message.channel.id,
+                            message.guild.name,
+                            message.content,
+                        )
+                    )
 
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
@@ -48,11 +51,15 @@ class Highlight(commands.Cog):
         """Remove highlighting in a certain channel"""
         async with self.config.channel(ctx.channel).highlight() as highlight:
             if str(ctx.author.id) in highlight:
-                await ctx.send(f"Highlighted word `{highlight[f'{ctx.author.id}']}` has been removed successfully.")
+                await ctx.send(
+                    f"Highlighted word `{highlight[f'{ctx.author.id}']}` has been removed successfully."
+                )
                 del highlight[f"{ctx.author.id}"]
 
             else:
-                await ctx.send("You currently do not have a highlighted word setup in this channel.")
+                await ctx.send(
+                    "You currently do not have a highlighted word setup in this channel."
+                )
 
     @highlight.command()
     async def toggle(self, ctx, state: bool):
@@ -74,12 +81,16 @@ class Highlight(commands.Cog):
                     try:
                         embed = discord.Embed(
                             title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
-                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: {toggle[f'{ctx.author.id}']}")
+                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: {toggle[f'{ctx.author.id}']}",
+                        )
                     except KeyError:
                         embed = discord.Embed(
                             title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
-                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: Use [p]highlight toggle")
+                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: Use [p]highlight toggle",
+                        )
 
                 await ctx.send(embed=embed)
             else:
-                await ctx.send("You currently do not have any highlighted text set up in this channel.")
+                await ctx.send(
+                    "You currently do not have any highlighted text set up in this channel."
+                )

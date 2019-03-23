@@ -13,7 +13,7 @@ class Modmail(commands.Cog):
 
     async def channelsend(self, embed2):
         async with self.config.toggle() as toggle:
-            if not toggle['status']:
+            if not toggle["status"]:
                 return
         async with self.config.modmail() as modmail:
             for stats in modmail:
@@ -26,16 +26,21 @@ class Modmail(commands.Cog):
         if message.author == self.bot.user:
             return
         async with self.config.toggle() as toggle:
-            if not toggle['dms']:
+            if not toggle["dms"]:
                 return
         if message.attachments or not any(
-                message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+            message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
+        ):
             embeds = []
             attachments_urls = []
             embeds.append(discord.Embed(description=message.content))
-            embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
+            embeds[0].set_author(
+                name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
+            )
             for attachment in message.attachments:
-                if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                if any(
+                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                ):
                     if embeds[0].image:
                         embed = discord.Embed()
                         embed.set_image(url=attachment.url)
@@ -63,9 +68,13 @@ class Modmail(commands.Cog):
             embeds = []
             attachments_urls = []
             embeds.append(discord.Embed(description=content))
-            embeds[0].set_author(name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url)
+            embeds[0].set_author(
+                name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
+            )
             for attachment in ctx.message.attachments:
-                if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                if any(
+                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                ):
                     if embeds[0].image:
                         embed = discord.Embed()
                         embed.set_image(url=attachment.url)
@@ -113,10 +122,10 @@ class Modmail(commands.Cog):
         """Toggle modmail."""
         async with self.config.toggle() as toggle:
             if mode:
-                toggle['status'] = True
+                toggle["status"] = True
                 await ctx.send("Modmail is now enabled.")
             else:
-                toggle['status'] = False
+                toggle["status"] = False
                 await ctx.send("Modmail is now disabled.")
 
     @modmailset.command()
@@ -126,8 +135,8 @@ class Modmail(commands.Cog):
            False - Disallow DM Forwarding"""
         async with self.config.toggle() as toggle:
             if mode:
-                toggle['dms'] = True
+                toggle["dms"] = True
                 await ctx.send("Modmail will now forward all DMs.")
             else:
-                toggle['dms'] = False
+                toggle["dms"] = False
                 await ctx.send("Modmail will no longer forward every message sent via DM.")

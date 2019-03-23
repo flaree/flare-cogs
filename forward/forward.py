@@ -23,21 +23,30 @@ class Forward(commands.Cog):
             return
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
-                if not toggle['botmessages']:
+                if not toggle["botmessages"]:
                     return
-            embed = discord.Embed(title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
-                                  description=message.content,
-                                  timestamp=message.created_at)
+            embed = discord.Embed(
+                title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
+                description=message.content,
+                timestamp=message.created_at,
+            )
             await self.sendowner(embed)
         else:
             if message.attachments or not any(
-                    message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)):
+                message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
+            ):
                 embeds = []
                 attachments_urls = []
                 embeds.append(discord.Embed(description=message.content))
-                embeds[0].set_author(name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url)
+                embeds[0].set_author(
+                    name=f"{message.author} | {message.author.id}",
+                    icon_url=message.author.avatar_url,
+                )
                 for attachment in message.attachments:
-                    if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                    if any(
+                        attachment.filename.endswith(imageext)
+                        for imageext in ["jpg", "png", "gif"]
+                    ):
                         if embeds[0].image:
                             embed = discord.Embed()
                             embed.set_image(url=attachment.url)
@@ -63,10 +72,10 @@ class Forward(commands.Cog):
         """Set whether to send notifications when the bot sends a message."""
         async with self.config.toggles() as toggles:
             if type:
-                toggles['botmessages'] = True
+                toggles["botmessages"] = True
                 await ctx.send("Bot message notifications have been enabled.")
             else:
-                toggles['botmessages'] = False
+                toggles["botmessages"] = False
                 await ctx.send("Bot message notifications have been disabled.")
 
     @commands.command()
@@ -78,7 +87,10 @@ class Forward(commands.Cog):
         e = discord.Embed(colour=discord.Colour.red(), description=message)
 
         if ctx.bot.user.avatar_url:
-            e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}", icon_url=ctx.bot.user.avatar_url)
+            e.set_author(
+                name=f"Message from {ctx.author} | {ctx.author.id}",
+                icon_url=ctx.bot.user.avatar_url,
+            )
         else:
             e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
 

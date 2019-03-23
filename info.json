@@ -1,13 +1,8 @@
 {
-  "author": [
-    "flare (flare#0001)"
-  ],
-  "install_msg": "Assortment of cogs that were still to be ported over from v2.",
-  "name": "Flare's Cogs",
-  "short": "Random assortment of cogs I attempted to port learning python.",
-  "description": "Assortment of rewrote cogs for Red V3",
-  "tags": [
-    "random",
-    "rewrites"
-  ]
+    "author": ["flare (flare#0001)"],
+    "install_msg": "Assortment of cogs that were still to be ported over from v2.",
+    "name": "Flare's Cogs",
+    "short": "Random assortment of cogs I attempted to port learning python.",
+    "description": "Assortment of rewrote cogs for Red V3",
+    "tags": ["random", "rewrites"],
 }
