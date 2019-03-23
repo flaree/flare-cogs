@@ -115,8 +115,8 @@ class Rainbow6(commands.Cog):
             wlr = 0
         if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
             twlr = (
-                           q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
-                   ) * 100
+                q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+            ) * 100
         else:
             twlr = 0
         kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
@@ -381,8 +381,8 @@ class Rainbow6(commands.Cog):
         else:
             opwlr = round(
                 (
-                        p["operatorpvp_roundwon"]
-                        / (p["operatorpvp_roundwon"] + p["operatorpvp_roundlost"])
+                    p["operatorpvp_roundwon"]
+                    / (p["operatorpvp_roundwon"] + p["operatorpvp_roundlost"])
                 )
                 * 100,
                 2,
@@ -428,7 +428,7 @@ class Rainbow6(commands.Cog):
                         p[stats] = round((p[stats] / 60), 2)
                     t = len(operator)
                     if stat[:t] == operator.capitalize():
-                        stat = stat[t + 1:]
+                        stat = stat[t + 1 :]
                     draw.text(
                         (10, i),
                         "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
@@ -454,7 +454,7 @@ class Rainbow6(commands.Cog):
                         p[stats] = round((p[stats] / 60), 2)
                     t = len(operator)
                     if stat[:t] == operator.capitalize():
-                        stat = stat[t + 1:]
+                        stat = stat[t + 1 :]
                     embed.add_field(name="{}".format(stat), value=p[stats], inline=True)
             await ctx.send(embed=embed)
 

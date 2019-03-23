@@ -127,7 +127,7 @@ class Overwatch(commands.Cog):
                 embed.add_field(
                     name="Weapon Accuracy",
                     value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"]
-                          + "%",
+                    + "%",
                     inline=True,
                 )
                 await ctx.send(embed=embed)
@@ -189,7 +189,7 @@ class Overwatch(commands.Cog):
                         value=str(
                             r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"]
                         )
-                              + "%",
+                        + "%",
                         inline=True,
                     )
                     await ctx.send(embed=embed)
@@ -248,7 +248,7 @@ class Overwatch(commands.Cog):
                         value=str(
                             r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"]
                         )
-                              + "%",
+                        + "%",
                         inline=True,
                     )
                     await ctx.send(embed=embed)
@@ -298,7 +298,7 @@ class Overwatch(commands.Cog):
                 embed.add_field(
                     name="Weapon Accuracy",
                     value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"]
-                          + "%",
+                    + "%",
                     inline=True,
                 )
                 await ctx.send(embed=embed)
