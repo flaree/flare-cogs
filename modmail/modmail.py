@@ -8,7 +8,7 @@ class Modmail(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True}}
+        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True}, "ignore": []}
         self.config.register_global(**default_global)
 
     async def channelsend(self, embed2):
@@ -25,6 +25,9 @@ class Modmail(commands.Cog):
             return
         if message.author == self.bot.user:
             return
+        async with self.config.ignore() as ignore:
+            if message.author.id in ignore:
+                return
         async with self.config.toggle() as toggle:
             if not toggle["dms"]:
                 return
@@ -64,6 +67,9 @@ class Modmail(commands.Cog):
     @commands.command()
     async def modmail(self, ctx, *, content: str = None):
         """Manually send modmail."""
+        async with self.config.ignore() as ignore:
+            if ctx.author.id in ignore:
+                return
         if ctx.message.attachments or content:
             embeds = []
             attachments_urls = []
@@ -140,3 +146,37 @@ class Modmail(commands.Cog):
             else:
                 toggle["dms"] = False
                 await ctx.send("Modmail will no longer forward every message sent via DM.")
+
+    @modmailset.command()
+    async def ignore(self, ctx, user: discord.Member):
+        """Ignore a user from using the modmail."""
+        async with self.config.ignore() as ignore:
+            ignore.append(user.id)
+            await ctx.send(ignore)
+
+    @modmailset.command()
+    async def unignore(self, ctx, user: discord.Member):
+        """Remove user from the ignored list."""
+        async with self.config.ignore() as ignore:
+            ignore.remove(user.id)
+            await ctx.send(ignore)
+
+    @checks.mod()
+    @commands.command()
+    async def reply(self, ctx, user: discord.Member, *, message: str):
+        """Reply to a modmail."""
+        e = discord.Embed(colour=discord.Colour.red(), description=message)
+        if ctx.bot.user.avatar_url:
+            e.set_author(
+                name=f"Message from {ctx.author} | {ctx.author.id}",
+                icon_url=ctx.bot.user.avatar_url,
+            )
+        else:
+            e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
+
+        try:
+            await user.send(embed=e)
+        except discord.HTTPException:
+            await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
+        else:
+            await ctx.send("Message delivered to {}".format(user))
