@@ -1,4 +1,5 @@
 from redbot.core import commands, Config, checks
+from redbot.core.utils.chat_formatting import pagify
 import discord
 
 
@@ -32,7 +33,7 @@ class Modmail(commands.Cog):
             if not toggle["dms"]:
                 return
         if message.attachments or not any(
-            message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
+                message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
         ):
             embeds = []
             attachments_urls = []
@@ -42,7 +43,7 @@ class Modmail(commands.Cog):
             )
             for attachment in message.attachments:
                 if any(
-                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                        attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
                 ):
                     if embeds[0].image:
                         embed = discord.Embed()
@@ -79,7 +80,7 @@ class Modmail(commands.Cog):
             )
             for attachment in ctx.message.attachments:
                 if any(
-                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                        attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
                 ):
                     if embeds[0].image:
                         embed = discord.Embed()
@@ -152,14 +153,14 @@ class Modmail(commands.Cog):
         """Ignore a user from using the modmail."""
         async with self.config.ignore() as ignore:
             ignore.append(user.id)
-            await ctx.send(ignore)
+            await ctx.send("User has been added to the list.")
 
     @modmailset.command()
     async def unignore(self, ctx, user: discord.Member):
         """Remove user from the ignored list."""
         async with self.config.ignore() as ignore:
             ignore.remove(user.id)
-            await ctx.send(ignore)
+            await ctx.send("User has been removed from the list.")
 
     @checks.mod()
     @commands.command()
@@ -180,3 +181,18 @@ class Modmail(commands.Cog):
             await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
         else:
             await ctx.send("Message delivered to {}".format(user))
+
+    @modmailset.command()
+    async def ignoredlist(self, ctx):
+        """List ignored users."""
+        ignored = []
+        async with self.config.ignore() as ignore:
+            if not ignore:
+                await ctx.send("The ignored list is currently empty.")
+                return
+            for user in ignore:
+                uid = self.bot.get_user(int(user))
+                ignored.append(f"{uid.name} - {user}")
+        users = "\n".join(ignored)
+        for page in pagify(users):
+            await ctx.send(page)
