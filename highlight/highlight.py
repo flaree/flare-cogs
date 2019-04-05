@@ -1,5 +1,6 @@
 from redbot.core import commands, Config, checks
 import discord
+from typing import Optional
 
 
 class Highlight(commands.Cog):
@@ -63,9 +64,10 @@ class Highlight(commands.Cog):
                 toggle[f"{ctx.author.id}"] = False
 
     @highlight.command()
-    async def remove(self, ctx, *, word: str):
+    async def remove(self, ctx, word: str, channel: Optional[discord.TextChannel] = None):
         """Remove highlighting in a certain channel"""
-        async with self.config.channel(ctx.channel).highlight() as highlight:
+        channel = channel or ctx.channel
+        async with self.config.channel(channel).highlight() as highlight:
             try:
                 if word in highlight[f"{ctx.author.id}"]:
                     await ctx.send(
@@ -92,24 +94,27 @@ class Highlight(commands.Cog):
                 await ctx.send("You've disabled highlighting on this channel.")
 
     @highlight.command()
-    async def list(self, ctx):
+    async def list(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for the current channel."""
-        async with self.config.channel(ctx.channel).highlight() as highlight:
-            if str(ctx.author.id) in highlight:
-                async with self.config.channel(ctx.channel).toggle() as toggle:
+        channel = channel or ctx.channel
+        async with self.config.channel(channel).highlight() as highlight:
+            if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
+                async with self.config.channel(channel).toggle() as toggle:
+                    words = [word for word in highlight[f'{ctx.author.id}']]
+                    words = "\n".join(words)
                     try:
                         embed = discord.Embed(
-                            title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
-                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: {toggle[f'{ctx.author.id}']}",
+                            title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                            description=f"**Word(s)**: {words}\n**Toggle**: {toggle[f'{ctx.author.id}']}",
                         )
                     except KeyError:
                         embed = discord.Embed(
-                            title=f"Current highlighted text for {ctx.author.display_name} in {ctx.message.channel}:",
-                            description=f"**Word**: {highlight[f'{ctx.author.id}']}\n**Toggle**: Use [p]highlight toggle",
+                            title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                            description=f"**Word(s)**: {words}\n**Toggle**: Use [p]highlight toggle",
                         )
 
                 await ctx.send(embed=embed)
             else:
                 await ctx.send(
-                    "You currently do not have any highlighted text set up in this channel."
+                    "You currently do not have any highlighted text set up in that channel."
                 )
