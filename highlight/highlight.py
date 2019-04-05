@@ -20,15 +20,25 @@ class Highlight(commands.Cog):
                     async with self.config.channel(message.channel).toggle() as toggle:
                         if not toggle[user]:
                             return
+                    before = []
+                    async for messages in message.channel.history(limit=5, before=message, reverse=False):
+                        before.append(messages)
                     highlighted = self.bot.get_user(int(user))
+                    embed = discord.Embed(
+                        title="Context:", colour=0xFF0000, timestamp=message.created_at,
+                        description="{}\n{}".format("\n".join([f"**{x.author}**: {x.content}" for x in before]),
+                                                    f"**{message.author}**: {message.content}")
+                    )
+                    embed.add_field(name="Jump",
+                                    value=f"[Click for context](https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id})")
                     await highlighted.send(
-                        "You've been mentioned by {} in <#{}> on {}.\nContext: {}".format(
-                            message.author.display_name,
+                        "Your highligted word `{}` was mention in <#{}> on {}.\n".format(
+                            highlight[user],
                             message.channel.id,
-                            message.guild.name,
-                            message.content,
+                            message.guild.name
                         )
                     )
+                    await highlighted.send(embed=embed)
 
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
