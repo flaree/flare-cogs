@@ -49,8 +49,7 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def add(self, ctx, *, text: str):
-        """Add a word to be highlighted on.
-           Note: 1 notification setting per channel."""
+        """Add a word to be highlighted on."""
         async with self.config.channel(ctx.channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
