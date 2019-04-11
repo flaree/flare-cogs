@@ -23,24 +23,28 @@ class Highlight(commands.Cog):
                             if not toggle[user]:
                                 return
                         before = []
-                        async for messages in message.channel.history(limit=5, before=message, reverse=False):
+                        async for messages in message.channel.history(
+                            limit=5, before=message, reverse=False
+                        ):
                             before.append(messages)
                         highlighted = self.bot.get_user(int(user))
                         embed = discord.Embed(
-                            title="Context:", colour=0xFF0000, timestamp=message.created_at,
-                            description="{}\n{}".format("\n".join([f"**{x.author}**: {x.content}" for x in before]),
-                                                        f"**{message.author}**: {message.content}")
+                            title="Context:",
+                            colour=0xFF0000,
+                            timestamp=message.created_at,
+                            description="{}\n{}".format(
+                                "\n".join([f"**{x.author}**: {x.content}" for x in before]),
+                                f"**{message.author}**: {message.content}",
+                            ),
                         )
-                        embed.add_field(name="Jump",
-                                        value=f"[Click for context](https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id})")
+                        embed.add_field(
+                            name="Jump",
+                            value=f"[Click for context](https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id})",
+                        )
                         await highlighted.send(
-                            "Your highligted word `{}` was mention in <#{}> on {}.\n".format(
-                                word,
-                                message.channel.id,
-                                message.guild.name
-                            )
+                            f"Your highlighted word `{word}` was mentioned in <#{message.channel.id}> in {message.guild.name}.\n",
+                            embed=embed,
                         )
-                        await highlighted.send(embed=embed)
 
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
@@ -69,15 +73,11 @@ class Highlight(commands.Cog):
         async with self.config.channel(channel).highlight() as highlight:
             try:
                 if word in highlight[f"{ctx.author.id}"]:
-                    await ctx.send(
-                        f"Highlighted word `{word}` has been removed successfully."
-                    )
+                    await ctx.send(f"Highlighted word `{word}` has been removed successfully.")
                     del highlight[f"{ctx.author.id}"][word]
 
                 else:
-                    await ctx.send(
-                        "Your word is not currently setup in this channel.."
-                    )
+                    await ctx.send("Your word is not currently setup in this channel..")
             except KeyError:
                 await ctx.send("You do not have any highlighted words in this channel.")
 
@@ -99,7 +99,7 @@ class Highlight(commands.Cog):
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
                 async with self.config.channel(channel).toggle() as toggle:
-                    words = [word for word in highlight[f'{ctx.author.id}']]
+                    words = [word for word in highlight[f"{ctx.author.id}"]]
                     words = "\n".join(words)
                     try:
                         embed = discord.Embed(
