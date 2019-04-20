@@ -14,3 +14,4 @@ make.bat
 Makefile
 mrp/
 sampservers/
+.vscode/launch.json
