@@ -9,7 +9,7 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        default_channel = {"highlight": {}, "toggle": {}}
+        default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
 
     async def on_message(self, message):
@@ -19,6 +19,10 @@ class Highlight(commands.Cog):
             for user in highlight:
                 for word in highlight[user]:
                     if word in message.content.lower():
+                        if message.author.bot:
+                            async with self.config.channel(message.channel).ignore() as ignorebots:
+                                if not ignorebots[user]:
+                                    return
                         async with self.config.channel(message.channel).toggle() as toggle:
                             if not toggle[user]:
                                 return
@@ -65,6 +69,9 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).toggle() as toggle:
             if str(ctx.author.id) not in toggle:
                 toggle[f"{ctx.author.id}"] = False
+        async with self.config.channel(ctx.channel).ignore() as ignore:
+            if str(ctx.author.id) not in ignore:
+                ignore[f"{ctx.author.id}"] = True
 
     @highlight.command()
     async def remove(self, ctx, word: str, channel: Optional[discord.TextChannel] = None):
@@ -93,26 +100,38 @@ class Highlight(commands.Cog):
                 await ctx.send("You've disabled highlighting on this channel.")
 
     @highlight.command()
+    async def bots(self, ctx, state: bool):
+        """Toggle highlighting on bot messages."""
+        async with self.config.channel(ctx.channel).ignore() as ignore:
+            if state:
+                ignore[f"{ctx.author.id}"] = state
+                await ctx.send("Bots messages will now be included in highlighted messages")
+            elif not state:
+                ignore[f"{ctx.author.id}"] = state
+                await ctx.send("Bot messages will not longer be highlighted.")
+
+    @highlight.command()
     async def list(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for the current channel."""
         channel = channel or ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
                 async with self.config.channel(channel).toggle() as toggle:
-                    words = [word for word in highlight[f"{ctx.author.id}"]]
-                    words = "\n".join(words)
-                    try:
-                        embed = discord.Embed(
-                            title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
-                            description=f"**Word(s)**: {words}\n**Toggle**: {toggle[f'{ctx.author.id}']}",
-                        )
-                    except KeyError:
-                        embed = discord.Embed(
-                            title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
-                            description=f"**Word(s)**: {words}\n**Toggle**: Use [p]highlight toggle",
-                        )
+                    async with self.config.channel(ctx.channel).ignore() as ignore:
+                        words = [word for word in highlight[f"{ctx.author.id}"]]
+                        words = "\n".join(words)
+                        try:
+                            embed = discord.Embed(
+                                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                                description=f"**Word(s)**: {words}\n**Toggle**: {toggle[f'{ctx.author.id}']}\n**Ignoring Bots**: {not ignore[f'{ctx.author.id}']}",
+                            )
+                        except KeyError:
+                            embed = discord.Embed(
+                                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                                description=f"**Word(s)**: {words}\n**Toggle**: Use [p]highlight toggle",
+                            )
 
-                await ctx.send(embed=embed)
+                    await ctx.send(embed=embed)
             else:
                 await ctx.send(
                     "You currently do not have any highlighted text set up in that channel."
