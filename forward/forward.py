@@ -16,6 +16,7 @@ class Forward(commands.Cog):
         owner = self.bot.get_user(self.bot.owner_id)
         await owner.send(embed=embed2)
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is not None:
             return

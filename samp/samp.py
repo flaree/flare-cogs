@@ -12,7 +12,7 @@ class Samp(commands.Cog):
         self.bot = bot
         self._session = aiohttp.ClientSession()
 
-    async def __unload(self):
+    async def cog_unload(self):
         asyncio.get_event_loop().create_task(self._session.close())
 
     async def get(self, url):

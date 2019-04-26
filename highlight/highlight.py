@@ -12,6 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}}
         self.config.register_channel(**default_channel)
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
