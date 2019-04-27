@@ -10,3 +10,5 @@ venv/
 rainbow6/r6.png
 make.bat
 Makefile
+.vscode/launch.json
+rainbow6/profile.png
