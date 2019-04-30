@@ -33,7 +33,6 @@ class Rainbow6(commands.Cog):
     async def download(self, url):
         async with self._session.get(url) as response:
             return await response.read()
-            
 
     def round_corner(self, radius):
         """Draw a round corner"""
@@ -116,7 +115,9 @@ class Rainbow6(commands.Cog):
             p = r["players"]["{}".format(list(t.keys())[0])]
             q = s["players"]["{}".format(list(t.keys())[0])]
             if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
-                wlr = (int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))) * 100
+                wlr = (
+                    int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))
+                ) * 100
             else:
                 wlr = 0
             if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
@@ -129,7 +130,9 @@ class Rainbow6(commands.Cog):
             season = p["season"]
             if pic["picture"]:
                 img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
-                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+                aviholder = self.add_corners(
+                    Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10
+                )
                 nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
                 img.paste(nameplate, (155, 10), nameplate)
                 img.paste(aviholder, (10, 10), aviholder)
@@ -177,7 +180,10 @@ class Rainbow6(commands.Cog):
                     font=font,
                 )
                 draw.text(
-                    (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
+                    (10, 300),
+                    "MMR: {}".format(round(p["mmr"])),
+                    fill=(255, 255, 255, 255),
+                    font=font,
                 )
                 draw.text(
                     (10, 340),
@@ -227,8 +233,12 @@ class Rainbow6(commands.Cog):
                 embed.add_field(name="Rank:", value=p["rankInfo"]["name"], inline=True)
                 embed.add_field(name="Season:", value=p["season"], inline=True)
                 embed.add_field(name="S{} Games Won:".format(season), value=p["wins"], inline=True)
-                embed.add_field(name="S{} Games Lost:".format(season), value=p["losses"], inline=True)
-                embed.add_field(name="S{} Abandons:".format(season), value=p["abandons"], inline=True)
+                embed.add_field(
+                    name="S{} Games Lost:".format(season), value=p["losses"], inline=True
+                )
+                embed.add_field(
+                    name="S{} Abandons:".format(season), value=p["abandons"], inline=True
+                )
                 embed.add_field(name="MMR:", value=round(p["mmr"]), inline=True)
                 embed.add_field(name="Total Wins:", value=q["rankedpvp_matchwon"], inline=True)
                 embed.add_field(name="Total Losses:", value=q["rankedpvp_matchlost"], inline=True)
@@ -236,9 +246,13 @@ class Rainbow6(commands.Cog):
                 embed.add_field(name="Ranked Deaths:", value=q["rankedpvp_matchlost"], inline=True)
                 embed.add_field(name="Ranked KDR:", value=f"{round(kdr, 2)}%", inline=True)
                 embed.add_field(
-                    name="S{} Ranked W/R:".format(season), value=f"{int(round(wlr, 2))}%", inline=True
+                    name="S{} Ranked W/R:".format(season),
+                    value=f"{int(round(wlr, 2))}%",
+                    inline=True,
                 )
-                embed.add_field(name="Total Ranked W/R:", value=f"{int(round(twlr, 2))}%", inline=True)
+                embed.add_field(
+                    name="Total Ranked W/R:", value=f"{int(round(twlr, 2))}%", inline=True
+                )
                 await ctx.send(embed=embed)
         except KeyError:
             await ctx.send("Set an account using [p]r6 setprofile")

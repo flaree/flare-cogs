@@ -1,5 +1,5 @@
 import discord
-from redbot.core import commands, checks    
+from redbot.core import commands, checks
 from redbot.core.utils.chat_formatting import pagify
 from random import randint, choice
 from samp_client.client import SampClient
@@ -37,14 +37,16 @@ class Mrp(BaseCog):
     #   playerss = f"Current Players: {players}/400"
     #  await channel.edit(name=f"{playerss}")
 
-    @commands.command(aliases=["serverip", "ips", "mrp", "m-rp", "site", "website", "forum", "forums"])
+    @commands.command(
+        aliases=["serverip", "ips", "mrp", "m-rp", "site", "website", "forum", "forums"]
+    )
     async def ip(self, ctx):
         """MRP's server IP."""
         # r = "https://api.samp-servers.net/v2/server/server.wc-rp.com:7777"
         # req = await self.get(r)
         # version = f"{req['core']['gm']}"
         # samp = f"{req['core']['vn']}"
-        embed = discord.Embed(title="Metropolis Roleplay Information", colour=0xff0000)
+        embed = discord.Embed(title="Metropolis Roleplay Information", colour=0xFF0000)
         embed.add_field(name="IP", value="put ip here", inline=True)
         embed.add_field(name="Numerical IP", value="put ip here", inline=True)
         embed.add_field(name="SA-MP Version", value="0.3DL", inline=True)
@@ -58,10 +60,15 @@ class Mrp(BaseCog):
     @commands.command()
     async def iplookup(self, ctx, ip: str):
         """IPLookup API"""
-        ip1 = "http://api.ipstack.com/{}?access_key=6c5ddc76ac6b10405123ac249aff6bf8&format=1".format(ip)
+        ip1 = "http://api.ipstack.com/{}?access_key=6c5ddc76ac6b10405123ac249aff6bf8&format=1".format(
+            ip
+        )
         ip2 = "http://proxycheck.io/v2/{}?key=6n5t9m-353305-68f6j3-1qfw04&vpn=1&asn=1&node=1&time=1&inf=0&port=1&seen=1&days=7&tag=msg".format(
-            ip)
-        ip3 = "http://check.getipintel.net/check.php?ip={}&contact=flare2399@gmail.com&format=json&flags=m".format(ip)
+            ip
+        )
+        ip3 = "http://check.getipintel.net/check.php?ip={}&contact=flare2399@gmail.com&format=json&flags=m".format(
+            ip
+        )
         r = await self.get(ip1)
         s = await self.get(ip2)
         t = await self.get(ip3)
@@ -69,29 +76,37 @@ class Mrp(BaseCog):
         message = ctx.message
         colour = randint(0, 0xFFFFFF)  # Random Hex Value for embed colour.
         try:
-            embed = discord.Embed(title=f"IP Lookup Information for {ip}", colour=discord.Colour(value=colour),
-                                  timestamp=ctx.message.created_at)
-            embed.add_field(name="Country:", value=r['country_name'], inline=True)
-            embed.add_field(name="Country Code:", value=r['country_code'], inline=True)
-            if r['country_code'] == "US":
-                embed.add_field(name="State:", value=r['city'], inline=True)
+            embed = discord.Embed(
+                title=f"IP Lookup Information for {ip}",
+                colour=discord.Colour(value=colour),
+                timestamp=ctx.message.created_at,
+            )
+            embed.add_field(name="Country:", value=r["country_name"], inline=True)
+            embed.add_field(name="Country Code:", value=r["country_code"], inline=True)
+            if r["country_code"] == "US":
+                embed.add_field(name="State:", value=r["city"], inline=True)
             else:
-                embed.add_field(name="City:", value=r['city'], inline=True)
-            embed.add_field(name="Flag:", value=r['location']['country_flag_emoji'], inline=True)
-            embed.add_field(name="Continent:", value=r['continent_name'], inline=True)
+                embed.add_field(name="City:", value=r["city"], inline=True)
+            embed.add_field(name="Flag:", value=r["location"]["country_flag_emoji"], inline=True)
+            embed.add_field(name="Continent:", value=r["continent_name"], inline=True)
             try:
-                embed.add_field(name="IP Type:", value=r['type'].upper(), inline=True)
+                embed.add_field(name="IP Type:", value=r["type"].upper(), inline=True)
             except AttributeError:
                 embed.add_field(name="IP Type:", value="None", inline=True)
-            embed.set_footer(
-                text="IP information requested by " + str(user))
-            embed.add_field(name="Proxy Status(Test One):", value=s[f'{ip}']['proxy'].capitalize(), inline=True)
-            if s[f'{ip}']['proxy'] == "yes":
-                embed.add_field(name="Proxy Type:", value=s[f'{ip}']['type'], inline=True)
-            if t['result'] == "1":
-                embed.add_field(name="Proxy Status(Test Two):", value="Yes".capitalize(), inline=True)
+            embed.set_footer(text="IP information requested by " + str(user))
+            embed.add_field(
+                name="Proxy Status(Test One):", value=s[f"{ip}"]["proxy"].capitalize(), inline=True
+            )
+            if s[f"{ip}"]["proxy"] == "yes":
+                embed.add_field(name="Proxy Type:", value=s[f"{ip}"]["type"], inline=True)
+            if t["result"] == "1":
+                embed.add_field(
+                    name="Proxy Status(Test Two):", value="Yes".capitalize(), inline=True
+                )
             else:
-                embed.add_field(name="Proxy Status(Test Two):", value="No".capitalize(), inline=True)
+                embed.add_field(
+                    name="Proxy Status(Test Two):", value="No".capitalize(), inline=True
+                )
             await ctx.send(embed=embed)
             await message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
         except KeyError:
@@ -102,13 +117,19 @@ class Mrp(BaseCog):
     async def welcomerules(self, ctx):
         """M-RP's server rules."""
 
-        embed = discord.Embed(title="Metropolis RP", colour=0xff0000)
-        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/543573723442053140/560149233244700673/2.png")
-        embed.add_field(name="Information",
-                        value="Welcome to the Discord server of **Metropolis Role Play**!\n Please make sure that you've read the rules **before** joining!\n\n")
-        embed.add_field(name="Rules",
-                        value="Be respectful to everyone at all times.\nUse the correct channel that is specific to certain chat content. \nUse English in all channels.\nUse common sense when necessary.\n\nDo not repeatedly spam and mention/poke people.\nDo not mention usergroups (roles) in any public channels.\nDo not advertise any third party services or Discord servers.\nDo not impose as other community members.\nDo not discuss any pending ban appeals.\n\nNOTE: Forum and server rules still apply to this Discord server.\nBreach of the ruleset above will result in some form of punishment, depending on staff judgement.", 
-                            inline=True)
+        embed = discord.Embed(title="Metropolis RP", colour=0xFF0000)
+        embed.set_thumbnail(
+            url="https://cdn.discordapp.com/attachments/543573723442053140/560149233244700673/2.png"
+        )
+        embed.add_field(
+            name="Information",
+            value="Welcome to the Discord server of **Metropolis Role Play**!\n Please make sure that you've read the rules **before** joining!\n\n",
+        )
+        embed.add_field(
+            name="Rules",
+            value="Be respectful to everyone at all times.\nUse the correct channel that is specific to certain chat content. \nUse English in all channels.\nUse common sense when necessary.\n\nDo not repeatedly spam and mention/poke people.\nDo not mention usergroups (roles) in any public channels.\nDo not advertise any third party services or Discord servers.\nDo not impose as other community members.\nDo not discuss any pending ban appeals.\n\nNOTE: Forum and server rules still apply to this Discord server.\nBreach of the ruleset above will result in some form of punishment, depending on staff judgement.",
+            inline=True,
+        )
         embed.set_footer(text="React with the emoji below to gain entry into the server.")
         await ctx.send(embed=embed)
 
@@ -135,9 +156,8 @@ class Mrp(BaseCog):
     #   "**West Coast Roleplay Status:**\n\n:desktop: IP: {}\n:white_check_mark: Status: **Online**\n:video_game: Players: {}\n:busts_in_silhouette: Community: https://www.wc-rp.com".format(
     #      ip, players))
 
-
-    #@commands.has_any_role("Management", "Senior Administrator", "Server Owner", "Server Manager", "Scripter",
-     #                      "Lead Administrator", "Administrator", "Moderator")
+    # @commands.has_any_role("Management", "Senior Administrator", "Server Owner", "Server Manager", "Scripter",
+    #                      "Lead Administrator", "Administrator", "Moderator")
     # @commands.command()
     # async def listplayers(self, ctx):
     #   """List current in-game players"""
@@ -205,9 +225,8 @@ class Mrp(BaseCog):
         overwrite = guild_channel.overwrites_for(role)
         overwrite.update(send_messages=False)
         await guild_channel.set_permissions(
-            role,
-            overwrite=overwrite,
-            reason="Lockdown in effect.")
+            role, overwrite=overwrite, reason="Lockdown in effect."
+        )
 
         await ctx.send(
             "Channel is locked down. You can unlock the channel by doing {}unlockdown".format(
@@ -226,31 +245,28 @@ class Mrp(BaseCog):
             guild_channel = self.bot.get_channel(channel.id)
         overwrite = guild_channel.overwrites_for(role)
         overwrite.update(send_messages=True)
-        await guild_channel.set_permissions(
-            role,
-            overwrite=overwrite,
-            reason="Lockdown removed.")
+        await guild_channel.set_permissions(role, overwrite=overwrite, reason="Lockdown removed.")
 
-        await ctx.send(
-            "Channel is now unlocked.".format(
-                ctx.prefix
-            )
-        )
+        await ctx.send("Channel is now unlocked.".format(ctx.prefix))
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_any_role("management", "lead admin")
     async def masslockdown(self, ctx):
         """Toggles the lockdown mode"""
-        channel_ids = [558999197366484995, 559019205408587786, 559018970909376551, 559018822582009867]
+        channel_ids = [
+            558999197366484995,
+            559019205408587786,
+            559018970909376551,
+            559018822582009867,
+        ]
         role = discord.utils.get(ctx.guild.roles, name="verified")
         for guild_channel in ctx.guild.channels:
             if guild_channel.id in channel_ids:
                 overwrite = guild_channel.overwrites_for(role)
                 overwrite.update(send_messages=False)
                 await guild_channel.set_permissions(
-                    role,
-                    overwrite=overwrite,
-                    reason="Lockdown in effect.")
+                    role, overwrite=overwrite, reason="Lockdown in effect."
+                )
 
         await ctx.send(
             "Server is locked down. You can unlock the server by doing {}massunlockdown".format(
@@ -262,17 +278,19 @@ class Mrp(BaseCog):
     @commands.has_any_role("management", "lead admin", "developer")
     async def massunlockdown(self, ctx):
         """Toggles the lockdown mode"""
-        channel_ids = [558999197366484995, 559019205408587786, 559018970909376551, 559018822582009867]
+        channel_ids = [
+            558999197366484995,
+            559019205408587786,
+            559018970909376551,
+            559018822582009867,
+        ]
         role = discord.utils.get(ctx.guild.roles, name="verified")
         for guild_channel in ctx.guild.channels:
             if guild_channel.id in channel_ids:
                 overwrite = guild_channel.overwrites_for(role)
                 overwrite.update(send_messages=True)
                 await guild_channel.set_permissions(
-                    role,
-                    overwrite=overwrite,
-                    reason="Lockdown in effect.")
+                    role, overwrite=overwrite, reason="Lockdown in effect."
+                )
 
-        await ctx.send(
-            "Server is now unlocked. "
-        )
+        await ctx.send("Server is now unlocked. ")

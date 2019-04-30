@@ -1,13 +1,16 @@
 import discord
-from redbot.core import commands, checks
+from redbot.core import commands, checks, Config
 from redbot.core.utils.chat_formatting import pagify
 from random import randint, choice
 from samp_client.client import SampClient
 import aiohttp
 import asyncio
 from prettytable import PrettyTable
+from bs4 import BeautifulSoup
+import uuid
 
 BaseCog = getattr(commands, "Cog", object)
+defaults = {"Codes": {}, "verified": {}}
 
 
 class Wcrp(BaseCog):
@@ -15,6 +18,8 @@ class Wcrp(BaseCog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, identifier=7258295620, force_registration=True)
+        self.config.register_global(**defaults)
         self._session = aiohttp.ClientSession()
 
     async def __unload(self):
@@ -24,18 +29,57 @@ class Wcrp(BaseCog):
         async with self._session.get(url) as response:
             return await response.json()
 
-    async def on_member_update(self, before, after):
-        channel = self.bot.get_channel(537310109181673492)
-        r = "https://api.samp-servers.net/v2/server/server.wc-rp.com:7777"
-        req = await self.get(r)
-        players = int(f"{req['core']['pc']}")
-        if players < 10:
-            u10 = str(channel.name[17:18])
-        else:
-            u10 = str(channel.name[17:19])
-        if u10 != str(players):
-            playerss = f"Current Players: {players}/400"
-            await channel.edit(name=f"{playerss}")
+    async def getraw(self, url):
+        async with self._session.get(url) as response:
+            return await response.text()
+
+    @commands.command()
+    async def verify(self, ctx, url=None):
+        """wc-rp forum link"""
+        async with self.config.verified() as ver:
+            if str(ctx.author.id) in ver:
+                await ctx.send("Your account is already verified")
+                return
+            if url is None:
+                async with self.config.Codes() as code:
+                    if str(ctx.author.id) in code:
+                        await ctx.send(
+                            "Your code is `{}`. Please update your WC-RP Profiles In-Game characters section to the code. To verify that you have, reissue the command .verify <url of your forum account>".format(
+                                code[str(ctx.author.id)]
+                            )
+                        )
+                        return
+                    code[str(ctx.author.id)] = uuid.uuid4().hex.upper()[0:6]
+                    await ctx.send(
+                        "Your code is `{}`. Please paste the code into your characters field on your profile.\nOnce that is completed please post verifiy your account using .verify <url to forum account>".format(
+                            code[str(ctx.author.id)]
+                        )
+                    )
+            if url is not None:
+                if url.split(".")[0] != "https://wc-rp":
+                    return
+                req = await self.getraw(url)
+                soup = BeautifulSoup(req)
+                genitems = []
+                async with self.config.Codes() as code:
+                    for link in soup.find_all("div", attrs={"class": "ipsDataItem_generic"}):
+                        genitems.append(link.get_text())
+                    if code[str(ctx.author.id)] in genitems:
+                        await ctx.send("Your account has been sucessfully verified and linked.")
+                        ver[str(ctx.author.id)] = str(url)
+                    else:
+                        await ctx.send(
+                            "The code does not appear to be present in your characters field."
+                        )
+
+    @commands.command()
+    async def unlink(self, ctx):
+        """Unlink your forum account"""
+        async with self.config.verified() as ver:
+            del ver[str(ctx.author.id)]
+        async with self.config.Codes() as code:
+            del code[str(ctx.author.id)]
+        await ctx.send("Your account has been unlinked successfully.")
 
     @commands.command(
         pass_context=True,
@@ -43,7 +87,6 @@ class Wcrp(BaseCog):
     )
     async def ip(self, ctx):
         """WC-RP's server IP."""
-
         colour = randint(0, 0xFFFFFF)
         embed = discord.Embed(
             title="West Coast Roleplay Information", colour=discord.Colour(value=colour)
