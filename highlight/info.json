@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "Highlight certain words to be notified - 1 highlighted word per channel.",
+  "install_msg": "Highlight certain words to be notified.",
   "name": "Highlight",
   "disabled": false,
   "short": "Get notified on certain words.",
