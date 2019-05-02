@@ -2,7 +2,6 @@ import random
 import discord
 import aiohttp
 import asyncio
-import requests
 from redbot.core import commands, Config, checks
 from . import __path__
 import os
