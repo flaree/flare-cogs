@@ -74,7 +74,7 @@ class Highlight(commands.Cog):
                 ignore[f"{ctx.author.id}"] = True
 
     @highlight.command()
-    async def remove(self, ctx, *, word: str:
+    async def remove(self, ctx, *, word: str):
         """Remove highlighting in a certain channel"""
         channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
