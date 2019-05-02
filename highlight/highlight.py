@@ -32,12 +32,14 @@ class Highlight(commands.Cog):
                         ):
                             before.append(messages)
                         highlighted = self.bot.get_user(int(user))
+                        context = "\n".join([f"**{x.author}**: {x.content}" for x in before])
+                        if len(context) > 2000:
+                            context = "**Context omitted due to message size limits.\n**"
                         embed = discord.Embed(
                             title="Context:",
                             colour=0xFF0000,
                             timestamp=message.created_at,
-                            description="{}\n{}".format(
-                                "\n".join([f"**{x.author}**: {x.content}" for x in before]),
+                            description="{}\n{}".format(context,
                                 f"**{message.author}**: {message.content}",
                             ),
                         )
