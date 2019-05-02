@@ -27,6 +27,10 @@ class Rainbow6(commands.Cog):
     async def get(self, url):
         async with self._session.get(url) as response:
             return await response.json(content_type="text/html")
+    async def getimg(self, url):
+        async with self._session.get(url) as response:
+            rank = await response.read()
+            return rank
 
     # Thanks trusty & malarne for helping me get over pillow.
     def round_corner(self, radius):
@@ -120,11 +124,8 @@ class Rainbow6(commands.Cog):
         nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-
         url = p["rankInfo"]["image"]
-        async with self._session.get(url) as response:
-            rank = await response.read()
-        im = Image.open(BytesIO(rank))
+        im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
         img.paste(im, (14, 15))
@@ -248,9 +249,7 @@ class Rainbow6(commands.Cog):
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
         url = p["rankInfo"]["image"]
-        async with self._session.get(url) as response:
-            rank = await response.read()
-        im = Image.open(BytesIO(rank))
+        im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
         img.paste(im, (14, 15))
@@ -337,9 +336,7 @@ class Rainbow6(commands.Cog):
         nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        async with self._session.get(url) as response:
-            rank = await response.read()
-        im = Image.open(BytesIO(rank))
+        im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
         img.paste(im, (14, 15))
