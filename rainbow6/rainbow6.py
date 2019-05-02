@@ -21,7 +21,7 @@ class Rainbow6(commands.Cog):
         self.database.register_global(**defaults)
         self.bot = bot
         self._session = aiohttp.ClientSession()
-    
+
     async def __unload(self):
         asyncio.get_event_loop().create_task(self._session.close())
 
@@ -83,9 +83,11 @@ class Rainbow6(commands.Cog):
                 account = data["Profiles"]["{}".format(member)]
                 platform = data["Platform"]["{}".format(member)]
             except KeyError:
-                await ctx.send("Please set your account using the r6 setprofile command or search for an account using r6 profile <name> [platform]")
+                await ctx.send(
+                    "Please set your account using the r6 setprofile command or search for an account using r6 profile <name> [platform]"
+                )
                 return
-                
+
         else:
             platform = "uplay"
         req1 = "https://www.antisnakedetail.xyz/r6/getUser.php?name={}&platform={}&appcode=flare".format(
@@ -103,9 +105,7 @@ class Rainbow6(commands.Cog):
         p = r["players"]["{}".format(list(t.keys())[0])]
         q = s["players"]["{}".format(list(t.keys())[0])]
         if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
-            wlr = (
-                int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))
-            ) * 100
+            wlr = (int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))) * 100
         else:
             wlr = 0
         if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
@@ -117,16 +117,14 @@ class Rainbow6(commands.Cog):
         kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
         season = p["season"]
         img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
-        aviholder = self.add_corners(
-            Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10
-        )
+        aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
         nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
 
         url = p["rankInfo"]["image"]
         async with self._session.get(url) as response:
-            rank =  await response.read()
+            rank = await response.read()
         im = Image.open(BytesIO(rank))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -141,9 +139,7 @@ class Rainbow6(commands.Cog):
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text(
-            (162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
-        )
+        draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
         draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
         draw.text(
             (10, 220),
@@ -170,16 +166,10 @@ class Rainbow6(commands.Cog):
             font=font,
         )
         draw.text(
-            (10, 300),
-            "MMR: {}".format(round(p["mmr"])),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
-            (10, 340),
-            "Abandons: {}".format(p["abandons"]),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 380),
@@ -194,10 +184,7 @@ class Rainbow6(commands.Cog):
             font=font,
         )
         draw.text(
-            (10, 460),
-            "Ranked KDR: {}".format(round(kdr, 2)),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 500),
@@ -212,12 +199,12 @@ class Rainbow6(commands.Cog):
             font=font,
         )
         file = BytesIO()
-        img.save(file, 'png')
+        img.save(file, "png")
         file.name = "profile.png"
         file.seek(0)
         image = discord.File(file)
         await ctx.send(file=image)
-        
+
     @commands.command()
     async def accinfo(self, ctx, member: discord.Member = None):
         """Account Info"""
@@ -263,7 +250,7 @@ class Rainbow6(commands.Cog):
         img.paste(aviholder, (10, 10), aviholder)
         url = p["rankInfo"]["image"]
         async with self._session.get(url) as response:
-            rank =  await response.read()
+            rank = await response.read()
         im = Image.open(BytesIO(rank))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -278,13 +265,9 @@ class Rainbow6(commands.Cog):
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text(
-            (162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
-        )
+        draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
         draw.text((162, 70), f"Season {season} Stats", fill=(255, 255, 255, 255), font=font2)
-        draw.text(
-            (10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font
-        )
+        draw.text((10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font)
         draw.text(
             (10, 260), "Losses: {}".format(p["losses"]), fill=(255, 255, 255, 255), font=font
         )
@@ -292,10 +275,7 @@ class Rainbow6(commands.Cog):
             (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
-            (10, 340),
-            "Abandons: {}".format(p["abandons"]),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 380),
@@ -310,19 +290,15 @@ class Rainbow6(commands.Cog):
             font=font,
         )
         draw.text(
-            (10, 460),
-            "Ranked KDR: {}".format(round(kdr, 2)),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
         )
 
         file = BytesIO()
-        img.save(file, 'png')
+        img.save(file, "png")
         file.name = "season.png"
         file.seek(0)
         image = discord.File(file)
         await ctx.send(file=image)
-
 
     @r6.command()
     async def operator(self, ctx, account: str, operator: str, platform=None):
@@ -363,7 +339,7 @@ class Rainbow6(commands.Cog):
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
         async with self._session.get(url) as response:
-            rank =  await response.read()
+            rank = await response.read()
         im = Image.open(BytesIO(rank))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -373,16 +349,10 @@ class Rainbow6(commands.Cog):
         font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
         draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
         draw.text(
-            (162, 40),
-            f"Operator: {operator.capitalize()}",
-            fill=(255, 255, 255, 255),
-            font=font,
+            (162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font
         )
         draw.text(
-            (10, 180),
-            f"{operator.capitalize()} KDR: {kdr}",
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 180), f"{operator.capitalize()} KDR: {kdr}", fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 220),
@@ -408,12 +378,11 @@ class Rainbow6(commands.Cog):
 
             i += 40
         file = BytesIO()
-        img.save(file, 'png')
+        img.save(file, "png")
         file.name = "operator.png"
         file.seek(0)
         image = discord.File(file)
         await ctx.send(file=image)
-        
 
     @r6.command()
     async def operators(self, ctx, account: str, stats: str, platform=None):
