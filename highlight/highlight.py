@@ -74,9 +74,9 @@ class Highlight(commands.Cog):
                 ignore[f"{ctx.author.id}"] = True
 
     @highlight.command()
-    async def remove(self, ctx, word: str, channel: Optional[discord.TextChannel] = None):
+    async def remove(self, ctx, *, word: str:
         """Remove highlighting in a certain channel"""
-        channel = channel or ctx.channel
+        channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
             try:
                 if word in highlight[f"{ctx.author.id}"]:
