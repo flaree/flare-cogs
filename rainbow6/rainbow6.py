@@ -22,7 +22,7 @@ class Rainbow6(commands.Cog):
         self.database.register_global(**defaults)
         self.bot = bot
         self._session = aiohttp.ClientSession()
-
+    
     async def __unload(self):
         asyncio.get_event_loop().create_task(self._session.close())
 

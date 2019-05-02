@@ -84,10 +84,10 @@ class Verify(commands.Cog):
         async with self.config.Codes() as code:
             del code[str(ctx.author.id)]
         await ctx.send("Your account has been unlinked successfully.")
-    
+
     @checks.is_owner()
     @commands.command()
-    async def verifyset(self, ctx, tag: str, *, tagclass:str):
+    async def verifyset(self, ctx, tag: str, *, tagclass: str):
         """Verification Settings"""
         async with self.config.settings() as settings:
             settings["tag"] = tag
