@@ -21,7 +21,7 @@ class Overwatch(commands.Cog):
 
     async def get(self, url):
         async with self._session.get(url) as response:
-            return await response.json(content_type="text/html")
+            return await response.json(content_type=None)
 
     @commands.group(autohelp=True, aliases=["overwatch"])
     async def ow(self, ctx):
@@ -94,51 +94,46 @@ class Overwatch(commands.Cog):
     async def hero(self, ctx, account: str, region: str, hero: str):
         """OW Hero Stats - Account must include the ID. Profile must be public"""
         account = account.replace("#", "-")
-        try:
-            r = await self.get(f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{hero}")
-            if not r["private"]:
-                colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(title="Overwatch Profile Information", colour=colour)
-                embed.set_author(name=r["name"], icon_url=r["icon"])
-                embed.set_thumbnail(url=r["icon"])
-                embed.add_field(name="Name:", value=r["name"], inline=True)
-                embed.add_field(name="Level:", value=r["level"], inline=True)
-                embed.add_field(name="Prestige:", value=r["prestige"], inline=True)
-                embed.add_field(name="Total Games Won:", value=r["gamesWon"], inline=True)
-                embed.add_field(name="---", value="---", inline=False)
-                embed.add_field(name="Hero:", value=hero.capitalize(), inline=True)
-                embed.add_field(
-                    name=hero.capitalize() + " Playtime:",
-                    value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["timePlayed"],
-                    inline=True,
-                )
-                embed.add_field(
-                    name="Games Won:",
-                    value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["gamesWon"],
-                    inline=True,
-                )
-                embed.add_field(
-                    name="Elims Per Life",
-                    value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)][
-                        "eliminationsPerLife"
-                    ],
-                    inline=True,
-                )
-                embed.add_field(
-                    name="Weapon Accuracy",
-                    value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"]
-                    + "%",
-                    inline=True,
-                )
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send(
-                    "Your profile is set to private, we were unable to retrieve your stats."
-                )
-
-        except:
-            await ctx.send("Request failed, please ensure you're entering the details correctly.")
-
+        r = await self.get(f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{hero}")
+        if not r["private"]:
+            colour = discord.Color.from_hsv(random.random(), 1, 1)
+            embed = discord.Embed(title="Overwatch Profile Information", colour=colour)
+            embed.set_author(name=r["name"], icon_url=r["icon"])
+            embed.set_thumbnail(url=r["icon"])
+            embed.add_field(name="Name:", value=r["name"], inline=True)
+            embed.add_field(name="Level:", value=r["level"], inline=True)
+            embed.add_field(name="Prestige:", value=r["prestige"], inline=True)
+            embed.add_field(name="Total Games Won:", value=r["gamesWon"], inline=True)
+            embed.add_field(name="---", value="---", inline=False)
+            embed.add_field(name="Hero:", value=hero.capitalize(), inline=True)
+            embed.add_field(
+                name=hero.capitalize() + " Playtime:",
+                value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["timePlayed"],
+                inline=True,
+            )
+            embed.add_field(
+                name="Games Won:",
+                value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["gamesWon"],
+                inline=True,
+            )
+            embed.add_field(
+                name="Elims Per Life",
+                value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)][
+                    "eliminationsPerLife"
+                ],
+                inline=True,
+            )
+            embed.add_field(
+                name="Weapon Accuracy",
+                value=str(r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["weaponAccuracy"])
+                + "%",
+                inline=True,
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(
+                "Your profile is set to private, we were unable to retrieve your stats."
+            )
     @ow.command()
     async def heroes(self, ctx, account: str, region: str, platform: str, *heroes: str):
         """OW Multiple Hero Stats - Account must include the ID. Profile must be public"""
