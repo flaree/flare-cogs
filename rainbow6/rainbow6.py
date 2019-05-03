@@ -8,6 +8,7 @@ import os
 from .operators import ops
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 defaults = {"Profiles": {}, "Platform": {}}
 
@@ -401,10 +402,10 @@ class Rainbow6(commands.Cog):
         q = r["players"]["{}".format(list(t.keys())[0])]
         colour = discord.Color.from_hsv(random.random(), 1, 1)
         embed = discord.Embed(
-            title="Operator Information for {}/{}".format(account, ctx.author), colour=colour
+            title="Operator Information for {}/{} - Page 1".format(account, ctx.author), colour=colour
         )
         emb = discord.Embed(
-            title="Operator Information for {}/{}".format(account, ctx.author), colour=colour
+            title="Operator Information for {}/{} - Page 2".format(account, ctx.author), colour=colour
         )
         i = 0
         while i < len(ops):
@@ -443,5 +444,7 @@ class Rainbow6(commands.Cog):
                         inline=True,
                     )
             i += 1
-        await ctx.send(embed=embed)
-        await ctx.send(embed=emb)
+        msgs = []
+        msgs.append(embed)
+        msgs.append(emb)
+        await menu(ctx, msgs, DEFAULT_CONTROLS)
