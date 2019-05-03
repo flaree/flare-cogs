@@ -3,6 +3,7 @@ import discord
 import aiohttp
 import asyncio
 import random
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 defaults = {"Profiles": {}, "Region": {}}
 
@@ -135,16 +136,17 @@ class Overwatch(commands.Cog):
                 "Your profile is set to private, we were unable to retrieve your stats."
             )
     @ow.command()
-    async def heroes(self, ctx, account: str, region: str, platform: str, *heroes: str):
+    async def heroes(self, ctx, account: str, region: str, platform: str, *, heroes: str):
         """OW Multiple Hero Stats - Account must include the ID. Profile must be public"""
         account = account.replace("#", "-")
-        heroes = ",".join(heroes)
+        heroes = ",".join(heroes.split())
         if platform != "psn" or platform != "xbl":
             platform = "pc"
         r = await self.get(
             f"https://ow-api.com/v1/stats/{platform}/{region}/{account}/heroes/{heroes}"
         )
         try:
+            embeds = []
             if not r["private"]:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
                 embed = discord.Embed(title="Overwatch Profile Information", colour=colour)
@@ -154,7 +156,7 @@ class Overwatch(commands.Cog):
                 embed.add_field(name="Level:", value=r["level"], inline=True)
                 embed.add_field(name="Prestige:", value=r["prestige"], inline=True)
                 embed.add_field(name="Total Games Won:", value=r["gamesWon"], inline=True)
-                await ctx.send(embed=embed)
+                embeds.append(embed)
                 for hero in r["quickPlayStats"]["topHeroes"]:
                     embed = discord.Embed(
                         title="{} Information".format(hero.capitalize()), colour=colour
@@ -187,7 +189,8 @@ class Overwatch(commands.Cog):
                         + "%",
                         inline=True,
                     )
-                    await ctx.send(embed=embed)
+                    embeds.append(embed)
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
 
             else:
                 await ctx.send(
