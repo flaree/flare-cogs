@@ -136,14 +136,17 @@ class Overwatch(commands.Cog):
                 "Your profile is set to private, we were unable to retrieve your stats."
             )
     @ow.command()
-    async def heroes(self, ctx, account: str, region: str, platform: str, *, heroes: str):
+    async def heroes(self, ctx, account: str, region: str, *, heroes: str):
         """OW Multiple Hero Stats - Account must include the ID. Profile must be public"""
         account = account.replace("#", "-")
+        heroes = heroes.lower().replace("lucio", "lúcio")
+        heroes = heroes.lower().replace("torbjorn", "torbjörn")
+        heroes = heroes.lower().replace("dva", "dVa")
         heroes = ",".join(heroes.split())
-        if platform != "psn" or platform != "xbl":
-            platform = "pc"
+        await ctx.send(heroes)
+        await ctx.send(f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}")
         r = await self.get(
-            f"https://ow-api.com/v1/stats/{platform}/{region}/{account}/heroes/{heroes}"
+            f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}"
         )
         try:
             embeds = []
