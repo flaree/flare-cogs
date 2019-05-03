@@ -102,10 +102,6 @@ class Overwatch(commands.Cog):
             embed.set_author(name=r["name"], icon_url=r["icon"])
             embed.set_thumbnail(url=r["icon"])
             embed.add_field(name="Name:", value=r["name"], inline=True)
-            embed.add_field(name="Level:", value=r["level"], inline=True)
-            embed.add_field(name="Prestige:", value=r["prestige"], inline=True)
-            embed.add_field(name="Total Games Won:", value=r["gamesWon"], inline=True)
-            embed.add_field(name="---", value="---", inline=False)
             embed.add_field(name="Hero:", value=hero.capitalize(), inline=True)
             embed.add_field(
                 name=hero.capitalize() + " Playtime:",
@@ -143,8 +139,6 @@ class Overwatch(commands.Cog):
         heroes = heroes.lower().replace("torbjorn", "torbjörn")
         heroes = heroes.lower().replace("dva", "dVa")
         heroes = ",".join(heroes.split())
-        await ctx.send(heroes)
-        await ctx.send(f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}")
         r = await self.get(
             f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}"
         )
@@ -152,14 +146,6 @@ class Overwatch(commands.Cog):
             embeds = []
             if not r["private"]:
                 colour = discord.Color.from_hsv(random.random(), 1, 1)
-                embed = discord.Embed(title="Overwatch Profile Information", colour=colour)
-                embed.set_author(name=r["name"], icon_url=r["icon"])
-                embed.set_thumbnail(url=r["icon"])
-                embed.add_field(name="Name:", value=r["name"], inline=True)
-                embed.add_field(name="Level:", value=r["level"], inline=True)
-                embed.add_field(name="Prestige:", value=r["prestige"], inline=True)
-                embed.add_field(name="Total Games Won:", value=r["gamesWon"], inline=True)
-                embeds.append(embed)
                 for hero in r["quickPlayStats"]["topHeroes"]:
                     embed = discord.Embed(
                         title="{} Information".format(hero.capitalize()), colour=colour
@@ -193,7 +179,10 @@ class Overwatch(commands.Cog):
                         inline=True,
                     )
                     embeds.append(embed)
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
+                if len(embeds) == 1:
+                    await ctx.send(embed=embeds[0])
+                else:
+                    await menu(ctx, embeds, DEFAULT_CONTROLS)
 
             else:
                 await ctx.send(
