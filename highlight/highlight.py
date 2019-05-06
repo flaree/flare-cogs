@@ -29,7 +29,7 @@ class Highlight(commands.Cog):
                                 return
                         before = []
                         async for messages in message.channel.history(
-                            limit=5, before=message, reverse=False
+                            limit=5, before=message, oldest_first=False
                         ):
                             before.append(messages)
                         highlighted = self.bot.get_user(int(user))
