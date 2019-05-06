@@ -19,7 +19,7 @@ class Highlight(commands.Cog):
         async with self.config.channel(message.channel).highlight() as highlight:
             for user in highlight:
                 for word in highlight[user]:
-                    if word in message.content.lower():
+                    if word.lower() in message.content.lower():
                         if message.author.bot:
                             async with self.config.channel(message.channel).ignore() as ignorebots:
                                 if not ignorebots[user]:
