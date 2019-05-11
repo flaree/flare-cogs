@@ -115,9 +115,7 @@ class Overwatch(commands.Cog):
             )
             embed.add_field(
                 name="Elims Per Life",
-                value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)][
-                    "eliminationsPerLife"
-                ],
+                value=r["quickPlayStats"]["topHeroes"]["{}".format(hero)]["eliminationsPerLife"],
                 inline=True,
             )
             embed.add_field(
@@ -131,6 +129,7 @@ class Overwatch(commands.Cog):
             await ctx.send(
                 "Your profile is set to private, we were unable to retrieve your stats."
             )
+
     @ow.command()
     async def heroes(self, ctx, account: str, region: str, *, heroes: str):
         """OW Multiple Hero Stats - Account must include the ID. Profile must be public"""
@@ -139,9 +138,7 @@ class Overwatch(commands.Cog):
         heroes = heroes.lower().replace("torbjorn", "torbjörn")
         heroes = heroes.lower().replace("dva", "dVa")
         heroes = ",".join(heroes.split())
-        r = await self.get(
-            f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}"
-        )
+        r = await self.get(f"https://ow-api.com/v1/stats/pc/{region}/{account}/heroes/{heroes}")
         try:
             embeds = []
             if not r["private"]:

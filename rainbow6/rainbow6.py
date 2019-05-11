@@ -29,6 +29,7 @@ class Rainbow6(commands.Cog):
     async def get(self, url):
         async with self._session.get(url) as response:
             return await response.json(content_type="text/html")
+
     async def getimg(self, url):
         async with self._session.get(url) as response:
             rank = await response.read()
@@ -301,7 +302,7 @@ class Rainbow6(commands.Cog):
         await ctx.send(file=image)
 
     @r6.command()
-    async def operator(self, ctx, account: str, operator: str, platform: str=None):
+    async def operator(self, ctx, account: str, operator: str, platform: str = None):
         """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         operator = operator.lower()
         if operator not in ops:
@@ -310,7 +311,8 @@ class Rainbow6(commands.Cog):
         if platform not in self.platforms:
             platform = "uplay"
         r = await self.get(
-            f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare")
+            f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare"
+        )
         t = await self.get(
             f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
         )
