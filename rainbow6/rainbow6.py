@@ -3,7 +3,6 @@ import discord
 import aiohttp
 import asyncio
 from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import pagify
 from . import __path__
 import os
 from .operators import ops
@@ -22,6 +21,7 @@ class Rainbow6(commands.Cog):
         self.database.register_global(**defaults)
         self.bot = bot
         self._session = aiohttp.ClientSession()
+        self.platforms = ["psn", "xbl"]
 
     async def __unload(self):
         asyncio.get_event_loop().create_task(self._session.close())
@@ -227,8 +227,7 @@ class Rainbow6(commands.Cog):
         """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if 0 > season or season > 12:
             season = 12
-        platforms = ["xbl", "psn"]
-        if platform not in platforms:
+        if platform not in self.platforms:
             platform = "uplay"
 
         r = await self.get(
@@ -308,8 +307,7 @@ class Rainbow6(commands.Cog):
         if operator not in ops:
             await ctx.send(f"{operator} is not a valid operator.")
             return
-        platforms = ["xbl", "psn"]
-        if platform not in platforms:
+        if platform not in self.platforms:
             platform = "uplay"
         r = await self.get(
             f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare")
@@ -387,8 +385,7 @@ class Rainbow6(commands.Cog):
         """R6 Profile Statsfor all operators.
          Stats can be kills, roundwon or timeplayed.
          Platform defaults to uplay.Other choices: "xbl" and "psn" """
-        platforms = ["xbl", "psn"]
-        if platform not in platforms:
+        if platform not in self.platforms:
             platform = "uplay"
 
         r = await self.get(
