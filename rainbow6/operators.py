@@ -8,6 +8,7 @@ ops = [
     "capitao",
     "castle",
     "caveira",
+    "clash",
     "doc",
     "dokkaebi",
     "echo",

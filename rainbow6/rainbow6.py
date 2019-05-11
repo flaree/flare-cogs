@@ -3,6 +3,7 @@ import discord
 import aiohttp
 import asyncio
 from redbot.core import commands, Config, checks
+from redbot.core.utils.chat_formatting import pagify
 from . import __path__
 import os
 from .operators import ops
@@ -226,7 +227,8 @@ class Rainbow6(commands.Cog):
         """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if 0 > season or season > 12:
             season = 12
-        if platform != "psn" or platform != "xbl":
+        platforms = ["xbl", "psn"]
+        if platform not in platforms:
             platform = "uplay"
 
         r = await self.get(
@@ -300,20 +302,19 @@ class Rainbow6(commands.Cog):
         await ctx.send(file=image)
 
     @r6.command()
-    async def operator(self, ctx, account: str, operator: str, platform=None):
+    async def operator(self, ctx, account: str, operator: str, platform: str=None):
         """R6 Profile Stats for a certain Operator - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         operator = operator.lower()
-        if platform != "psn" or platform != "xbl":
+        if operator not in ops:
+            await ctx.send(f"{operator} is not a valid operator.")
+            return
+        platforms = ["xbl", "psn"]
+        if platform not in platforms:
             platform = "uplay"
         r = await self.get(
-            "https://www.antisnakedetail.xyz/r6/getOperators.php?name={}&platform={}&appcode=flare".format(
-                account, platform
-            )
-        )
+            f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare")
         t = await self.get(
-            "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
-                account, platform
-            )
+            f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
         )
         p = r["players"]["{}".format(list(t.keys())[0])]["{}".format(operator)]
         if p["operatorpvp_kills"] == 0 and p["operatorpvp_death"] == 0:
@@ -386,7 +387,8 @@ class Rainbow6(commands.Cog):
         """R6 Profile Statsfor all operators.
          Stats can be kills, roundwon or timeplayed.
          Platform defaults to uplay.Other choices: "xbl" and "psn" """
-        if platform != "psn" or platform != "xbl":
+        platforms = ["xbl", "psn"]
+        if platform not in platforms:
             platform = "uplay"
 
         r = await self.get(
@@ -402,10 +404,10 @@ class Rainbow6(commands.Cog):
         q = r["players"]["{}".format(list(t.keys())[0])]
         colour = discord.Color.from_hsv(random.random(), 1, 1)
         embed = discord.Embed(
-            title="Operator Information for {}/{} - Page 1".format(account, ctx.author), colour=colour
+            title="Operator Information for {} - Page 1".format(account), colour=colour
         )
         emb = discord.Embed(
-            title="Operator Information for {}/{} - Page 2".format(account, ctx.author), colour=colour
+            title="Operator Information for {} - Page 2".format(account), colour=colour
         )
         i = 0
         while i < len(ops):
