@@ -17,7 +17,7 @@ class Samp(commands.Cog):
 
     async def get(self, url):
         async with self._session.get(url) as response:
-            return await response.json()
+            return await response.json(content_type=None)
 
     @commands.command()
     async def samp(self, ctx, ip: str):
@@ -44,5 +44,5 @@ class Samp(commands.Cog):
             await ctx.send(embed=embed)
         except ValueError:
             await ctx.send(
-                "Failed, ensure the server IP is correct and that it is monitored by samp-servers.net"
+                "Please ensure that the IP is correct and that it is monitored by samp-servers.net"
             )
