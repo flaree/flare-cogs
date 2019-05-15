@@ -12,6 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
@@ -28,7 +29,7 @@ class Highlight(commands.Cog):
                                 return
                         before = []
                         async for messages in message.channel.history(
-                            limit=5, before=message, reverse=False
+                            limit=5, before=message, oldest_first=False
                         ):
                             before.append(messages)
                         highlighted = self.bot.get_user(int(user))

@@ -21,6 +21,7 @@ class Modmail(commands.Cog):
                 channel = self.bot.get_channel(modmail[stats])
                 await channel.send(embed=embed2)
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is not None:
             return
@@ -33,7 +34,7 @@ class Modmail(commands.Cog):
             if not toggle["dms"]:
                 return
         if message.attachments or not any(
-                message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
+            message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
         ):
             embeds = []
             attachments_urls = []
@@ -43,7 +44,7 @@ class Modmail(commands.Cog):
             )
             for attachment in message.attachments:
                 if any(
-                        attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
                 ):
                     if embeds[0].image:
                         embed = discord.Embed()
@@ -80,7 +81,7 @@ class Modmail(commands.Cog):
             )
             for attachment in ctx.message.attachments:
                 if any(
-                        attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
+                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
                 ):
                     if embeds[0].image:
                         embed = discord.Embed()
