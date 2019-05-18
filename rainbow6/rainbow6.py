@@ -9,6 +9,7 @@ from .operators import ops
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from .stats import Stats
 
 defaults = {"Profiles": {}, "Platform": {}}
 
@@ -20,44 +21,8 @@ class Rainbow6(commands.Cog):
         self.database = Config.get_conf(self, identifier=7258295620, force_registration=True)
         self.database.register_global(**defaults)
         self.bot = bot
-        self._session = aiohttp.ClientSession()
+        self.stats = Stats(bot)
         self.platforms = ["psn", "xbl"]
-
-    def cog_unload(self):
-        asyncio.get_event_loop().create_task(self._session.close())
-
-    async def get(self, url):
-        async with self._session.get(url) as response:
-            return await response.json(content_type="text/html")
-
-    async def getimg(self, url):
-        async with self._session.get(url) as response:
-            rank = await response.read()
-            return rank
-
-    # Thanks trusty & malarne for helping me get over pillow.
-    def round_corner(self, radius):
-        """Draw a round corner"""
-        corner = Image.new("L", (radius, radius), 0)
-        draw = ImageDraw.Draw(corner)
-        draw.pieslice((0, 0, radius * 2, radius * 2), 180, 270, fill=255)
-        return corner
-
-    def add_corners(self, im, rad):
-        # https://stackoverflow.com/questions/7787375/python-imaging-library-pil-drawing-rounded-rectangle-with-gradient
-        width, height = im.size
-        alpha = Image.new("L", im.size, 255)
-        origCorner = self.round_corner(rad)
-        corner = origCorner
-        alpha.paste(corner, (0, 0))
-        corner = origCorner.rotate(90)
-        alpha.paste(corner, (0, height - rad))
-        corner = origCorner.rotate(180)
-        alpha.paste(corner, (width - rad, height - rad))
-        corner = origCorner.rotate(270)
-        alpha.paste(corner, (width - rad, 0))
-        im.putalpha(alpha)
-        return im
 
     @commands.group(autohelp=True)
     async def r6(self, ctx):
@@ -97,22 +62,20 @@ class Rainbow6(commands.Cog):
         else:
             platform = "uplay"
         async with ctx.typing():
-            req1 = "https://www.antisnakedetail.xyz/r6/getUser.php?name={}&platform={}&appcode=flare".format(
-                account, platform
-            )
-            req2 = "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
-                account, platform
-            )
-            req3 = "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
-                account
-            )
-            r = await self.get(req1)
-            t = await self.get(req2)
-            s = await self.get(req3)
-            p = r["players"]["{}".format(list(t.keys())[0])]
-            q = s["players"]["{}".format(list(t.keys())[0])]
+            r = await self.stats.profile(account, platform)
+            t = await self.stats.profileid(account, platform)
+            s = await self.stats.stats(account, platform)
+            p = r["players"]["{}".format(t)]
+            q = s["players"]["{}".format(t)]
+            try:
+                if p["error"]:
+                    return await ctx.send(p["error"]["message"])
+            except:
+                pass
             if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
-                wlr = (int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))) * 100
+                wlr = (
+                    int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))
+                ) * 100
             else:
                 wlr = 0
             if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
@@ -129,7 +92,7 @@ class Rainbow6(commands.Cog):
             img.paste(nameplate, (155, 10), nameplate)
             img.paste(aviholder, (10, 10), aviholder)
             url = p["rankInfo"]["image"]
-            im = Image.open(BytesIO(await self.getimg(url)))
+            im = Image.open(BytesIO(await self.stats.getimg(url)))
             im_size = 130, 130
             im.thumbnail(im_size)
             img.paste(im, (14, 15))
@@ -143,7 +106,9 @@ class Rainbow6(commands.Cog):
                 fill=(255, 255, 255, 255),
                 font=font,
             )
-            draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
+            )
             draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
             draw.text(
                 (10, 220),
@@ -173,7 +138,10 @@ class Rainbow6(commands.Cog):
                 (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
             )
             draw.text(
-                (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
+                (10, 340),
+                "Abandons: {}".format(p["abandons"]),
+                fill=(255, 255, 255, 255),
+                font=font,
             )
             draw.text(
                 (10, 380),
@@ -188,7 +156,10 @@ class Rainbow6(commands.Cog):
                 font=font,
             )
             draw.text(
-                (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
+                (10, 460),
+                "Ranked KDR: {}".format(round(kdr, 2)),
+                fill=(255, 255, 255, 255),
+                font=font,
             )
             draw.text(
                 (10, 500),
@@ -223,29 +194,26 @@ class Rainbow6(commands.Cog):
         except KeyError:
             await ctx.send("You do not have an account set, please set one via .r6 setprofile")
 
-    @r6.command()
+    @r6.command(name="season")
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
-    async def season(self, ctx, account: str, season: int, platform=None):
+    async def _season(self, ctx, account: str, season: int, platform=None):
         """R6 Profile Stats for a custom season - Platform defaults to uplay. Other choices: "xbl" and "psn" """
         if 0 > season or season > 12:
             season = 12
         if platform not in self.platforms:
             platform = "uplay"
         async with ctx.typing():
-            r = await self.get(
-                f"https://www.antisnakedetail.xyz/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}"
-            )
-            t = await self.get(
-                f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
-            )
+            r = await self.stats.season(account, platform, season)
+            t = await self.stats.profileid(account, platform)
 
-            s = await self.get(
-                "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform={}&appcode=flare".format(
-                    account, platform
-                )
-            )
-            p = r["players"]["{}".format(list(t.keys())[0])]
-            q = s["players"]["{}".format(list(t.keys())[0])]
+            s = await self.stats.stats(account, platform)
+            p = r["players"]["{}".format(t)]
+            q = s["players"]["{}".format(t)]
+            try:
+                if p["error"]:
+                    return await ctx.send(p["error"]["message"])
+            except:
+                pass
             kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
             img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
@@ -253,7 +221,7 @@ class Rainbow6(commands.Cog):
             img.paste(nameplate, (155, 10), nameplate)
             img.paste(aviholder, (10, 10), aviholder)
             url = p["rankInfo"]["image"]
-            im = Image.open(BytesIO(await self.getimg(url)))
+            im = Image.open(BytesIO(await self.stats.getimg(url)))
             im_size = 130, 130
             im.thumbnail(im_size)
             img.paste(im, (14, 15))
@@ -267,9 +235,13 @@ class Rainbow6(commands.Cog):
                 fill=(255, 255, 255, 255),
                 font=font,
             )
-            draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
+            )
             draw.text((162, 70), f"Season {season} Stats", fill=(255, 255, 255, 255), font=font2)
-            draw.text((10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font
+            )
             draw.text(
                 (10, 260), "Losses: {}".format(p["losses"]), fill=(255, 255, 255, 255), font=font
             )
@@ -277,7 +249,10 @@ class Rainbow6(commands.Cog):
                 (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
             )
             draw.text(
-                (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
+                (10, 340),
+                "Abandons: {}".format(p["abandons"]),
+                fill=(255, 255, 255, 255),
+                font=font,
             )
             draw.text(
                 (10, 380),
@@ -292,7 +267,10 @@ class Rainbow6(commands.Cog):
                 font=font,
             )
             draw.text(
-                (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
+                (10, 460),
+                "Ranked KDR: {}".format(round(kdr, 2)),
+                fill=(255, 255, 255, 255),
+                font=font,
             )
 
             file = BytesIO()
@@ -312,13 +290,15 @@ class Rainbow6(commands.Cog):
         if platform not in self.platforms:
             platform = "uplay"
         async with ctx.typing():
-            r = await self.get(
-                f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare"
-            )
-            t = await self.get(
-                f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
-            )
-            p = r["players"]["{}".format(list(t.keys())[0])]["{}".format(operator)]
+            r = await self.stats.operators(account, platform)
+            t = await self.stats.profileid(account, platform)
+            q = r["players"]["{}".format(t)]
+            try:
+                if q["error"]:
+                    return await ctx.send(q["error"]["message"])
+            except:
+                pass
+            p = q["{}".format(operator)]
             if p["operatorpvp_kills"] == 0 and p["operatorpvp_death"] == 0:
                 kdr = 0
             else:
@@ -340,7 +320,7 @@ class Rainbow6(commands.Cog):
             nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
             img.paste(nameplate, (155, 10), nameplate)
             img.paste(aviholder, (10, 10), aviholder)
-            im = Image.open(BytesIO(await self.getimg(url)))
+            im = Image.open(BytesIO(await self.stats.getimg(url)))
             im_size = 130, 130
             im.thumbnail(im_size)
             img.paste(im, (14, 15))
@@ -349,10 +329,16 @@ class Rainbow6(commands.Cog):
             font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
             draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
             draw.text(
-                (162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font
+                (162, 40),
+                f"Operator: {operator.capitalize()}",
+                fill=(255, 255, 255, 255),
+                font=font,
             )
             draw.text(
-                (10, 180), f"{operator.capitalize()} KDR: {kdr}", fill=(255, 255, 255, 255), font=font
+                (10, 180),
+                f"{operator.capitalize()} KDR: {kdr}",
+                fill=(255, 255, 255, 255),
+                font=font,
             )
             draw.text(
                 (10, 220),
@@ -392,17 +378,15 @@ class Rainbow6(commands.Cog):
         if platform not in self.platforms:
             platform = "uplay"
         async with ctx.typing():
-            r = await self.get(
-                "https://www.antisnakedetail.xyz/r6/getOperators.php?name={}&platform={}&appcode=flare".format(
-                    account, platform
-                )
-            )
-            t = await self.get(
-                "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
-                    account, platform
-                )
-            )
-            q = r["players"]["{}".format(list(t.keys())[0])]
+            r = await self.stats.operators(account, platform)
+            t = await self.stats.profileid(account, platform)
+
+            q = r["players"]["{}".format(t)]
+            try:
+                if q["error"]:
+                    return await ctx.send(q["error"]["message"])
+            except:
+                pass
             colour = discord.Color.from_hsv(random.random(), 1, 1)
             embed = discord.Embed(
                 title="Operator Information for {} - Page 1".format(account), colour=colour
@@ -418,7 +402,8 @@ class Rainbow6(commands.Cog):
                             name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                             value=str(
                                 round(
-                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
+                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)])
+                                    / 3600
                                 )
                             ),
                             inline=True,
@@ -435,7 +420,8 @@ class Rainbow6(commands.Cog):
                             name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                             value=str(
                                 round(
-                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
+                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)])
+                                    / 3600
                                 )
                             ),
                             inline=True,
@@ -450,4 +436,29 @@ class Rainbow6(commands.Cog):
             msgs = []
             msgs.append(embed)
             msgs.append(emb)
-            await menu(ctx, msgs, DEFAULT_CONTROLS)
+        await menu(ctx, msgs, DEFAULT_CONTROLS)
+
+
+    # Thanks trusty & malarne for helping me get over pillow.
+    def round_corner(self, radius):
+        """Draw a round corner"""
+        corner = Image.new("L", (radius, radius), 0)
+        draw = ImageDraw.Draw(corner)
+        draw.pieslice((0, 0, radius * 2, radius * 2), 180, 270, fill=255)
+        return corner
+
+    def add_corners(self, im, rad):
+        # https://stackoverflow.com/questions/7787375/python-imaging-library-pil-drawing-rounded-rectangle-with-gradient
+        width, height = im.size
+        alpha = Image.new("L", im.size, 255)
+        origCorner = self.round_corner(rad)
+        corner = origCorner
+        alpha.paste(corner, (0, 0))
+        corner = origCorner.rotate(90)
+        alpha.paste(corner, (0, height - rad))
+        corner = origCorner.rotate(180)
+        alpha.paste(corner, (width - rad, height - rad))
+        corner = origCorner.rotate(270)
+        alpha.paste(corner, (width - rad, 0))
+        im.putalpha(alpha)
+        return im
