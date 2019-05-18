@@ -10,10 +10,10 @@ class Samp(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self._session = aiohttp.ClientSession()
+        self._session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    async def cog_unload(self):
-        asyncio.get_event_loop().create_task(self._session.close())
+    def cog_unload(self):
+        self.bot.loop.create_task(self._session.close())
 
     async def get(self, url):
         async with self._session.get(url) as response:
