@@ -9,7 +9,11 @@ class Modmail(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True, "respond": True, "reply": None}, "ignore": []}
+        default_global = {
+            "modmail": {},
+            "toggle": {"status": True, "dms": True, "respond": True, "reply": None},
+            "ignore": [],
+        }
         self.config.register_global(**default_global)
 
     async def channelsend(self, embed2):
@@ -165,13 +169,15 @@ class Modmail(commands.Cog):
         async with self.config.toggle() as toggle:
             if mode:
                 toggle["respond"] = True
-                await ctx.send("A confirmation message will be sent when a modmail is delivered, you can configure a response using [p]modmailset respondmsg.")
+                await ctx.send(
+                    "A confirmation message will be sent when a modmail is delivered, you can configure a response using [p]modmailset respondmsg."
+                )
             else:
                 toggle["respond"] = False
                 await ctx.send("A confirmation message will no longer be sent.")
 
     @modmailset.command()
-    async def respondmsg(self, ctx, *, reply: str=None):
+    async def respondmsg(self, ctx, *, reply: str = None):
         """Set your response message for modmails."""
         async with self.config.toggle() as toggle:
             if reply is None:

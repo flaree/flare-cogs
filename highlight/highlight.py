@@ -40,8 +40,8 @@ class Highlight(commands.Cog):
                             title="Context:",
                             colour=0xFF0000,
                             timestamp=message.created_at,
-                            description="{}\n{}".format(context,
-                                f"**{message.author}**: {message.content}",
+                            description="{}\n{}".format(
+                                context, f"**{message.author}**: {message.content}"
                             ),
                         )
                         embed.add_field(
