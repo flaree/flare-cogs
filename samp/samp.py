@@ -3,6 +3,7 @@ import discord
 import aiohttp
 import asyncio
 import random
+import json
 
 
 class Samp(commands.Cog):
@@ -42,6 +43,8 @@ class Samp(commands.Cog):
             embed.add_field(name="Server Version:", value=r["core"]["gm"], inline=True)
             embed.add_field(name="SA-MP Version:", value=r["core"]["vn"], inline=True)
             await ctx.send(embed=embed)
+        except json.JSONDecodeError:
+            await ctx.send("https://samp-servers.net is currently down or is experiencing problems.")
         except ValueError:
             await ctx.send(
                 "Please ensure that the IP is correct and that it is monitored by samp-servers.net"
