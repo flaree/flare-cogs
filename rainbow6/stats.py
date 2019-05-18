@@ -33,5 +33,6 @@ class Stats:
         async with self._session.get(url) as response:
             rank = await response.read()
             return rank
+
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
