@@ -47,7 +47,6 @@ class Rainbow6(commands.Cog):
     async def profile(self, ctx, account: str = None):
         """R6 Profile Stats for your or the provided account. """
         data = await self.database.all()
-        pic = await self.database.user(ctx.author).all()
         if account is None:
             try:
                 member = ctx.author
@@ -436,7 +435,6 @@ class Rainbow6(commands.Cog):
             msgs.append(embed)
             msgs.append(emb)
         await menu(ctx, msgs, DEFAULT_CONTROLS)
-
 
     # Thanks trusty & malarne for helping me get over pillow.
     def round_corner(self, radius):
