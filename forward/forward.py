@@ -26,11 +26,20 @@ class Forward(commands.Cog):
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
                     return
-            embed = discord.Embed(
-                title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
-                description=message.content,
-                timestamp=message.created_at,
-            )
+            if message.embeds:
+                embed = discord.Embed(
+                    title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
+                    description=f"{message.embeds[0].description}",
+                    timestamp=message.created_at,
+                )
+                for field in message.embeds[0].fields:
+                    embed.add_field(name=field.name, value=field.value, inline=field.inline)
+            else:
+                embed = discord.Embed(
+                    title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
+                    description=message.content,
+                    timestamp=message.created_at,
+                )
             await self.sendowner(embed)
         else:
             if message.attachments or not any(
