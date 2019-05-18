@@ -95,6 +95,14 @@ class Rainbow6(commands.Cog):
             except KeyError:
                 kdr = 0
             season = p["season"]
+            try:
+                rankedwon = q["rankedpvp_matchwon"]
+            except KeyError:
+                rankedwon = 0
+            try:
+                rankedlost = q["rankedpvp_matchlost"]
+            except KeyError:
+                rankedlost = 0            
             img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
             nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
@@ -133,13 +141,13 @@ class Rainbow6(commands.Cog):
             )
             draw.text(
                 (180, 220),
-                "Total Wins: {}".format(q["rankedpvp_matchwon"]),
+                "Total Wins: {}".format(rankedwon),
                 fill=(255, 255, 255, 255),
                 font=font,
             )
             draw.text(
                 (180, 260),
-                "Total Losses: {}".format(q["rankedpvp_matchlost"]),
+                "Total Losses: {}".format(rankedlost),
                 fill=(255, 255, 255, 255),
                 font=font,
             )
@@ -198,8 +206,7 @@ class Rainbow6(commands.Cog):
         try:
             profile = data["Profiles"]["{}".format(member)]
             platform = data["Platform"]["{}".format(member)]
-            await ctx.send(f"Profile Name: {profile}")
-            await ctx.send(f"Platform: {platform}")
+            await ctx.send(f"Profile Name: {profile}\nPlatform: {platform}")
         except KeyError:
             await ctx.send("You do not have an account set, please set one via .r6 setprofile")
 
