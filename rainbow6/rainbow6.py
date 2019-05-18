@@ -401,7 +401,7 @@ class Rainbow6(commands.Cog):
                             value=str(
                                 round(
                                     int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)])
-                                    / 3600
+                                    / 60
                                 )
                             ),
                             inline=True,
