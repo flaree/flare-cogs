@@ -72,19 +72,28 @@ class Rainbow6(commands.Cog):
                     return await ctx.send(p["error"]["message"])
             except:
                 pass
-            if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
-                wlr = (
-                    int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))
-                ) * 100
-            else:
+            try:
+                if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
+                    wlr = (
+                        int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))
+                    ) * 100
+                else:
+                    wlr = 0
+            except KeyError:
                 wlr = 0
-            if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
-                twlr = (
-                    q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
-                ) * 100
-            else:
+            try:
+                if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
+                    twlr = (
+                        q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+                    ) * 100
+                else:
+                    twlr = 0
+            except KeyError:
                 twlr = 0
-            kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
+            try:
+                kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
+            except KeyError:
+                kdr = 0
             season = p["season"]
             img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
