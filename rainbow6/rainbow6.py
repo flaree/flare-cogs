@@ -325,7 +325,6 @@ class Rainbow6(commands.Cog):
             im.thumbnail(im_size)
             img.paste(im, (14, 15))
             draw = ImageDraw.Draw(img)
-            font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
             font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
             draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
             draw.text(
