@@ -450,4 +450,4 @@ class Rainbow6(commands.Cog):
             msgs = []
             msgs.append(embed)
             msgs.append(emb)
-            await menu(ctx, msgs, DEFAULT_CONTROLS)
+        await menu(ctx, msgs, DEFAULT_CONTROLS)
