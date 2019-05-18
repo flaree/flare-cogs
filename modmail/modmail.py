@@ -9,7 +9,7 @@ class Modmail(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True}, "ignore": []}
+        default_global = {"modmail": {}, "toggle": {"status": True, "dms": True, "respond": True, "reply": None}, "ignore": []}
         self.config.register_global(**default_global)
 
     async def channelsend(self, embed2):
@@ -59,6 +59,16 @@ class Modmail(commands.Cog):
             embeds[-1].timestamp = message.created_at
             for embed in embeds:
                 await self.channelsend(embed)
+        async with self.config.toggle() as toggle:
+            if "respond" not in toggle:
+                return
+            if not toggle["respond"]:
+                return
+            else:
+                reply = "Your message has been delivered."
+                if toggle["reply"] is not None:
+                    reply = toggle["reply"]
+                await message.author.send(f"{reply}")
 
     @checks.is_owner()
     @commands.group(autohelp=True)
@@ -148,6 +158,28 @@ class Modmail(commands.Cog):
             else:
                 toggle["dms"] = False
                 await ctx.send("Modmail will no longer forward every message sent via DM.")
+
+    @modmailset.command()
+    async def respond(self, ctx, mode: bool):
+        """Toggle responding to modmail"""
+        async with self.config.toggle() as toggle:
+            if mode:
+                toggle["respond"] = True
+                await ctx.send("A confirmation message will be sent when a modmail is delivered, you can configure a response using [p]modmailset respondmsg.")
+            else:
+                toggle["respond"] = False
+                await ctx.send("A confirmation message will no longer be sent.")
+
+    @modmailset.command()
+    async def respondmsg(self, ctx, *, reply: str=None):
+        """Set your response message for modmails."""
+        async with self.config.toggle() as toggle:
+            if reply is None:
+                toggle["reply"] = None
+                await ctx.send("The confirmation message has been reset.")
+            else:
+                toggle["reply"] = reply
+                await ctx.send(f"Your confirmation message has been configured to: `{reply}`")
 
     @modmailset.command()
     async def ignore(self, ctx, user: discord.Member):
