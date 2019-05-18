@@ -10,6 +10,7 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from .stats import Stats
+import datetime
 
 defaults = {"Profiles": {}, "Platform": {}}
 
@@ -349,7 +350,7 @@ class Rainbow6(commands.Cog):
                 if stats[0:11] == "operatorpvp":
                     stat = str(stats[12:]).replace("_", " ").title()
                     if stat == "Timeplayed":
-                        p[stats] = round((p[stats] / 60), 2)
+                        p[stats] = str(datetime.timedelta(seconds=p[stats]))
                     t = len(operator)
                     if stat[:t] == operator.capitalize():
                         stat = stat[t + 1 :]
@@ -399,9 +400,10 @@ class Rainbow6(commands.Cog):
                         embed.add_field(
                             name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                             value=str(
-                                round(
-                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)])
-                                    / 60
+                                datetime.timedelta(
+                                    seconds=int(
+                                        q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]
+                                    )
                                 )
                             ),
                             inline=True,
@@ -417,9 +419,10 @@ class Rainbow6(commands.Cog):
                         emb.add_field(
                             name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
                             value=str(
-                                round(
-                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)])
-                                    / 3600
+                                datetime.timedelta(
+                                    seconds=int(
+                                        q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]
+                                    )
                                 )
                             ),
                             inline=True,
