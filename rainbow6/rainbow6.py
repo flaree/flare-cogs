@@ -23,7 +23,7 @@ class Rainbow6(commands.Cog):
         self._session = aiohttp.ClientSession()
         self.platforms = ["psn", "xbl"]
 
-    async def __unload(self):
+    def cog_unload(self):
         asyncio.get_event_loop().create_task(self._session.close())
 
     async def get(self, url):
@@ -96,117 +96,118 @@ class Rainbow6(commands.Cog):
 
         else:
             platform = "uplay"
-        req1 = "https://www.antisnakedetail.xyz/r6/getUser.php?name={}&platform={}&appcode=flare".format(
-            account, platform
-        )
-        req2 = "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
-            account, platform
-        )
-        req3 = "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
-            account
-        )
-        r = await self.get(req1)
-        t = await self.get(req2)
-        s = await self.get(req3)
-        p = r["players"]["{}".format(list(t.keys())[0])]
-        q = s["players"]["{}".format(list(t.keys())[0])]
-        if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
-            wlr = (int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))) * 100
-        else:
-            wlr = 0
-        if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
-            twlr = (
-                q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
-            ) * 100
-        else:
-            twlr = 0
-        kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
-        season = p["season"]
-        img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
-        aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
-        nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
-        img.paste(nameplate, (155, 10), nameplate)
-        img.paste(aviholder, (10, 10), aviholder)
-        url = p["rankInfo"]["image"]
-        im = Image.open(BytesIO(await self.getimg(url)))
-        im_size = 130, 130
-        im.thumbnail(im_size)
-        img.paste(im, (14, 15))
-        draw = ImageDraw.Draw(img)
-        font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
-        font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
-        draw.text(
-            (10, 180),
-            "Rank: {}".format(p["rankInfo"]["name"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
-        draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
-        draw.text(
-            (10, 220),
-            "S{} Wins: {}".format(season, p["wins"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 260),
-            "S{} Losses: {}".format(season, p["losses"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (180, 220),
-            "Total Wins: {}".format(q["rankedpvp_matchwon"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (180, 260),
-            "Total Losses: {}".format(q["rankedpvp_matchlost"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 380),
-            "Ranked Kills: {}".format(q["rankedpvp_kills"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 420),
-            "Ranked Deaths: {}".format(q["rankedpvp_death"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 500),
-            "S{} Ranked W/LR: {}%".format(season, round(wlr, 2)),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 540),
-            "Total Ranked W/LR: {}%".format(round(twlr, 2)),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        file = BytesIO()
-        img.save(file, "png")
-        file.name = "profile.png"
-        file.seek(0)
-        image = discord.File(file)
-        await ctx.send(file=image)
+        async with ctx.typing():
+            req1 = "https://www.antisnakedetail.xyz/r6/getUser.php?name={}&platform={}&appcode=flare".format(
+                account, platform
+            )
+            req2 = "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
+                account, platform
+            )
+            req3 = "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform=uplay&appcode=flare".format(
+                account
+            )
+            r = await self.get(req1)
+            t = await self.get(req2)
+            s = await self.get(req3)
+            p = r["players"]["{}".format(list(t.keys())[0])]
+            q = s["players"]["{}".format(list(t.keys())[0])]
+            if (int(p["wins"]) + int(p["losses"]) + int(p["abandons"])) != 0:
+                wlr = (int(p["wins"]) / (int(p["wins"]) + int(p["losses"]) + int(p["abandons"]))) * 100
+            else:
+                wlr = 0
+            if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
+                twlr = (
+                    q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+                ) * 100
+            else:
+                twlr = 0
+            kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
+            season = p["season"]
+            img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
+            aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+            nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
+            img.paste(nameplate, (155, 10), nameplate)
+            img.paste(aviholder, (10, 10), aviholder)
+            url = p["rankInfo"]["image"]
+            im = Image.open(BytesIO(await self.getimg(url)))
+            im_size = 130, 130
+            im.thumbnail(im_size)
+            img.paste(im, (14, 15))
+            draw = ImageDraw.Draw(img)
+            font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
+            font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
+            draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (10, 180),
+                "Rank: {}".format(p["rankInfo"]["name"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
+            draw.text((162, 70), "Ranked Stats", fill=(255, 255, 255, 255), font=font2)
+            draw.text(
+                (10, 220),
+                "S{} Wins: {}".format(season, p["wins"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 260),
+                "S{} Losses: {}".format(season, p["losses"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (180, 220),
+                "Total Wins: {}".format(q["rankedpvp_matchwon"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (180, 260),
+                "Total Losses: {}".format(q["rankedpvp_matchlost"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 380),
+                "Ranked Kills: {}".format(q["rankedpvp_kills"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 420),
+                "Ranked Deaths: {}".format(q["rankedpvp_death"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 500),
+                "S{} Ranked W/LR: {}%".format(season, round(wlr, 2)),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 540),
+                "Total Ranked W/LR: {}%".format(round(twlr, 2)),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            file = BytesIO()
+            img.save(file, "png")
+            file.name = "profile.png"
+            file.seek(0)
+            image = discord.File(file)
+            await ctx.send(file=image)
 
     @commands.command()
     async def accinfo(self, ctx, member: discord.Member = None):
@@ -230,76 +231,76 @@ class Rainbow6(commands.Cog):
             season = 12
         if platform not in self.platforms:
             platform = "uplay"
-
-        r = await self.get(
-            f"https://www.antisnakedetail.xyz/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}"
-        )
-        t = await self.get(
-            f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
-        )
-
-        s = await self.get(
-            "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform={}&appcode=flare".format(
-                account, platform
+        async with ctx.typing():
+            r = await self.get(
+                f"https://www.antisnakedetail.xyz/r6/getUser.php?name={account}&platform={platform}&appcode=flare&season={season}"
             )
-        )
-        p = r["players"]["{}".format(list(t.keys())[0])]
-        q = s["players"]["{}".format(list(t.keys())[0])]
-        kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
-        img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
-        aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
-        nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
-        img.paste(nameplate, (155, 10), nameplate)
-        img.paste(aviholder, (10, 10), aviholder)
-        url = p["rankInfo"]["image"]
-        im = Image.open(BytesIO(await self.getimg(url)))
-        im_size = 130, 130
-        im.thumbnail(im_size)
-        img.paste(im, (14, 15))
-        draw = ImageDraw.Draw(img)
-        font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
-        font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
-        draw.text(
-            (10, 180),
-            "Rank: {}".format(p["rankInfo"]["name"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
-        draw.text((162, 70), f"Season {season} Stats", fill=(255, 255, 255, 255), font=font2)
-        draw.text((10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font)
-        draw.text(
-            (10, 260), "Losses: {}".format(p["losses"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 380),
-            "Ranked Kills: {}".format(q["rankedpvp_kills"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 420),
-            "Ranked Deaths: {}".format(q["rankedpvp_death"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        draw.text(
-            (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
-        )
+            t = await self.get(
+                f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
+            )
 
-        file = BytesIO()
-        img.save(file, "png")
-        file.name = "season.png"
-        file.seek(0)
-        image = discord.File(file)
-        await ctx.send(file=image)
+            s = await self.get(
+                "https://www.antisnakedetail.xyz/r6/getStats.php?name={}&platform={}&appcode=flare".format(
+                    account, platform
+                )
+            )
+            p = r["players"]["{}".format(list(t.keys())[0])]
+            q = s["players"]["{}".format(list(t.keys())[0])]
+            kdr = int(q["rankedpvp_kills"]) / int(q["rankedpvp_death"])
+            img = Image.new("RGBA", (340, 520), (17, 17, 17, 0))
+            aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+            nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
+            img.paste(nameplate, (155, 10), nameplate)
+            img.paste(aviholder, (10, 10), aviholder)
+            url = p["rankInfo"]["image"]
+            im = Image.open(BytesIO(await self.getimg(url)))
+            im_size = 130, 130
+            im.thumbnail(im_size)
+            img.paste(im, (14, 15))
+            draw = ImageDraw.Draw(img)
+            font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
+            font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
+            draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (10, 180),
+                "Rank: {}".format(p["rankInfo"]["name"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text((162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font)
+            draw.text((162, 70), f"Season {season} Stats", fill=(255, 255, 255, 255), font=font2)
+            draw.text((10, 220), "Wins: {}".format(p["wins"]), fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (10, 260), "Losses: {}".format(p["losses"]), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 300), "MMR: {}".format(round(p["mmr"])), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 340), "Abandons: {}".format(p["abandons"]), fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 380),
+                "Ranked Kills: {}".format(q["rankedpvp_kills"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 420),
+                "Ranked Deaths: {}".format(q["rankedpvp_death"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            draw.text(
+                (10, 460), "Ranked KDR: {}".format(round(kdr, 2)), fill=(255, 255, 255, 255), font=font
+            )
+
+            file = BytesIO()
+            img.save(file, "png")
+            file.name = "season.png"
+            file.seek(0)
+            image = discord.File(file)
+            await ctx.send(file=image)
 
     @r6.command()
     async def operator(self, ctx, account: str, operator: str, platform: str = None):
@@ -310,77 +311,78 @@ class Rainbow6(commands.Cog):
             return
         if platform not in self.platforms:
             platform = "uplay"
-        r = await self.get(
-            f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare"
-        )
-        t = await self.get(
-            f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
-        )
-        p = r["players"]["{}".format(list(t.keys())[0])]["{}".format(operator)]
-        if p["operatorpvp_kills"] == 0 and p["operatorpvp_death"] == 0:
-            kdr = 0
-        else:
-            kdr = round(p["operatorpvp_kills"] / p["operatorpvp_death"], 2)
-        if p["operatorpvp_roundwon"] == 0 and p["operatorpvp_roundlost"] == 0:
-            opwlr = 0
-        else:
-            opwlr = round(
-                (
-                    p["operatorpvp_roundwon"]
-                    / (p["operatorpvp_roundwon"] + p["operatorpvp_roundlost"])
-                )
-                * 100,
-                2,
+        async with ctx.typing():
+            r = await self.get(
+                f"https://www.antisnakedetail.xyz/r6/getOperators.php?name={account}&platform={platform}&appcode=flare"
             )
-        url = (r["operators"][f"{operator}"]["images"]["badge"]).replace("\\", "")
-        img = Image.new("RGBA", (540, 520), (17, 17, 17, 0))
-        aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
-        nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
-        img.paste(nameplate, (155, 10), nameplate)
-        img.paste(aviholder, (10, 10), aviholder)
-        im = Image.open(BytesIO(await self.getimg(url)))
-        im_size = 130, 130
-        im.thumbnail(im_size)
-        img.paste(im, (14, 15))
-        draw = ImageDraw.Draw(img)
-        font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
-        font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
-        draw.text(
-            (162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 180), f"{operator.capitalize()} KDR: {kdr}", fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 220),
-            f"{operator.capitalize()} WLR: {opwlr}%",
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
-        i = 260
-        for stats in p:
-            if stats[0:11] == "operatorpvp":
-                stat = str(stats[12:]).replace("_", " ").title()
-                if stat == "Timeplayed":
-                    p[stats] = round((p[stats] / 60), 2)
-                t = len(operator)
-                if stat[:t] == operator.capitalize():
-                    stat = stat[t + 1 :]
-                draw.text(
-                    (10, i),
-                    "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
-                    fill=(255, 255, 255, 255),
-                    font=font,
+            t = await self.get(
+                f"https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={account}&platform={platform}&appcode=flare"
+            )
+            p = r["players"]["{}".format(list(t.keys())[0])]["{}".format(operator)]
+            if p["operatorpvp_kills"] == 0 and p["operatorpvp_death"] == 0:
+                kdr = 0
+            else:
+                kdr = round(p["operatorpvp_kills"] / p["operatorpvp_death"], 2)
+            if p["operatorpvp_roundwon"] == 0 and p["operatorpvp_roundlost"] == 0:
+                opwlr = 0
+            else:
+                opwlr = round(
+                    (
+                        p["operatorpvp_roundwon"]
+                        / (p["operatorpvp_roundwon"] + p["operatorpvp_roundlost"])
+                    )
+                    * 100,
+                    2,
                 )
+            url = (r["operators"][f"{operator}"]["images"]["badge"]).replace("\\", "")
+            img = Image.new("RGBA", (540, 520), (17, 17, 17, 0))
+            aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+            nameplate = self.add_corners(Image.new("RGBA", (240, 65), (0, 0, 0, 255)), 10)
+            img.paste(nameplate, (155, 10), nameplate)
+            img.paste(aviholder, (10, 10), aviholder)
+            im = Image.open(BytesIO(await self.getimg(url)))
+            im_size = 130, 130
+            im.thumbnail(im_size)
+            img.paste(im, (14, 15))
+            draw = ImageDraw.Draw(img)
+            font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
+            font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
+            draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+            draw.text(
+                (162, 40), f"Operator: {operator.capitalize()}", fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 180), f"{operator.capitalize()} KDR: {kdr}", fill=(255, 255, 255, 255), font=font
+            )
+            draw.text(
+                (10, 220),
+                f"{operator.capitalize()} WLR: {opwlr}%",
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
+            i = 260
+            for stats in p:
+                if stats[0:11] == "operatorpvp":
+                    stat = str(stats[12:]).replace("_", " ").title()
+                    if stat == "Timeplayed":
+                        p[stats] = round((p[stats] / 60), 2)
+                    t = len(operator)
+                    if stat[:t] == operator.capitalize():
+                        stat = stat[t + 1 :]
+                    draw.text(
+                        (10, i),
+                        "{} {}: {}".format(operator.capitalize(), stat, p[stats]),
+                        fill=(255, 255, 255, 255),
+                        font=font,
+                    )
 
-            i += 40
-        file = BytesIO()
-        img.save(file, "png")
-        file.name = "operator.png"
-        file.seek(0)
-        image = discord.File(file)
-        await ctx.send(file=image)
+                i += 40
+            file = BytesIO()
+            img.save(file, "png")
+            file.name = "operator.png"
+            file.seek(0)
+            image = discord.File(file)
+            await ctx.send(file=image)
 
     @r6.command()
     async def operators(self, ctx, account: str, stats: str, platform=None):
@@ -389,63 +391,63 @@ class Rainbow6(commands.Cog):
          Platform defaults to uplay.Other choices: "xbl" and "psn" """
         if platform not in self.platforms:
             platform = "uplay"
-
-        r = await self.get(
-            "https://www.antisnakedetail.xyz/r6/getOperators.php?name={}&platform={}&appcode=flare".format(
-                account, platform
+        async with ctx.typing():
+            r = await self.get(
+                "https://www.antisnakedetail.xyz/r6/getOperators.php?name={}&platform={}&appcode=flare".format(
+                    account, platform
+                )
             )
-        )
-        t = await self.get(
-            "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
-                account, platform
+            t = await self.get(
+                "https://www.antisnakedetail.xyz/r6/getSmallUser.php?name={}&platform={}&appcode=flare".format(
+                    account, platform
+                )
             )
-        )
-        q = r["players"]["{}".format(list(t.keys())[0])]
-        colour = discord.Color.from_hsv(random.random(), 1, 1)
-        embed = discord.Embed(
-            title="Operator Information for {} - Page 1".format(account), colour=colour
-        )
-        emb = discord.Embed(
-            title="Operator Information for {} - Page 2".format(account), colour=colour
-        )
-        i = 0
-        while i < len(ops):
-            if i < 21:
-                if stats == "timeplayed":
-                    embed.add_field(
-                        name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                        value=str(
-                            round(
-                                int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
-                            )
-                        ),
-                        inline=True,
-                    )
+            q = r["players"]["{}".format(list(t.keys())[0])]
+            colour = discord.Color.from_hsv(random.random(), 1, 1)
+            embed = discord.Embed(
+                title="Operator Information for {} - Page 1".format(account), colour=colour
+            )
+            emb = discord.Embed(
+                title="Operator Information for {} - Page 2".format(account), colour=colour
+            )
+            i = 0
+            while i < len(ops):
+                if i < 21:
+                    if stats == "timeplayed":
+                        embed.add_field(
+                            name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                            value=str(
+                                round(
+                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
+                                )
+                            ),
+                            inline=True,
+                        )
+                    else:
+                        embed.add_field(
+                            name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                            value=q["{}".format(ops[i])]["operatorpvp_{}".format(stats)],
+                            inline=True,
+                        )
                 else:
-                    embed.add_field(
-                        name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                        value=q["{}".format(ops[i])]["operatorpvp_{}".format(stats)],
-                        inline=True,
-                    )
-            else:
-                if stats == "timeplayed":
-                    emb.add_field(
-                        name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                        value=str(
-                            round(
-                                int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
-                            )
-                        ),
-                        inline=True,
-                    )
-                else:
-                    emb.add_field(
-                        name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
-                        value=q["{}".format(ops[i])]["operatorpvp_{}".format(stats)],
-                        inline=True,
-                    )
-            i += 1
-        msgs = []
-        msgs.append(embed)
-        msgs.append(emb)
-        await menu(ctx, msgs, DEFAULT_CONTROLS)
+                    if stats == "timeplayed":
+                        emb.add_field(
+                            name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                            value=str(
+                                round(
+                                    int(q["{}".format(ops[i])]["operatorpvp_{}".format(stats)]) / 3600
+                                )
+                            ),
+                            inline=True,
+                        )
+                    else:
+                        emb.add_field(
+                            name="{} {}:".format(ops[i].capitalize(), stats.capitalize()),
+                            value=q["{}".format(ops[i])]["operatorpvp_{}".format(stats)],
+                            inline=True,
+                        )
+                i += 1
+            msgs = []
+            msgs.append(embed)
+            msgs.append(emb)
+            await menu(ctx, msgs, DEFAULT_CONTROLS)
