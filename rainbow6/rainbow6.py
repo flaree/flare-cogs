@@ -84,7 +84,8 @@ class Rainbow6(commands.Cog):
             try:
                 if (int(q["rankedpvp_matchlost"]) + int(q["rankedpvp_matchwon"])) != 0:
                     twlr = (
-                        q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+                        q["rankedpvp_matchwon"]
+                        / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
                     ) * 100
                 else:
                     twlr = 0
@@ -102,7 +103,7 @@ class Rainbow6(commands.Cog):
             try:
                 rankedlost = q["rankedpvp_matchlost"]
             except KeyError:
-                rankedlost = 0            
+                rankedlost = 0
             img = Image.new("RGBA", (400, 580), (17, 17, 17, 0))
             aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
             nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
@@ -215,8 +216,8 @@ class Rainbow6(commands.Cog):
             except:
                 pass
             twlr = (
-                        q["casualpvp_matchwon"] / (q["casualpvp_matchlost"] + q["casualpvp_matchwon"])
-                    ) * 100
+                q["casualpvp_matchwon"] / (q["casualpvp_matchlost"] + q["casualpvp_matchwon"])
+            ) * 100
             async with ctx.typing():
                 img = Image.new("RGBA", (500, 380), (17, 17, 17, 0))
                 nameplate = self.add_corners(Image.new("RGBA", (200, 90), (0, 0, 0, 255)), 10)
@@ -224,20 +225,21 @@ class Rainbow6(commands.Cog):
                 draw = ImageDraw.Draw(img)
                 font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
                 draw.text((15, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
-                draw.text(
-                    (15, 64),
-                    "Casual Statistics",
-                    fill=(255, 255, 255, 255),
-                    font=font,
-                )
+                draw.text((15, 64), "Casual Statistics", fill=(255, 255, 255, 255), font=font)
                 draw.text(
                     (15, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
                 )
                 draw.text(
-                    (10, 100), "Wins: {}".format(q["casualpvp_matchwon"]), fill=(255, 255, 255, 255), font=font
+                    (10, 100),
+                    "Wins: {}".format(q["casualpvp_matchwon"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
                 )
                 draw.text(
-                    (10, 140), "Losses: {}".format(q["casualpvp_matchlost"]), fill=(255, 255, 255, 255), font=font
+                    (10, 140),
+                    "Losses: {}".format(q["casualpvp_matchlost"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
                 )
                 draw.text(
                     (10, 180),
@@ -259,19 +261,17 @@ class Rainbow6(commands.Cog):
                 )
                 draw.text(
                     (10, 300),
-                    "Casual KDR: {}".format(str(round(q["casualpvp_kills"] / q["casualpvp_death"], 2))),
+                    "Casual KDR: {}".format(
+                        str(round(q["casualpvp_kills"] / q["casualpvp_death"], 2))
+                    ),
                     fill=(255, 255, 255, 255),
                     font=font,
                 )
                 draw.text(
                     (10, 340),
-                    "Playtime: {}".format(str(
-                                datetime.timedelta(
-                                    seconds=int(
-                                        q["casualpvp_timeplayed"]
-                                    )
-                                )
-                            )),
+                    "Playtime: {}".format(
+                        str(datetime.timedelta(seconds=int(q["casualpvp_timeplayed"])))
+                    ),
                     fill=(255, 255, 255, 255),
                     font=font,
                 )
@@ -301,8 +301,8 @@ class Rainbow6(commands.Cog):
             except:
                 pass
             twlr = (
-                        q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
-                    ) * 100
+                q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+            ) * 100
             season = p["season"]
             try:
                 rankedwon = q["rankedpvp_matchwon"]
@@ -311,10 +311,12 @@ class Rainbow6(commands.Cog):
             try:
                 rankedlost = q["rankedpvp_matchlost"]
             except KeyError:
-                rankedlost = 0   
+                rankedlost = 0
             async with ctx.typing():
                 img = Image.new("RGBA", (500, 460), (17, 17, 17, 0))
-                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+                aviholder = self.add_corners(
+                    Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10
+                )
                 nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
                 img.paste(nameplate, (155, 10), nameplate)
                 img.paste(aviholder, (10, 10), aviholder)
@@ -381,19 +383,17 @@ class Rainbow6(commands.Cog):
                 )
                 draw.text(
                     (10, 380),
-                    "Ranked KDR: {}".format(str(round(q["rankedpvp_kills"] / q["rankedpvp_death"], 2))),
+                    "Ranked KDR: {}".format(
+                        str(round(q["rankedpvp_kills"] / q["rankedpvp_death"], 2))
+                    ),
                     fill=(255, 255, 255, 255),
                     font=font,
                 )
                 draw.text(
                     (10, 420),
-                    "Playtime: {}".format(str(
-                                datetime.timedelta(
-                                    seconds=int(
-                                        q["rankedpvp_timeplayed"]
-                                    )
-                                )
-                            )),
+                    "Playtime: {}".format(
+                        str(datetime.timedelta(seconds=int(q["rankedpvp_timeplayed"])))
+                    ),
                     fill=(255, 255, 255, 255),
                     font=font,
                 )
@@ -404,7 +404,6 @@ class Rainbow6(commands.Cog):
                 file.seek(0)
                 image = discord.File(file)
                 await ctx.send(file=image)
-
 
     @commands.command()
     async def accinfo(self, ctx, member: discord.Member = None):
@@ -418,7 +417,6 @@ class Rainbow6(commands.Cog):
             await ctx.send(f"Profile Name: {profile}\nPlatform: {platform}")
         except KeyError:
             await ctx.send("You do not have an account set, please set one via .r6 setprofile")
-        
 
     @r6.command(name="season")
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
