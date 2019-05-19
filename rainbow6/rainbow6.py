@@ -197,6 +197,215 @@ class Rainbow6(commands.Cog):
             image = discord.File(file)
             await ctx.send(file=image)
 
+    @r6.command()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
+    async def casual(self, ctx, account: str, platform=None):
+        """R6 Profile Stats for casual - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        if platform not in self.platforms:
+            platform = "uplay"
+        async with ctx.typing():
+            r = await self.stats.profile(account, platform)
+            t = await self.stats.profileid(account, platform)
+            s = await self.stats.stats(account, platform)
+            q = s["players"]["{}".format(t)]
+            p = r["players"]["{}".format(t)]
+            try:
+                if p["error"]:
+                    return await ctx.send(p["error"]["message"])
+            except:
+                pass
+            twlr = (
+                        q["casualpvp_matchwon"] / (q["casualpvp_matchlost"] + q["casualpvp_matchwon"])
+                    ) * 100
+            async with ctx.typing():
+                img = Image.new("RGBA", (500, 380), (17, 17, 17, 0))
+                nameplate = self.add_corners(Image.new("RGBA", (200, 90), (0, 0, 0, 255)), 10)
+                img.paste(nameplate, (10, 10), nameplate)
+                draw = ImageDraw.Draw(img)
+                font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
+                draw.text((15, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+                draw.text(
+                    (15, 64),
+                    "Casual Statistics",
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (15, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
+                )
+                draw.text(
+                    (10, 100), "Wins: {}".format(q["casualpvp_matchwon"]), fill=(255, 255, 255, 255), font=font
+                )
+                draw.text(
+                    (10, 140), "Losses: {}".format(q["casualpvp_matchlost"]), fill=(255, 255, 255, 255), font=font
+                )
+                draw.text(
+                    (10, 180),
+                    "Kills: {}".format(q["casualpvp_kills"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 220),
+                    "Deaths: {}".format(q["casualpvp_death"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 260),
+                    "Casual W/L%: {}".format(str(round(twlr, 2)) + "%"),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 300),
+                    "Casual KDR: {}".format(str(round(q["casualpvp_kills"] / q["casualpvp_death"], 2))),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 340),
+                    "Playtime: {}".format(str(
+                                datetime.timedelta(
+                                    seconds=int(
+                                        q["casualpvp_timeplayed"]
+                                    )
+                                )
+                            )),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+
+                file = BytesIO()
+                img.save(file, "png")
+                file.name = "casual.png"
+                file.seek(0)
+                image = discord.File(file)
+                await ctx.send(file=image)
+
+    @r6.command()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
+    async def ranked(self, ctx, account: str, platform=None):
+        """R6 Profile Stats for ranked - Platform defaults to uplay. Other choices: "xbl" and "psn" """
+        if platform not in self.platforms:
+            platform = "uplay"
+        async with ctx.typing():
+            r = await self.stats.profile(account, platform)
+            t = await self.stats.profileid(account, platform)
+            s = await self.stats.stats(account, platform)
+            q = s["players"]["{}".format(t)]
+            p = r["players"]["{}".format(t)]
+            try:
+                if p["error"]:
+                    return await ctx.send(p["error"]["message"])
+            except:
+                pass
+            twlr = (
+                        q["rankedpvp_matchwon"] / (q["rankedpvp_matchlost"] + q["rankedpvp_matchwon"])
+                    ) * 100
+            season = p["season"]
+            try:
+                rankedwon = q["rankedpvp_matchwon"]
+            except KeyError:
+                rankedwon = 0
+            try:
+                rankedlost = q["rankedpvp_matchlost"]
+            except KeyError:
+                rankedlost = 0   
+            async with ctx.typing():
+                img = Image.new("RGBA", (500, 460), (17, 17, 17, 0))
+                aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
+                nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
+                img.paste(nameplate, (155, 10), nameplate)
+                img.paste(aviholder, (10, 10), aviholder)
+                url = p["rankInfo"]["image"]
+                im = Image.open(BytesIO(await self.stats.getimg(url)))
+                im_size = 130, 130
+                im.thumbnail(im_size)
+                img.paste(im, (14, 15))
+                draw = ImageDraw.Draw(img)
+                font2 = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 22)
+                font = ImageFont.truetype(os.path.join(__path__[0], "ARIALUNI.ttf"), 24)
+                draw.text((162, 14), f"{account}", fill=(255, 255, 255, 255), font=font)
+                draw.text(
+                    (10, 180),
+                    "Rank: {}".format(p["rankInfo"]["name"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text((162, 70), f"Ranked Statistics", fill=(255, 255, 255, 255), font=font2)
+                draw.text(
+                    (162, 40), "Level: {}".format(p["level"]), fill=(255, 255, 255, 255), font=font
+                )
+                draw.text(
+                    (10, 220),
+                    "S{} Wins: {}".format(season, p["wins"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 260),
+                    "S{} Losses: {}".format(season, p["losses"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (180, 220),
+                    "Total Wins: {}".format(rankedwon),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (180, 260),
+                    "Total Losses: {}".format(rankedlost),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 300),
+                    "Kills: {}".format(q["rankedpvp_kills"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (180, 300),
+                    "Deaths: {}".format(q["rankedpvp_death"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 340),
+                    "Ranked W/L%: {}".format(str(round(twlr, 2)) + "%"),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 380),
+                    "Ranked KDR: {}".format(str(round(q["rankedpvp_kills"] / q["rankedpvp_death"], 2))),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                draw.text(
+                    (10, 420),
+                    "Playtime: {}".format(str(
+                                datetime.timedelta(
+                                    seconds=int(
+                                        q["rankedpvp_timeplayed"]
+                                    )
+                                )
+                            )),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+
+                file = BytesIO()
+                img.save(file, "png")
+                file.name = "casual.png"
+                file.seek(0)
+                image = discord.File(file)
+                await ctx.send(file=image)
+
+
     @commands.command()
     async def accinfo(self, ctx, member: discord.Member = None):
         """Account Info"""
@@ -209,6 +418,7 @@ class Rainbow6(commands.Cog):
             await ctx.send(f"Profile Name: {profile}\nPlatform: {platform}")
         except KeyError:
             await ctx.send("You do not have an account set, please set one via .r6 setprofile")
+        
 
     @r6.command(name="season")
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.guild)
