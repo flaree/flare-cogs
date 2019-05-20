@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -32,9 +32,12 @@ class R6(commands.Cog):
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
         """General R6 Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform)
+        data = await self.stats.profile(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -44,9 +47,12 @@ class R6(commands.Cog):
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
         """Casual R6 Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform)
+        data = await self.stats.profile(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -56,9 +62,12 @@ class R6(commands.Cog):
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
         """Ranked R6 Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform)
+        data = await self.stats.profile(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -68,9 +77,12 @@ class R6(commands.Cog):
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
         """R6 Operator Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.operators(profile, platform)
+        data = await self.stats.operators(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         ops = []
@@ -86,6 +98,9 @@ class R6(commands.Cog):
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: int = 12):
         """R6 Seasonal Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
@@ -93,7 +108,7 @@ class R6(commands.Cog):
         if season > 12 or season < 7:
             return await ctx.send("Invalid season.")
         region = self.regions[region]
-        data = await self.stats.ranked(profile, platform, region, season)
+        data = await self.stats.ranked(profile, platform, region, season, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -117,11 +132,14 @@ class R6(commands.Cog):
             "meele_kills",
             "playtime",
         ]
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if statistic.lower() not in stats:
             return await ctx.send("Not a valid statistic.")
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.operators(profile, platform)
+        data = await self.stats.operators(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         ops = []
@@ -177,9 +195,12 @@ class R6(commands.Cog):
     @r6.command()
     async def general(self, ctx, profile, platform="uplay"):
         """General R6S Stats."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform)
+        data = await self.stats.profile(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -199,9 +220,12 @@ class R6(commands.Cog):
     @r6.command()
     async def weapontype(self, ctx, profile, platform="uplay"):
         """R6 Weapon type statistics."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.weapontypes(profile, platform)
+        data = await self.stats.weapontypes(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         embed = discord.Embed(color=0xFF0000, title="Weapon Statistics for {}".format(profile))
@@ -215,9 +239,12 @@ class R6(commands.Cog):
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6S Weapon Statistics
         If the weapon name has a space, please surround it with quotes."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.weapons(profile, platform)
+        data = await self.stats.weapons(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
         weapons = []

@@ -48,14 +48,7 @@ class Stats:
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    async def header(self):
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return
-        return api["authorization"]
-
-    async def profile(self, profile, platform):
-        api = await self.header()
+    async def profile(self, profile, platform, api):
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/generic",
             headers={"Authorization": "Bearer {}".format(api)},
@@ -67,8 +60,7 @@ class Stats:
             except KeyError:
                 return None
 
-    async def weapontypes(self, profile, platform):
-        api = await self.header()
+    async def weapontypes(self, profile, platform, api):
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/weapon-categories",
             headers={"Authorization": "Bearer {}".format(api)},
@@ -80,8 +72,7 @@ class Stats:
             except KeyError:
                 return None
 
-    async def weapons(self, profile, platform):
-        api = await self.header()
+    async def weapons(self, profile, platform, api):
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/weapons",
             headers={"Authorization": "Bearer {}".format(api)},
@@ -93,8 +84,7 @@ class Stats:
             except KeyError:
                 return None
 
-    async def operators(self, profile, platform):
-        api = await self.header()
+    async def operators(self, profile, platform, api):
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/operators",
             headers={"Authorization": "Bearer {}".format(api)},
@@ -106,8 +96,7 @@ class Stats:
             except KeyError:
                 return None
 
-    async def ranked(self, profile, platform, region, season):
-        api = await self.header()
+    async def ranked(self, profile, platform, region, season, api):
         season = self.seasons[str(season)]
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/seasonal",
