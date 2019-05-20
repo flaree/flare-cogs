@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "0.1.2"
+    __version__ = "0.2.0"
 
     def __init__(self, bot):
         self.bot = bot
@@ -194,6 +194,39 @@ class R6(commands.Cog):
                         name=stat.replace("_", " ").title(),
                         value=str(datetime.timedelta(seconds=int(data["stats"]["general"][stat]))),
                     )
+        await ctx.send(embed=embed)
+
+    @r6.command()
+    async def weapontype(self, ctx, profile, platform="uplay"):
+        """R6 Weapon type statistics."""
+        if platform not in self.platforms:
+            return await ctx.send("Not a valid platform.")
+        data = await self.stats.weapontypes(profile, platform)
+        if data is None:
+            return await ctx.send("User not found.")
+        embed = discord.Embed(color=0xFF0000, title="Weapon Statistics for {}".format(profile))
+        weps = data["categories"]
+        for wep in weps:
+            embed.add_field(name=wep["category"], value="**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS%**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(wep["kills"], wep["deaths"], wep["kd"], wep["headshots"], wep["headshot_percentage"], wep["times_chosen"], wep["bullets_fired"], wep["bullets_hit"]))
+        embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
+        await ctx.send(embed=embed)
+    
+    @r6.command()
+    async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
+        """R6S Weapon Statistics
+        If the weapon name has a space, please surround it with quotes."""
+        if platform not in self.platforms:
+            return await ctx.send("Not a valid platform.")
+        data = await self.stats.weapons(profile, platform)
+        if data is None:
+            return await ctx.send("User not found.")
+        weapons = []
+        for wep in data["weapons"]:
+            weapons.append(wep["weapon"].lower())
+        if weapon.lower() not in weapons:
+            return await ctx.send("Invalid weapon or no statistics available.")
+        ind = weapons.index(weapon.lower())
+        embed = discord.Embed(colour=0xFF0000, title="{} information for {}".format(weapon.upper(), profile), description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(data["weapons"][ind]["category"], data["weapons"][ind]["kills"], data["weapons"][ind]["deaths"], data["weapons"][ind]["kd"], data["weapons"][ind]["headshots"], data["weapons"][ind]["headshot_percentage"], data["weapons"][ind]["times_chosen"], data["weapons"][ind]["bullets_fired"], data["weapons"][ind]["bullets_hit"]))
         await ctx.send(embed=embed)
 
     @checks.is_owner()

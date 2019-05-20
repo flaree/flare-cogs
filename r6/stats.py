@@ -67,6 +67,32 @@ class Stats:
             except KeyError:
                 return None
 
+    async def weapontypes(self, profile, platform):
+        api = await self.header()
+        async with self.session.get(
+            self.url + f"stats/{profile}/{platform}/weapon-categories",
+            headers={"Authorization": "Bearer {}".format(api)},
+        ) as response:
+            resp = await response.json()
+            try:
+                user = resp["username"]
+                return resp
+            except KeyError:
+                return None
+
+    async def weapons(self, profile, platform):
+        api = await self.header()
+        async with self.session.get(
+            self.url + f"stats/{profile}/{platform}/weapons",
+            headers={"Authorization": "Bearer {}".format(api)},
+        ) as response:
+            resp = await response.json()
+            try:
+                user = resp["username"]
+                return resp
+            except KeyError:
+                return None
+
     async def operators(self, profile, platform):
         api = await self.header()
         async with self.session.get(
