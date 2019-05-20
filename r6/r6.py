@@ -15,6 +15,7 @@ from .stats import Stats
 
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
+    __version__ = "0.1.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,7 +30,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
-        """."""
+        """General R6 Stats"""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform)
@@ -41,7 +42,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
-        """."""
+        """Casual R6 Stats"""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform)
@@ -53,7 +54,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
-        """."""
+        """Ranked R6 Stats"""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform)
@@ -65,7 +66,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
-        """."""
+        """R6 Operator Stats"""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.operators(profile, platform)
@@ -83,7 +84,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: int = 12):
-        """."""
+        """R6 Seasonal Stats"""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
