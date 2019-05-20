@@ -60,7 +60,12 @@ class Stats:
             self.url + f"stats/{profile}/{platform}/generic",
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
-            return await response.json()
+            resp = await response.json()
+            try:
+                user = resp["username"]
+                return resp
+            except KeyError:
+                return None
 
     async def operators(self, profile, platform):
         api = await self.header()
@@ -69,8 +74,11 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            resp = resp["operators"]
-            return sorted(resp, key=lambda x: x["name"])
+            try:
+                resp = resp["operators"]
+                return sorted(resp, key=lambda x: x["name"])
+            except KeyError:
+                return None
 
     async def ranked(self, profile, platform, region, season):
         api = await self.header()
@@ -80,7 +88,11 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            return resp["seasons"][season]["regions"][region][0]
+            try:
+                rank = resp["seasons"][season]["regions"][region][0]["rank_text"]
+                return resp["seasons"][season]["regions"][region][0]
+            except KeyError:
+                return None
 
     async def getimg(self, url):
         async with self.session.get(url) as response:
