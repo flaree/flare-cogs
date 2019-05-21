@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -387,8 +387,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
-        """R6 Gamemode Statistics.
-        Valid Gamemodes: bomb, secure and hostage."""
+        """R6 Gamemode Statistics."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
             return await ctx.send(
@@ -409,10 +408,52 @@ class R6(commands.Cog):
                     title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
                 )
                 for stat in data["stats"]["gamemode"][gm]:
-                    embed.add_field(
-                        name=f"{stat.replace('_', ' ').title()}",
-                        value=data["stats"]["gamemode"][gm][stat],
-                    )
+                    if stat == "playtime":
+                        embed.add_field(
+                            name=f"{stat.replace('_', ' ').title()}",
+                            value=datetime.timedelta(seconds=data["stats"]["gamemode"][gm][stat]),
+                        )
+                    else:
+                        embed.add_field(
+                            name=f"{stat.replace('_', ' ').title()}",
+                            value=data["stats"]["gamemode"][gm][stat],
+                        )
+                embeds.append(embed)
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @r6.command()
+    async def queue(self, ctx, profile: str, platform: str = "uplay"):
+        """R6 stats from casual, ranked & other together."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
+        if platform not in self.platforms:
+            return await ctx.send("Not a valid platform.")
+        data = await self.stats.profile(profile, platform, api["authorization"])
+        if data is None:
+            return await ctx.send("User not found.")
+        embeds = []
+        async with ctx.typing():
+            for gm in data["stats"]["queue"]:
+                embed = discord.Embed(
+                    colour=0xFF0000,
+                    title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
+                )
+                for stat in data["stats"]["queue"][gm]:
+                    if stat == "playtime":
+                        embed.add_field(
+                            name=f"{stat.replace('_', ' ').title()}",
+                            value=datetime.timedelta(seconds=data["stats"]["queue"][gm][stat]),
+                        )
+                    else:
+                        embed.add_field(
+                            name=f"{stat.replace('_', ' ').title()}",
+                            value=data["stats"]["queue"][gm][stat],
+                        )
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
