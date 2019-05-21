@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.0"
 
     def __init__(self, bot):
         self.bot = bot
@@ -34,7 +34,11 @@ class R6(commands.Cog):
         """General R6 Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform, api["authorization"])
@@ -49,7 +53,11 @@ class R6(commands.Cog):
         """Casual R6 Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform, api["authorization"])
@@ -64,7 +72,11 @@ class R6(commands.Cog):
         """Ranked R6 Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform, api["authorization"])
@@ -79,7 +91,11 @@ class R6(commands.Cog):
         """R6 Operator Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.operators(profile, platform, api["authorization"])
@@ -100,7 +116,11 @@ class R6(commands.Cog):
         """R6 Seasonal Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
@@ -134,7 +154,11 @@ class R6(commands.Cog):
         ]
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if statistic.lower() not in stats:
             return await ctx.send("Not a valid statistic.")
         if platform not in self.platforms:
@@ -197,7 +221,11 @@ class R6(commands.Cog):
         """General R6S Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.profile(profile, platform, api["authorization"])
@@ -222,7 +250,11 @@ class R6(commands.Cog):
         """R6 Weapon type statistics."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.weapontypes(profile, platform, api["authorization"])
@@ -231,17 +263,33 @@ class R6(commands.Cog):
         embed = discord.Embed(color=0xFF0000, title="Weapon Statistics for {}".format(profile))
         weps = data["categories"]
         for wep in weps:
-            embed.add_field(name=wep["category"], value="**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS%**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(wep["kills"], wep["deaths"], wep["kd"], wep["headshots"], wep["headshot_percentage"], wep["times_chosen"], wep["bullets_fired"], wep["bullets_hit"]))
+            embed.add_field(
+                name=wep["category"],
+                value="**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS%**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
+                    wep["kills"],
+                    wep["deaths"],
+                    wep["kd"],
+                    wep["headshots"],
+                    wep["headshot_percentage"],
+                    wep["times_chosen"],
+                    wep["bullets_fired"],
+                    wep["bullets_hit"],
+                ),
+            )
         embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
         await ctx.send(embed=embed)
-    
+
     @r6.command()
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6S Weapon Statistics
         If the weapon name has a space, please surround it with quotes."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
-            return await ctx.send("Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(ctx.prefix))
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.weapons(profile, platform, api["authorization"])
@@ -253,8 +301,87 @@ class R6(commands.Cog):
         if weapon.lower() not in weapons:
             return await ctx.send("Invalid weapon or no statistics available.")
         ind = weapons.index(weapon.lower())
-        embed = discord.Embed(colour=0xFF0000, title="{} information for {}".format(weapon.upper(), profile), description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(data["weapons"][ind]["category"], data["weapons"][ind]["kills"], data["weapons"][ind]["deaths"], data["weapons"][ind]["kd"], data["weapons"][ind]["headshots"], data["weapons"][ind]["headshot_percentage"], data["weapons"][ind]["times_chosen"], data["weapons"][ind]["bullets_fired"], data["weapons"][ind]["bullets_hit"]))
+        embed = discord.Embed(
+            colour=0xFF0000,
+            title="{} information for {}".format(weapon.upper(), profile),
+            description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
+                data["weapons"][ind]["category"],
+                data["weapons"][ind]["kills"],
+                data["weapons"][ind]["deaths"],
+                data["weapons"][ind]["kd"],
+                data["weapons"][ind]["headshots"],
+                data["weapons"][ind]["headshot_percentage"],
+                data["weapons"][ind]["times_chosen"],
+                data["weapons"][ind]["bullets_fired"],
+                data["weapons"][ind]["bullets_hit"],
+            ),
+        )
         await ctx.send(embed=embed)
+
+    @r6.command()
+    async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
+        """R6 Leaderboard Statistics
+        Regions: all, eu, na, asia"""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
+        if platform not in self.platforms:
+            return await ctx.send("Not a valid platform.")
+        if region != "all" and region not in self.regions:
+            return await ctx.send("Not a valid region.")
+        if region == "all":
+            pass
+        else:
+            region = self.regions[region]
+        data = await self.stats.leaderboard(platform, region, page, api["authorization"])
+        if data is None:
+            return await ctx.send("Invalid request, no statistics found.")
+        embeds = []
+        embed = discord.Embed(
+            colour=0xFF0000,
+            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
+        )
+        embedone = discord.Embed(
+            colour=0xFF0000,
+            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
+        )
+        embedtwo = discord.Embed(
+            colour=0xFF0000,
+            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
+        )
+        embedthree = discord.Embed(
+            colour=0xFF0000,
+            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
+        )
+        for player in data[:25]:
+            embed.add_field(
+                name=f"{player['position']}. {player['username']}",
+                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+            )
+        for player in data[25:50]:
+            embedone.add_field(
+                name=f"{player['position']}. {player['username']}",
+                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+            )
+        for player in data[50:75]:
+            embedtwo.add_field(
+                name=f"{player['position']}. {player['username']}",
+                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+            )
+        for player in data[75:]:
+            embedthree.add_field(
+                name=f"{player['position']}. {player['username']}",
+                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+            )
+        embeds.append(embed)
+        embeds.append(embedone)
+        embeds.append(embedtwo)
+        embeds.append(embedthree)
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @checks.is_owner()
     @commands.command()

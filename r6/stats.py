@@ -109,6 +109,18 @@ class Stats:
             except KeyError:
                 return None
 
+    async def leaderboard(self, platform, region, page, api):
+        async with self.session.get(
+            self.url + f"leaderboard/{platform}/{region}?page={page}",
+            headers={"Authorization": "Bearer {}".format(api)},
+        ) as response:
+            resp = await response.json()
+            try:
+                user1 = resp[0]["username"]
+                return resp
+            except KeyError:
+                return None
+
     async def getimg(self, url):
         async with self.session.get(url) as response:
             rank = await response.read()
