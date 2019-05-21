@@ -332,7 +332,7 @@ class R6(commands.Cog):
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region != "all" and region not in self.regions:
-            return await ctx.send("Not a valid region.");co
+            return await ctx.send("Not a valid region.")
         if page < 1 or page > 50:
             return await ctx.send("Invalid page number, must be between 1 and 50.")
         if region == "all":
