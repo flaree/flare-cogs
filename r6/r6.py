@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -332,7 +332,9 @@ class R6(commands.Cog):
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region != "all" and region not in self.regions:
-            return await ctx.send("Not a valid region.")
+            return await ctx.send("Not a valid region.");co
+        if page < 1 or page > 50:
+            return await ctx.send("Invalid page number, must be between 1 and 50.")
         if region == "all":
             pass
         else:
