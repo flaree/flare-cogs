@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "0.3.1"
+    __version__ = "1.0.0"
 
     def __init__(self, bot):
         self.bot = bot
@@ -281,7 +281,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
-        """R6S Weapon Statistics
+        """R6 Weapon Statistics.
         If the weapon name has a space, please surround it with quotes."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
@@ -320,7 +320,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
-        """R6 Leaderboard Statistics
+        """R6 Leaderboard Statistics.
         Regions: all, eu, na, asia"""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
@@ -383,6 +383,37 @@ class R6(commands.Cog):
         embeds.append(embedone)
         embeds.append(embedtwo)
         embeds.append(embedthree)
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @r6.command()
+    async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
+        """R6 Gamemode Statistics.
+        Valid Gamemodes: bomb, secure and hostage."""
+        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        if api["authorization"] is None:
+            return await ctx.send(
+                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                    ctx.prefix
+                )
+            )
+        if platform not in self.platforms:
+            return await ctx.send("Not a valid platform.")
+        data = await self.stats.profile(profile, platform, api["authorization"])
+        if data is None:
+            return await ctx.send("User not found.")
+        embeds = []
+        async with ctx.typing():
+            for gm in data["stats"]["gamemode"]:
+                embed = discord.Embed(
+                    colour=0xFF0000,
+                    title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
+                )
+                for stat in data["stats"]["gamemode"][gm]:
+                    embed.add_field(
+                        name=f"{stat.replace('_', ' ').title()}",
+                        value=data["stats"]["gamemode"][gm][stat],
+                    )
+                embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @checks.is_owner()
