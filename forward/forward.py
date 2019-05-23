@@ -79,7 +79,8 @@ class Forward(commands.Cog):
 
     @forwardset.command(aliases=["botmessage"])
     async def botmsg(self, ctx, type: bool):
-        """Set whether to send notifications when the bot sends a message."""
+        """Set whether to send notifications when the bot sends a message.
+        Type must be a valid bool."""
         async with self.config.toggles() as toggles:
             if type:
                 toggles["botmessages"] = True
