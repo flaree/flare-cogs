@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def __init__(self, bot):
         self.bot = bot
@@ -343,46 +343,17 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("Invalid request, no statistics found.")
         embeds = []
-        embed = discord.Embed(
-            colour=0xFF0000,
-            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
-        )
-        embedone = discord.Embed(
-            colour=0xFF0000,
-            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
-        )
-        embedtwo = discord.Embed(
-            colour=0xFF0000,
-            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
-        )
-        embedthree = discord.Embed(
-            colour=0xFF0000,
-            title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
-        )
-        for player in data[:25]:
-            embed.add_field(
-                name=f"{player['position']}. {player['username']}",
-                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+        for i in range(0, 100, 25):
+            embed = discord.Embed(
+                colour=0xFF0000,
+                title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
             )
-        for player in data[25:50]:
-            embedone.add_field(
-                name=f"{player['position']}. {player['username']}",
-                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
-            )
-        for player in data[50:75]:
-            embedtwo.add_field(
-                name=f"{player['position']}. {player['username']}",
-                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
-            )
-        for player in data[75:]:
-            embedthree.add_field(
-                name=f"{player['position']}. {player['username']}",
-                value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
-            )
-        embeds.append(embed)
-        embeds.append(embedone)
-        embeds.append(embedtwo)
-        embeds.append(embedthree)
+            for player in data[i : i + 25]:
+                embed.add_field(
+                    name=f"{player['position']}. {player['username']}",
+                    value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+                )
+            embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @r6.command()
