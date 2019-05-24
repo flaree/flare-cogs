@@ -2,7 +2,7 @@ import random
 import discord
 import aiohttp
 import asyncio
-from redbot.core import commands, checks
+from redbot.core import commands, checks, Config
 from . import __path__
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
@@ -16,9 +16,12 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.0.2"
+    __version__ = "1.1.0"
 
     def __init__(self, bot):
+        self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
+        default_member = {"picture": False}
+        self.config.register_member(**default_member)
         self.bot = bot
         self.stats = Stats(bot)
         self.platforms = ["psn", "xbl", "uplay"]
@@ -45,8 +48,48 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            image = await self.stats.profilecreate(data)
-            await ctx.send(file=image)
+            picture = await self.config.member(ctx.author).picture()
+            if picture:
+                image = await self.stats.profilecreate(data)
+                await ctx.send(file=image)
+            else:
+                embed = discord.Embed(colour=0xFF0000, title="R6 Profile for {}".format(profile))
+                embed.set_thumbnail(url=data["avatar_url_256"])
+                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.add_field(
+                    name="Timeplayed:",
+                    value=str(
+                        datetime.timedelta(seconds=int(data["stats"]["general"]["playtime"]))
+                    ),
+                )
+                embed.add_field(name="Total Wins:", value=data["stats"]["general"]["wins"])
+                embed.add_field(name="Total Losses:", value=data["stats"]["general"]["losses"])
+                embed.add_field(name="Draws:", value=data["stats"]["general"]["draws"])
+                embed.add_field(
+                    name="Lootbox %:", value=data["progression"]["lootbox_probability"]
+                )
+                embed.add_field(name="Kills:", value=data["stats"]["general"]["kills"])
+                embed.add_field(name="Deaths:", value=data["stats"]["general"]["deaths"])
+                embed.add_field(name="KDR:", value=data["stats"]["general"]["kd"])
+                embed.add_field(
+                    name="Total W/LR %:",
+                    value=round(
+                        data["stats"]["general"]["wins"]
+                        / data["stats"]["general"]["games_played"],
+                        2,
+                    )
+                    * 100,
+                )
+                embed.add_field(
+                    name="Total Ranked W/LR:",
+                    value=round(
+                        data["stats"]["queue"]["ranked"]["wins"]
+                        / data["stats"]["queue"]["ranked"]["games_played"],
+                        2,
+                    )
+                    * 100,
+                )
+                await ctx.send(embed=embed)
 
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
@@ -64,8 +107,46 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            image = await self.stats.casualstatscreate(data)
-            await ctx.send(file=image)
+            picture = await self.config.member(ctx.author).picture()
+            if picture:
+                image = await self.stats.casualstatscreate(data)
+                await ctx.send(file=image)
+            else:
+                embed = discord.Embed(
+                    colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
+                )
+                embed.set_thumbnail(url=data["avatar_url_256"])
+                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.add_field(
+                    name="Timeplayed:",
+                    value=str(
+                        datetime.timedelta(
+                            seconds=int(data["stats"]["queue"]["casual"]["playtime"])
+                        )
+                    ),
+                )
+                embed.add_field(name="Total Wins:", value=data["stats"]["queue"]["casual"]["wins"])
+                embed.add_field(
+                    name="Total Losses:", value=data["stats"]["queue"]["casual"]["losses"]
+                )
+                embed.add_field(name="Draws:", value=data["stats"]["queue"]["casual"]["draws"])
+                embed.add_field(
+                    name="Total Games Played:",
+                    value=data["stats"]["queue"]["casual"]["games_played"],
+                )
+                embed.add_field(name="Kills:", value=data["stats"]["queue"]["casual"]["kills"])
+                embed.add_field(name="Deaths:", value=data["stats"]["queue"]["casual"]["deaths"])
+                embed.add_field(name="KDR:", value=data["stats"]["queue"]["casual"]["kd"])
+                embed.add_field(
+                    name="Total W/LR %:",
+                    value=round(
+                        data["stats"]["queue"]["casual"]["wins"]
+                        / data["stats"]["queue"]["casual"]["games_played"],
+                        2,
+                    )
+                    * 100,
+                )
+                await ctx.send(embed=embed)
 
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
@@ -83,8 +164,46 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            image = await self.stats.rankedstatscreate(data)
-            await ctx.send(file=image)
+            picture = await self.config.member(ctx.author).picture()
+            if picture:
+                image = await self.stats.casualstatscreate(data)
+                await ctx.send(file=image)
+            else:
+                embed = discord.Embed(
+                    colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
+                )
+                embed.set_thumbnail(url=data["avatar_url_256"])
+                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.add_field(
+                    name="Timeplayed:",
+                    value=str(
+                        datetime.timedelta(
+                            seconds=int(data["stats"]["queue"]["ranked"]["playtime"])
+                        )
+                    ),
+                )
+                embed.add_field(name="Total Wins:", value=data["stats"]["queue"]["ranked"]["wins"])
+                embed.add_field(
+                    name="Total Losses:", value=data["stats"]["queue"]["ranked"]["losses"]
+                )
+                embed.add_field(name="Draws:", value=data["stats"]["queue"]["ranked"]["draws"])
+                embed.add_field(
+                    name="Total Games Played:",
+                    value=data["stats"]["queue"]["ranked"]["games_played"],
+                )
+                embed.add_field(name="Kills:", value=data["stats"]["queue"]["ranked"]["kills"])
+                embed.add_field(name="Deaths:", value=data["stats"]["queue"]["ranked"]["deaths"])
+                embed.add_field(name="KDR:", value=data["stats"]["queue"]["ranked"]["kd"])
+                embed.add_field(
+                    name="Total W/LR %:",
+                    value=round(
+                        data["stats"]["queue"]["ranked"]["wins"]
+                        / data["stats"]["queue"]["ranked"]["games_played"],
+                        2,
+                    )
+                    * 100,
+                )
+                await ctx.send(embed=embed)
 
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
@@ -105,11 +224,37 @@ class R6(commands.Cog):
         for operators in data:
             ops.append(operators["name"].lower())
         if operator not in ops:
-            return await ctx.send("No statistics found for the current operator.")
+            return await ctx.send(
+                "No statistics found for the current operator or the operator is invalid."
+            )
         ind = ops.index(operator)
         async with ctx.typing():
-            image = await self.stats.operatorstatscreate(data[ind], profile)
-            await ctx.send(file=image)
+            picture = await self.config.member(ctx.author).picture()
+            if picture:
+                image = await self.stats.operatorstatscreate(data[ind], profile)
+                await ctx.send(file=image)
+            else:
+                data = data[ind]
+                embed = discord.Embed(
+                    colour=ctx.author.colour,
+                    title="{} Statistics for {}".format(operator.title(), profile),
+                )
+                embed.set_thumbnail(url=data["badge_image"])
+                embed.add_field(name="Kills:", value=data["kills"])
+                embed.add_field(name="Deaths:", value=data["deaths"])
+                embed.add_field(name="Wins:", value=data["wins"])
+                embed.add_field(name="Losses:", value=data["losses"])
+                embed.add_field(name="KDR:", value=data["kd"])
+                embed.add_field(
+                    name="Playtime:", value=str(datetime.timedelta(seconds=int(data["playtime"])))
+                )
+                embed.add_field(name="Headshots:", value=data["headshots"])
+                embed.add_field(
+                    name="W/LR %:", value=round(data["wins"] / (data["wins"] + data["losses"]), 2)
+                )
+                for ability in data["abilities"]:
+                    embed.add_field(name=ability["ability"], value=ability["value"])
+                await ctx.send(embed=embed)
 
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: int = 12):
@@ -132,8 +277,24 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            image = await self.stats.seasoncreate(data, season, profile)
-            await ctx.send(file=image)
+            picture = await self.config.member(ctx.author).picture()
+            if picture:
+                image = await self.stats.seasoncreate(data, season, profile)
+                await ctx.send(file=image)
+            else:
+                embed = discord.Embed(
+                    colour=ctx.author.colour,
+                    title="{} Statistics for {}".format(
+                        self.stats.seasons[str(season)].replace("_", " ").title(), profile
+                    ),
+                )
+                embed.set_thumbnail(url=self.stats.rank[data["rank_text"]])
+                embed.add_field(name="Wins:", value=data["wins"])
+                embed.add_field(name="Losses:", value=data["losses"])
+                embed.add_field(name="Abandons:", value=data["abandons"])
+                embed.add_field(name="mmr:", value=data["mmr"])
+                embed.add_field(name="Rank:", value=data["rank_text"])
+                await ctx.send(embed=embed)
 
     @r6.command()
     async def operators(self, ctx, profile, platform, statistic):
@@ -427,6 +588,17 @@ class R6(commands.Cog):
                         )
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @r6.command()
+    async def setpicture(self, ctx, toggle: bool = True):
+        """Set whetver to recieve an embed or picture for stat commands.
+        Toggle must be a valid bool."""
+        await self.config.member(ctx.author).picture.set(toggle)
+        if toggle:
+            await ctx.send("Your stat messages will now be sent as a picture.")
+        else:
+            await ctx.send("Your stat messages will now be sent as an embed.")
+        data = await self.config.member(ctx.author).picture()
 
     @checks.is_owner()
     @commands.command()
