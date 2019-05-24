@@ -343,7 +343,7 @@ class R6(commands.Cog):
                 em2 = discord.Embed(
                     title=f"{statistic.title()} statistics for {profile} - Page 2/2", colour=colour
                 )
-                for i, op in enumerate(opsone):
+                for i in range(len(opsone)):
                     if statistic.lower() != "playtime":
                         em1.add_field(name=data[i]["name"], value=data[i][statistic])
                     else:
@@ -351,8 +351,8 @@ class R6(commands.Cog):
                             name=data[i]["name"],
                             value=str(datetime.timedelta(seconds=int(data[i][statistic]))),
                         )
-                for i, op in enumerate(opstwo, 25):
-                    print(i)
+                for i in range(len(opstwo)):
+                    i += 25
                     if statistic.lower() != "playtime":
                         em2.add_field(name=data[i]["name"], value=data[i][statistic])
                     else:
@@ -369,7 +369,7 @@ class R6(commands.Cog):
                 em1 = discord.Embed(
                     title=f"{statistic.title()} statistics for {profile}", colour=colour
                 )
-                for i, op in enumerate(opsone):
+                for i in range(len(opsone)):
                     if statistic.lower() != "playtime":
                         em1.add_field(name=data[i]["name"], value=data[i][statistic])
                     else:
@@ -604,7 +604,6 @@ class R6(commands.Cog):
             await ctx.send("Your stat messages will now be sent as a picture.")
         else:
             await ctx.send("Your stat messages will now be sent as an embed.")
-        data = await self.config.member(ctx.author).picture()
 
     @checks.is_owner()
     @commands.command()
