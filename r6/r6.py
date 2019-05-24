@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -53,7 +53,7 @@ class R6(commands.Cog):
                 image = await self.stats.profilecreate(data)
                 await ctx.send(file=image)
             else:
-                embed = discord.Embed(colour=0xFF0000, title="R6 Profile for {}".format(profile))
+                embed = discord.Embed(colour=ctx.author.color, title="R6 Profile for {}".format(profile))
                 embed.set_thumbnail(url=data["avatar_url_256"])
                 embed.add_field(name="Level:", value=data["progression"]["level"])
                 embed.add_field(
@@ -393,7 +393,7 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            embed = discord.Embed(title="General R6S Stats for {}".format(profile), color=0xFF0000)
+            embed = discord.Embed(title="General R6S Stats for {}".format(profile), color=ctx.author.colour)
             for stat in data["stats"]["general"]:
                 if stat != "playtime":
                     embed.add_field(
@@ -421,7 +421,7 @@ class R6(commands.Cog):
         data = await self.stats.weapontypes(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
-        embed = discord.Embed(color=0xFF0000, title="Weapon Statistics for {}".format(profile))
+        embed = discord.Embed(color=ctx.author.colour, title="Weapon Statistics for {}".format(profile))
         weps = data["categories"]
         for wep in weps:
             embed.add_field(
@@ -463,7 +463,7 @@ class R6(commands.Cog):
             return await ctx.send("Invalid weapon or no statistics available.")
         ind = weapons.index(weapon.lower())
         embed = discord.Embed(
-            colour=0xFF0000,
+            colour=ctx.author.colour,
             title="{} information for {}".format(weapon.upper(), profile),
             description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
                 data["weapons"][ind]["category"],
@@ -506,7 +506,7 @@ class R6(commands.Cog):
         embeds = []
         for i in range(0, 100, 25):
             embed = discord.Embed(
-                colour=0xFF0000,
+                colour=ctx.author.colour,
                 title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
             )
             for player in data[i : i + 25]:
@@ -536,7 +536,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             for gm in data["stats"]["gamemode"]:
                 embed = discord.Embed(
-                    colour=0xFF0000,
+                    colour=ctx.author.colour,
                     title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
                 )
                 for stat in data["stats"]["gamemode"][gm]:
@@ -572,7 +572,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             for gm in data["stats"]["queue"]:
                 embed = discord.Embed(
-                    colour=0xFF0000,
+                    colour=ctx.author.colour,
                     title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
                 )
                 for stat in data["stats"]["queue"][gm]:
