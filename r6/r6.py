@@ -53,7 +53,9 @@ class R6(commands.Cog):
                 image = await self.stats.profilecreate(data)
                 await ctx.send(file=image)
             else:
-                embed = discord.Embed(colour=ctx.author.color, title="R6 Profile for {}".format(profile))
+                embed = discord.Embed(
+                    colour=ctx.author.color, title="R6 Profile for {}".format(profile)
+                )
                 embed.set_thumbnail(url=data["avatar_url_256"])
                 embed.add_field(name="Level:", value=data["progression"]["level"])
                 embed.add_field(
@@ -393,7 +395,9 @@ class R6(commands.Cog):
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
-            embed = discord.Embed(title="General R6S Stats for {}".format(profile), color=ctx.author.colour)
+            embed = discord.Embed(
+                title="General R6S Stats for {}".format(profile), color=ctx.author.colour
+            )
             for stat in data["stats"]["general"]:
                 if stat != "playtime":
                     embed.add_field(
@@ -421,7 +425,9 @@ class R6(commands.Cog):
         data = await self.stats.weapontypes(profile, platform, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
-        embed = discord.Embed(color=ctx.author.colour, title="Weapon Statistics for {}".format(profile))
+        embed = discord.Embed(
+            color=ctx.author.colour, title="Weapon Statistics for {}".format(profile)
+        )
         weps = data["categories"]
         for wep in weps:
             embed.add_field(
