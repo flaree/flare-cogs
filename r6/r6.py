@@ -294,7 +294,7 @@ class R6(commands.Cog):
                 embed.add_field(name="Wins:", value=data["wins"])
                 embed.add_field(name="Losses:", value=data["losses"])
                 embed.add_field(name="Abandons:", value=data["abandons"])
-                embed.add_field(name="mmr:", value=data["mmr"])
+                embed.add_field(name="MMR:", value=data["mmr"])
                 embed.add_field(name="Rank:", value=data["rank_text"])
                 await ctx.send(embed=embed)
 
