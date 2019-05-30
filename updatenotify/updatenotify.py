@@ -14,7 +14,17 @@ class UpdateNotify(commands.Cog):
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
         self.config.register_global(**defaults)
         self.bot = bot
-        self.channels = [583457307866955779, 537706362445234177, 537713976331468841, 581603052331728907, 537709711152119840, 537713395525222421, 537718811340832789, 537807116925140992, 575734237945397259]
+        self.channels = [
+            583457307866955779,
+            537706362445234177,
+            537713976331468841,
+            581603052331728907,
+            537709711152119840,
+            537713395525222421,
+            537718811340832789,
+            537807116925140992,
+            575734237945397259,
+        ]
 
     @commands.command()
     async def pings(self, ctx, channel: discord.TextChannel):
@@ -31,7 +41,7 @@ class UpdateNotify(commands.Cog):
             else:
                 channels[str(channel.id)].append(ctx.author.id)
                 await ctx.send("Ping added")
-    
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.channel.id not in self.channels:
@@ -46,4 +56,3 @@ class UpdateNotify(commands.Cog):
             for user in channels[str(message.channel.id)]:
                 messages += "<@{}>".format(user)
         await message.channel.send(messages)
-        

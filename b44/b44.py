@@ -25,16 +25,20 @@ class B44(commands.Cog):
             buffer = BytesIO(await response.read())
             buffer.name = "picture.png"
             return buffer
+
     async def get(self, url):
         async with self.session.get(url) as response:
             return await response.json()
 
-
     @commands.command()
-    async def b44(self, ctx, *, map_name:str):
+    async def b44(self, ctx, *, map_name: str):
         """b44 map callouts"""
         if map_name not in self.maps:
-            return await ctx.send("Map is currently not available or your input was wrong.\nCurrent available maps: {}".format(", ".join(self.maps.keys())))
+            return await ctx.send(
+                "Map is currently not available or your input was wrong.\nCurrent available maps: {}".format(
+                    ", ".join(self.maps.keys())
+                )
+            )
         mapimg = await self.getimg(map_name.lower())
         await ctx.send(file=discord.File(mapimg))
         await ctx.send("<{}> for the direct link".format(self.maps[map_name.lower()]))
@@ -42,6 +46,7 @@ class B44(commands.Cog):
     @commands.command()
     async def players(self, ctx):
         """b44 current players"""
-        resp = await self.get("http://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=489940")
+        resp = await self.get(
+            "http://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=489940"
+        )
         await ctx.send("{} recently played!".format(resp["response"]["player_count"]))
-
