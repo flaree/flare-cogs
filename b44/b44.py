@@ -18,6 +18,7 @@ class B44(commands.Cog):
             "docks": "https://steamuserimages-a.akamaihd.net/ugc/788606529611310823/14F34983CEBABFDC5FA061B8D26BC528A963B3A1/",
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.channeledit = self.updatechannel()
 
     async def updatechannel(self):
         resp = await self.get(
@@ -25,6 +26,7 @@ class B44(commands.Cog):
         )
         channel = self.bot.get_channel(584017422059700224)
         await channel.edit(name="Battalion Players: ~{}".format(resp["response"]["player_count"]))
+        return "None"
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -58,4 +60,6 @@ class B44(commands.Cog):
         resp = await self.get(
             "http://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=489940"
         )
-        await ctx.send("{} people have played/are playing Battalion!".format(resp["response"]["player_count"]))
+        await ctx.send(
+            "{} people have played/are playing Battalion!".format(resp["response"]["player_count"])
+        )
