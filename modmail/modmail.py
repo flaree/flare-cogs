@@ -26,7 +26,7 @@ class Modmail(commands.Cog):
                 await channel.send(embed=embed2)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message_without_command(self, message):
         if message.guild is not None:
             return
         if message.author == self.bot.user:
@@ -37,32 +37,27 @@ class Modmail(commands.Cog):
         async with self.config.toggle() as toggle:
             if not toggle["dms"]:
                 return
-        if message.attachments or not any(
-            message.content.startswith(prefix) for prefix in await self.bot.get_prefix(message)
-        ):
-            embeds = []
-            attachments_urls = []
-            embeds.append(discord.Embed(description=message.content))
-            embeds[0].set_author(
-                name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
-            )
-            for attachment in message.attachments:
-                if any(
-                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
-                ):
-                    if embeds[0].image:
-                        embed = discord.Embed()
-                        embed.set_image(url=attachment.url)
-                        embeds.append(embed)
-                    else:
-                        embeds[0].set_image(url=attachment.url)
+        embeds = []
+        attachments_urls = []
+        embeds.append(discord.Embed(description=message.content))
+        embeds[0].set_author(
+            name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
+        )
+        for attachment in message.attachments:
+            if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                if embeds[0].image:
+                    embed = discord.Embed()
+                    embed.set_image(url=attachment.url)
+                    embeds.append(embed)
                 else:
-                    attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
-            if attachments_urls:
-                embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
-            embeds[-1].timestamp = message.created_at
-            for embed in embeds:
-                await self.channelsend(embed)
+                    embeds[0].set_image(url=attachment.url)
+            else:
+                attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+        if attachments_urls:
+            embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+        embeds[-1].timestamp = message.created_at
+        for embed in embeds:
+            await self.channelsend(embed)
         async with self.config.toggle() as toggle:
             if "respond" not in toggle:
                 return
@@ -110,6 +105,16 @@ class Modmail(commands.Cog):
             embeds[-1].timestamp = ctx.message.created_at
             for embed in embeds:
                 await self.channelsend(embed)
+            async with self.config.toggle() as toggle:
+                if "respond" not in toggle:
+                    return
+                if not toggle["respond"]:
+                    return
+                else:
+                    reply = "Your message has been delivered."
+                    if toggle["reply"] is not None:
+                        reply = toggle["reply"]
+                    await ctx.send(f"{reply}")
 
     @modmailset.command()
     async def channel(self, ctx, channel: discord.TextChannel):
