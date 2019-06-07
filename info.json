@@ -1,8 +1,8 @@
 {
     "author": ["flare (flare#0001)"],
-    "install_msg": "Assortment of cogs that were still to be ported over from v2.",
+    "install_msg": "Thank you for adding my(flares) repo, any issues can be posted on the GitHub page or forwarded to flare#0001.",
     "name": "Flare's Cogs",
-    "short": "Random assortment of cogs I attempted to port learning python.",
-    "description": "Assortment of rewrote cogs for Red V3",
-    "tags": ["random", "rewrites"]
+    "short": "Cogs created by flare for use on Red-DiscordBot.",
+    "description": "Assortment of various cogs that were due to be rewritten.",
+    "tags": ["random", "rewrites", "rainbow6"]
 }
