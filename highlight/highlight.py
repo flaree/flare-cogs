@@ -74,7 +74,7 @@ class Highlight(commands.Cog):
                 toggle[f"{ctx.author.id}"] = False
         async with self.config.channel(ctx.channel).ignore() as ignore:
             if str(ctx.author.id) not in ignore:
-                ignore[f"{ctx.author.id}"] = True
+                ignore[f"{ctx.author.id}"] = False
 
     @highlight.command()
     async def remove(self, ctx, *, word: str):
