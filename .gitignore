@@ -10,8 +10,8 @@ venv/
 rainbow6/r6.png
 foco/
 wcrp/
-make.bat
-Makefile
+privatecogs/
 mrp/
 sampservers/
 .vscode/launch.json
+epl/

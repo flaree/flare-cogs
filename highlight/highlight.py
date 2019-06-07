@@ -97,10 +97,14 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).toggle() as toggle:
             if state:
                 toggle[f"{ctx.author.id}"] = state
-                await ctx.send("You've enabled highlighting on this channel.")
+                await ctx.send(
+                    "{} has enabled their highlighting on this channel.".format(ctx.author.name)
+                )
             elif not state:
                 toggle[f"{ctx.author.id}"] = state
-                await ctx.send("You've disabled highlighting on this channel.")
+                await ctx.send(
+                    "{} has enabled their highlighting on this channel.".format(ctx.author.name)
+                )
 
     @highlight.command()
     async def bots(self, ctx, state: bool):
@@ -108,10 +112,16 @@ class Highlight(commands.Cog):
         async with self.config.channel(ctx.channel).ignore() as ignore:
             if state:
                 ignore[f"{ctx.author.id}"] = state
-                await ctx.send("Bots messages will now be included in highlighted messages")
+                await ctx.send(
+                    "Bots messages will now be included in {}'s highlighted messages".format(
+                        ctx.author.name
+                    )
+                )
             elif not state:
                 ignore[f"{ctx.author.id}"] = state
-                await ctx.send("Bot messages will not longer be highlighted.")
+                await ctx.send(
+                    "Bot messages will not longer be highlighted for {}.".format(ctx.author.name)
+                )
 
     @highlight.command()
     async def list(self, ctx, channel: Optional[discord.TextChannel] = None):

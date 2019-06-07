@@ -141,7 +141,7 @@ class Modmail(commands.Cog):
 
     @modmailset.command()
     async def toggle(self, ctx, mode: bool):
-        """Toggle modmail."""
+        """Toggle modmail on the current channel."""
         async with self.config.toggle() as toggle:
             if mode:
                 toggle["status"] = True
@@ -152,9 +152,9 @@ class Modmail(commands.Cog):
 
     @modmailset.command()
     async def dms(self, ctx, mode: bool):
-        """Toggle modmail forwarding from DMs
-           True - Allow DM Forwarding
-           False - Disallow DM Forwarding"""
+        """Toggle modmail forwarding from DMs.
+           True - Allow DM Forwarding.
+           False - Disallow DM Forwarding."""
         async with self.config.toggle() as toggle:
             if mode:
                 toggle["dms"] = True
@@ -165,7 +165,7 @@ class Modmail(commands.Cog):
 
     @modmailset.command()
     async def respond(self, ctx, mode: bool):
-        """Toggle responding to modmail"""
+        """Toggle responding to modmail."""
         async with self.config.toggle() as toggle:
             if mode:
                 toggle["respond"] = True
