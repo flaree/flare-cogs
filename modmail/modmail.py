@@ -69,7 +69,7 @@ class Modmail(commands.Cog):
                     reply = toggle["reply"]
                 await message.author.send(f"{reply}")
 
-    @checks.is_owner()
+    @checks.admin_or_permissions(manage_channels=True)
     @commands.group(autohelp=True)
     async def modmailset(self, ctx):
         """Modmail Commands"""
@@ -116,6 +116,7 @@ class Modmail(commands.Cog):
                         reply = toggle["reply"]
                     await ctx.send(f"{reply}")
 
+    @checks.is_owner()
     @modmailset.command()
     async def channel(self, ctx, channel: discord.TextChannel):
         """Set the channel that the bot will post to - Mention the channel."""
@@ -124,6 +125,7 @@ class Modmail(commands.Cog):
             modmail[key] = channel.id
         await ctx.send("Channel added successfully.")
 
+    @checks.is_owner()
     @modmailset.command()
     async def remove(self, ctx, channel: discord.TextChannel):
         """Remove a current channel from the modmail listing."""
@@ -135,8 +137,9 @@ class Modmail(commands.Cog):
             else:
                 await ctx.send("This channel does not current have a modmail channel configured.")
 
-    @modmailset.command()
-    async def list(self, ctx):
+    @checks.is_owner()
+    @modmailset.command(name="list")
+    async def _list(self, ctx):
         """List all current modmail channels."""
         async with self.config.modmail() as modmail:
             if not modmail:
@@ -144,6 +147,7 @@ class Modmail(commands.Cog):
             for stats in modmail:
                 await ctx.send(modmail[stats])
 
+    @checks.is_owner()
     @modmailset.command()
     async def toggle(self, ctx, mode: bool):
         """Toggle modmail on the current channel."""
@@ -155,6 +159,7 @@ class Modmail(commands.Cog):
                 toggle["status"] = False
                 await ctx.send("Modmail is now disabled.")
 
+    @checks.is_owner()
     @modmailset.command()
     async def dms(self, ctx, mode: bool):
         """Toggle modmail forwarding from DMs.
@@ -168,6 +173,7 @@ class Modmail(commands.Cog):
                 toggle["dms"] = False
                 await ctx.send("Modmail will no longer forward every message sent via DM.")
 
+    @checks.is_owner()
     @modmailset.command()
     async def respond(self, ctx, mode: bool):
         """Toggle responding to modmail."""
@@ -181,6 +187,7 @@ class Modmail(commands.Cog):
                 toggle["respond"] = False
                 await ctx.send("A confirmation message will no longer be sent.")
 
+    @checks.is_owner()
     @modmailset.command()
     async def respondmsg(self, ctx, *, reply: str = None):
         """Set your response message for modmails."""
@@ -192,6 +199,7 @@ class Modmail(commands.Cog):
                 toggle["reply"] = reply
                 await ctx.send(f"Your confirmation message has been configured to: `{reply}`")
 
+    @checks.admin_or_permissions(manage_channels=True)
     @modmailset.command()
     async def ignore(self, ctx, user: discord.Member):
         """Ignore a user from using the modmail."""
@@ -199,6 +207,7 @@ class Modmail(commands.Cog):
             ignore.append(user.id)
             await ctx.send("User has been added to the list.")
 
+    @checks.admin_or_permissions(manage_channels=True)
     @modmailset.command()
     async def unignore(self, ctx, user: discord.Member):
         """Remove user from the ignored list."""
@@ -226,6 +235,7 @@ class Modmail(commands.Cog):
         else:
             await ctx.send("Message delivered to {}".format(user))
 
+    @checks.admin()
     @modmailset.command()
     async def ignoredlist(self, ctx):
         """List ignored users."""
