@@ -10,7 +10,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def __init__(self, bot):
         defaults = {"levels": {}, "teams": {}, "fixtures": [], "standings": {}, "week": 0}
@@ -152,6 +152,13 @@ class SimLeague(commands.Cog):
 
     @checks.mod()
     @commands.command()
+    async def reset(self, ctx):
+        """Reset the gameweek to 0"""
+        await self.config.week.set(0)
+        await ctx.tick()
+
+    @checks.mod()
+    @commands.command()
     async def playsim(self, ctx):
         """Play the current weeks simulated games."""
         msg = await ctx.send("Updating levels. Please wait...")
@@ -166,7 +173,7 @@ class SimLeague(commands.Cog):
                 "You have finished the league, to continue please call a mod to reset the table"
             )
         fixture = fixtures[week]
-        await ctx.send("Week {} Games:".format(week))
+        await ctx.send("Week {} Games:".format(week + 1))
         for fixt in fixture:
             b = []
             teams = await self.config.teams()
@@ -334,7 +341,11 @@ class SimLeague(commands.Cog):
             b.append("**" + team1 + "** vs **" + team2 + "**")
             b.append(team1 + ": " + ", ".join(team1players))
             b.append(team2 + ": " + ", ".join(team2players))
+            await ctx.maybe_send_embed("\n".join(b))
+            b = []
             b.append("\n**Match Start**!\n")
+            embed = discord.Embed(color=0xFF0000, description="\n".join(b))
+            msg = await ctx.send(embed=embed)
             yellow = discord.utils.get(self.bot.emojis, id=587762577191206932)
             red = discord.utils.get(self.bot.emojis, id=587762616537972848)
             for min in range(1, 91):
@@ -547,7 +558,13 @@ class SimLeague(commands.Cog):
                             b.append("'" + str(s) + " min in stoppage time: ")
                         events = False
                     b.append("\n**HALF TIME**\n")
+                    embed = discord.Embed(color=0xFF0000, description="\n".join(b))
+                    await msg.edit(embed=embed)
+                    b = []
+                    await asyncio.sleep(5)
                     b.append("**Start of Second Half**!")
+                    embed = discord.Embed(color=0xFF0000, description="\n".join(b))
+                    msg = await ctx.send(embed=embed)
                 if min == 90:
                     added = random.randint(1, 5)
                     b.append(" " + str(added) + " Minute(s) of Stoppage Time")
@@ -595,8 +612,9 @@ class SimLeague(commands.Cog):
                             b.append("'" + str(s) + " min in stoppage time: ")
                         events = False
                     b.append("\n**FULL TIME**\n")
-                    await ctx.maybe_send_embed("\n".join(b))
-                    await asyncio.sleep(2)
+                    embed = discord.Embed(color=0xFF0000, description="\n".join(b))
+                    await asyncio.sleep(5)
+                    await msg.edit(embed=embed)
                     await ctx.send(
                         "Final Score: "
                         + team1.upper()
