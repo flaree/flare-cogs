@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.1.1"
+    __version__ = "1.2.0"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -259,7 +259,7 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     @r6.command()
-    async def season(self, ctx, profile, platform, region, season: int = 12):
+    async def season(self, ctx, profile, platform, region, season: int):
         """R6 Seasonal Stats."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
@@ -272,12 +272,14 @@ class R6(commands.Cog):
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
             return await ctx.send("Not a valid region.")
-        if season > 12 or season < 7:
-            return await ctx.send("Invalid season.")
         region = self.regions[region]
         data = await self.stats.ranked(profile, platform, region, season, api["authorization"])
         if data is None:
             return await ctx.send("User not found.")
+        if data == "Season not found":
+            return await ctx.send("The season you provided was not found.")
+        if season > len(data[0]) or season < 7:
+            return await ctx.send("Invalid season.")
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -287,15 +289,15 @@ class R6(commands.Cog):
                 embed = discord.Embed(
                     colour=ctx.author.colour,
                     title="{} Statistics for {}".format(
-                        self.stats.seasons[str(season)].replace("_", " ").title(), profile
+                        data[0][season].title().replace("_", " "), profile
                     ),
                 )
-                embed.set_thumbnail(url=self.stats.rank[data["rank_text"]])
-                embed.add_field(name="Wins:", value=data["wins"])
-                embed.add_field(name="Losses:", value=data["losses"])
-                embed.add_field(name="Abandons:", value=data["abandons"])
-                embed.add_field(name="MMR:", value=data["mmr"])
-                embed.add_field(name="Rank:", value=data["rank_text"])
+                embed.set_thumbnail(url=self.stats.rank[data[1]["rank_text"]])
+                embed.add_field(name="Wins:", value=data[1]["wins"])
+                embed.add_field(name="Losses:", value=data[1]["losses"])
+                embed.add_field(name="Abandons:", value=data[1]["abandons"])
+                embed.add_field(name="MMR:", value=data[1]["mmr"])
+                embed.add_field(name="Rank:", value=data[1]["rank_text"])
                 await ctx.send(embed=embed)
 
     @r6.command()

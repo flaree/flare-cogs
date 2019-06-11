@@ -36,16 +36,6 @@ class Stats:
             "Platinum III": "https://i.imgur.com/to1cRGC.png",
             "Diamond I": "https://i.imgur.com/Rt6c2om.png",
         }
-        self.seasons = {
-            "12": "burnt_horizon",
-            "11": "wind_bastion",
-            "10": "grim_sky",
-            "9": "para_bellum",
-            "8": "chimera",
-            "7": "white_noise",
-            "6": "blood_orchid",
-            "5": "health",
-        }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
     async def profile(self, profile, platform, api):
@@ -97,16 +87,24 @@ class Stats:
                 return None
 
     async def ranked(self, profile, platform, region, season, api):
-        season = self.seasons[str(season)]
         async with self.session.get(
             self.url + f"stats/{profile}/{platform}/seasonal",
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
             try:
-                rank = resp["seasons"][season]["regions"][region][0]["rank_text"]
-                return resp["seasons"][season]["regions"][region][0]
+                seasonss = resp["seasons"]
+                seasons = list(seasonss.keys())
+                for i in range(1, 6):
+                    seasons.append("None")
+                seasons.reverse()
+                rank = resp["seasons"][seasons[season]]["regions"][region][0]["rank_text"]
+                return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
             except KeyError:
+                return None
+            except IndexError:
+                return "Season not found"
+            except TypeError:
                 return None
 
     async def leaderboard(self, platform, region, page, api):
@@ -419,7 +417,7 @@ class Stats:
         nameplate = self.add_corners(Image.new("RGBA", (240, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = self.rank[data["rank_text"]]
+        url = self.rank[data[1]["rank_text"]]
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -429,25 +427,35 @@ class Stats:
         font = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 24)
         draw.text((162, 14), profile, fill=(255, 255, 255, 255), font=font)
         draw.text(
-            (162, 40), "Rank: {}".format(data["rank_text"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (162, 70),
-            f"{self.seasons[str(season)].replace('_',' ').title()} Statistics",
-            fill=(255, 255, 255, 255),
-            font=font2,
-        )
-        draw.text((10, 180), "Wins: {}".format(data["wins"]), fill=(255, 255, 255, 255), font=font)
-        draw.text(
-            (200, 180), "Losses: {}".format(data["losses"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (10, 220),
-            "Abandons: {}".format(data["abandons"]),
+            (162, 40),
+            "Rank: {}".format(data[1]["rank_text"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text((200, 220), "MMR: {}".format(data["mmr"]), fill=(255, 255, 255, 255), font=font)
+        draw.text(
+            (162, 70),
+            f"{data[0][season].title().replace('_', ' ')} Statistics",
+            fill=(255, 255, 255, 255),
+            font=font2,
+        )
+        draw.text(
+            (10, 180), "Wins: {}".format(data[1]["wins"]), fill=(255, 255, 255, 255), font=font
+        )
+        draw.text(
+            (200, 180),
+            "Losses: {}".format(data[1]["losses"]),
+            fill=(255, 255, 255, 255),
+            font=font,
+        )
+        draw.text(
+            (10, 220),
+            "Abandons: {}".format(data[1]["abandons"]),
+            fill=(255, 255, 255, 255),
+            font=font,
+        )
+        draw.text(
+            (200, 220), "MMR: {}".format(data[1]["mmr"]), fill=(255, 255, 255, 255), font=font
+        )
         file = BytesIO()
         img.save(file, "png")
         file.name = "season.png"
