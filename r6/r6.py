@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.2.2"
+    __version__ = "1.2.3"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -26,6 +26,7 @@ class R6(commands.Cog):
         self.stats = Stats(bot)
         self.platforms = ["psn", "xbl", "uplay"]
         self.regions = {"na": "ncsa", "eu": "emea", "asia": "apac"}
+        self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
 
     @commands.group(autohelp=True)
     async def r6(self, ctx):
@@ -223,6 +224,8 @@ class R6(commands.Cog):
                     ctx.prefix
                 )
             )
+        if operator in self.foreignops:
+            operator = self.foreignops[operator]
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         data = await self.stats.operators(profile, platform, api["authorization"])
@@ -231,7 +234,7 @@ class R6(commands.Cog):
         ops = []
         for operators in data:
             ops.append(operators["name"].lower())
-        if operator not in ops:
+        if operator.lower() not in ops:
             return await ctx.send(
                 "No statistics found for the current operator or the operator is invalid."
             )
@@ -260,8 +263,11 @@ class R6(commands.Cog):
                 embed.add_field(
                     name="W/LR %:", value=round(data["wins"] / (data["wins"] + data["losses"]), 2)
                 )
-                for ability in data["abilities"]:
-                    embed.add_field(name=ability["ability"], value=ability["value"])
+                try:
+                    for ability in data["abilities"]:
+                        embed.add_field(name=ability["ability"], value=ability["value"])
+                except KeyError:
+                    pass
                 await ctx.send(embed=embed)
 
     @r6.command()

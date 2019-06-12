@@ -512,15 +512,18 @@ class Stats:
             font=font,
         )
         y = 400
-        for ability in data["abilities"]:
+        try:
+            for ability in data["abilities"]:
 
-            draw.text(
-                (10, y),
-                "{}: {}".format(ability["ability"], ability["value"]),
-                fill=(255, 255, 255, 255),
-                font=font,
-            )
-            y += 40
+                draw.text(
+                    (10, y),
+                    "{}: {}".format(ability["ability"], ability["value"]),
+                    fill=(255, 255, 255, 255),
+                    font=font,
+                )
+                y += 40
+        except KeyError:
+            pass
         file = BytesIO()
         img.save(file, "png")
         file.name = "operator.png"
