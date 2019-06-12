@@ -10,7 +10,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "0.0.2"
+    __version__ = "0.1.0"
 
     def __init__(self, bot):
         defaults = {"levels": {}, "teams": {}, "fixtures": [], "standings": {}, "week": 0}
@@ -338,20 +338,20 @@ class SimLeague(commands.Cog):
                     return output
 
             # Start of Simulation!
-            b.append("**" + team1 + "** vs **" + team2 + "**")
+            b.append(team1 + " vs " + team2)
             b.append(team1 + ": " + ", ".join(team1players))
             b.append(team2 + ": " + ", ".join(team2players))
-            await ctx.maybe_send_embed("\n".join(b))
-            b = []
             b.append("\n**Match Start**!\n")
-            embed = discord.Embed(color=0xFF0000, description="\n".join(b))
-            msg = await ctx.send(embed=embed)
+            await ctx.send("```" + "\n".join(b) + "```")
+            b = []
+            await asyncio.sleep(2)
             yellow = discord.utils.get(self.bot.emojis, id=587762577191206932)
             red = discord.utils.get(self.bot.emojis, id=587762616537972848)
             for min in range(1, 91):
                 if events == False:
                     gC = goalChance()
                     if gC == True:
+                        b = []
                         teamStats = await TeamChance()
                         playerGoal = PlayerGenerator(
                             0,
@@ -364,18 +364,6 @@ class SimLeague(commands.Cog):
                         )
                         teamStats[8] += 1
                         b.append(
-                            "'"
-                            + str(min)
-                            + " min: "
-                            + "\N{SOCCER BALL}"
-                            + str(playerGoal[0])
-                            + " "
-                            + str(Event[0])
-                            + " "
-                            + str(playerGoal[1])
-                            + "!"
-                        )
-                        b.append(
                             ""
                             + Event[5]
                             + " "
@@ -383,11 +371,25 @@ class SimLeague(commands.Cog):
                             + " "
                             + str(team1Stats[8])
                             + " : "
-                            + team2.upper()
-                            + " "
                             + str(team2Stats[8])
+                            + " "
+                            + team2.upper()
+                        )
+                        b.append(
+                            "\N{STOPWATCH} "
+                            + str(min)
+                            + " min: "
+                            + "\N{SOCCER BALL} GOAALLL! ("
+                            + str(playerGoal[0])
+                            + " "
+                            + str(Event[0])
+                            + ") \n\N{HEAVY EXCLAMATION MARK SYMBOL} "
+                            + str(playerGoal[1]).upper()
+                            + " HAS SCORED!"
                         )
                         events = True
+                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        await asyncio.sleep(2)
                 if events == False:
                     pC = penaltyChance()
                     if pC == True:
@@ -401,8 +403,14 @@ class SimLeague(commands.Cog):
                             teamStats[4],
                             teamStats[5],
                         )
+                        b = []
                         b.append(
-                            "'" + str(min) + " min: " + str(playerPenalty[0]) + " " + str(Event[3])
+                            "\N{STOPWATCH} "
+                            + str(min)
+                            + " IN: \n"
+                            + str(playerPenalty[0])
+                            + " "
+                            + str(Event[3])
                         )
                         b.append("" + str(playerPenalty[1]) + " steps up to shoot...")
                         pB = penaltyBlock()
@@ -412,7 +420,9 @@ class SimLeague(commands.Cog):
                         else:
                             teamStats[8] += 1
                             b.append(
-                                "\u200b\N{SOCCER BALL} GOAL! :  " + str(playerPenalty[0]) + "!"
+                                "\u200b\N{SOCCER BALL} GOAALLL!\n\N{HEAVY EXCLAMATION MARK SYMBOL}"
+                                + str(playerGoal[1]).upper()
+                                + " HAS SCORED!"
                             )
                             b.append(
                                 ""
@@ -422,11 +432,13 @@ class SimLeague(commands.Cog):
                                 + " "
                                 + str(team1Stats[8])
                                 + " : "
-                                + team2.upper()
-                                + " "
                                 + str(team2Stats[8])
+                                + " "
+                                + team2.upper()
                             )
                             events = True
+                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        await asyncio.sleep(2)
                 if events == False:
                     yC = yCardChance()
                     if yC == True:
@@ -440,10 +452,11 @@ class SimLeague(commands.Cog):
                             teamStats[4],
                             teamStats[5],
                         )
+                        b = []
                         if len(playerYellow) == 3:
                             teamStats[7] += 1
                             b.append(
-                                "'"
+                                "\N{STOPWATCH} "
                                 + str(min)
                                 + " min: "
                                 + str(playerYellow[0])
@@ -452,20 +465,19 @@ class SimLeague(commands.Cog):
                                 + " "
                                 + str(playerYellow[1])
                                 + "\n"
-                                + f"\u200b\u200b\u200b{yellow} "
                                 + str(playerYellow[1])
                                 + "'s Second Yellow! Red Card!"
                                 + "\n         "
                                 + str(playerYellow[0])
                                 + " are down to "
-                                + str(11 - (int(teamStats[7])))
+                                + str(5 - (int(teamStats[7])))
                                 + " men!"
                             )
                             teamStats[2].append(playerYellow[1])
                             events = True
                         else:
                             b.append(
-                                "'"
+                                "\N{STOPWATCH} "
                                 + str(min)
                                 + " min: "
                                 + str(playerYellow[0])
@@ -476,9 +488,12 @@ class SimLeague(commands.Cog):
                             )
                             teamStats[1].append(playerYellow[1])
                             events = True
+                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        await asyncio.sleep(2)
                 if events == False:
                     rC = rCardChance()
                     if rC == True:
+                        b = []
                         teamStats = await TeamChance()
                         playerRed = PlayerGenerator(
                             2,
@@ -491,7 +506,7 @@ class SimLeague(commands.Cog):
                         )
                         teamStats[7] += 1
                         b.append(
-                            "'"
+                            "\N{STOPWATCH} "
                             + str(min)
                             + " min: "
                             + str(playerRed[0])
@@ -500,7 +515,6 @@ class SimLeague(commands.Cog):
                             + " "
                             + str(playerRed[1])
                             + "\n"
-                            + f"\u200b\u200b\u200b{red} "
                             + str(playerRed[0])
                             + " are down to "
                             + str(5 - (int(teamStats[7])))
@@ -508,12 +522,15 @@ class SimLeague(commands.Cog):
                         )
                         teamStats[2].append(playerRed[1])
                         events = True
+                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        await asyncio.sleep(2)
                 if events == False:
                     pass
                 events = False
                 if min == 45:
+                    b = []
                     added = random.randint(1, 5)
-                    b.append(" " + str(added) + " Minute(s) of Stoppage Time")
+                    b.append(str(added) + " Minute(s) of Stoppage Time")
                     s = 45
                     for i in range(added):
                         s += 1
@@ -531,7 +548,7 @@ class SimLeague(commands.Cog):
                             )
                             teamStats[8] += 1
                             b.append(
-                                "'"
+                                "\N{STOPWATCH} "
                                 + str(s)
                                 + " min in stoppage time: "
                                 + str(playerGoal[0])
@@ -549,25 +566,21 @@ class SimLeague(commands.Cog):
                                 + " "
                                 + str(team1Stats[8])
                                 + " : "
-                                + team2.upper()
-                                + " "
                                 + str(team2Stats[8])
+                                + " "
+                                + team2.upper()
                             )
                             events = True
-                        if events == False:
-                            b.append("'" + str(s) + " min in stoppage time: ")
                         events = False
-                    b.append("\n**HALF TIME**\n")
-                    embed = discord.Embed(color=0xFF0000, description="\n".join(b))
-                    await msg.edit(embed=embed)
-                    b = []
-                    await asyncio.sleep(5)
-                    b.append("**Start of Second Half**!")
-                    embed = discord.Embed(color=0xFF0000, description="\n".join(b))
-                    msg = await ctx.send(embed=embed)
+                    await ctx.send("```\n" + "\n".join(b) + "```")
+                    await asyncio.sleep(2)
+                    await ctx.send("```css\n[HALF TIME]\n```")
+                    await asyncio.sleep(2)
+
                 if min == 90:
+                    b = []
                     added = random.randint(1, 5)
-                    b.append(" " + str(added) + " Minute(s) of Stoppage Time")
+                    b.append(str(added) + " Minute(s) of Stoppage Time")
                     s = 90
                     for i in range(added):
                         s += 1
@@ -585,7 +598,7 @@ class SimLeague(commands.Cog):
                             )
                             teamStats[8] += 1
                             b.append(
-                                "'"
+                                "\N{STOPWATCH} "
                                 + str(s)
                                 + " min in stoppage time: "
                                 + str(playerGoal[0])
@@ -603,27 +616,27 @@ class SimLeague(commands.Cog):
                                 + " "
                                 + str(team1Stats[8])
                                 + " : "
-                                + team2.upper()
-                                + " "
                                 + str(team2Stats[8])
+                                + " "
+                                + team2.upper()
                             )
                             events = True
-                        if events == False:
-                            b.append("'" + str(s) + " min in stoppage time: ")
                         events = False
-                    b.append("\n**FULL TIME**\n")
+                    await ctx.send("```\n" + "\n".join(b) + "```")
+                    b = []
+                    b.append("\n[FULL TIME]\n")
+                    await ctx.send("```css\n" + "\n".join(b) + "```")
                     embed = discord.Embed(color=0xFF0000, description="\n".join(b))
                     await asyncio.sleep(5)
-                    await msg.edit(embed=embed)
                     await ctx.send(
                         "Final Score: "
                         + team1.upper()
                         + " "
                         + str(team1Stats[8])
                         + " : "
-                        + team2.upper()
-                        + " "
                         + str(team2Stats[8])
+                        + " "
+                        + team2.upper()
                     )
                     if team1Stats[8] > team2Stats[8]:
                         async with self.config.standings() as standings:
@@ -645,5 +658,6 @@ class SimLeague(commands.Cog):
                             standings[team2]["played"] += 1
                             standings[team1]["points"] += 1
                             standings[team2]["points"] += 1
+                    await asyncio.sleep(10)
         week += 1
         await self.config.week.set(week)
