@@ -71,7 +71,7 @@ class SimLeague(commands.Cog):
                         a.append(member)
             if a:
                 return await ctx.send(a)
-            teams[teamname] = {"captain": names[0], "members": names, "ids": ids}
+            teams[teamname] = {"members": names, "ids": ids}
         async with self.config.standings() as standings:
             standings[teamname] = {"played": 0, "wins": 0, "losses": 0, "points": 0}
         await ctx.tick()
@@ -80,16 +80,18 @@ class SimLeague(commands.Cog):
     async def _list(self, ctx):
         """List current teams"""
         teams = await self.config.teams()
-        a = []
-        for team in teams:
-            a.append(
-                f"Team: {team} | Captain: {teams[team]['captain']} | Members: {', '.join(teams[team]['members'])}"
+        embed = discord.Embed()
+        for i, team in enumerate(teams):
+            embed.add_field(
+                name=f"Team {i}",
+                value=f"Team: {team}\nMembers: {', '.join(teams[team]['members'])}",
             )
-        await ctx.maybe_send_embed("\n".join(a))
+        await ctx.send(embed=embed)
 
+    @checks.mod()
     @commands.command()
-    async def fixtures(self, ctx):
-        """fixtures"""
+    async def createfixtures(self, ctx):
+        """Create the fixtures for the current teams."""
         teams = await self.config.teams()
         teams = list(teams.keys())
         if len(teams) % 2:
@@ -115,7 +117,44 @@ class SimLeague(commands.Cog):
                 a.append(f"Game {i}: {game[0]} vs {game[1]}")
             a.append("----------")
         await self.config.fixtures.set(fixtures)
+        await ctx.tick()
+
+    @commands.command()
+    async def fixture(self, ctx, week: int):
+        """Show fixtures for a game week."""
+        fixtures = await self.config.fixtures()
+        try:
+            games = fixtures
+            games.reverse()
+            games.append("None")
+            games.reverse()
+            games = games[week]
+        except IndexError:
+            return await ctx.send("Invalid gameweek.")
+        a = []
+        for fixture in games:
+            a.append(f"{fixture[0]} vs {fixture[1]}")
         await ctx.maybe_send_embed("\n".join(a))
+
+    @commands.command()
+    async def fixtures(self, ctx):
+        """Show all fixtures."""
+        fixtures = await self.config.fixtures()
+        embed = discord.Embed(color=0xFF0000)
+        for i, fixture in enumerate(fixtures[:25]):
+            a = []
+            for game in fixture:
+                a.append(f"{game[0]} vs {game[1]}")
+            embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
+        await ctx.send(embed=embed)
+        if len(fixtures) > 25:
+            embed = discord.Embed(color=0xFF0000)
+            for i, fixture in enumerate(fixtures[25:], 25):
+                a = []
+                for game in fixture:
+                    a.append(f"{game[0]} vs {game[1]}")
+                embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
+            await ctx.send(embed=embed)
 
     @commands.command()
     async def standings(self, ctx):
@@ -179,6 +218,8 @@ class SimLeague(commands.Cog):
             teams = await self.config.teams()
             team1 = fixt[0]
             team2 = fixt[1]
+            if team1 == "Day off" or team2 == "Day off":
+                continue
             team1players = teams[team1]["members"]
             team2players = teams[team2]["members"]
             events = False
@@ -421,7 +462,7 @@ class SimLeague(commands.Cog):
                             teamStats[8] += 1
                             b.append(
                                 "\u200b\N{SOCCER BALL} GOAALLL!\n\N{HEAVY EXCLAMATION MARK SYMBOL}"
-                                + str(playerGoal[1]).upper()
+                                + str(playerPenalty[0]).upper()
                                 + " HAS SCORED!"
                             )
                             b.append(
