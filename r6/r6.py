@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -73,24 +73,30 @@ class R6(commands.Cog):
                 embed.add_field(name="Kills:", value=data["stats"]["general"]["kills"])
                 embed.add_field(name="Deaths:", value=data["stats"]["general"]["deaths"])
                 embed.add_field(name="KDR:", value=data["stats"]["general"]["kd"])
-                embed.add_field(
-                    name="Total W/LR %:",
-                    value=round(
-                        data["stats"]["general"]["wins"]
-                        / data["stats"]["general"]["games_played"],
-                        2,
+                try:
+                    wlr = (
+                        round(
+                            data["stats"]["general"]["wins"]
+                            / data["stats"]["general"]["games_played"],
+                            2,
+                        )
+                        * 100
                     )
-                    * 100,
-                )
-                embed.add_field(
-                    name="Total Ranked W/LR:",
-                    value=round(
-                        data["stats"]["queue"]["ranked"]["wins"]
-                        / data["stats"]["queue"]["ranked"]["games_played"],
-                        2,
+                except ZeroDivisionError:
+                    wlr = 0
+                embed.add_field(name="Total W/LR %:", value=wlr)
+                try:
+                    rwlr = (
+                        round(
+                            data["stats"]["queue"]["ranked"]["wins"]
+                            / data["stats"]["queue"]["ranked"]["games_played"],
+                            2,
+                        )
+                        * 100
                     )
-                    * 100,
-                )
+                except ZeroDivisionError:
+                    rwlr = 0
+                embed.add_field(name="Total Ranked W/LR:", value=rwlr)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -371,7 +377,7 @@ class R6(commands.Cog):
                 em1 = discord.Embed(
                     title=f"{statistic.title()} statistics for {profile}", colour=colour
                 )
-                for i in range(len(opsone)):
+                for i in range(len(ops)):
                     if statistic.lower() != "playtime":
                         em1.add_field(name=data[i]["name"], value=data[i][statistic])
                     else:
