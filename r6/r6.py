@@ -16,7 +16,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.2.1"
+    __version__ = "1.2.2"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -340,6 +340,8 @@ class R6(commands.Cog):
         ops = []
         for operators in data:
             ops.append(operators["name"].lower())
+        if not ops:
+            return await ctx.send("No operator statistics found.")
         colour = discord.Color.from_hsv(random.random(), 1, 1)
         if len(ops) > 26:
             opsone = ops[:26]
