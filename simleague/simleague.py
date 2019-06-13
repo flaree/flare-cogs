@@ -6,7 +6,7 @@ import random
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from tabulate import tabulate
 from prettytable import PrettyTable
-
+# THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION
 
 class SimLeague(commands.Cog):
 
