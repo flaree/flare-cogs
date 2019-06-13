@@ -10,7 +10,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def __init__(self, bot):
         defaults = {
@@ -22,7 +22,7 @@ class SimLeague(commands.Cog):
             "stats": {"goals": {}, "yellows": {}, "reds": {}},
         }
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
-        self.config.register_global(**defaults)
+        self.config.register_guild(**defaults)
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.week = 0
@@ -57,7 +57,8 @@ class SimLeague(commands.Cog):
             a[player["username"]] = str(player["level"])
         for player in data3["players"]:
             a[player["username"]] = str(player["level"])
-        await self.config.levels.set(a)
+        guild = self.bot.get_guild(410031796105773057)
+        await self.config.guild(guild).levels.set(a)
 
     @checks.mod()
     @commands.command()
@@ -70,7 +71,7 @@ class SimLeague(commands.Cog):
         await self.update()
         names = [x.name for x in members]
         ids = [x.id for x in members]
-        async with self.config.teams() as teams:
+        async with self.config.guild(ctx.guild).teams() as teams:
             a = []
             for team in teams:
                 for member in names:
@@ -79,7 +80,7 @@ class SimLeague(commands.Cog):
             if a:
                 return await ctx.send(a)
             teams[teamname] = {"members": names, "ids": ids}
-        async with self.config.standings() as standings:
+        async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
                 "played": 0,
                 "wins": 0,
@@ -95,7 +96,9 @@ class SimLeague(commands.Cog):
     @commands.command(name="teams", aliases=["list"])
     async def _list(self, ctx):
         """List current teams"""
-        teams = await self.config.teams()
+        teams = await self.config.guild(ctx.guild).teams()
+        if not teams:
+            return await ctx.send("No teams have been registered.")
         embed = discord.Embed()
         for i, team in enumerate(teams):
             embed.add_field(
@@ -109,7 +112,7 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def createfixtures(self, ctx):
         """Create the fixtures for the current teams."""
-        teams = await self.config.teams()
+        teams = await self.config.guild(ctx.guild).teams()
         teams = list(teams.keys())
         if len(teams) % 2:
             teams.append("Day off")
@@ -133,13 +136,15 @@ class SimLeague(commands.Cog):
             for i, game in enumerate(fixture, 1):
                 a.append(f"Game {i}: {game[0]} vs {game[1]}")
             a.append("----------")
-        await self.config.fixtures.set(fixtures)
+        await self.config.guild(ctx.guild).fixtures.set(fixtures)
         await ctx.tick()
 
     @commands.command()
     async def fixture(self, ctx, week: int):
         """Show fixtures for a game week."""
-        fixtures = await self.config.fixtures()
+        fixtures = await self.config.guild(ctx.guild).fixtures()
+        if not fixtures:
+            return await ctx.send("No fixtures have been made.")
         try:
             games = fixtures
             games.reverse()
@@ -156,7 +161,9 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def fixtures(self, ctx):
         """Show all fixtures."""
-        fixtures = await self.config.fixtures()
+        fixtures = await self.config.guild(ctx.guild).fixtures()
+        if not fixtures:
+            return await ctx.send("No fixtures have been made.")
         embed = discord.Embed(color=0xFF0000)
         for i, fixture in enumerate(fixtures[:25]):
             a = []
@@ -176,10 +183,12 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def standings(self, ctx, verbose: bool = False):
         """Current sim standings"""
-        standings = await self.config.standings()
+        standings = await self.config.guild(ctx.guild).standings()
+        if not standings:
+            return await ctx.send("The table is empty.")
         if not verbose:
             t = PrettyTable(["Team", "Wins", "Losses", "Played", "Points"])
-            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True), 1:
+            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True):
                 t.add_row(
                     [
                         x,
@@ -194,7 +203,7 @@ class SimLeague(commands.Cog):
             t = PrettyTable(
                 ["Team", "Wins", "Losses", "Draws", "Played", "Points", "GD", "GF", "GA"]
             )
-            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True), 1:
+            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True):
                 t.add_row(
                     [
                         x,
@@ -214,59 +223,62 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def clear(self, ctx):
         """Clear the current table/teams"""
-        await self.config.clear()
-        await self.config.week.set(0)
+        await self.config.guild(ctx.guild).clear()
+        await self.config.guild(ctx.guild).week.set(0)
         await ctx.tick()
 
     @commands.command()
     async def week(self, ctx):
         """Return the current gameweek"""
-        week = await self.config.week()
+        week = await self.config.guild(ctx.guild).week()
         await ctx.send(f"We are currently on week {week + 1}. Check the fixtures using .fixtures")
 
     @checks.mod()
     @commands.command()
     async def reset(self, ctx):
         """Reset the gameweek to 0"""
-        await self.config.week.set(0)
+        await self.config.guild(ctx.guild).week.set(0)
         await ctx.tick()
 
     @commands.command()
     async def topscorer(self, ctx):
         """Top scorers."""
-        stats = await self.config.stats()
+        stats = await self.config.guild(ctx.guild).stats()
         stats = stats["goals"]
         if stats:
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            await ctx.send("\n".join(a[:10]))
+            embed = discord.Embed(title="Top Scorers", description="\n".join(a[:10]), colour=0xFF0000)
+            await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
 
     @commands.command()
     async def yellowcards(self, ctx):
         """Players with the most yellow cards."""
-        stats = await self.config.stats()
+        stats = await self.config.guild(ctx.guild).stats()
         stats = stats["yellows"]
         if stats:
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            await ctx.send("\n".join(a[:10]))
+            embed = discord.Embed(title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000)
+            await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
 
     @commands.command()
     async def redcards(self, ctx):
         """Players with the most red cards."""
-        stats = await self.config.stats()
+        stats = await self.config.guild(ctx.guild).stats()
         stats = stats["reds"]
         if stats:
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            await ctx.send("\n".join(a[:10]))
+            embed = discord.Embed(title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000)
+            await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
 
@@ -280,10 +292,10 @@ class SimLeague(commands.Cog):
         goals = {}
         yellows = {}
         reds = {}
-        fixtures = await self.config.fixtures()
+        fixtures = await self.config.guild(ctx.guild).fixtures()
         if not fixtures:
             return await ctx.send("Please use .createfixtures to generate the fixtures.")
-        week = await self.config.week()
+        week = await self.config.guild(ctx.guild).week()
         if week > len(fixtures) - 1:
             return await ctx.send(
                 "You have finished the league, to continue please call a mod to reset the table"
@@ -292,7 +304,7 @@ class SimLeague(commands.Cog):
         await ctx.send("Week {} Games:".format(week + 1))
         for fixt in fixture:
             b = []
-            teams = await self.config.teams()
+            teams = await self.config.guild(ctx.guild).teams()
             team1 = fixt[0]
             team2 = fixt[1]
             if team1 == "Day off" or team2 == "Day off":
@@ -357,7 +369,7 @@ class SimLeague(commands.Cog):
             # If you want to increase the odds of a particular event happening, simply change the number after the greater than sign in the following functions below. Increasing the number will decrease the odds of an event occuring and vice versa.
 
             async def TeamChance():
-                xp = await self.config.levels()
+                xp = await self.config.guild(ctx.guild).levels()
                 team1pl = teams[team1]["ids"]
                 team2pl = teams[team2]["ids"]
                 t1totalxp = 0
@@ -784,21 +796,21 @@ class SimLeague(commands.Cog):
                         + team2.upper()
                     )
                     if team1Stats[8] > team2Stats[8]:
-                        async with self.config.standings() as standings:
+                        async with self.config.guild(ctx.guild).standings() as standings:
                             standings[team1]["wins"] += 1
                             standings[team1]["points"] += 3
                             standings[team1]["played"] += 1
                             standings[team2]["losses"] += 1
                             standings[team2]["played"] += 1
                     if team1Stats[8] < team2Stats[8]:
-                        async with self.config.standings() as standings:
+                        async with self.config.guild(ctx.guild).standings() as standings:
                             standings[team2]["points"] += 3
                             standings[team2]["wins"] += 1
                             standings[team2]["played"] += 1
                             standings[team1]["losses"] += 1
                             standings[team1]["played"] += 1
                     if team1Stats[8] == team2Stats[8]:
-                        async with self.config.standings() as standings:
+                        async with self.config.guild(ctx.guild).standings() as standings:
                             standings[team1]["played"] += 1
                             standings[team2]["played"] += 1
                             standings[team1]["points"] += 1
@@ -807,7 +819,7 @@ class SimLeague(commands.Cog):
                             standings[team1]["draws"] += 1
                     team1gd = team1Stats[8] - team2Stats[8]
                     team2gd = team2Stats[8] - team1Stats[8]
-                    async with self.config.standings() as standings:
+                    async with self.config.guild(ctx.guild).standings() as standings:
                         if team1gd != 0:
                             standings[team1]["gd"] += team1gd
                         if team2gd != 0:
@@ -821,7 +833,7 @@ class SimLeague(commands.Cog):
                     if len(fixtures) > 1:
                         await asyncio.sleep(10)
 
-        async with self.config.stats() as stats:
+        async with self.config.guild(ctx.guild).stats() as stats:
             for goal in goals:
                 stats["goals"][goal] = goals[goal]
             for red in reds:
@@ -829,14 +841,14 @@ class SimLeague(commands.Cog):
             for yellowc in yellows:
                 stats["yellows"][yellowc] = yellows[yellowc]
         week += 1
-        await self.config.week.set(week)
+        await self.config.guild(ctx.guild).week.set(week)
 
     @checks.mod()
     @commands.command()
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
         b = []
-        teams = await self.config.teams()
+        teams = await self.config.guild(ctx.guild).teams()
         goals = {}
         yellows = {}
         reds = {}
@@ -900,7 +912,7 @@ class SimLeague(commands.Cog):
         # If you want to increase the odds of a particular event happening, simply change the number after the greater than sign in the following functions below. Increasing the number will decrease the odds of an event occuring and vice versa.
 
         async def TeamChance():
-            xp = await self.config.levels()
+            xp = await self.config.guild(ctx.guild).levels()
             team1pl = teams[team1]["ids"]
             team2pl = teams[team2]["ids"]
             t1totalxp = 0
@@ -1327,21 +1339,21 @@ class SimLeague(commands.Cog):
                     + team2.upper()
                 )
                 if team1Stats[8] > team2Stats[8]:
-                    async with self.config.standings() as standings:
+                    async with self.config.guild(ctx.guild).standings() as standings:
                         standings[team1]["wins"] += 1
                         standings[team1]["points"] += 3
                         standings[team1]["played"] += 1
                         standings[team2]["losses"] += 1
                         standings[team2]["played"] += 1
                 if team1Stats[8] < team2Stats[8]:
-                    async with self.config.standings() as standings:
+                    async with self.config.guild(ctx.guild).standings() as standings:
                         standings[team2]["points"] += 3
                         standings[team2]["wins"] += 1
                         standings[team2]["played"] += 1
                         standings[team1]["losses"] += 1
                         standings[team1]["played"] += 1
                 if team1Stats[8] == team2Stats[8]:
-                    async with self.config.standings() as standings:
+                    async with self.config.guild(ctx.guild).standings() as standings:
                         standings[team1]["played"] += 1
                         standings[team2]["played"] += 1
                         standings[team1]["points"] += 1
@@ -1350,7 +1362,7 @@ class SimLeague(commands.Cog):
                         standings[team1]["draws"] += 1
                 team1gd = team1Stats[8] - team2Stats[8]
                 team2gd = team2Stats[8] - team1Stats[8]
-                async with self.config.standings() as standings:
+                async with self.config.guild(ctx.guild).standings() as standings:
                     if team1gd != 0:
                         standings[team1]["gd"] += team1gd
                     if team2gd != 0:
@@ -1362,7 +1374,7 @@ class SimLeague(commands.Cog):
                         standings[team1]["gf"] += team1Stats[8]
                         standings[team2]["ga"] += team1Stats[8]
 
-        async with self.config.stats() as stats:
+        async with self.config.guild(ctx.guild).stats() as stats:
             for goal in goals:
                 stats["goals"][goal] = goals[goal]
             for red in reds:
