@@ -3,7 +3,6 @@ import discord
 import aiohttp
 import asyncio
 from redbot.core import commands, checks, Config
-from . import __path__
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from redbot.core.utils.chat_formatting import pagify
@@ -16,7 +15,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.2.3"
+    __version__ = "1.2.4"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)

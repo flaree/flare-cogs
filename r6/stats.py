@@ -44,10 +44,9 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                user = resp["username"]
+            if response.status == 200:
                 return resp
-            except KeyError:
+            else:
                 return None
 
     async def weapontypes(self, profile, platform, api):
@@ -56,10 +55,9 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                user = resp["username"]
+            if response.status == 200:
                 return resp
-            except KeyError:
+            else:
                 return None
 
     async def weapons(self, profile, platform, api):
@@ -68,10 +66,9 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                user = resp["username"]
+            if response.status == 200:
                 return resp
-            except KeyError:
+            else:
                 return None
 
     async def operators(self, profile, platform, api):
@@ -80,10 +77,9 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                resp = resp["operators"]
+            if response.status == 200:
                 return sorted(resp, key=lambda x: x["name"])
-            except KeyError:
+            else:
                 return None
 
     async def ranked(self, profile, platform, region, season, api):
@@ -92,19 +88,20 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                seasonss = resp["seasons"]
-                seasons = list(seasonss.keys())
-                for i in range(1, 6):
-                    seasons.append("None")
-                seasons.reverse()
-                rank = resp["seasons"][seasons[season]]["regions"][region][0]["rank_text"]
-                return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
-            except KeyError:
-                return None
-            except IndexError:
-                return "Season not found"
-            except TypeError:
+            if response.status == 200:
+                try:
+                    seasonss = resp["seasons"]
+                    seasons = list(seasonss.keys())
+                    for i in range(1, 6):
+                        seasons.append("None")
+                    seasons.reverse()
+                    rank = resp["seasons"][seasons[season]]["regions"][region][0]["rank_text"]
+                    return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
+                except IndexError:
+                    return "Season not found"
+                except TypeError:
+                    return None
+            else:
                 return None
 
     async def leaderboard(self, platform, region, page, api):
@@ -113,10 +110,9 @@ class Stats:
             headers={"Authorization": "Bearer {}".format(api)},
         ) as response:
             resp = await response.json()
-            try:
-                user1 = resp[0]["username"]
+            if response.status == 200:
                 return resp
-            except KeyError:
+            else:
                 return None
 
     async def getimg(self, url):
