@@ -846,7 +846,7 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).week.set(week)
 
     @checks.mod()
-    @commands.command(aliases="")
+    @commands.command(aliases=["sim"])
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
         b = []
