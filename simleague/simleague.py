@@ -10,7 +10,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "0.2.1"
+    __version__ = "1.0.0"
 
     def __init__(self, bot):
         defaults = {
@@ -34,6 +34,33 @@ class SimLeague(commands.Cog):
         async with self.session.get(url) as response:
             resp = await response.json(content_type=None)
             return resp
+
+    def yCardChance(self):
+        rdmint = random.randint(0, 100)
+        if rdmint > 98:
+            return True
+
+    def rCardChance(self):
+        rdmint = random.randint(0, 300)
+        if rdmint > 299:
+            return True
+
+    def goalChance(self):
+        rdmint = random.randint(0, 100)
+        if rdmint > 96:
+            return True
+
+    def penaltyChance(self):
+        rdmint = random.randint(0, 250)
+        if rdmint > 249:
+            return True
+
+    def penaltyBlock(self):
+        rdmint = random.randint(0, 1)
+        if rdmint > 0.6:
+            return True
+
+    # Add your own player roster by replacing the names in the lists below:
 
     async def update(self):
         data = await self.get(
@@ -277,7 +304,7 @@ class SimLeague(commands.Cog):
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            embed = discord.Embed(title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000)
+            embed = discord.Embed(title="Most Red Cards", description="\n".join(a[:10]), colour=0xFF0000)
             await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
@@ -367,7 +394,6 @@ class SimLeague(commands.Cog):
             ]
 
             # If you want to increase the odds of a particular event happening, simply change the number after the greater than sign in the following functions below. Increasing the number will decrease the odds of an event occuring and vice versa.
-
             async def TeamChance():
                 xp = await self.config.guild(ctx.guild).levels()
                 team1pl = teams[team1]["ids"]
@@ -392,33 +418,6 @@ class SimLeague(commands.Cog):
                     return team1Stats
                 else:
                     return team2Stats
-
-            def yCardChance():
-                rdmint = random.randint(0, 100)
-                if rdmint > 98:
-                    return True
-
-            def rCardChance():
-                rdmint = random.randint(0, 300)
-                if rdmint > 299:
-                    return True
-
-            def goalChance():
-                rdmint = random.randint(0, 100)
-                if rdmint > 96:
-                    return True
-
-            def penaltyChance():
-                rdmint = random.randint(0, 250)
-                if rdmint > 249:
-                    return True
-
-            def penaltyBlock():
-                rdmint = random.randint(0, 1)
-                if rdmint > 0.6:
-                    return True
-
-            # Add your own player roster by replacing the names in the lists below:
 
             def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
                 random.shuffle(team1players)
@@ -466,7 +465,6 @@ class SimLeague(commands.Cog):
                     player_out = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
                     output = [team, player_out]
                     return output
-
             # Start of Simulation!
             b.append(team1 + " vs " + team2)
             b.append(team1 + ": " + ", ".join(team1players))
@@ -477,7 +475,7 @@ class SimLeague(commands.Cog):
             await asyncio.sleep(2)
             for min in range(1, 91):
                 if events == False:
-                    gC = goalChance()
+                    gC = self.goalChance()
                     if gC == True:
                         b = []
                         teamStats = await TeamChance()
@@ -523,7 +521,7 @@ class SimLeague(commands.Cog):
                         await ctx.send("```\n" + "\n".join(b) + "```")
                         await asyncio.sleep(2)
                 if events == False:
-                    pC = penaltyChance()
+                    pC = self.penaltyChance()
                     if pC == True:
                         teamStats = await TeamChance()
                         playerPenalty = PlayerGenerator(
@@ -545,7 +543,7 @@ class SimLeague(commands.Cog):
                             + str(Event[3])
                         )
                         b.append("" + str(playerPenalty[1]) + " steps up to shoot...")
-                        pB = penaltyBlock()
+                        pB = self.penaltyBlock()
                         if pB == True:
                             b.append("SHOT BLOCKED!!")
                             events = True
@@ -576,7 +574,7 @@ class SimLeague(commands.Cog):
                         await ctx.send("```\n" + "\n".join(b) + "```")
                         await asyncio.sleep(2)
                 if events == False:
-                    yC = yCardChance()
+                    yC = self.yCardChance()
                     if yC == True:
                         teamStats = await TeamChance()
                         playerYellow = PlayerGenerator(
@@ -637,7 +635,7 @@ class SimLeague(commands.Cog):
                         await ctx.send("```\n" + "\n".join(b) + "```")
                         await asyncio.sleep(2)
                 if events == False:
-                    rC = rCardChance()
+                    rC = self.rCardChance()
                     if rC == True:
                         b = []
                         teamStats = await TeamChance()
@@ -681,10 +679,12 @@ class SimLeague(commands.Cog):
                     b = []
                     added = random.randint(1, 5)
                     b.append(str(added) + " Minute(s) of Stoppage Time")
+                    await ctx.send("```\n" + "\n".join(b) + "```")
                     s = 45
                     for i in range(added):
+                        b = []
                         s += 1
-                        gC = goalChance()
+                        gC = self.goalChance()
                         if gC == True:
                             teamStats = await TeamChance()
                             playerGoal = PlayerGenerator(
@@ -726,8 +726,8 @@ class SimLeague(commands.Cog):
                                 goals[playerGoal[1]] += 1
                             events = True
                         events = False
-                    await ctx.send("```\n" + "\n".join(b) + "```")
-                    await asyncio.sleep(2)
+                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        await asyncio.sleep(2)
                     await ctx.send("```css\n[HALF TIME]\n```")
                     await asyncio.sleep(2)
 
@@ -735,10 +735,12 @@ class SimLeague(commands.Cog):
                     b = []
                     added = random.randint(1, 5)
                     b.append(str(added) + " Minute(s) of Stoppage Time")
+                    await ctx.send("```\n" + "\n".join(b) + "```")
                     s = 90
                     for i in range(added):
+                        b = []
                         s += 1
-                        gC = goalChance()
+                        gC = self.goalChance()
                         if gC == True:
                             teamStats = await TeamChance()
                             playerGoal = PlayerGenerator(
@@ -780,7 +782,7 @@ class SimLeague(commands.Cog):
                                 goals[playerGoal[1]] += 1
                             events = True
                         events = False
-                    await ctx.send("```\n" + "\n".join(b) + "```")
+                        await ctx.send("```\n" + "\n".join(b) + "```")
                     b = []
                     b.append("\n[FULL TIME]\n")
                     await ctx.send("```css\n" + "\n".join(b) + "```")
@@ -844,7 +846,7 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).week.set(week)
 
     @checks.mod()
-    @commands.command()
+    @commands.command(aliases="")
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
         b = []
@@ -908,9 +910,6 @@ class SimLeague(commands.Cog):
             score_count2,
             injury_count2,
         ]
-
-        # If you want to increase the odds of a particular event happening, simply change the number after the greater than sign in the following functions below. Increasing the number will decrease the odds of an event occuring and vice versa.
-
         async def TeamChance():
             xp = await self.config.guild(ctx.guild).levels()
             team1pl = teams[team1]["ids"]
@@ -935,34 +934,6 @@ class SimLeague(commands.Cog):
                 return team1Stats
             else:
                 return team2Stats
-
-        def yCardChance():
-            rdmint = random.randint(0, 100)
-            if rdmint > 98:
-                return True
-
-        def rCardChance():
-            rdmint = random.randint(0, 300)
-            if rdmint > 299:
-                return True
-
-        def goalChance():
-            rdmint = random.randint(0, 100)
-            if rdmint > 96:
-                return True
-
-        def penaltyChance():
-            rdmint = random.randint(0, 250)
-            if rdmint > 249:
-                return True
-
-        def penaltyBlock():
-            rdmint = random.randint(0, 1)
-            if rdmint > 0.6:
-                return True
-
-        # Add your own player roster by replacing the names in the lists below:
-
         def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
             random.shuffle(team1players)
             random.shuffle(team2players)
@@ -1009,7 +980,6 @@ class SimLeague(commands.Cog):
                 player_out = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
                 output = [team, player_out]
                 return output
-
         # Start of Simulation!
         b.append(team1 + " vs " + team2)
         b.append(team1 + ": " + ", ".join(team1players))
@@ -1020,7 +990,7 @@ class SimLeague(commands.Cog):
         await asyncio.sleep(2)
         for min in range(1, 91):
             if events == False:
-                gC = goalChance()
+                gC = self.goalChance()
                 if gC == True:
                     b = []
                     teamStats = await TeamChance()
@@ -1066,7 +1036,7 @@ class SimLeague(commands.Cog):
                     await ctx.send("```\n" + "\n".join(b) + "```")
                     await asyncio.sleep(2)
             if events == False:
-                pC = penaltyChance()
+                pC = self.penaltyChance()
                 if pC == True:
                     teamStats = await TeamChance()
                     playerPenalty = PlayerGenerator(
@@ -1088,7 +1058,7 @@ class SimLeague(commands.Cog):
                         + str(Event[3])
                     )
                     b.append("" + str(playerPenalty[1]) + " steps up to shoot...")
-                    pB = penaltyBlock()
+                    pB = self.penaltyBlock()
                     if pB == True:
                         b.append("SHOT BLOCKED!!")
                         events = True
@@ -1119,7 +1089,7 @@ class SimLeague(commands.Cog):
                     await ctx.send("```\n" + "\n".join(b) + "```")
                     await asyncio.sleep(2)
             if events == False:
-                yC = yCardChance()
+                yC = self.yCardChance()
                 if yC == True:
                     teamStats = await TeamChance()
                     playerYellow = PlayerGenerator(
@@ -1180,7 +1150,7 @@ class SimLeague(commands.Cog):
                     await ctx.send("```\n" + "\n".join(b) + "```")
                     await asyncio.sleep(2)
             if events == False:
-                rC = rCardChance()
+                rC = self.rCardChance()
                 if rC == True:
                     b = []
                     teamStats = await TeamChance()
@@ -1224,10 +1194,12 @@ class SimLeague(commands.Cog):
                 b = []
                 added = random.randint(1, 5)
                 b.append(str(added) + " Minute(s) of Stoppage Time")
+                await ctx.send("```\n" + "\n".join(b) + "```")
                 s = 45
                 for i in range(added):
+                    b = []
                     s += 1
-                    gC = goalChance()
+                    gC = self.goalChance()
                     if gC == True:
                         teamStats = await TeamChance()
                         playerGoal = PlayerGenerator(
@@ -1269,8 +1241,8 @@ class SimLeague(commands.Cog):
                             goals[playerGoal[1]] += 1
                         events = True
                     events = False
-                await ctx.send("```\n" + "\n".join(b) + "```")
-                await asyncio.sleep(2)
+                    await ctx.send("```\n" + "\n".join(b) + "```")
+                    await asyncio.sleep(2)
                 await ctx.send("```css\n[HALF TIME]\n```")
                 await asyncio.sleep(2)
 
@@ -1278,10 +1250,13 @@ class SimLeague(commands.Cog):
                 b = []
                 added = random.randint(1, 5)
                 b.append(str(added) + " Minute(s) of Stoppage Time")
+                await ctx.send("```\n" + "\n".join(b) + "```")
+                b = []
                 s = 90
                 for i in range(added):
+                    b = []
                     s += 1
-                    gC = goalChance()
+                    gC = self.goalChance()
                     if gC == True:
                         teamStats = await TeamChance()
                         playerGoal = PlayerGenerator(
@@ -1323,7 +1298,7 @@ class SimLeague(commands.Cog):
                             goals[playerGoal[1]] += 1
                         events = True
                     events = False
-                await ctx.send("```\n" + "\n".join(b) + "```")
+                    await ctx.send("```\n" + "\n".join(b) + "```")
                 b = []
                 b.append("\n[FULL TIME]\n")
                 await ctx.send("```css\n" + "\n".join(b) + "```")
