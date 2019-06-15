@@ -6,7 +6,9 @@ import random
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from tabulate import tabulate
 from prettytable import PrettyTable
+
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION
+
 
 class SimLeague(commands.Cog):
 
@@ -91,10 +93,8 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def register(self, ctx, teamname: str, members: commands.Greedy[discord.Member]):
         """Register a team"""
-        if len(members) > 5:
-            return await ctx.send("You have provided to many members.")
-        if len(members) < 3:
-            return await ctx.send("You must provide atleast 3 members.")
+        if len(members) != 5:
+            return await ctx.send("You must provide 5 members.")
         await self.update()
         names = [x.name for x in members]
         ids = [x.id for x in members]
@@ -276,7 +276,9 @@ class SimLeague(commands.Cog):
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            embed = discord.Embed(title="Top Scorers", description="\n".join(a[:10]), colour=0xFF0000)
+            embed = discord.Embed(
+                title="Top Scorers", description="\n".join(a[:10]), colour=0xFF0000
+            )
             await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
@@ -290,7 +292,9 @@ class SimLeague(commands.Cog):
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            embed = discord.Embed(title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000)
+            embed = discord.Embed(
+                title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000
+            )
             await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
@@ -304,7 +308,9 @@ class SimLeague(commands.Cog):
             a = []
             for k in sorted(stats, key=lambda x: stats[x], reverse=True):
                 a.append(f"{k} - {stats[k]}")
-            embed = discord.Embed(title="Most Red Cards", description="\n".join(a[:10]), colour=0xFF0000)
+            embed = discord.Embed(
+                title="Most Red Cards", description="\n".join(a[:10]), colour=0xFF0000
+            )
             await ctx.send(embed=embed)
         else:
             await ctx.send("No stats available.")
@@ -465,6 +471,7 @@ class SimLeague(commands.Cog):
                     player_out = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
                     output = [team, player_out]
                     return output
+
             # Start of Simulation!
             b.append(team1 + " vs " + team2)
             b.append(team1 + ": " + ", ".join(team1players))
@@ -726,7 +733,8 @@ class SimLeague(commands.Cog):
                                 goals[playerGoal[1]] += 1
                             events = True
                         events = False
-                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        if b:
+                            await ctx.send("```\n" + "\n".join(b) + "```")
                         await asyncio.sleep(2)
                     await ctx.send("```css\n[HALF TIME]\n```")
                     await asyncio.sleep(2)
@@ -782,7 +790,8 @@ class SimLeague(commands.Cog):
                                 goals[playerGoal[1]] += 1
                             events = True
                         events = False
-                        await ctx.send("```\n" + "\n".join(b) + "```")
+                        if b:
+                            await ctx.send("```\n" + "\n".join(b) + "```")
                     b = []
                     b.append("\n[FULL TIME]\n")
                     await ctx.send("```css\n" + "\n".join(b) + "```")
@@ -849,6 +858,9 @@ class SimLeague(commands.Cog):
     @commands.command(aliases=["sim"])
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
+        msg = await ctx.send("Updating levels. Please wait...")
+        await self.update()
+        await msg.delete()
         b = []
         teams = await self.config.guild(ctx.guild).teams()
         goals = {}
@@ -910,6 +922,7 @@ class SimLeague(commands.Cog):
             score_count2,
             injury_count2,
         ]
+
         async def TeamChance():
             xp = await self.config.guild(ctx.guild).levels()
             team1pl = teams[team1]["ids"]
@@ -934,6 +947,7 @@ class SimLeague(commands.Cog):
                 return team1Stats
             else:
                 return team2Stats
+
         def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
             random.shuffle(team1players)
             random.shuffle(team2players)
@@ -980,6 +994,7 @@ class SimLeague(commands.Cog):
                 player_out = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
                 output = [team, player_out]
                 return output
+
         # Start of Simulation!
         b.append(team1 + " vs " + team2)
         b.append(team1 + ": " + ", ".join(team1players))
@@ -1241,7 +1256,8 @@ class SimLeague(commands.Cog):
                             goals[playerGoal[1]] += 1
                         events = True
                     events = False
-                    await ctx.send("```\n" + "\n".join(b) + "```")
+                    if b:
+                        await ctx.send("```\n" + "\n".join(b) + "```")
                     await asyncio.sleep(2)
                 await ctx.send("```css\n[HALF TIME]\n```")
                 await asyncio.sleep(2)
@@ -1298,7 +1314,8 @@ class SimLeague(commands.Cog):
                             goals[playerGoal[1]] += 1
                         events = True
                     events = False
-                    await ctx.send("```\n" + "\n".join(b) + "```")
+                    if b:
+                        await ctx.send("```\n" + "\n".join(b) + "```")
                 b = []
                 b.append("\n[FULL TIME]\n")
                 await ctx.send("```css\n" + "\n".join(b) + "```")
