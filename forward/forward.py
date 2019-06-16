@@ -5,6 +5,8 @@ import discord
 class Forward(commands.Cog):
     """Forward messages to the bot to the bot owner."""
 
+    __version__ = "1.2.1"
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)
