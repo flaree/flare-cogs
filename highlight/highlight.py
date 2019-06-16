@@ -1,6 +1,6 @@
 from redbot.core import commands, Config, checks
 import discord
-from typing import Optional
+from typing import Optional, Union
 
 
 class Highlight(commands.Cog):
@@ -11,6 +11,8 @@ class Highlight(commands.Cog):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
+
+    __version__ = "1.1.0"
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -59,37 +61,44 @@ class Highlight(commands.Cog):
         pass
 
     @highlight.command()
-    async def add(self, ctx, *, text: str):
+    async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *, text: str):
         """Add a word to be highlighted on."""
-        async with self.config.channel(ctx.channel).highlight() as highlight:
+        if channel is None:
+            channel = ctx.channel
+        async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
             if text not in highlight[f"{ctx.author.id}"]:
                 highlight[f"{ctx.author.id}"][text] = None
-                await ctx.send(f"The word `{text}` has been added to your highlight list.")
+                await ctx.send(
+                    f"The word `{text}` has been added to your highlight list for {channel}."
+                )
             else:
-                await ctx.send(f"The word {text} is already in your highlight list.")
-        async with self.config.channel(ctx.channel).toggle() as toggle:
+                await ctx.send(f"The word {text} is already in your highlight list for {channel}.")
+        async with self.config.channel(channel).toggle() as toggle:
             if str(ctx.author.id) not in toggle:
                 toggle[f"{ctx.author.id}"] = False
-        async with self.config.channel(ctx.channel).ignore() as ignore:
+        async with self.config.channel(channel).ignore() as ignore:
             if str(ctx.author.id) not in ignore:
                 ignore[f"{ctx.author.id}"] = False
 
     @highlight.command()
-    async def remove(self, ctx, *, word: str):
+    async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
         """Remove highlighting in a certain channel"""
-        channel = ctx.channel
+        if channel is None:
+            channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
             try:
                 if word in highlight[f"{ctx.author.id}"]:
-                    await ctx.send(f"Highlighted word `{word}` has been removed successfully.")
+                    await ctx.send(
+                        f"Highlighted word `{word}` has been removed from {channel} successfully."
+                    )
                     del highlight[f"{ctx.author.id}"][word]
 
                 else:
-                    await ctx.send("Your word is not currently setup in this channel..")
+                    await ctx.send("Your word is not currently setup in that channel..")
             except KeyError:
-                await ctx.send("You do not have any highlighted words in this channel.")
+                await ctx.send("You do not have any highlighted words in that channel.")
 
     @highlight.command()
     async def toggle(self, ctx, state: bool):
@@ -98,12 +107,12 @@ class Highlight(commands.Cog):
             if state:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send(
-                    "{} has enabled their highlighting on this channel.".format(ctx.author.name)
+                    "{} has enabled their highlighting in this channel.".format(ctx.author.name)
                 )
             elif not state:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send(
-                    "{} has enabled their highlighting on this channel.".format(ctx.author.name)
+                    "{} has disabled their highlighting in this channel.".format(ctx.author.name)
                 )
 
     @highlight.command()
@@ -123,14 +132,14 @@ class Highlight(commands.Cog):
                     "Bot messages will not longer be highlighted for {}.".format(ctx.author.name)
                 )
 
-    @highlight.command()
-    async def list(self, ctx, channel: Optional[discord.TextChannel] = None):
+    @highlight.command(name="list")
+    async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for the current channel."""
         channel = channel or ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
                 async with self.config.channel(channel).toggle() as toggle:
-                    async with self.config.channel(ctx.channel).ignore() as ignore:
+                    async with self.config.channel(channel).ignore() as ignore:
                         words = [word for word in highlight[f"{ctx.author.id}"]]
                         words = "\n".join(words)
                         try:
