@@ -6,6 +6,8 @@ import discord
 class Modmail(commands.Cog):
     """Forward messages to set channels."""
 
+    __version__ = "1.0.0"
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476)

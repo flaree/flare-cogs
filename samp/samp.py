@@ -9,6 +9,8 @@ import json
 class Samp(commands.Cog):
     """SA:MP Related Commands"""
 
+    __version__ = "0.1.0"
+
     def __init__(self, bot):
         self.bot = bot
         self._session = aiohttp.ClientSession(loop=self.bot.loop)
