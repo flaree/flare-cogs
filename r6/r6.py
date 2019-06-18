@@ -15,7 +15,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.2.4"
+    __version__ = "1.3.0"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -29,7 +29,7 @@ class R6(commands.Cog):
 
     @commands.group(autohelp=True)
     async def r6(self, ctx):
-        """R6 Commands"""
+        """R6 Commands - Valid consoles are psn, xbl and uplay."""
         pass
 
     @r6.command()
@@ -303,12 +303,17 @@ class R6(commands.Cog):
                         data[0][season].title().replace("_", " "), profile
                     ),
                 )
-                embed.set_thumbnail(url=self.stats.rank[data[1]["rank_text"]])
+                embed.set_thumbnail(
+                    url=self.stats.rank[list(self.stats.rank)[data[1]["max_rank"]]]
+                )
                 embed.add_field(name="Wins:", value=data[1]["wins"])
                 embed.add_field(name="Losses:", value=data[1]["losses"])
                 embed.add_field(name="Abandons:", value=data[1]["abandons"])
-                embed.add_field(name="MMR:", value=data[1]["mmr"])
-                embed.add_field(name="Rank:", value=data[1]["rank_text"])
+                embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
+                embed.add_field(name="Max MMR:", value=data[1]["max_mmr"])
+                embed.add_field(name="End MMR:", value=data[1]["mmr"])
+                embed.add_field(name="Max Rank:", value=list(self.stats.rank)[data[1]["max_rank"]])
+                embed.add_field(name="End Rank:", value=data[1]["rank_text"])
                 await ctx.send(embed=embed)
 
     @r6.command()

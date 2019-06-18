@@ -15,25 +15,25 @@ class Stats:
         self.url = "https://api2.r6stats.com/public-api/"
         self.rank = {
             "Unranked": "https://i.imgur.com/jNJ1BBl.png",
-            "Copper I": "https://i.imgur.com/SN55IoP.png",
-            "Copper II": "https://i.imgur.com/RTCvQDV.png",
-            "Copper III": "https://i.imgur.com/zx5KbBO.png",
             "Copper IV": "https://i.imgur.com/deTjm7V.png",
-            "Bronze I": "https://i.imgur.com/64eQSbG.png",
-            "Bronze II": "ttps://i.imgur.com/ry1KwLe.png",
-            "Bronze III": "https://i.imgur.com/QOuIDW4.png",
+            "Copper III": "https://i.imgur.com/zx5KbBO.png",
+            "Copper II": "https://i.imgur.com/RTCvQDV.png",
+            "Copper I": "https://i.imgur.com/SN55IoP.png",
             "Bronve IV": "https://i.imgur.com/DmfZeRP.png",
-            "Gold I": "https://i.imgur.com/cOFgDW5.png",
-            "Gold II": "https://i.imgur.com/7c4dBTz.png",
-            "Gold III": "https://i.imgur.com/5fYa6cM.png",
-            "Gold IV": "https://i.imgur.com/DelhMBP.png",
-            "Silver I": "https://i.imgur.com/iQGr0yz.png",
-            "Silver II": "https://i.imgur.com/f68iB99.png",
-            "Silver III": "https://i.imgur.com/e84XmHl.png",
+            "Bronze III": "https://i.imgur.com/QOuIDW4.png",
+            "Bronze II": "ttps://i.imgur.com/ry1KwLe.png",
+            "Bronze I": "https://i.imgur.com/64eQSbG.png",
             "Silver IV": "https://i.imgur.com/fOmokW9.png",
-            "Platinum I": "https://i.imgur.com/p8J2gyx.png",
-            "Platinum II": "https://i.imgur.com/0nSeDwK.png",
+            "Silver III": "https://i.imgur.com/e84XmHl.png",
+            "Silver II": "https://i.imgur.com/f68iB99.png",
+            "Silver I": "https://i.imgur.com/iQGr0yz.png",
+            "Gold IV": "https://i.imgur.com/DelhMBP.png",
+            "Gold III": "https://i.imgur.com/5fYa6cM.png",
+            "Gold II": "https://i.imgur.com/7c4dBTz.png",
+            "Gold I": "https://i.imgur.com/cOFgDW5.png",
             "Platinum III": "https://i.imgur.com/27k46er.png",
+            "Platinum II": "https://i.imgur.com/0nSeDwK.png",
+            "Platinum I": "https://i.imgur.com/p8J2gyx.png",
             "Diamond": "https://i.imgur.com/h02BrKN.png",
             "Diamond I": "https://i.imgur.com/h02BrKN.png",
         }
@@ -96,7 +96,6 @@ class Stats:
                     for i in range(1, 6):
                         seasons.append("None")
                     seasons.reverse()
-                    rank = resp["seasons"][seasons[season]]["regions"][region][0]["rank_text"]
                     return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
                 except IndexError:
                     return "Season not found"
@@ -409,12 +408,12 @@ class Stats:
         return image
 
     async def seasoncreate(self, data, season, profile):
-        img = Image.new("RGBA", (400, 260), (17, 17, 17, 0))
+        img = Image.new("RGBA", (400, 380), (17, 17, 17, 0))
         aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
         nameplate = self.add_corners(Image.new("RGBA", (240, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = self.rank[data[1]["rank_text"]]
+        url = self.rank[list(self.rank)[data[1]["max_rank"]]]
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -425,7 +424,7 @@ class Stats:
         draw.text((162, 14), profile, fill=(255, 255, 255, 255), font=font)
         draw.text(
             (162, 40),
-            "Rank: {}".format(data[1]["rank_text"]),
+            "Rank: {}".format(list(self.rank)[data[1]["max_rank"]]),
             fill=(255, 255, 255, 255),
             font=font,
         )
@@ -451,7 +450,19 @@ class Stats:
             font=font,
         )
         draw.text(
-            (200, 220), "MMR: {}".format(data[1]["mmr"]), fill=(255, 255, 255, 255), font=font
+            (10, 260),
+            "Max MMR: {}".format(data[1]["max_mmr"]),
+            fill=(255, 255, 255, 255),
+            font=font,
+        )
+        draw.text(
+            (10, 300), "End MMR: {}".format(data[1]["mmr"]), fill=(255, 255, 255, 255), font=font
+        )
+        draw.text(
+            (10, 340),
+            "End Rank: {}".format(data[1]["rank_text"]),
+            fill=(255, 255, 255, 255),
+            font=font,
         )
         file = BytesIO()
         img.save(file, "png")
