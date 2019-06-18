@@ -34,6 +34,7 @@ class Stats:
             "Platinum I": "https://i.imgur.com/p8J2gyx.png",
             "Platinum II": "https://i.imgur.com/0nSeDwK.png",
             "Platinum III": "https://i.imgur.com/27k46er.png",
+            "Diamond": "https://i.imgur.com/h02BrKN.png",
             "Diamond I": "https://i.imgur.com/h02BrKN.png",
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
