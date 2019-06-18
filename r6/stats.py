@@ -31,10 +31,10 @@ class Stats:
             "Silver II": "https://i.imgur.com/f68iB99.png",
             "Silver III": "https://i.imgur.com/e84XmHl.png",
             "Silver IV": "https://i.imgur.com/fOmokW9.png",
-            "Platinum I": "https://i.imgur.com/HAU5DLj.png",
-            "Platinum II": "https://i.imgur.com/vcIEaEz.png",
-            "Platinum III": "https://i.imgur.com/to1cRGC.png",
-            "Diamond I": "https://i.imgur.com/Rt6c2om.png",
+            "Platinum I": "https://i.imgur.com/p8J2gyx.png",
+            "Platinum II": "https://i.imgur.com/0nSeDwK.png",
+            "Platinum III": "https://i.imgur.com/27k46er.png",
+            "Diamond I": "https://i.imgur.com/h02BrKN.png",
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
