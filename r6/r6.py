@@ -15,7 +15,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.3.0"
+    __version__ = "1.3.1"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -538,7 +538,7 @@ class R6(commands.Cog):
             for player in data[i : i + 25]:
                 embed.add_field(
                     name=f"{player['position']}. {player['username']}",
-                    value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**Score**: {round(player['score'], 2)}",
+                    value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**WL/R**: {player['stats']['wl']}\n**Score**: {round(player['score'], 2)}",
                 )
             embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
@@ -617,7 +617,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def setpicture(self, ctx, toggle: bool = True):
-        """Set whetver to recieve an embed or picture for stat commands.
+        """Set wheter to recieve an embed or a picture.
         Toggle must be a valid bool."""
         await self.config.member(ctx.author).picture.set(toggle)
         if toggle:
