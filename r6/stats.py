@@ -1,9 +1,7 @@
 import aiohttp
 import asyncio
-from . import __path__
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
-import os
 import discord
 import datetime
 from redbot.core.data_manager import bundled_data_path

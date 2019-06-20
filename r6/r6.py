@@ -1,4 +1,3 @@
-import random
 import discord
 import aiohttp
 import asyncio
@@ -8,14 +7,13 @@ from PIL import Image, ImageDraw, ImageFont
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 import datetime
-import os
 from .stats import Stats
 
 
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.3.1"
+    __version__ = "1.3.2"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -145,15 +143,18 @@ class R6(commands.Cog):
                 embed.add_field(name="Kills:", value=data["stats"]["queue"]["casual"]["kills"])
                 embed.add_field(name="Deaths:", value=data["stats"]["queue"]["casual"]["deaths"])
                 embed.add_field(name="KDR:", value=data["stats"]["queue"]["casual"]["kd"])
-                embed.add_field(
-                    name="Total W/LR %:",
-                    value=round(
-                        data["stats"]["queue"]["casual"]["wins"]
-                        / data["stats"]["queue"]["casual"]["games_played"],
-                        2,
+                try:
+                    wlr = (
+                        round(
+                            data["stats"]["queue"]["casual"]["wins"]
+                            / data["stats"]["queue"]["casual"]["games_played"],
+                            2,
+                        )
+                        * 100
                     )
-                    * 100,
-                )
+                except ZeroDivisionError:
+                    wlr = 0
+                embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -202,15 +203,18 @@ class R6(commands.Cog):
                 embed.add_field(name="Kills:", value=data["stats"]["queue"]["ranked"]["kills"])
                 embed.add_field(name="Deaths:", value=data["stats"]["queue"]["ranked"]["deaths"])
                 embed.add_field(name="KDR:", value=data["stats"]["queue"]["ranked"]["kd"])
-                embed.add_field(
-                    name="Total W/LR %:",
-                    value=round(
-                        data["stats"]["queue"]["ranked"]["wins"]
-                        / data["stats"]["queue"]["ranked"]["games_played"],
-                        2,
+                try:
+                    wlr = (
+                        round(
+                            data["stats"]["queue"]["ranked"]["wins"]
+                            / data["stats"]["queue"]["ranked"]["games_played"],
+                            2,
+                        )
+                        * 100
                     )
-                    * 100,
-                )
+                except ZeroDivisionError:
+                    wlr = 0
+                embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -352,16 +356,17 @@ class R6(commands.Cog):
             ops.append(operators["name"].lower())
         if not ops:
             return await ctx.send("No operator statistics found.")
-        colour = discord.Color.from_hsv(random.random(), 1, 1)
         if len(ops) > 26:
             opsone = ops[:26]
             opstwo = ops[26:]
             async with ctx.typing():
                 em1 = discord.Embed(
-                    title=f"{statistic.title()} statistics for {profile} - Page 1/2", colour=colour
+                    title=f"{statistic.title()} statistics for {profile} - Page 1/2",
+                    colour=ctx.authour.colour,
                 )
                 em2 = discord.Embed(
-                    title=f"{statistic.title()} statistics for {profile} - Page 2/2", colour=colour
+                    title=f"{statistic.title()} statistics for {profile} - Page 2/2",
+                    colour=ctx.author.colour,
                 )
                 for i in range(len(opsone)):
                     if statistic.lower() != "playtime":
@@ -387,7 +392,7 @@ class R6(commands.Cog):
         else:
             async with ctx.typing():
                 em1 = discord.Embed(
-                    title=f"{statistic.title()} statistics for {profile}", colour=colour
+                    title=f"{statistic.title()} statistics for {profile}", colour=ctx.author.colour
                 )
                 for i in range(len(ops)):
                     if statistic.lower() != "playtime":
