@@ -12,7 +12,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot):
         defaults = {
@@ -22,6 +22,7 @@ class SimLeague(commands.Cog):
             "standings": {},
             "week": 0,
             "stats": {"goals": {}, "yellows": {}, "reds": {}},
+            "users": [],
         }
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
         self.config.register_guild(**defaults)
@@ -100,12 +101,14 @@ class SimLeague(commands.Cog):
         ids = [x.id for x in members]
         async with self.config.guild(ctx.guild).teams() as teams:
             a = []
-            for team in teams:
-                for member in names:
-                    if member in teams[team]["members"]:
-                        a.append(member)
+            async with self.config.guild(ctx.guild).users() as users:
+                for userid in ids:
+                    if userid in users:
+                        a.append(names[ids.index(userid)])
+                    else:
+                        users.append(userid)
             if a:
-                return await ctx.send(a)
+                return await ctx.send(a + " are already in a team.")
             teams[teamname] = {"members": names, "ids": ids}
         async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
@@ -428,18 +431,16 @@ class SimLeague(commands.Cog):
             def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
                 random.shuffle(team1players)
                 random.shuffle(team2players)
-                arsenalFirstsquad = team1players
-                chelseaFirstsquad = team2players
                 output = []
                 if team == team1:
-                    fs_players = arsenalFirstsquad
+                    fs_players = team1players
                     yc = yC_team1
                     rc = rC_team1
                     injury = injury_team1
                     sub_in = sub_in_team1
                     sub_out = sub_out_team1
                 elif team == team2:
-                    fs_players = chelseaFirstsquad
+                    fs_players = team2players
                     yc = yC_team2
                     rc = rC_team2
                     injury = injury_team2
@@ -866,6 +867,8 @@ class SimLeague(commands.Cog):
         goals = {}
         yellows = {}
         reds = {}
+        if team1 not in teams or team2 not in teams:
+            return await ctx.send("One of those teams do not exist.")
         team1players = teams[team1]["members"]
         team2players = teams[team2]["members"]
         events = False
@@ -951,18 +954,16 @@ class SimLeague(commands.Cog):
         def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
             random.shuffle(team1players)
             random.shuffle(team2players)
-            arsenalFirstsquad = team1players
-            chelseaFirstsquad = team2players
             output = []
             if team == team1:
-                fs_players = arsenalFirstsquad
+                fs_players = team1players
                 yc = yC_team1
                 rc = rC_team1
                 injury = injury_team1
                 sub_in = sub_in_team1
                 sub_out = sub_out_team1
             elif team == team2:
-                fs_players = chelseaFirstsquad
+                fs_players = team2players
                 yc = yC_team2
                 rc = rC_team2
                 injury = injury_team2
