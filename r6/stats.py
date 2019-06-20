@@ -77,6 +77,7 @@ class Stats:
         ) as response:
             resp = await response.json()
             if response.status == 200:
+                resp = resp["operators"]
                 return sorted(resp, key=lambda x: x["name"])
             else:
                 return None
