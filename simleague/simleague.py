@@ -218,7 +218,7 @@ class SimLeague(commands.Cog):
             return await ctx.send("The table is empty.")
         if not verbose:
             t = PrettyTable(["Team", "Wins", "Losses", "Played", "Points"])
-            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True):
+            for x in sorted(standings, key=lambda x: (standings[x]["points"], standings[x]["gd"]), reverse=True):
                 t.add_row(
                     [
                         x,
@@ -233,7 +233,7 @@ class SimLeague(commands.Cog):
             t = PrettyTable(
                 ["Team", "Wins", "Losses", "Draws", "Played", "Points", "GD", "GF", "GA"]
             )
-            for x in sorted(standings, key=lambda x: standings[x]["points"], reverse=True):
+            for x in sorted(standings, key=lambda x: (standings[x]["points"], standings[x]["gd"]), reverse=True):
                 t.add_row(
                     [
                         x,
@@ -271,7 +271,7 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command()
-    async def topscorer(self, ctx):
+    async def topscorers(self, ctx):
         """Top scorers."""
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["goals"]
