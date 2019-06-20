@@ -13,7 +13,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.3.2"
+    __version__ = "1.3.3"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -362,7 +362,7 @@ class R6(commands.Cog):
             async with ctx.typing():
                 em1 = discord.Embed(
                     title=f"{statistic.title()} statistics for {profile} - Page 1/2",
-                    colour=ctx.authour.colour,
+                    colour=ctx.author.colour,
                 )
                 em2 = discord.Embed(
                     title=f"{statistic.title()} statistics for {profile} - Page 2/2",
