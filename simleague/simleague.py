@@ -94,8 +94,8 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def register(self, ctx, teamname: str, members: commands.Greedy[discord.Member]):
         """Register a team"""
-        if len(members) != 5:
-            return await ctx.send("You must provide 5 members.")
+        if len(members) != 4:
+            return await ctx.send("You must provide 4 members.")
         await self.update()
         names = [x.name for x in members]
         ids = [x.id for x in members]
@@ -612,7 +612,7 @@ class SimLeague(commands.Cog):
                                 + "\n         "
                                 + str(playerYellow[0])
                                 + " are down to "
-                                + str(5 - (int(teamStats[7])))
+                                + str(4 - (int(teamStats[7])))
                                 + " men!"
                             )
                             if playerYellow[1] not in reds:
@@ -669,7 +669,7 @@ class SimLeague(commands.Cog):
                             + "\n"
                             + str(playerRed[0])
                             + " are down to "
-                            + str(5 - (int(teamStats[7])))
+                            + str(4 - (int(teamStats[7])))
                             + " men!"
                         )
                         if playerRed[1] not in reds:
@@ -1135,7 +1135,7 @@ class SimLeague(commands.Cog):
                             + "\n         "
                             + str(playerYellow[0])
                             + " are down to "
-                            + str(5 - (int(teamStats[7])))
+                            + str(4 - (int(teamStats[7])))
                             + " men!"
                         )
                         if playerYellow[1] not in reds:
@@ -1192,7 +1192,7 @@ class SimLeague(commands.Cog):
                         + "\n"
                         + str(playerRed[0])
                         + " are down to "
-                        + str(5 - (int(teamStats[7])))
+                        + str(4 - (int(teamStats[7])))
                         + " men!"
                     )
                     if playerRed[1] not in reds:
