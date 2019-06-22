@@ -6,6 +6,5 @@
     "short": "Show R6 player info",
     "description": "List R6 stats from whatever season and/or operator stats etc.",
     "tags": ["r6", "stats", "operators"],
-    "requirements": ["pillow"],
-    "hidden": true
+    "requirements": ["pillow"]
 }
