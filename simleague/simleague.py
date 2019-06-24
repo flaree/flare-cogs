@@ -132,10 +132,26 @@ class SimLeague(commands.Cog):
         embed = discord.Embed()
         for i, team in enumerate(teams):
             embed.add_field(
-                name=f"Team {i}",
+                name=f"Team {i + 1}",
                 value=f"Team: {team}\nMembers: {', '.join(teams[team]['members'])}",
                 inline=False,
             )
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def team(self, ctx, *, team: str):
+        """List current teams"""
+        teams = await self.config.guild(ctx.guild).teams()
+        if not teams:
+            return await ctx.send("No teams have been registered.")
+        if team not in teams:
+            return await ctx.send("Team does not exist, ensure that it is correctly capitilized.")
+        embed = discord.Embed()
+        embed.add_field(
+            name=f"Team {team}",
+            value=f"Members: {', '.join(teams[team]['members'])}",
+            inline=False,
+        )
         await ctx.send(embed=embed)
 
     @checks.mod()
@@ -218,7 +234,11 @@ class SimLeague(commands.Cog):
             return await ctx.send("The table is empty.")
         if not verbose:
             t = PrettyTable(["Team", "Wins", "Losses", "Played", "Points"])
-            for x in sorted(standings, key=lambda x: (standings[x]["points"], standings[x]["gd"]), reverse=True):
+            for x in sorted(
+                standings,
+                key=lambda x: (standings[x]["points"], standings[x]["gd"], standings[x]["gf"]),
+                reverse=True,
+            ):
                 t.add_row(
                     [
                         x,
@@ -233,7 +253,11 @@ class SimLeague(commands.Cog):
             t = PrettyTable(
                 ["Team", "Wins", "Losses", "Draws", "Played", "Points", "GD", "GF", "GA"]
             )
-            for x in sorted(standings, key=lambda x: (standings[x]["points"], standings[x]["gd"]), reverse=True):
+            for x in sorted(
+                standings,
+                key=lambda x: (standings[x]["points"], standings[x]["gd"], standings[x]["gf"]),
+                reverse=True,
+            ):
                 t.add_row(
                     [
                         x,
