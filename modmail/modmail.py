@@ -6,7 +6,7 @@ import discord
 class Modmail(commands.Cog):
     """Forward messages to set channels."""
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -25,7 +25,8 @@ class Modmail(commands.Cog):
         async with self.config.modmail() as modmail:
             for stats in modmail:
                 channel = self.bot.get_channel(modmail[stats])
-                await channel.send(embed=embed2)
+                if channel is not None:
+                    await channel.send(embed=embed2)
 
     @commands.Cog.listener()
     async def on_message_without_command(self, message):
