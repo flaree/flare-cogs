@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 
 class Highlight(commands.Cog):
-    """Be notified when keywords are sent.."""
+    """Be notified when keywords are sent."""
 
     def __init__(self, bot):
         self.bot = bot
