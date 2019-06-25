@@ -12,7 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -20,6 +20,8 @@ class Highlight(commands.Cog):
             return
         async with self.config.channel(message.channel).highlight() as highlight:
             for user in highlight:
+                if int(user) == message.author.id:
+                    return
                 for word in highlight[user]:
                     if word.lower() in message.content.lower():
                         if message.author.bot:
