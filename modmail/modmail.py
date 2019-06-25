@@ -6,7 +6,7 @@ import discord
 class Modmail(commands.Cog):
     """Forward messages to set channels."""
 
-    __version__ = "1.0.1"
+    __version__ = "1.0.2"
 
     def __init__(self, bot):
         self.bot = bot
@@ -23,10 +23,16 @@ class Modmail(commands.Cog):
             if not toggle["status"]:
                 return
         async with self.config.modmail() as modmail:
+            invalid = []
             for stats in modmail:
                 channel = self.bot.get_channel(modmail[stats])
-                if channel is not None:
+
+                if channel is None:
+                    invalid.append(stats)
+                else:
                     await channel.send(embed=embed2)
+            if invalid:
+                del modmail[stats]
 
     @commands.Cog.listener()
     async def on_message_without_command(self, message):
@@ -147,8 +153,20 @@ class Modmail(commands.Cog):
         async with self.config.modmail() as modmail:
             if not modmail:
                 await ctx.send("No channels are currently set.")
+            valid = []
+            invalid = []
             for stats in modmail:
-                await ctx.send(modmail[stats])
+                channel = self.bot.get_channel(int(modmail[stats]))
+                if channel is None:
+                    invalid.append(stats)
+                else:
+                    valid.append(f"{channel.mention} - {channel.guild}")
+            for channel in invalid:
+                del modmail[channel]
+            em = discord.Embed(colour=0xFF0000, title="Modmail List")
+            if valid:
+                em.add_field(name="Modmail Channels", value="\n".join(valid))
+                await ctx.send(embed=em)
 
     @checks.is_owner()
     @modmailset.command()
