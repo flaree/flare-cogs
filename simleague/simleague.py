@@ -1,10 +1,9 @@
-from redbot.core import commands, Config, checks
+from redbot.core import commands, Config, checks, bank
 import discord
 import aiohttp
 import asyncio
 import random
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-from tabulate import tabulate
 from prettytable import PrettyTable
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION
@@ -12,7 +11,7 @@ from prettytable import PrettyTable
 
 class SimLeague(commands.Cog):
 
-    __version__ = "1.0.1"
+    __version__ = "2.0.0"
 
     def __init__(self, bot):
         defaults = {
@@ -28,10 +27,14 @@ class SimLeague(commands.Cog):
         self.config.register_guild(**defaults)
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-        self.week = 0
+        self.week = 0,
+        self.active = False
+        self.started = False
+        self.teams = []
+        self.bets = {}
 
     def cog_unload(self):
-        self.bot.loop.create_task(self.session.close())
+        self.bot.loop.create_task(self.session.detach())
 
     async def get(self, url):
         async with self.session.get(url) as response:
@@ -89,6 +92,7 @@ class SimLeague(commands.Cog):
             a[player["username"]] = str(player["level"])
         guild = self.bot.get_guild(410031796105773057)
         await self.config.guild(guild).levels.set(a)
+    
 
     @checks.mod()
     @commands.command()
@@ -96,7 +100,7 @@ class SimLeague(commands.Cog):
         """Register a team"""
         if len(members) != 4:
             return await ctx.send("You must provide 4 members.")
-        await self.update()
+        #await self.update()
         names = [x.name for x in members]
         ids = [x.id for x in members]
         async with self.config.guild(ctx.guild).teams() as teams:
@@ -884,8 +888,10 @@ class SimLeague(commands.Cog):
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
         msg = await ctx.send("Updating levels. Please wait...")
-        await self.update()
+        #await self.update()
         await msg.delete()
+        self.active = True
+        self.teams = [team1, team2]
         b = []
         teams = await self.config.guild(ctx.guild).teams()
         goals = {}
@@ -1020,6 +1026,9 @@ class SimLeague(commands.Cog):
                 output = [team, player_out]
                 return output
 
+        await asyncio.sleep(90)
+        self.started = True
+        # sleep to allow for betting
         # Start of Simulation!
         b.append(team1 + " vs " + team2)
         b.append(team1 + ": " + ", ".join(team1players))
@@ -1362,6 +1371,7 @@ class SimLeague(commands.Cog):
                         standings[team1]["played"] += 1
                         standings[team2]["losses"] += 1
                         standings[team2]["played"] += 1
+                        t = await self.payout(ctx.guild, team1)
                 if team1Stats[8] < team2Stats[8]:
                     async with self.config.guild(ctx.guild).standings() as standings:
                         standings[team2]["points"] += 3
@@ -1369,6 +1379,7 @@ class SimLeague(commands.Cog):
                         standings[team2]["played"] += 1
                         standings[team1]["losses"] += 1
                         standings[team1]["played"] += 1
+                        t = await self.payout(ctx.guild, team2)
                 if team1Stats[8] == team2Stats[8]:
                     async with self.config.guild(ctx.guild).standings() as standings:
                         standings[team1]["played"] += 1
@@ -1377,6 +1388,7 @@ class SimLeague(commands.Cog):
                         standings[team2]["points"] += 1
                         standings[team2]["draws"] += 1
                         standings[team1]["draws"] += 1
+                        t =await self.payout(ctx.guild, None)
                 team1gd = team1Stats[8] - team2Stats[8]
                 team2gd = team2Stats[8] - team1Stats[8]
                 async with self.config.guild(ctx.guild).standings() as standings:
@@ -1398,3 +1410,49 @@ class SimLeague(commands.Cog):
                 stats["reds"][red] = reds[red]
             for yellowc in yellows:
                 stats["yellows"][yellowc] = yellows[yellowc]
+        self.active = False
+        self.started = False
+        self.bets = {}
+        if t is not None:
+            await ctx.send("Bet Winners:\n" +  t)
+
+    async def bet_conditions(self, ctx, bet, team):
+        if not self.active:
+            await ctx.send("There isn't a game onright now.")
+            return False
+        elif self.started:
+            await ctx.author.send("You can't place a bet after the game has started.")
+            return False
+        elif ctx.author in self.bets:
+            await ctx.send("You have already entered a bet for the game.")
+            return False
+
+        # CONFIG MIN/MAX/ALLOWED BELOW
+    
+        
+        if not await bank.can_spend(ctx.author, bet):
+            await ctx.send("You do not have enough money to cover the bet.")
+            return False
+        else:
+            return True
+        
+    
+    @commands.command()
+    async def bet(self, ctx, bet: int, team: str):
+        """Bet on a team."""
+        if await self.bet_conditions(ctx, bet, team):
+            self.bets[ctx.author] = {"Bets": [(team, bet)]}
+            currency = await bank.get_currency_name(ctx.guild)
+            await bank.withdraw_credits(ctx.author, bet)
+            await ctx.send(f"{ctx.author.mention} placed a {bet} {currency} bet on {str(team)}.")
+        
+    async def payout(self, guild, winner):
+        if winner is None:
+            return None
+        bet_winners = []
+        for better in self.bets:
+            for team, bet in self.bets[better]["Bets"]:
+                if team == winner:
+                    bet_winners.append(f"{better.mention} - Winnings: {bet * 2}")
+                    await bank.deposit_credits(better, bet * 2)
+        return '\n'.join(bet_winners) if bet_winners else None
