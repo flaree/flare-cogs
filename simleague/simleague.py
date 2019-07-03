@@ -23,7 +23,7 @@ db = client["leveler"]
 
 class SimLeague(commands.Cog):
 
-    __version__ = "2.1.0"
+    __version__ = "2.1.1"
 
     def __init__(self, bot):
         defaults = {
@@ -155,12 +155,27 @@ class SimLeague(commands.Cog):
         if results:
             result = ""
             teams = await self.config.guild(ctx.guild).teams()
+            teamone = teams[team1]["ids"]
+            teamtwo = teams[team2]["ids"]
             if teams[team1]["role"]:
                 role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
                 if role_obj is not None:
                     await role_obj.edit(mentionable=True)
                     result += role_obj.mention
                     role1 = True
+                    roleone = role_obj
+                    mem1 = []
+                    for memberid in teamone:
+                        member = ctx.guild.get_member(memberid)
+                        if member is not None:
+                            notif = await self.config.user(member).notify()
+                            if role_obj in member.roles:
+                                try:
+                                    if not notif:
+                                        await member.remove_roles(role_obj)
+                                        mem1.append(member.id)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
             else:
                 result += team1
             result += f" {score1}:{score2} "
@@ -170,6 +185,19 @@ class SimLeague(commands.Cog):
                     await role_obj.edit(mentionable=True)
                     result += role_obj.mention
                     role2 = True
+                    roletwo = role_obj
+                    mem2 = []
+                    for memberid in teamtwo:
+                        member = ctx.guild.get_member(memberid)
+                        if member is not None:
+                            notif = await self.config.user(member).notify()
+                            if role_obj in member.roles:
+                                try:
+                                    if not notif:
+                                        await member.remove_roles(role_obj)
+                                        mem2.append(member.id)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
             else:
                 result += team2
             for channel in results:
@@ -179,10 +207,27 @@ class SimLeague(commands.Cog):
                 role_obj = discord.utils.get(ctx.guild.roles, name=teams[team1]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=False)
+                    if mem1:
+                        for memberid in mem1:
+                            member = ctx.guild.get_member(memberid)
+                            if member is not None:
+                                try:
+                                    await member.add_roles(roleone)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
+
             if role2:
                 role_obj = discord.utils.get(ctx.guild.roles, name=teams[team2]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=False)
+                    if mem2:
+                        for memberid in mem2:
+                            member = ctx.guild.get_member(memberid)
+                            if member is not None:
+                                try:
+                                    await member.add_roles(roletwo)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
 
     def yCardChance(self):
         rdmint = random.randint(0, 100)
@@ -386,7 +431,7 @@ class SimLeague(commands.Cog):
                 "draws": 0,
             }
         for uid in ids:
-            await addrole(ctx, uid, role)
+            await self.addrole(ctx, uid, role)
         await ctx.tick()
 
     @commands.command(name="teams", aliases=["list"])
