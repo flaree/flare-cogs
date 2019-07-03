@@ -1,5 +1,4 @@
 import asyncio
-import os
 import random
 import string
 from io import BytesIO
@@ -13,7 +12,6 @@ from pymongo import MongoClient
 from redbot.core import Config, bank, checks, commands
 from redbot.core.data_manager import bundled_data_path, cog_data_path
 from redbot.core.utils.chat_formatting import box
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 client = MongoClient()
 db = client["leveler"]
@@ -23,7 +21,7 @@ db = client["leveler"]
 
 class SimLeague(commands.Cog):
 
-    __version__ = "2.1.1"
+    __version__ = "2.1.2"
 
     def __init__(self, bot):
         defaults = {
@@ -31,7 +29,7 @@ class SimLeague(commands.Cog):
             "teams": {},
             "fixtures": [],
             "standings": {},
-            "stats": {"goals": {}, "yellows": {}, "reds": {}},
+            "stats": {"goals": {}, "yellows": {}, "reds": {}, "penalties": {}, "assists": {}},
             "users": [],
             "resultchannel": [],
             "gametime": 1,
@@ -55,245 +53,15 @@ class SimLeague(commands.Cog):
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
 
-    async def get(self, url):
-        async with self.session.get(url) as response:
-            resp = await response.json(content_type=None)
-            return resp
-
-    async def getimg(self, img):
-        async with self.session.get(img) as response:
-            buffer = BytesIO(await response.read())
-            buffer.name = "picture.png"
-            return buffer
-
-    async def addrole(self, ctx, user, rolename):
-        role_obj = discord.utils.get(ctx.guild.roles, name=rolename)
-        if role_obj is not None:
-            member = ctx.guild.get_member(user)
-            if member is not None:
-                try:
-                    await member.add_roles(role_obj)
-                except discord.Forbidden:
-                    print("Failed to remove role from {}".format(member.name))
-
-    async def matchnotif(self, ctx, team1, team2):
-        teams = await self.config.guild(ctx.guild).teams()
-        teamone = teams[team1]["ids"]
-        teamtwo = teams[team2]["ids"]
-        role1 = False
-        role2 = False
-        msg = ""
-        if teams[team1]["role"]:
-            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
-            if role_obj is not None:
-                await role_obj.edit(mentionable=True)
-                msg += role_obj.mention
-                role1 = True
-                roleone = role_obj
-                mem1 = []
-                for memberid in teamone:
-                    member = ctx.guild.get_member(memberid)
-                    if member is not None:
-                        notif = await self.config.user(member).notify()
-                        if role_obj in member.roles:
-                            try:
-                                if not notif:
-                                    await member.remove_roles(role_obj)
-                                    mem1.append(member.id)
-                            except discord.Forbidden:
-                                print("Failed to remove role from {}".format(member.name))
-        else:
-            msg += team1
-        msg += " VS "
-        if teams[team2]["role"]:
-            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
-            if role_obj is not None:
-                await role_obj.edit(mentionable=True)
-                msg += role_obj.mention
-                role2 = True
-                roletwo = role_obj
-                mem2 = []
-                for memberid in teamtwo:
-                    member = ctx.guild.get_member(memberid)
-                    if member is not None:
-                        notif = await self.config.user(member).notify()
-                        if role_obj in member.roles:
-                            try:
-                                if not notif:
-                                    await member.remove_roles(role_obj)
-                                    mem2.append(member.id)
-                            except discord.Forbidden:
-                                print("Failed to remove role from {}".format(member.name))
-        else:
-            msg += team2
-        await ctx.send(msg)
-        if role1:
-            await roleone.edit(mentionable=False)
-            if mem1:
-                for memberid in mem1:
-                    member = ctx.guild.get_member(memberid)
-                    if member is not None:
-                        try:
-                            await member.add_roles(roleone)
-                        except discord.Forbidden:
-                            print("Failed to remove role from {}".format(member.name))
-        if role2:
-            await roletwo.edit(mentionable=False)
-            if mem2:
-                for memberid in mem2:
-                    member = ctx.guild.get_member(memberid)
-                    if member is not None:
-                        try:
-                            await member.add_roles(roletwo)
-                        except discord.Forbidden:
-                            print("Failed to remove role from {}".format(member.name))
-
-    async def postresults(self, ctx, team1, team2, score1, score2):
-        results = await self.config.guild(ctx.guild).resultchannel()
-        role1 = False
-        role2 = False
-        if results:
-            result = ""
-            teams = await self.config.guild(ctx.guild).teams()
-            teamone = teams[team1]["ids"]
-            teamtwo = teams[team2]["ids"]
-            if teams[team1]["role"]:
-                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
-                if role_obj is not None:
-                    await role_obj.edit(mentionable=True)
-                    result += role_obj.mention
-                    role1 = True
-                    roleone = role_obj
-                    mem1 = []
-                    for memberid in teamone:
-                        member = ctx.guild.get_member(memberid)
-                        if member is not None:
-                            notif = await self.config.user(member).notify()
-                            if role_obj in member.roles:
-                                try:
-                                    if not notif:
-                                        await member.remove_roles(role_obj)
-                                        mem1.append(member.id)
-                                except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
-            else:
-                result += team1
-            result += f" {score1}:{score2} "
-            if teams[team2]["role"]:
-                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
-                if role_obj is not None:
-                    await role_obj.edit(mentionable=True)
-                    result += role_obj.mention
-                    role2 = True
-                    roletwo = role_obj
-                    mem2 = []
-                    for memberid in teamtwo:
-                        member = ctx.guild.get_member(memberid)
-                        if member is not None:
-                            notif = await self.config.user(member).notify()
-                            if role_obj in member.roles:
-                                try:
-                                    if not notif:
-                                        await member.remove_roles(role_obj)
-                                        mem2.append(member.id)
-                                except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
-            else:
-                result += team2
-            for channel in results:
-                channel = self.bot.get_channel(channel)
-                await channel.send(result)
-            if role1:
-                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team1]["role"])
-                if role_obj is not None:
-                    await role_obj.edit(mentionable=False)
-                    if mem1:
-                        for memberid in mem1:
-                            member = ctx.guild.get_member(memberid)
-                            if member is not None:
-                                try:
-                                    await member.add_roles(roleone)
-                                except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
-
-            if role2:
-                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team2]["role"])
-                if role_obj is not None:
-                    await role_obj.edit(mentionable=False)
-                    if mem2:
-                        for memberid in mem2:
-                            member = ctx.guild.get_member(memberid)
-                            if member is not None:
-                                try:
-                                    await member.add_roles(roletwo)
-                                except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
-
-    def yCardChance(self):
-        rdmint = random.randint(0, 100)
-        if rdmint > 98:
-            return True
-
-    def rCardChance(self):
-        rdmint = random.randint(0, 300)
-        if rdmint > 299:
-            return True
-
-    def goalChance(self):
-        rdmint = random.randint(0, 100)
-        if rdmint > 96:
-            return True
-
-    def penaltyChance(self):
-        rdmint = random.randint(0, 250)
-        if rdmint > 249:
-            return True
-
-    def penaltyBlock(self):
-        rdmint = random.randint(0, 1)
-        if rdmint > 0.6:
-            return True
-
-    # Add your own player roster by replacing the names in the lists below:
-
-    async def update(self, guild):
-        data = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057??page=0&?limit=999"
-        )
-        data1 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=1&?limit=999"
-        )
-        data2 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=2&?limit=999"
-        )
-        data3 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=3&?limit=999"
-        )
-        data4 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=4&?limit=999"
-        )
-        a = {}
-        for player in data["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data1["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data2["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data3["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data4["players"]:
-            a[player["username"]] = str(player["level"])
-        await self.config.guild(guild).levels.set(a)
-
     @commands.command()
     async def notify(self, ctx, toggle: bool):
         """Set wheter to recieve notifications of matches and results."""
         if toggle:
             await self.config.user(ctx.author).notify.set(toggle)
-            await ctx.send("You will recieve notification on matches and results.")
+            await ctx.send("You will recieve a notification on matches and results.")
         else:
             await self.config.user(ctx.author).notify.set(toggle)
-            await ctx.send("You will no longer recieve notification on matches and results.")
+            await ctx.send("You will no longer recieve a notification on matches and results.")
 
     @checks.mod()
     @commands.group(autohelp=True)
@@ -324,6 +92,12 @@ class SimLeague(commands.Cog):
     @simset.group(autohelp=True)
     async def bet(self, ctx):
         """Simulation Betting Settings."""
+        pass
+
+    @checks.admin()
+    @commands.group(autohelp=True)
+    async def stats(self, ctx):
+        """Sim League Statistics."""
         pass
 
     @checks.admin()
@@ -589,9 +363,9 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).standings.set({})
         await ctx.tick()
 
-    @commands.command()
-    async def topscorers(self, ctx):
-        """Top scorers."""
+    @stats.command(alies=["topscorer", "topscorers"])
+    async def goals(self, ctx):
+        """Players with the most goals."""
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["goals"]
         if stats:
@@ -605,8 +379,8 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("No stats available.")
 
-    @commands.command()
-    async def yellowcards(self, ctx):
+    @stats.command(aliases=["yellowcards"])
+    async def yellows(self, ctx):
         """Players with the most yellow cards."""
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["yellows"]
@@ -621,8 +395,8 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("No stats available.")
 
-    @commands.command()
-    async def redcards(self, ctx):
+    @stats.command(alies=["redcards"])
+    async def reds(self, ctx):
         """Players with the most red cards."""
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["reds"]
@@ -632,6 +406,41 @@ class SimLeague(commands.Cog):
                 a.append(f"{k} - {stats[k]}")
             embed = discord.Embed(
                 title="Most Red Cards", description="\n".join(a[:10]), colour=0xFF0000
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No stats available.")
+
+    @stats.command()
+    async def penalties(self, ctx):
+        """Penalties scored and missed statistics."""
+        stats = await self.config.guild(ctx.guild).stats()
+        stats = stats["penalties"]
+        if stats:
+            a = []
+            b = []
+            for k in sorted(stats, key=lambda x: stats[x]["scored"], reverse=True):
+                a.append(f"{k} - {stats[k]}")
+            for k in sorted(stats, key=lambda x: stats[x]["missed"], reverse=True):
+                b.append(f"{k} - {stats[k]}")
+            embed = discord.Embed(title="Penalty Statistics", colour=0xFF0000)
+            embed.add_field(name="Penalties Scored", value="\n".join(a))
+            embed.add_field(name="Penalties Missed", value="\n".join(b))
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No stats available.")
+
+    @stats.command()
+    async def assists(self, ctx):
+        """Players with the most assists."""
+        stats = await self.config.guild(ctx.guild).stats()
+        stats = stats["assists"]
+        if stats:
+            a = []
+            for k in sorted(stats, key=stats.get, reverse=True):
+                a.append(f"{k} - {stats[k]}")
+            embed = discord.Embed(
+                title="Assist Statistics", description="\n".join(a), colour=0xFF0000
             )
             await ctx.send(embed=embed)
         else:
@@ -793,8 +602,20 @@ class SimLeague(commands.Cog):
                 rosterUpdate = [i for i in fs_players if i not in rc]
                 for i in sub_in:
                     rosterUpdate.append(i)
-                player = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
-                output = [team, player]
+                isassist = False
+                assist = random.randint(0, 100)
+                playernum = random.randint(0, len(rosterUpdate) - 1)
+                if assist > 20:
+                    isassist = True
+                    assisternum = random.randint(0, len(rosterUpdate) - 2)
+                if isassist:
+                    player = rosterUpdate[playernum]
+                    rosterUpdate.pop(playernum)
+                    assister = rosterUpdate[assisternum]
+                    output = [team, player, assister]
+                else:
+                    player = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
+                    output = [team, player]
                 return output
             elif event == 1:
                 rosterUpdate = [i for i in fs_players if i not in rc]
@@ -848,22 +669,46 @@ class SimLeague(commands.Cog):
                             stats["goals"][playerGoal[1]] = 1
                         else:
                             stats["goals"][playerGoal[1]] += 1
+                        if len(playerGoal) == 3:
+                            if playerGoal[1] not in stats["assists"]:
+                                stats["assists"][playerGoal[2]] = 1
+                            else:
+                                stats["assists"][playerGoal[2]] += 1
                     events = True
                     uid = teams[str(playerGoal[0])]["members"][playerGoal[1]]
+                    if len(playerGoal) == 3:
+                        assister = teams[str(playerGoal[0])]["members"][playerGoal[2]]
+                        user2 = self.bot.get_user(assister)
+                        if user2 is None:
+                            user2 = await self.bot.fetch_user(uid)
                     user = self.bot.get_user(uid)
                     if user is None:
                         user = await self.bot.fetch_user(uid)
-                    image = await self.simpic(
-                        ctx,
-                        str(min),
-                        "goal",
-                        user,
-                        team1,
-                        team2,
-                        str(playerGoal[0]),
-                        str(team1Stats[8]),
-                        str(team2Stats[8]),
-                    )
+                    if len(playerGoal) == 3:
+                        image = await self.simpic(
+                            ctx,
+                            str(min),
+                            "goal",
+                            user,
+                            team1,
+                            team2,
+                            str(playerGoal[0]),
+                            str(team1Stats[8]),
+                            str(team2Stats[8]),
+                            user2,
+                        )
+                    else:
+                        image = await self.simpic(
+                            ctx,
+                            str(min),
+                            "goal",
+                            user,
+                            team1,
+                            team2,
+                            str(playerGoal[0]),
+                            str(team1Stats[8]),
+                            str(team2Stats[8]),
+                        )
                     await ctx.send(file=image)
             if events == False:
                 pC = self.penaltyChance()
@@ -886,6 +731,11 @@ class SimLeague(commands.Cog):
                     if pB == True:
                         events = True
                         uid = teams[str(playerPenalty[0])]["members"][playerPenalty[1]]
+                        async with self.config.guild(ctx.guild).stats() as stats:
+                            if playerPenalty[0] not in stats["penalties"]:
+                                stats["penalties"][playerPenalty[0]]["missed"] = 1
+                            else:
+                                stats["penalties"][playerPenalty[0]]["missed"] += 1
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
@@ -908,6 +758,10 @@ class SimLeague(commands.Cog):
                                 stats["goals"][playerPenalty[0]] = 1
                             else:
                                 stats["goals"][playerPenalty[0]] += 1
+                            if playerPenalty[0] not in stats["penalties"]:
+                                stats["penalties"][playerPenalty[0]]["scored"] = 1
+                            else:
+                                stats["penalties"][playerPenalty[0]]["scored"] += 1
                         events = True
                         uid = teams[str(playerPenalty[0])]["members"][playerPenalty[1]]
                         user = self.bot.get_user(uid)
@@ -964,6 +818,7 @@ class SimLeague(commands.Cog):
                             str(playerYellow[0]),
                             str(team1Stats[8]),
                             str(team2Stats[8]),
+                            None,
                             str(4 - (int(teamStats[7]))),
                         )
                         await ctx.send(file=image)
@@ -1027,6 +882,7 @@ class SimLeague(commands.Cog):
                         str(playerRed[0]),
                         str(team1Stats[8]),
                         str(team2Stats[8]),
+                        None,
                         str(4 - (int(teamStats[7]))),
                     )
                     await ctx.send(file=image)
@@ -1058,22 +914,46 @@ class SimLeague(commands.Cog):
                                 stats["goals"][playerGoal[1]] = 1
                             else:
                                 stats["goals"][playerGoal[1]] += 1
+                            if len(playerGoal) == 3:
+                                if playerGoal[1] not in stats["assists"]:
+                                    stats["assists"][playerGoal[2]] = 1
+                                else:
+                                    stats["assists"][playerGoal[2]] += 1
+                        if len(playerGoal) == 3:
+                            assister = teams[str(playerGoal[0])]["members"][playerGoal[2]]
+                            user2 = self.bot.get_user(assister)
+                            if user2 is None:
+                                user2 = await self.bot.fetch_user(uid)
                         events = True
                         uid = teams[str(playerGoal[0])]["members"][playerGoal[1]]
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
-                        image = await self.simpic(
-                            ctx,
-                            str(min) + "+" + str(i + 1),
-                            "goal",
-                            user,
-                            team1,
-                            team2,
-                            str(playerGoal[0]),
-                            str(team1Stats[8]),
-                            str(team2Stats[8]),
-                        )
+                        if len(playerGoal) == 3:
+                            image = await self.simpic(
+                                ctx,
+                                str(min) + "+" + str(i + 1),
+                                "goal",
+                                user,
+                                team1,
+                                team2,
+                                str(playerGoal[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                                user2,
+                            )
+                        else:
+                            image = await self.simpic(
+                                ctx,
+                                str(min) + "+" + str(i + 1),
+                                "goal",
+                                user,
+                                team1,
+                                team2,
+                                str(playerGoal[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                            )
                         await ctx.send(file=image)
 
                     events = False
@@ -1109,22 +989,46 @@ class SimLeague(commands.Cog):
                                 stats["goals"][playerGoal[1]] = 1
                             else:
                                 stats["goals"][playerGoal[1]] += 1
+                            if len(playerGoal) == 3:
+                                if playerGoal[1] not in stats["assists"]:
+                                    stats["assists"][playerGoal[2]] = 1
+                                else:
+                                    stats["assists"][playerGoal[2]] += 1
+                        if len(playerGoal) == 3:
+                            assister = teams[str(playerGoal[0])]["members"][playerGoal[2]]
+                            user2 = self.bot.get_user(assister)
+                            if user2 is None:
+                                user2 = await self.bot.fetch_user(uid)
                         events = True
                         uid = teams[str(playerGoal[0])]["members"][playerGoal[1]]
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
-                        image = await self.simpic(
-                            ctx,
-                            str(min) + "+" + str(i + 1),
-                            "goal",
-                            user,
-                            team1,
-                            team2,
-                            str(playerGoal[0]),
-                            str(team1Stats[8]),
-                            str(team2Stats[8]),
-                        )
+                        if len(playerGoal) == 3:
+                            image = await self.simpic(
+                                ctx,
+                                str(min) + "+" + str(i + 1),
+                                "goal",
+                                user,
+                                team1,
+                                team2,
+                                str(playerGoal[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                                user2,
+                            )
+                        else:
+                            image = await self.simpic(
+                                ctx,
+                                str(min) + "+" + str(i + 1),
+                                "goal",
+                                user,
+                                team1,
+                                team2,
+                                str(playerGoal[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                            )
                         await ctx.send(file=image)
                     await asyncio.sleep(2)
                     events = False
@@ -1228,7 +1132,18 @@ class SimLeague(commands.Cog):
         return "\n".join(bet_winners) if bet_winners else None
 
     async def simpic(
-        self, ctx, time, event, player, team1, team2, teamevent, score1, score2, men: int = None
+        self,
+        ctx,
+        time,
+        event,
+        player,
+        team1,
+        team2,
+        teamevent,
+        score1,
+        score2,
+        assister=None,
+        men: int = None,
     ):
         maps = {
             "goal": "GOALLLLL!",
@@ -1271,7 +1186,10 @@ class SimLeague(commands.Cog):
 
         # set canvas
         width = 360
-        height = 100
+        if assister is not None:
+            height = 120
+        else:
+            height = 100
         bg_color = (255, 255, 255, 0)
         result = Image.new("RGBA", (width, height), bg_color)
         process = Image.new("RGBA", (width, height), bg_color)
@@ -1387,24 +1305,50 @@ class SimLeague(commands.Cog):
         dark_text = (35, 35, 35, 230)
         label_align = 200
         label_text_color = self._contrast(info_color, white_text, dark_text)
-        draw.text(
-            (label_align, 38),
-            "Player: {}".format(player.name),
-            font=general_info_fnt,
-            fill=label_text_color,
-        )  # Server Rank
-        draw.text(
-            (label_align, 58),
-            "Team: {}".format(teamevent.upper()),
-            font=general_info_fnt,
-            fill=label_text_color,
-        )  # Server Exp
-        draw.text(
-            (label_align, 78),
-            "{} {} : {} {}".format(team1.upper(), score1, score2, team2.upper()),
-            font=general_info_fnt,
-            fill=label_text_color,
-        )  # Credit
+        if assister is None:
+            draw.text(
+                (label_align, 38),
+                "Player: {}".format(player.name),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+            draw.text(
+                (label_align, 58),
+                "Team: {}".format(teamevent.upper()),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+            draw.text(
+                (label_align, 78),
+                "{} {} : {} {}".format(team1.upper(), score1, score2, team2.upper()),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+        else:
+            draw.text(
+                (label_align, 38),
+                "Player: {}".format(player.name),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+            draw.text(
+                (label_align, 58),
+                "Assisted By: {}".format(assister.name),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+            draw.text(
+                (label_align, 78),
+                "Team: {}".format(teamevent.upper()),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
+            draw.text(
+                (label_align, 98),
+                "{} {} : {} {}".format(team1.upper(), score1, score2, team2.upper()),
+                font=general_info_fnt,
+                fill=label_text_color,
+            )
 
         result = Image.alpha_composite(result, process)
         file = BytesIO()
@@ -1789,3 +1733,231 @@ class SimLeague(commands.Cog):
                 except (KeyError, TypeError):
                     t1totalxp += 1
             return t1totalxp
+
+    async def get(self, url):
+        async with self.session.get(url) as response:
+            resp = await response.json(content_type=None)
+            return resp
+
+    async def getimg(self, img):
+        async with self.session.get(img) as response:
+            buffer = BytesIO(await response.read())
+            buffer.name = "picture.png"
+            return buffer
+
+    async def addrole(self, ctx, user, rolename):
+        role_obj = discord.utils.get(ctx.guild.roles, name=rolename)
+        if role_obj is not None:
+            member = ctx.guild.get_member(user)
+            if member is not None:
+                try:
+                    await member.add_roles(role_obj)
+                except discord.Forbidden:
+                    print("Failed to remove role from {}".format(member.name))
+
+    async def matchnotif(self, ctx, team1, team2):
+        teams = await self.config.guild(ctx.guild).teams()
+        teamone = teams[team1]["ids"]
+        teamtwo = teams[team2]["ids"]
+        role1 = False
+        role2 = False
+        msg = ""
+        if teams[team1]["role"]:
+            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
+            if role_obj is not None:
+                await role_obj.edit(mentionable=True)
+                msg += role_obj.mention
+                role1 = True
+                roleone = role_obj
+                mem1 = []
+                for memberid in teamone:
+                    member = ctx.guild.get_member(memberid)
+                    if member is not None:
+                        notif = await self.config.user(member).notify()
+                        if role_obj in member.roles:
+                            try:
+                                if not notif:
+                                    await member.remove_roles(role_obj)
+                                    mem1.append(member.id)
+                            except discord.Forbidden:
+                                print("Failed to remove role from {}".format(member.name))
+        else:
+            msg += team1
+        msg += " VS "
+        if teams[team2]["role"]:
+            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
+            if role_obj is not None:
+                await role_obj.edit(mentionable=True)
+                msg += role_obj.mention
+                role2 = True
+                roletwo = role_obj
+                mem2 = []
+                for memberid in teamtwo:
+                    member = ctx.guild.get_member(memberid)
+                    if member is not None:
+                        notif = await self.config.user(member).notify()
+                        if role_obj in member.roles:
+                            try:
+                                if not notif:
+                                    await member.remove_roles(role_obj)
+                                    mem2.append(member.id)
+                            except discord.Forbidden:
+                                print("Failed to remove role from {}".format(member.name))
+        else:
+            msg += team2
+        await ctx.send(msg)
+        if role1:
+            await roleone.edit(mentionable=False)
+            if mem1:
+                for memberid in mem1:
+                    member = ctx.guild.get_member(memberid)
+                    if member is not None:
+                        try:
+                            await member.add_roles(roleone)
+                        except discord.Forbidden:
+                            print("Failed to remove role from {}".format(member.name))
+        if role2:
+            await roletwo.edit(mentionable=False)
+            if mem2:
+                for memberid in mem2:
+                    member = ctx.guild.get_member(memberid)
+                    if member is not None:
+                        try:
+                            await member.add_roles(roletwo)
+                        except discord.Forbidden:
+                            print("Failed to remove role from {}".format(member.name))
+
+    async def postresults(self, ctx, team1, team2, score1, score2):
+        results = await self.config.guild(ctx.guild).resultchannel()
+        role1 = False
+        role2 = False
+        if results:
+            result = ""
+            teams = await self.config.guild(ctx.guild).teams()
+            teamone = teams[team1]["ids"]
+            teamtwo = teams[team2]["ids"]
+            if teams[team1]["role"]:
+                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
+                if role_obj is not None:
+                    await role_obj.edit(mentionable=True)
+                    result += role_obj.mention
+                    role1 = True
+                    roleone = role_obj
+                    mem1 = []
+                    for memberid in teamone:
+                        member = ctx.guild.get_member(memberid)
+                        if member is not None:
+                            notif = await self.config.user(member).notify()
+                            if role_obj in member.roles:
+                                try:
+                                    if not notif:
+                                        await member.remove_roles(role_obj)
+                                        mem1.append(member.id)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
+            else:
+                result += team1
+            result += f" {score1}:{score2} "
+            if teams[team2]["role"]:
+                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
+                if role_obj is not None:
+                    await role_obj.edit(mentionable=True)
+                    result += role_obj.mention
+                    role2 = True
+                    roletwo = role_obj
+                    mem2 = []
+                    for memberid in teamtwo:
+                        member = ctx.guild.get_member(memberid)
+                        if member is not None:
+                            notif = await self.config.user(member).notify()
+                            if role_obj in member.roles:
+                                try:
+                                    if not notif:
+                                        await member.remove_roles(role_obj)
+                                        mem2.append(member.id)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
+            else:
+                result += team2
+            for channel in results:
+                channel = self.bot.get_channel(channel)
+                await channel.send(result)
+            if role1:
+                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team1]["role"])
+                if role_obj is not None:
+                    await role_obj.edit(mentionable=False)
+                    if mem1:
+                        for memberid in mem1:
+                            member = ctx.guild.get_member(memberid)
+                            if member is not None:
+                                try:
+                                    await member.add_roles(roleone)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
+
+            if role2:
+                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team2]["role"])
+                if role_obj is not None:
+                    await role_obj.edit(mentionable=False)
+                    if mem2:
+                        for memberid in mem2:
+                            member = ctx.guild.get_member(memberid)
+                            if member is not None:
+                                try:
+                                    await member.add_roles(roletwo)
+                                except discord.Forbidden:
+                                    print("Failed to remove role from {}".format(member.name))
+
+    def yCardChance(self):
+        rdmint = random.randint(0, 100)
+        if rdmint > 98:
+            return True
+
+    def rCardChance(self):
+        rdmint = random.randint(0, 300)
+        if rdmint > 299:
+            return True
+
+    def goalChance(self):
+        rdmint = random.randint(0, 100)
+        if rdmint > 96:
+            return True
+
+    def penaltyChance(self):
+        rdmint = random.randint(0, 250)
+        if rdmint > 249:
+            return True
+
+    def penaltyBlock(self):
+        rdmint = random.randint(0, 1)
+        if rdmint > 0.6:
+            return True
+
+    async def update(self, guild):
+        data = await self.get(
+            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057??page=0&?limit=999"
+        )
+        data1 = await self.get(
+            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=1&?limit=999"
+        )
+        data2 = await self.get(
+            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=2&?limit=999"
+        )
+        data3 = await self.get(
+            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=3&?limit=999"
+        )
+        data4 = await self.get(
+            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=4&?limit=999"
+        )
+        a = {}
+        for player in data["players"]:
+            a[player["username"]] = str(player["level"])
+        for player in data1["players"]:
+            a[player["username"]] = str(player["level"])
+        for player in data2["players"]:
+            a[player["username"]] = str(player["level"])
+        for player in data3["players"]:
+            a[player["username"]] = str(player["level"])
+        for player in data4["players"]:
+            a[player["username"]] = str(player["level"])
+        await self.config.guild(guild).levels.set(a)
