@@ -1,6 +1,7 @@
 import asyncio
 import random
 import string
+import time
 from io import BytesIO
 from typing import Optional
 
@@ -10,18 +11,18 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from prettytable import PrettyTable
 from pymongo import MongoClient
 from redbot.core import Config, bank, checks, commands
-from redbot.core.data_manager import bundled_data_path, cog_data_path
+from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import box
 
 client = MongoClient()
 db = client["leveler"]
 
+
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER
 
 
 class SimLeague(commands.Cog):
-
-    __version__ = "2.1.2"
+    __version__ = "2.2.0"
 
     def __init__(self, bot):
         defaults = {
@@ -49,6 +50,7 @@ class SimLeague(commands.Cog):
         self.teams = []
         self.bets = {}
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.cache = time.time()
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -94,11 +96,29 @@ class SimLeague(commands.Cog):
         """Simulation Betting Settings."""
         pass
 
-    @checks.admin()
     @commands.group(autohelp=True)
     async def stats(self, ctx):
         """Sim League Statistics."""
-        pass
+        if ctx.invoked_subcommand is None:
+            stats = await self.config.guild(ctx.guild).stats()
+            goalscorer = sorted(stats["goals"], key=stats["goals"].get, reverse=True)
+            assists = sorted(stats["assists"], key=stats["assists"].get, reverse=True)
+            yellows = sorted(stats["yellows"], key=stats["yellows"].get, reverse=True)
+            reds = sorted(stats["reds"], key=stats["reds"].get, reverse=True)
+            penscored = sorted(
+                stats["penalties"], key=lambda x: stats["penalties"][x]["scored"], reverse=True
+            )
+            penmissed = sorted(
+                stats["penalties"], key=lambda x: stats["penalties"][x]["missed"], reverse=True
+            )
+            msg = ""
+            msg += "**Top Goalscorer**: {}\n".format(goalscorer[0] if goalscorer else "None")
+            msg += "**Most Assists**: {}\n".format(assists[0] if assists else "None")
+            msg += "**Most Yellow Cards**: {}\n".format(yellows[0] if yellows else "None")
+            msg += "**Most Red Cards**: {}\n".format(reds[0] if reds else "None")
+            msg += "**Penalties Scored**: {}\n".format(penscored[0] if penscored else "None")
+            msg += "**Penalties Missed**: {}\n".format(penmissed[0] if penmissed else "None")
+            await ctx.maybe_send_embed(msg)
 
     @checks.admin()
     @bet.command()
@@ -122,7 +142,7 @@ class SimLeague(commands.Cog):
     @bet.command()
     async def toggle(self, ctx, toggle: bool):
         """Set if betting is enabled or not.
-           Toggle must be a valid bool."""
+            Toggle must be a valid bool."""
         await self.config.guild(ctx.guild).bettoggle.set(toggle)
         await ctx.tick()
 
@@ -152,6 +172,26 @@ class SimLeague(commands.Cog):
             result.append(channel.id)
         await ctx.tick()
 
+    @checks.admin()
+    @simset.command()
+    async def setrole(self, ctx, team: str, *, role: str):
+        """Set a teams role."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["role"] = role
+        await ctx.tick()
+
+    @checks.admin()
+    @simset.command()
+    async def setlogo(self, ctx, team: str, *, logo: str):
+        """Set a teams logo."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["logo"] = logo
+        await ctx.tick()
+
     @checks.mod()
     @commands.command()
     async def register(
@@ -166,7 +206,8 @@ class SimLeague(commands.Cog):
         """Register a team."""
         if len(members) != 4:
             return await ctx.send("You must provide 4 members.")
-        # await self.update()
+        if ctx.guild.id == 410031796105773057:
+            await self.update(ctx.guild)
         names = {x.name: x.id for x in members}
         ids = [x.id for x in members]
         a = []
@@ -192,6 +233,7 @@ class SimLeague(commands.Cog):
                 "ids": ids,
                 "logo": logo,
                 "role": role,
+                "cachedlevel": 0,
             }
         async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
@@ -215,15 +257,29 @@ class SimLeague(commands.Cog):
         if not teams:
             return await ctx.send("No teams have been registered.")
         embed = discord.Embed(colour=ctx.author.colour)
-        for team in teams:
-            mems = [x for x in teams[team]["members"].keys()]
-            lvl = await self.teamlevel(ctx, team)
-            embed.add_field(
-                name=f"Team {team}",
-                value=f"Members: {', '.join(mems)}\nCaptain: {list(teams[team]['captain'].keys())[0]}\nTeam Level: {lvl}",
-                inline=False,
-            )
-        await ctx.send(embed=embed)
+        msg = await ctx.send(
+            "This may take some time depending on the amount of teams currently registered."
+        )
+        if time.time() - self.cache >= 86400:
+            await self.updatecacheall(ctx.guild)
+            self.cache = time.time()
+        async with ctx.typing():
+            for team in teams:
+                mems = [x for x in teams[team]["members"].keys()]
+                lvl = teams[team]["cachedlevel"]
+                embed.add_field(
+                    name=f"Team {team}",
+                    value="**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
+                        "\n".join(mems),
+                        list(teams[team]["captain"].keys())[0],
+                        lvl,
+                        "\n**Role**: {}".format(teams[team]["role"])
+                        if teams[team]["role"] is not None
+                        else "",
+                    ),
+                    inline=True,
+                )
+        await msg.edit(embed=embed, content=None)
 
     @commands.command()
     async def team(self, ctx, *, team: str):
@@ -233,7 +289,8 @@ class SimLeague(commands.Cog):
             return await ctx.send("No teams have been registered.")
         if team not in teams:
             return await ctx.send("Team does not exist, ensure that it is correctly capitilized.")
-        im = await self.walkout(ctx, team)
+        async with ctx.typing():
+            im = await self.walkout(ctx, team)
         await ctx.send(file=im)
 
     @checks.mod()
@@ -355,7 +412,7 @@ class SimLeague(commands.Cog):
                 )
             await ctx.send("```" + str(t) + "```")
 
-    @checks.admin()
+    @checks.guildowner()
     @simset.command()
     async def clear(self, ctx):
         """Clear the current table/teams."""
@@ -420,9 +477,9 @@ class SimLeague(commands.Cog):
             a = []
             b = []
             for k in sorted(stats, key=lambda x: stats[x]["scored"], reverse=True):
-                a.append(f"{k} - {stats[k]}")
+                a.append(f"{k} - {stats[k]['scored']}")
             for k in sorted(stats, key=lambda x: stats[x]["missed"], reverse=True):
-                b.append(f"{k} - {stats[k]}")
+                b.append(f"{k} - {stats[k]['missed']}")
             embed = discord.Embed(title="Penalty Statistics", colour=0xFF0000)
             embed.add_field(name="Penalties Scored", value="\n".join(a))
             embed.add_field(name="Penalties Missed", value="\n".join(b))
@@ -446,7 +503,7 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("No stats available.")
 
-    # @checks.mod()
+    @checks.mod()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
     @commands.command(aliases=["sim"])
     async def playsim(self, ctx, team1: str, team2: str):
@@ -462,6 +519,10 @@ class SimLeague(commands.Cog):
             msg = await ctx.send("Updating levels. Please wait...")
             await self.update(ctx.guild)
             await msg.delete()
+        await self.updatecachegame(ctx.guild, team1, team2)
+        lvl1 = teams[team1]["cachedlevel"]
+        lvl2 = teams[team2]["cachedlevel"]
+
         self.active = True
         self.teams = [team1, team2]
         bettime = await self.config.guild(ctx.guild).bettime()
@@ -521,51 +582,7 @@ class SimLeague(commands.Cog):
             injury_count2,
         ]
 
-        async def TeamWeightChance(ctx):
-            xp = await self.config.guild(ctx.guild).levels()
-            team1pl = teams[team1]["ids"]
-            team2pl = teams[team2]["ids"]
-            t1totalxp = 0
-            t2totalxp = 0
-            if ctx.guild.id == 410031796105773057:
-                for memberid in team1pl:
-                    member = self.bot.get_user(memberid)
-                    if member is None:
-                        member = await self.bot.fetch_user(memberid)
-                    try:
-                        t1totalxp += int(xp[member.name])
-                    except KeyError:
-                        t1totalxp += 1
-                for memberid in team2pl:
-                    member = self.bot.get_user(memberid)
-                    if member is None:
-                        member = await self.bot.fetch_user(memberid)
-                    try:
-                        t2totalxp += int(xp[member.name])
-                    except KeyError:
-                        t2totalxp += 1
-
-            else:
-                for memberid in team1pl:
-                    user = self.bot.get_user(memberid)
-                    if user is None:
-                        user = await self.bot.fetch_user(memberid)
-                    try:
-                        userinfo = db.users.find_one({"user_id": str(user.id)})
-                        level = userinfo["servers"][str(ctx.guild.id)]["level"]
-                        t1totalxp += int(level)
-                    except (KeyError, TypeError):
-                        t1totalxp += 1
-                for memberid in team2pl:
-                    user = self.bot.get_user(memberid)
-                    if user is None:
-                        user = await self.bot.fetch_user(memberid)
-                    try:
-                        userinfo = db.users.find_one({"user_id": str(user.id)})
-                        level = userinfo["servers"][str(ctx.guild.id)]["level"]
-                        t2totalxp += int(level)
-                    except (KeyError, TypeError):
-                        t2totalxp += 1
+        async def TeamWeightChance(ctx, t1totalxp, t2totalxp):
             total = ["A"] * (t1totalxp) + ["B"] * (t2totalxp)
             rdmint = random.choice(total)
             if rdmint == "A":
@@ -650,10 +667,10 @@ class SimLeague(commands.Cog):
             await asyncio.sleep(gametime)
             if min % 5 == 0:
                 await timemsg.edit(content="Minute: {}".format(min))
-            if events == False:
+            if events is False:
                 gC = self.goalChance()
-                if gC == True:
-                    teamStats = await TeamWeightChance(ctx)
+                if gC is True:
+                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
                     playerGoal = PlayerGenerator(
                         0,
                         teamStats[0],
@@ -670,7 +687,7 @@ class SimLeague(commands.Cog):
                         else:
                             stats["goals"][playerGoal[1]] += 1
                         if len(playerGoal) == 3:
-                            if playerGoal[1] not in stats["assists"]:
+                            if playerGoal[2] not in stats["assists"]:
                                 stats["assists"][playerGoal[2]] = 1
                             else:
                                 stats["assists"][playerGoal[2]] += 1
@@ -710,10 +727,10 @@ class SimLeague(commands.Cog):
                             str(team2Stats[8]),
                         )
                     await ctx.send(file=image)
-            if events == False:
+            if events is False:
                 pC = self.penaltyChance()
-                if pC == True:
-                    teamStats = await TeamWeightChance(ctx)
+                if pC is True:
+                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
                     playerPenalty = PlayerGenerator(
                         3,
                         teamStats[0],
@@ -728,14 +745,14 @@ class SimLeague(commands.Cog):
                     )
                     await ctx.send(file=image)
                     pB = self.penaltyBlock()
-                    if pB == True:
+                    if pB is True:
                         events = True
                         uid = teams[str(playerPenalty[0])]["members"][playerPenalty[1]]
                         async with self.config.guild(ctx.guild).stats() as stats:
-                            if playerPenalty[0] not in stats["penalties"]:
-                                stats["penalties"][playerPenalty[0]]["missed"] = 1
+                            if playerPenalty[1] not in stats["penalties"]:
+                                stats["penalties"][playerPenalty[1]] = {"scored": 0, "missed": 1}
                             else:
-                                stats["penalties"][playerPenalty[0]]["missed"] += 1
+                                stats["penalties"][playerPenalty[1]]["missed"] += 1
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
@@ -754,14 +771,14 @@ class SimLeague(commands.Cog):
                     else:
                         teamStats[8] += 1
                         async with self.config.guild(ctx.guild).stats() as stats:
-                            if playerPenalty[0] not in stats["goals"]:
-                                stats["goals"][playerPenalty[0]] = 1
+                            if playerPenalty[1] not in stats["goals"]:
+                                stats["goals"][playerPenalty[1]] = 1
                             else:
-                                stats["goals"][playerPenalty[0]] += 1
-                            if playerPenalty[0] not in stats["penalties"]:
-                                stats["penalties"][playerPenalty[0]]["scored"] = 1
+                                stats["goals"][playerPenalty[1]] += 1
+                            if playerPenalty[1] not in stats["penalties"]:
+                                stats["penalties"][playerPenalty[1]] = {"scored": 1, "missed": 0}
                             else:
-                                stats["penalties"][playerPenalty[0]]["scored"] += 1
+                                stats["penalties"][playerPenalty[1]]["scored"] += 1
                         events = True
                         uid = teams[str(playerPenalty[0])]["members"][playerPenalty[1]]
                         user = self.bot.get_user(uid)
@@ -779,9 +796,9 @@ class SimLeague(commands.Cog):
                             str(team2Stats[8]),
                         )
                         await ctx.send(file=image)
-            if events == False:
+            if events is False:
                 yC = self.yCardChance()
-                if yC == True:
+                if yC is True:
                     teamStats = await TeamChance()
                     playerYellow = PlayerGenerator(
                         1,
@@ -847,9 +864,9 @@ class SimLeague(commands.Cog):
                             str(team2Stats[8]),
                         )
                         await ctx.send(file=image)
-            if events == False:
+            if events is False:
                 rC = self.rCardChance()
-                if rC == True:
+                if rC is True:
                     teamStats = await TeamChance()
                     playerRed = PlayerGenerator(
                         2,
@@ -886,7 +903,7 @@ class SimLeague(commands.Cog):
                         str(4 - (int(teamStats[7]))),
                     )
                     await ctx.send(file=image)
-            if events == False:
+            if events is False:
                 pass
             events = False
             if min == 45:
@@ -897,8 +914,8 @@ class SimLeague(commands.Cog):
                 for i in range(added):
                     s += 1
                     gC = self.goalChance()
-                    if gC == True:
-                        teamStats = await TeamWeightChance(ctx)
+                    if gC is True:
+                        teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
                         playerGoal = PlayerGenerator(
                             0,
                             teamStats[0],
@@ -915,7 +932,7 @@ class SimLeague(commands.Cog):
                             else:
                                 stats["goals"][playerGoal[1]] += 1
                             if len(playerGoal) == 3:
-                                if playerGoal[1] not in stats["assists"]:
+                                if playerGoal[2] not in stats["assists"]:
                                     stats["assists"][playerGoal[2]] = 1
                                 else:
                                     stats["assists"][playerGoal[2]] += 1
@@ -972,8 +989,8 @@ class SimLeague(commands.Cog):
                 for i in range(added):
                     s += 1
                     gC = self.goalChance()
-                    if gC == True:
-                        teamStats = await TeamWeightChance(ctx)
+                    if gC is True:
+                        teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
                         playerGoal = PlayerGenerator(
                             0,
                             teamStats[0],
@@ -990,7 +1007,7 @@ class SimLeague(commands.Cog):
                             else:
                                 stats["goals"][playerGoal[1]] += 1
                             if len(playerGoal) == 3:
-                                if playerGoal[1] not in stats["assists"]:
+                                if playerGoal[2] not in stats["assists"]:
                                     stats["assists"][playerGoal[2]] = 1
                                 else:
                                     stats["assists"][playerGoal[2]] += 1
@@ -1095,6 +1112,8 @@ class SimLeague(commands.Cog):
         elif ctx.author in self.bets:
             await ctx.send("You have already entered a bet for the game.")
             return False
+        if team not in self.teams:
+            return await ctx.send("That team isn't currently playing.")
 
         minbet = await self.config.guild(ctx.guild).betmin()
         if bet < minbet:
@@ -1680,7 +1699,7 @@ class SimLeague(commands.Cog):
                     write_pos += unicode_font.getsize(char)[0]
 
         grey_color = (110, 110, 110, 255)
-        level = await self.teamlevel(ctx, team1)
+        level = teams[team1]["cachedlevel"]
         if ctx.guild.id == 410031796105773057:
             _write_unicode(
                 "Team: {} | Captain: {} | Total Level: {} ".format(
@@ -1709,30 +1728,6 @@ class SimLeague(commands.Cog):
         file.seek(0)
         image = discord.File(file, filename="pikaleague.png")
         return image
-
-    async def teamlevel(self, ctx, team):
-        t1totalxp = 0
-        teams = await self.config.guild(ctx.guild).teams()
-        team1pl = teams[team]["ids"]
-        if ctx.guild.id == 410031796105773057:
-            xp = await self.config.guild(ctx.guild).levels()
-            for memberid in team1pl:
-                member = await self.bot.fetch_user(memberid)
-                try:
-                    t1totalxp += int(xp[member.name])
-                except KeyError:
-                    t1totalxp += 1
-            return t1totalxp
-        else:
-            for memberid in team1pl:
-                user = await self.bot.fetch_user(memberid)
-                try:
-                    userinfo = db.users.find_one({"user_id": str(user.id)})
-                    level = userinfo["servers"][str(ctx.guild.id)]["level"]
-                    t1totalxp += int(level)
-                except (KeyError, TypeError):
-                    t1totalxp += 1
-            return t1totalxp
 
     async def get(self, url):
         async with self.session.get(url) as response:
@@ -1961,3 +1956,74 @@ class SimLeague(commands.Cog):
         for player in data4["players"]:
             a[player["username"]] = str(player["level"])
         await self.config.guild(guild).levels.set(a)
+
+    async def updatecacheall(self, guild):
+        print("Updating CACHE.")
+        async with self.config.guild(guild).teams() as teams:
+            t1totalxp = 0
+            for team in teams:
+                teams[team]
+                team1pl = teams[team]["ids"]
+                if guild.id == 410031796105773057:
+                    xp = await self.config.guild(guild).levels()
+                    for memberid in team1pl:
+                        member = await self.bot.fetch_user(memberid)
+                        try:
+                            t1totalxp += int(xp[member.name])
+                        except KeyError:
+                            t1totalxp += 1
+                    teams[team]["cachedlevel"] = t1totalxp
+                else:
+                    for memberid in team1pl:
+                        user = await self.bot.fetch_user(memberid)
+                        try:
+                            userinfo = db.users.find_one({"user_id": str(user.id)})
+                            level = userinfo["servers"][str(guild.id)]["level"]
+                            t1totalxp += int(level)
+                        except (KeyError, TypeError):
+                            t1totalxp += 1
+                    teams[team]["cachedlevel"] = t1totalxp
+
+    async def updatecachegame(self, guild, team1, team2):
+        t1totalxp = 0
+        t2totalxp = 0
+        async with self.config.guild(guild).teams() as teams:
+            team1pl = teams[team1]["ids"]
+            if guild.id == 410031796105773057:
+                xp = await self.config.guild(guild).levels()
+                for memberid in team1pl:
+                    member = await self.bot.fetch_user(memberid)
+                    try:
+                        t1totalxp += int(xp[member.name])
+                    except KeyError:
+                        t1totalxp += 1
+                teams[team1]["cachedlevel"] = t1totalxp
+                team2pl = teams[team2]["ids"]
+                for memberid in team2pl:
+                    member = await self.bot.fetch_user(memberid)
+                    try:
+                        t2totalxp += int(xp[member.name])
+                    except KeyError:
+                        t2totalxp += 1
+                teams[team2]["cachedlevel"] = t2totalxp
+            else:
+                for memberid in team1pl:
+                    user = await self.bot.fetch_user(memberid)
+                    try:
+                        userinfo = db.users.find_one({"user_id": str(user.id)})
+                        level = userinfo["servers"][str(guild.id)]["level"]
+                        t1totalxp += int(level)
+                    except (KeyError, TypeError):
+                        t1totalxp += 1
+                teams[team1]["cachedlevel"] = t1totalxp
+
+                team2pl = teams[team2]["ids"]
+                for memberid in team2pl:
+                    user = await self.bot.fetch_user(memberid)
+                    try:
+                        userinfo = db.users.find_one({"user_id": str(user.id)})
+                        level = userinfo["servers"][str(guild.id)]["level"]
+                        t2totalxp += int(level)
+                    except (KeyError, TypeError):
+                        t2totalxp += 1
+                teams[team2]["cachedlevel"] = t2totalxp

@@ -1,5 +1,6 @@
 from .simleague import SimLeague
 
 
-def setup(bot):
-    bot.add_cog(SimLeague(bot))
+async def setup(bot):
+    cog = SimLeague(bot)
+    bot.add_cog(cog)
