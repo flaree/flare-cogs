@@ -22,7 +22,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.2.0"
+    __version__ = "2.2.1"
 
     def __init__(self, bot):
         defaults = {
@@ -173,6 +173,14 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
+    @simset.command(name="updatecache")
+    async def levels_updatecache(self, ctx):
+        """Update the level cache."""
+        async with ctx.typing():
+            await self.updatecacheall(ctx.guild)
+        await ctx.tick()
+
+    @checks.admin()
     @simset.command()
     async def setrole(self, ctx, team: str, *, role: str):
         """Set a teams role."""
@@ -290,8 +298,13 @@ class SimLeague(commands.Cog):
         if team not in teams:
             return await ctx.send("Team does not exist, ensure that it is correctly capitilized.")
         async with ctx.typing():
-            im = await self.walkout(ctx, team)
-        await ctx.send(file=im)
+            embed = discord.Embed(title=team, colour=ctx.author.colour)
+            embed.add_field(name="Members:", value="\n".join(teams[team]["members"]), inline=True)
+            embed.add_field(name="Captain:", value=list(teams[team]["captain"].keys())[0])
+            embed.add_field(name="Level:", value=teams[team]["cachedlevel"], inline=True)
+            if teams[team]["role"] is not None:
+                embed.add_field(name="Role:", value=teams[team]["role"], inline=True)
+        await ctx.send(embed=embed)
 
     @checks.mod()
     @simset.command()
@@ -520,6 +533,7 @@ class SimLeague(commands.Cog):
             await self.update(ctx.guild)
             await msg.delete()
         await self.updatecachegame(ctx.guild, team1, team2)
+        await asyncio.sleep(2)
         lvl1 = teams[team1]["cachedlevel"]
         lvl2 = teams[team2]["cachedlevel"]
 
@@ -531,7 +545,14 @@ class SimLeague(commands.Cog):
                 bettime, ctx.prefix
             )
         )
-        await asyncio.sleep(bettime)
+        for i in range(1, bettime):
+            if i % 5 == 0:
+                await bet.edit(
+                    content="Betting is now open, game will commence in {} seconds.\nUsage: {}bet <amount> <team>".format(
+                        bettime - i, ctx.prefix
+                    )
+                )
+            await asyncio.sleep(1)
         await bet.delete()
         self.started = True
         team1players = list(teams[team1]["members"].keys())
@@ -583,6 +604,10 @@ class SimLeague(commands.Cog):
         ]
 
         async def TeamWeightChance(ctx, t1totalxp, t2totalxp):
+            if t1totalxp < 2:
+                t1totalxp = 1
+            if t2totalxp < 2:
+                t2totalxp = 1
             total = ["A"] * (t1totalxp) + ["B"] * (t2totalxp)
             rdmint = random.choice(total)
             if rdmint == "A":
