@@ -1,0 +1,10 @@
+{
+    "author": ["flare(flare#0001)"],
+    "install_msg": "Weather - Currently WIP.",
+    "name": "weather",
+    "disabled": false,
+    "short": "Show the current weather.",
+    "description": "Weather statistics.",
+    "tags": ["weather"],
+    "hidden": true
+}
