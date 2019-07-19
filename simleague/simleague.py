@@ -22,7 +22,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.2.1"
+    __version__ = "2.2.2"
 
     def __init__(self, bot):
         defaults = {
@@ -87,7 +87,7 @@ class SimLeague(commands.Cog):
                 betmin = await self.config.guild(guild).betmin()
                 msg += "Bet Time: {}s.\n".format(bettime)
                 msg += "Max Bet: {}.\n".format(betmax)
-                msg += "Min Bedt: {}.\n".format(betmin)
+                msg += "Min Bet: {}.\n".format(betmin)
             await ctx.send(box(msg))
 
     @checks.admin()
@@ -133,9 +133,18 @@ class SimLeague(commands.Cog):
     @bet.command()
     async def betmax(self, ctx, amount: int):
         """Set the max amount for betting."""
-        if amount > 0:
+        if amount < 1:
             return await ctx.send("Amount must be greater than 0.")
         await self.config.guild(ctx.guild).betmax.set(amount)
+        await ctx.tick()
+
+    @checks.admin()
+    @bet.command()
+    async def betmin(self, ctx, amount: int):
+        """Set the min amount for betting."""
+        if amount < 1:
+            return await ctx.send("Amount must be greater than 0.")
+        await self.config.guild(ctx.guild).betmin.set(amount)
         await ctx.tick()
 
     @checks.admin()
@@ -200,6 +209,20 @@ class SimLeague(commands.Cog):
             teams[team]["logo"] = logo
         await ctx.tick()
 
+    @checks.admin()
+    @simset.command(usage="<curren tname> <new name>")
+    async def setname(self, ctx, team: str, *, newname: str):
+        """Set a teams name. Try keep names to one word if possible."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[newname] = teams[team]
+            del teams[team]
+        async with self.config.guild(ctx.guild).standings() as teams:
+            teams[newname] = teams[team]
+            del teams[team]
+        await ctx.tick()
+
     @checks.mod()
     @commands.command()
     async def register(
@@ -211,7 +234,8 @@ class SimLeague(commands.Cog):
         *,
         role: str = None,
     ):
-        """Register a team."""
+        """Register a team.
+            Try keep team names to one word if possible."""
         if len(members) != 4:
             return await ctx.send("You must provide 4 members.")
         if ctx.guild.id == 410031796105773057:
@@ -259,35 +283,60 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command(name="teams", aliases=["list"])
-    async def _list(self, ctx):
+    async def _list(self, ctx, mobilefriendly: bool = True):
         """List current teams."""
         teams = await self.config.guild(ctx.guild).teams()
         if not teams:
             return await ctx.send("No teams have been registered.")
-        embed = discord.Embed(colour=ctx.author.colour)
-        msg = await ctx.send(
-            "This may take some time depending on the amount of teams currently registered."
-        )
-        if time.time() - self.cache >= 86400:
-            await self.updatecacheall(ctx.guild)
-            self.cache = time.time()
-        async with ctx.typing():
-            for team in teams:
-                mems = [x for x in teams[team]["members"].keys()]
-                lvl = teams[team]["cachedlevel"]
-                embed.add_field(
-                    name=f"Team {team}",
-                    value="**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
-                        "\n".join(mems),
-                        list(teams[team]["captain"].keys())[0],
-                        lvl,
-                        "\n**Role**: {}".format(teams[team]["role"])
-                        if teams[team]["role"] is not None
-                        else "",
-                    ),
-                    inline=True,
+        if mobilefriendly:
+            embed = discord.Embed(colour=ctx.author.colour)
+            msg = await ctx.send(
+                "This may take some time depending on the amount of teams currently registered."
+            )
+            if time.time() - self.cache >= 86400:
+                await msg.edit(
+                    content="Updating the level cache, please wait. This may take some time."
                 )
-        await msg.edit(embed=embed, content=None)
+                await self.updatecacheall(ctx.guild)
+                self.cache = time.time()
+            async with ctx.typing():
+                for team in teams:
+                    mems = [x for x in teams[team]["members"].keys()]
+                    lvl = teams[team]["cachedlevel"]
+                    embed.add_field(
+                        name=f"Team {team}",
+                        value="**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
+                            "\n".join(mems),
+                            list(teams[team]["captain"].keys())[0],
+                            lvl,
+                            "\n**Role**: {}".format(teams[team]["role"])
+                            if teams[team]["role"] is not None
+                            else "",
+                        ),
+                        inline=True,
+                    )
+            await msg.edit(embed=embed, content=None)
+        else:
+            teamlen = max(*[len(str(i)) for i in teams], 5) + 3
+            rolelen = max(*[len(str(teams[i]["role"])) for i in teams], 5) + 3
+            caplen = max(*[len(list(teams[i]["captain"].keys())[0]) for i in teams], 5) + 3
+            lvllen = 6
+
+            msg = f"{'Team':{teamlen}} {'Level':{lvllen}} {'Captain':{caplen}} {'Role':{rolelen}} {'Members'}\n"
+            for team in teams:
+                lvl = teams[team]["cachedlevel"]
+                captain = list(teams[team]["captain"].keys())[0]
+                role = teams[team]["role"]
+                non = "None"
+                msg += (
+                    f"{f'{team}': <{teamlen}} "
+                    f"{f'{lvl}': <{lvllen}} "
+                    f"{f'{captain}': <{caplen}} "
+                    f"{f'{role if role is not None else non}': <{rolelen}}"
+                    f"{', '.join(teams[team]['members'])} \n"
+                )
+
+            msg = await ctx.send(box(msg, lang="ini"))
 
     @commands.command()
     async def team(self, ctx, *, team: str):
@@ -304,6 +353,8 @@ class SimLeague(commands.Cog):
             embed.add_field(name="Level:", value=teams[team]["cachedlevel"], inline=True)
             if teams[team]["role"] is not None:
                 embed.add_field(name="Role:", value=teams[team]["role"], inline=True)
+            if teams[team]["logo"] is not None:
+                embed.set_thumbnail(url=teams[team]["logo"])
         await ctx.send(embed=embed)
 
     @checks.mod()
@@ -997,7 +1048,7 @@ class SimLeague(commands.Cog):
                                 str(team2Stats[8]),
                             )
                         await ctx.send(file=image)
-
+                    await asyncio.sleep(2)
                     events = False
                     ht = await self.config.guild(ctx.guild).htbreak()
                 im = await self.timepic(
@@ -1005,6 +1056,8 @@ class SimLeague(commands.Cog):
                 )
                 await ctx.send(file=im)
                 await asyncio.sleep(ht)
+                await timemsg.edit(content="First Half Concluded")
+                timemsg = await ctx.send("Second Half!")
 
             if min == 90:
                 added = random.randint(1, 5)
@@ -1132,7 +1185,14 @@ class SimLeague(commands.Cog):
             await ctx.send("There isn't a game onright now.")
             return False
         elif self.started:
-            await ctx.author.send("You can't place a bet after the game has started.")
+            try:
+                await ctx.author.send("You can't place a bet after the game has started.")
+            except discord.HTTPException:
+                await ctx.send(
+                    "Maybe you should unblock me or turn off privacy settings if you want to bet ¯\\_(ツ)_/¯. {}".format(
+                        ctx.author.mention
+                    )
+                )
             return False
         elif ctx.author in self.bets:
             await ctx.send("You have already entered a bet for the game.")
@@ -1146,7 +1206,7 @@ class SimLeague(commands.Cog):
             return False
         maxbet = await self.config.guild(ctx.guild).betmax()
         if bet > maxbet:
-            await ctx.send("The maximum bet is {}".format(minbet))
+            await ctx.send("The maximum bet is {}".format(maxbet))
             return False
 
         if not await bank.can_spend(ctx.author, bet):
