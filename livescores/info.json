@@ -1,0 +1,17 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Private cog for livescore api.",
+  "name": "Livescores",
+  "disabled": false,
+  "short": "Livescore posting",
+  "description": "Livescore Posting",
+  "tags": [
+    "livescores",
+    "football",
+    "soccer",
+    "scores"
+  ],
+  "hidden": true
+}
