@@ -1,13 +1,3 @@
-# Flare-Cogs
-# Note - These are not optimized WHATSOEVER. Please use at your own risk.
+# Flares Testing Repo
 
-| Name | Description 
-| --- | --- |
-| Forward | Forward all non-command messages to the bot owner. |
-| ModMail | Forward all non-command messages to set channels. |
-| Accounts| Allow users to list gaming/social media accounts. |
-| Rainbow6 | Uses a self hosted API to check account/operator stats. ** Font is inside the directory.|
-| SA:MP | Query SACNR Monitor and retrieve basic stats. |
-| CSGOSkins | Lookup csgoback prices of csgo skins/items and reveal lowest - highest price etc. |
-| Overwatch | Uses a public API to check profile stats and hero stats.|
-| Movies | Simple movie lookup.
+## All misc cogs are here. Some are unoptimized to be placed on the public branch and some are for personal use.
