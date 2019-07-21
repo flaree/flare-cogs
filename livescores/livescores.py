@@ -20,6 +20,7 @@ class Livescores(commands.Cog):
         async with self.session.get(url) as response:
             return await response.json()
 
+    @checks.admin()
     @commands.command()
     async def matchpost(self, ctx, matchid: int):
         """Live Match Posting"""
@@ -41,7 +42,11 @@ class Livescores(commands.Cog):
                 home = match["home_name"]
                 away = match["away_name"]
                 time = match["time"]
-                timeleft = (90 - int(time)) * 2
+                if time == "HT":
+                    time = 45
+                if time == "FT":
+                    return
+                timeleft = (135 - int(time)) * 2
         if home is None:
             home = "Team Unavailable"
         if away is None:
@@ -63,14 +68,17 @@ class Livescores(commands.Cog):
                 if self.len[matchid] == 0:
                     self.len[matchid] = len(data["data"]["event"])
                 try:
-                    player = " ".join(data["data"]["event"][-1]["player"].split()[-1::-1])
+                    if player != "":
+                        player = " ".join(data["data"]["event"][-1]["player"].split()[-1::-1])
+                    else:
+                        player = "Unavailable"
                 except:
                     player = "Unavailable"
                 if len(data["data"]["event"]) > self.len[matchid]:
                     if data["data"]["event"][-1]["event"] == "GOAL":
                         await ctx.send(
                             data["data"]["event"][-1]["event"]
-                            + ": {}\n Scored by ".format(
+                            + ": {}\nScored by ".format(
                                 home if data["data"]["event"][-1]["home_away"] == "h" else away
                             )
                             + player
@@ -84,6 +92,7 @@ class Livescores(commands.Cog):
             if counter > timeleft:
                 return
 
+    @checks.admin()
     @commands.command()
     async def ongoing(self, ctx, compid=None):
         """List ongoing matches - optional competition/league id to shorten results."""
@@ -116,6 +125,7 @@ class Livescores(commands.Cog):
             embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
+    @checks.admin()
     @commands.command()
     async def leagueid(self, ctx, *, name: str):
         """Find out the league ID to shorten results for ongoing matches"""
@@ -147,6 +157,7 @@ class Livescores(commands.Cog):
                     embeds.append(embed)
             await menu(ctx, embeds, DEFAULT_CONTROLS)
 
+    @checks.admin()
     @commands.command()
     async def matchinfo(self, ctx, matchid: int):
         """Match information."""
