@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Simulation League based on leveler statistics",
+  "name": "SimLeague",
+  "disabled": false,
+  "short": "Sim League",
+  "description": "Simulation League for discord based on mee6/reds leveler level.",
+  "tags": [
+    "sim league"
+  ],
+  "hidden": true
+}
