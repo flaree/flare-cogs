@@ -23,10 +23,14 @@ class Livescores(commands.Cog):
     @commands.command()
     async def matchpost(self, ctx, matchid: int):
         """Live Match Posting"""
-        api = await self.bot.db.api_tokens.get_raw("livescore", default={"key": None, "secret": None})
+        api = await self.bot.db.api_tokens.get_raw(
+            "livescore", default={"key": None, "secret": None}
+        )
         if api["key"] is None or api["secret"] is None:
             return await ctx.send("Invalid API Key.")
-        matches = await self.get(self.api + "scores/live.json?key={}&secret={}".format(api["key"], api["secret"]))
+        matches = await self.get(
+            self.api + "scores/live.json?key={}&secret={}".format(api["key"], api["secret"])
+        )
         if matches["success"] is False:
             return await ctx.send("Failed.")
         home = None
@@ -47,7 +51,12 @@ class Livescores(commands.Cog):
         counter = 0
         self.len[matchid] = 0
         while True:
-            data = await self.get(self.api + "scores/events.json?key={}&secret={}&id={}".format(api["key"], api["secret"], matchid))
+            data = await self.get(
+                self.api
+                + "scores/events.json?key={}&secret={}&id={}".format(
+                    api["key"], api["secret"], matchid
+                )
+            )
             if data["success"] is False:
                 return await ctx.send("Failed to find match.")
             if data["data"]["event"]:
@@ -59,46 +68,74 @@ class Livescores(commands.Cog):
                     player = "Unavailable"
                 if len(data["data"]["event"]) > self.len[matchid]:
                     if data["data"]["event"][-1]["event"] == "GOAL":
-                        await ctx.send(data["data"]["event"][-1]["event"] + ": {}\n Scored by ".format(home if data["data"]["event"][-1]["home_away"] == "h" else away) + player + ", " + data["data"]["event"][-1]["time"])
+                        await ctx.send(
+                            data["data"]["event"][-1]["event"]
+                            + ": {}\n Scored by ".format(
+                                home if data["data"]["event"][-1]["home_away"] == "h" else away
+                            )
+                            + player
+                            + ", "
+                            + data["data"]["event"][-1]["time"]
+                        )
                         self.len[matchid] = len(data["data"]["event"])
             await asyncio.sleep(30)
             counter += 1
             print(timeleft - counter, "requests left for this match.")
             if counter > timeleft:
                 return
-    
+
     @commands.command()
-    async def ongoing(self, ctx, compid = None):
+    async def ongoing(self, ctx, compid=None):
         """List ongoing matches - optional competition/league id to shorten results."""
-        api = await self.bot.db.api_tokens.get_raw("livescore", default={"key": None, "secret": None})
+        api = await self.bot.db.api_tokens.get_raw(
+            "livescore", default={"key": None, "secret": None}
+        )
         if api["key"] is None or api["secret"] is None:
             return await ctx.send("Invalid API Key.")
-        data = await self.get(self.api + "scores/live.json?key={}&secret={}{}".format(api["key"], api["secret"], "&competition_id={}".format(compid) if compid is not None else ""))
+        data = await self.get(
+            self.api
+            + "scores/live.json?key={}&secret={}{}".format(
+                api["key"],
+                api["secret"],
+                "&competition_id={}".format(compid) if compid is not None else "",
+            )
+        )
         if data["success"] is False:
             return await ctx.send("Failed.")
         embeds = []
         for match in data["data"]["match"]:
-            embed = discord.Embed(colour=ctx.author.color, title=f"{match['home_name']} vs {match['away_name']}")
+            embed = discord.Embed(
+                colour=ctx.author.color, title=f"{match['home_name']} vs {match['away_name']}"
+            )
             for key in match:
                 if key != "events":
-                    embed.add_field(name=key.replace("_", " ").title(), value=match[key] if match[key] else "None")
+                    embed.add_field(
+                        name=key.replace("_", " ").title(),
+                        value=match[key] if match[key] else "None",
+                    )
             embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
-    
+
     @commands.command()
     async def leagueid(self, ctx, *, name: str):
         """Find out the league ID to shorten results for ongoing matches"""
-        api = await self.bot.db.api_tokens.get_raw("livescore", default={"key": None, "secret": None})
+        api = await self.bot.db.api_tokens.get_raw(
+            "livescore", default={"key": None, "secret": None}
+        )
         if api["key"] is None or api["secret"] is None:
             return await ctx.send("Invalid API Key.")
-        data = await self.get(self.api + "competitions/list.json?key={}&secret={}".format(api["key"], api["secret"]))
+        data = await self.get(
+            self.api + "competitions/list.json?key={}&secret={}".format(api["key"], api["secret"])
+        )
         if data["success"] is False:
             return await ctx.send("Failed.")
         embeds = []
         if data["data"]["competition"]:
             for match in data["data"]["competition"]:
                 if name.lower() in match["name"].lower():
-                    embed = discord.Embed(colour=ctx.author.color, title="Matches for {}".format(name.title()))
+                    embed = discord.Embed(
+                        colour=ctx.author.color, title="Matches for {}".format(name.title())
+                    )
                     embed.add_field(name="League Name", value=match["name"])
                     embed.add_field(name="League ID", value=match["id"])
                     try:
@@ -113,20 +150,27 @@ class Livescores(commands.Cog):
     @commands.command()
     async def matchinfo(self, ctx, matchid: int):
         """Match information."""
-        api = await self.bot.db.api_tokens.get_raw("livescore", default={"key": None, "secret": None})
+        api = await self.bot.db.api_tokens.get_raw(
+            "livescore", default={"key": None, "secret": None}
+        )
         if api["key"] is None or api["secret"] is None:
             return await ctx.send("Invalid API Key.")
-        data = await self.get(self.api + "scores/live.json?key={}&secret={}".format(api["key"], api["secret"]))
+        data = await self.get(
+            self.api + "scores/live.json?key={}&secret={}".format(api["key"], api["secret"])
+        )
         if data["success"] is False:
             return await ctx.send("Failed.")
         embeds = []
         for match in data["data"]["match"]:
             if match["id"] == matchid:
-                embed = discord.Embed(colour=ctx.author.color, title=f"{match['home_name']} vs {match['away_name']}")
+                embed = discord.Embed(
+                    colour=ctx.author.color, title=f"{match['home_name']} vs {match['away_name']}"
+                )
                 for key in match:
                     if key != "events":
-                        embed.add_field(name=key.replace("_", " ").title(), value=match[key] if match[key] else "None")
+                        embed.add_field(
+                            name=key.replace("_", " ").title(),
+                            value=match[key] if match[key] else "None",
+                        )
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
-    
-
