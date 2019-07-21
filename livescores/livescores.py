@@ -123,7 +123,10 @@ class Livescores(commands.Cog):
                         value=match[key] if match[key] else "None",
                     )
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS)
+        if embeds:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
+        else:
+            await ctx.send("No matches available.")
 
     @checks.admin()
     @commands.command()
@@ -155,7 +158,10 @@ class Livescores(commands.Cog):
                         embed.add_field(name="Country", value=match["federations"][0]["name"])
                         embed.add_field(name="Country ID", value=match["federations"][0]["id"])
                     embeds.append(embed)
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+            if embeds:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            else:
+                await ctx.send("No leagues available.")
 
     @checks.admin()
     @commands.command()
@@ -184,4 +190,7 @@ class Livescores(commands.Cog):
                             value=match[key] if match[key] else "None",
                         )
                 embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS)
+        if embeds:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
+        else:
+            await ctx.send("No match available.")
