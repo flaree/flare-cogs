@@ -13,6 +13,7 @@ from pymongo import MongoClient
 from redbot.core import Config, bank, checks, commands
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 client = MongoClient()
 db = client["leveler"]
@@ -22,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.2.2"
+    __version__ = "2.3.0"
 
     def __init__(self, bot):
         defaults = {
@@ -210,7 +211,7 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.command(usage="<curren tname> <new name>")
+    @simset.command(usage="<current name> <new name>")
     async def setname(self, ctx, team: str, *, newname: str):
         """Set a teams name. Try keep names to one word if possible."""
         async with self.config.guild(ctx.guild).teams() as teams:
@@ -221,6 +222,52 @@ class SimLeague(commands.Cog):
         async with self.config.guild(ctx.guild).standings() as teams:
             teams[newname] = teams[team]
             del teams[team]
+        await ctx.tick()
+
+    @checks.admin()
+    @simset.command()
+    async def setfullname(self, ctx, team: str, *, fullname: str):
+        """Set a teams full name."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["fullname"] = fullname
+        await ctx.tick()
+
+    @checks.admin()
+    @simset.group(autohelp=True)
+    async def kits(self, ctx):
+        """Kit Settings."""
+        pass
+
+    @checks.admin()
+    @kits.command()
+    async def home(self, ctx, team: str, *, kiturl: str):
+        """Set a teams home kit."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["kits"]["home"] = kiturl
+        await ctx.tick()
+
+    @checks.admin()
+    @kits.command()
+    async def away(self, ctx, team: str, *, kiturl: str):
+        """Set a teams away kit."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["kits"]["away"] = kiturl
+        await ctx.tick()
+
+    @checks.admin()
+    @kits.command()
+    async def third(self, ctx, team: str, *, kiturl: str):
+        """Set a teams third kit."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["kits"]["third"] = kiturl
         await ctx.tick()
 
     @checks.mod()
@@ -266,6 +313,8 @@ class SimLeague(commands.Cog):
                 "logo": logo,
                 "role": role,
                 "cachedlevel": 0,
+                "fullname": None,
+                "kits": {"home": None, "away": None, "third": None},
             }
         async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
@@ -304,8 +353,11 @@ class SimLeague(commands.Cog):
                     mems = [x for x in teams[team]["members"].keys()]
                     lvl = teams[team]["cachedlevel"]
                     embed.add_field(
-                        name=f"Team {team}",
-                        value="**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
+                        name="Team {}".format(team),
+                        value="{}**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
+                            "**Full Name**:\n{}\n".format(teams[team]["fullname"])
+                            if teams[team]["fullname"] is not None
+                            else "",
                             "\n".join(mems),
                             list(teams[team]["captain"].keys())[0],
                             lvl,
@@ -347,7 +399,16 @@ class SimLeague(commands.Cog):
         if team not in teams:
             return await ctx.send("Team does not exist, ensure that it is correctly capitilized.")
         async with ctx.typing():
-            embed = discord.Embed(title=team, colour=ctx.author.colour)
+            embeds = []
+            embed = discord.Embed(
+                title="{} {}".format(
+                    team,
+                    "- {}".format(teams[team]["fullname"])
+                    if teams[team]["fullname"] is not None
+                    else "",
+                ),
+                colour=ctx.author.colour,
+            )
             embed.add_field(name="Members:", value="\n".join(teams[team]["members"]), inline=True)
             embed.add_field(name="Captain:", value=list(teams[team]["captain"].keys())[0])
             embed.add_field(name="Level:", value=teams[team]["cachedlevel"], inline=True)
@@ -355,7 +416,13 @@ class SimLeague(commands.Cog):
                 embed.add_field(name="Role:", value=teams[team]["role"], inline=True)
             if teams[team]["logo"] is not None:
                 embed.set_thumbnail(url=teams[team]["logo"])
-        await ctx.send(embed=embed)
+            embeds.append(embed)
+            for kit in teams[team]["kits"]:
+                if teams[team]["kits"][kit] is not None:
+                    embed = discord.Embed(title=f"{kit.title()} Kit", colour=ctx.author.colour)
+                    embed.set_image(url=teams[team]["kits"][kit])
+                    embeds.append(embed)
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @checks.mod()
     @simset.command()
@@ -579,6 +646,8 @@ class SimLeague(commands.Cog):
         teams = await self.config.guild(ctx.guild).teams()
         if team1 not in teams or team2 not in teams:
             return await ctx.send("One of those teams do not exist.")
+        if team1 == team2:
+            return await ctx.send("You can't sim two of the same teams silly.")
         if uff:
             msg = await ctx.send("Updating levels. Please wait...")
             await self.update(ctx.guild)
@@ -590,6 +659,7 @@ class SimLeague(commands.Cog):
 
         self.active = True
         self.teams = [team1, team2]
+        reds = {team1: 0, team2: 0}
         bettime = await self.config.guild(ctx.guild).bettime()
         bet = await ctx.send(
             "Betting is now open, game will commence in {} seconds.\nUsage: {}bet <amount> <team>".format(
@@ -608,6 +678,8 @@ class SimLeague(commands.Cog):
         self.started = True
         team1players = list(teams[team1]["members"].keys())
         team2players = list(teams[team2]["members"].keys())
+        logos = ["sky", "bt", "bein", "bbc"]
+        logo = random.choice(logos)
         events = False
 
         yC_team1 = []
@@ -654,12 +726,18 @@ class SimLeague(commands.Cog):
             injury_count2,
         ]
 
-        async def TeamWeightChance(ctx, t1totalxp, t2totalxp):
+        async def TeamWeightChance(ctx, t1totalxp, t2totalxp, reds1: int, reds2: int):
             if t1totalxp < 2:
                 t1totalxp = 1
             if t2totalxp < 2:
                 t2totalxp = 1
-            total = ["A"] * (t1totalxp) + ["B"] * (t2totalxp)
+            redst1 = reds1 / 10
+            redst2 = reds2 / 10
+            if redst1 == 0:
+                redst1 = 1
+            if redst2 == 0:
+                redst2 = 1
+            total = ["A"] * int((t1totalxp // redst1)) + ["B"] * int((t2totalxp // redst2))
             rdmint = random.choice(total)
             if rdmint == "A":
                 return team1Stats
@@ -746,7 +824,7 @@ class SimLeague(commands.Cog):
             if events is False:
                 gC = self.goalChance()
                 if gC is True:
-                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
+                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
                     playerGoal = PlayerGenerator(
                         0,
                         teamStats[0],
@@ -806,7 +884,7 @@ class SimLeague(commands.Cog):
             if events is False:
                 pC = self.penaltyChance()
                 if pC is True:
-                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
+                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
                     playerPenalty = PlayerGenerator(
                         3,
                         teamStats[0],
@@ -889,6 +967,7 @@ class SimLeague(commands.Cog):
                         teamStats[7] += 1
                         teamStats[2].append(playerYellow[1])
                         async with self.config.guild(ctx.guild).stats() as stats:
+                            reds[str(playerYellow[0])] += 1
                             if playerYellow[1] not in stats["reds"]:
                                 stats["reds"][playerYellow[1]] = 1
                                 stats["yellows"][playerYellow[1]] += 1
@@ -959,6 +1038,7 @@ class SimLeague(commands.Cog):
                             stats["reds"][playerRed[1]] = 1
                         else:
                             stats["reds"][playerRed[1]] += 1
+                    reds[str(playerRed[0])] += 1
                     teamStats[2].append(playerRed[1])
                     events = True
                     uid = teams[str(playerRed[0])]["members"][playerRed[1]]
@@ -991,7 +1071,9 @@ class SimLeague(commands.Cog):
                     s += 1
                     gC = self.goalChance()
                     if gC is True:
-                        teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
+                        teamStats = await TeamWeightChance(
+                            ctx, lvl1, lvl2, reds[team1], reds[team2]
+                        )
                         playerGoal = PlayerGenerator(
                             0,
                             teamStats[0],
@@ -1052,11 +1134,11 @@ class SimLeague(commands.Cog):
                     events = False
                     ht = await self.config.guild(ctx.guild).htbreak()
                 im = await self.timepic(
-                    ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "HT"
+                    ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "HT", logo
                 )
                 await ctx.send(file=im)
                 await asyncio.sleep(ht)
-                await timemsg.edit(content="First Half Concluded")
+                await timemsg.delete()
                 timemsg = await ctx.send("Second Half!")
 
             if min == 90:
@@ -1068,7 +1150,9 @@ class SimLeague(commands.Cog):
                     s += 1
                     gC = self.goalChance()
                     if gC is True:
-                        teamStats = await TeamWeightChance(ctx, lvl1, lvl2)
+                        teamStats = await TeamWeightChance(
+                            ctx, lvl1, lvl2, reds[team1], reds[team2]
+                        )
                         playerGoal = PlayerGenerator(
                             0,
                             teamStats[0],
@@ -1128,7 +1212,7 @@ class SimLeague(commands.Cog):
                     await asyncio.sleep(2)
                     events = False
                 im = await self.timepic(
-                    ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "FT"
+                    ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "FT", logo
                 )
                 await timemsg.edit(content="Match Concluded")
                 await ctx.send(file=im)
@@ -1513,14 +1597,20 @@ class SimLeague(commands.Cog):
         start_pos = start + ((dist - width) / 2)
         return int(start_pos)
 
-    async def timepic(self, ctx, team1, team2, score1, score2, time):
+    async def timepic(self, ctx, team1, team2, score1, score2, time, logo):
         font_bold_file = f"{bundled_data_path(self)}/LeagueSpartan-Bold.otf"
         name_fnt = ImageFont.truetype(font_bold_file, 20)
         # set canvas
         width = 360
         height = 100
         bg_color = (255, 255, 255, 0)
-        scorebg = Image.open(await self.getimg("https://i.imgur.com/eCPpheL.png"))
+        logos = {
+            "bbc": "https://i.imgur.com/eCPpheL.png",
+            "bein": "https://i.imgur.com/VTzMuKv.png",
+            "sky": "https://i.imgur.com/sdTk0lW.png",
+            "bt": "https://i.imgur.com/RFWiSfK.png",
+        }
+        scorebg = Image.open(await self.getimg(logos[logo]))
         result = Image.new("RGBA", (width, height), bg_color)
         process = Image.new("RGBA", (width, height), bg_color)
         process.paste(scorebg, (0, 0))
@@ -1787,9 +1877,7 @@ class SimLeague(commands.Cog):
         level = teams[team1]["cachedlevel"]
         if ctx.guild.id == 410031796105773057:
             _write_unicode(
-                "Team: {} | Captain: {} | Total Level: {} ".format(
-                    team1, list(teams[team1]["captain"].keys())[0], level
-                ),
+                "Team: {} | Total Level: {} ".format(team1, level),
                 10,
                 vert_pos + 3,
                 name_fnt,
@@ -2045,8 +2133,8 @@ class SimLeague(commands.Cog):
     async def updatecacheall(self, guild):
         print("Updating CACHE.")
         async with self.config.guild(guild).teams() as teams:
-            t1totalxp = 0
             for team in teams:
+                t1totalxp = 0
                 teams[team]
                 team1pl = teams[team]["ids"]
                 if guild.id == 410031796105773057:
