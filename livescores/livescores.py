@@ -1,8 +1,9 @@
-from redbot.core import commands, Config, checks
-import discord
-import aiohttp
 import asyncio
 from io import BytesIO
+
+import aiohttp
+import discord
+from redbot.core import Config, checks, commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 

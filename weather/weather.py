@@ -29,7 +29,11 @@ class Weather(commands.Cog):
                 return None
 
     async def build(self, data):
-        area = f"{data['location']['name']}, {data['location']['region']}, {data['location']['country']}."
+        area = "{}, {} {}.".format(
+            data["location"]["name"],
+            data["location"]["region"] + "," if data["location"]["region"] != "" else "",
+            data["location"]["country"],
+        )
         time = datetime.datetime.strptime(data["current"]["last_updated"], "%Y-%m-%d %H:%M")
         embed = discord.Embed(
             title="Pikachu Weather",
