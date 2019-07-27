@@ -23,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.3.0"
+    __version__ = "2.3.1"
 
     def __init__(self, bot):
         defaults = {
@@ -40,6 +40,8 @@ class SimLeague(commands.Cog):
             "bettoggle": True,
             "betmax": 10000,
             "betmin": 10,
+            "pageamount": 5,
+            "mee6": False,
         }
         defaults_user = {"notify": True}
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
@@ -77,6 +79,7 @@ class SimLeague(commands.Cog):
             htbreak = await self.config.guild(guild).htbreak()
             results = await self.config.guild(guild).resultchannel()
             bettoggle = await self.config.guild(guild).bettoggle()
+            mee6 = await self.config.guild(guild).mee6()
             msg = ""
             msg += "Game Time: 1m for every {}s.\n".format(gametime)
             msg += "HT Break: {}s.\n".format(htbreak)
@@ -89,7 +92,17 @@ class SimLeague(commands.Cog):
                 msg += "Bet Time: {}s.\n".format(bettime)
                 msg += "Max Bet: {}.\n".format(betmax)
                 msg += "Min Bet: {}.\n".format(betmin)
+            if mee6:
+                pages = await self.config.guild(guild).pageamount()
+                msg += "Using MEE6 Levels: {}s.\n".format("Yes" if mee6 else "No")
+                msg += "Mee6 API Pages: {}.\n".format(pages)
             await ctx.send(box(msg))
+
+    @checks.mod()
+    @commands.group(autohelp=True)
+    async def teamset(self, ctx):
+        """Team Settings."""
+        pass
 
     @checks.admin()
     @simset.group(autohelp=True)
@@ -123,7 +136,7 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @bet.command()
-    async def bettime(self, ctx, time: int = 90):
+    async def time(self, ctx, time: int = 90):
         """Set the time allowed for betting - 120 seconds is the max."""
         if time < 0 or time > 120:
             time = 90
@@ -132,7 +145,7 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @bet.command()
-    async def betmax(self, ctx, amount: int):
+    async def max(self, ctx, amount: int):
         """Set the max amount for betting."""
         if amount < 1:
             return await ctx.send("Amount must be greater than 0.")
@@ -141,7 +154,7 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @bet.command()
-    async def betmin(self, ctx, amount: int):
+    async def min(self, ctx, amount: int):
         """Set the min amount for betting."""
         if amount < 1:
             return await ctx.send("Amount must be greater than 0.")
@@ -191,8 +204,8 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.command()
-    async def setrole(self, ctx, team: str, *, role: str):
+    @teamset.command()
+    async def role(self, ctx, team: str, *, role: str):
         """Set a teams role."""
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
@@ -201,8 +214,8 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.command()
-    async def setlogo(self, ctx, team: str, *, logo: str):
+    @teamset.command()
+    async def logo(self, ctx, team: str, *, logo: str):
         """Set a teams logo."""
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
@@ -211,8 +224,8 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.command(usage="<current name> <new name>")
-    async def setname(self, ctx, team: str, *, newname: str):
+    @teamset.command(usage="<current name> <new name>")
+    async def name(self, ctx, team: str, *, newname: str):
         """Set a teams name. Try keep names to one word if possible."""
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
@@ -225,8 +238,8 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.command()
-    async def setfullname(self, ctx, team: str, *, fullname: str):
+    @teamset.command()
+    async def fullname(self, ctx, team: str, *, fullname: str):
         """Set a teams full name."""
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
@@ -235,7 +248,7 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
-    @simset.group(autohelp=True)
+    @teamset.group(autohelp=True)
     async def kits(self, ctx):
         """Kit Settings."""
         pass
@@ -285,7 +298,8 @@ class SimLeague(commands.Cog):
             Try keep team names to one word if possible."""
         if len(members) != 4:
             return await ctx.send("You must provide 4 members.")
-        if ctx.guild.id == 410031796105773057:
+        mee6 = await self.config.guild(ctx.guild).mee6()
+        if mee6:
             await self.update(ctx.guild)
         names = {x.name: x.id for x in members}
         ids = [x.id for x in members]
@@ -456,45 +470,40 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command()
-    async def fixture(self, ctx, week: int):
-        """Show fixtures for a game week."""
-        fixtures = await self.config.guild(ctx.guild).fixtures()
-        if not fixtures:
-            return await ctx.send("No fixtures have been made.")
-        try:
-            games = fixtures
-            games.reverse()
-            games.append("None")
-            games.reverse()
-            games = games[week]
-        except IndexError:
-            return await ctx.send("Invalid gameweek.")
-        a = []
-        for fixture in games:
-            a.append(f"{fixture[0]} vs {fixture[1]}")
-        await ctx.maybe_send_embed("\n".join(a))
-
-    @commands.command()
-    async def fixtures(self, ctx):
+    async def fixtures(self, ctx, week: int = None):
         """Show all fixtures."""
         fixtures = await self.config.guild(ctx.guild).fixtures()
         if not fixtures:
             return await ctx.send("No fixtures have been made.")
-        embed = discord.Embed(color=0xFF0000)
-        for i, fixture in enumerate(fixtures[:25]):
-            a = []
-            for game in fixture:
-                a.append(f"{game[0]} vs {game[1]}")
-            embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
-        await ctx.send(embed=embed)
-        if len(fixtures) > 25:
+        if week is None:
             embed = discord.Embed(color=0xFF0000)
-            for i, fixture in enumerate(fixtures[25:], 25):
+            for i, fixture in enumerate(fixtures[:25]):
                 a = []
                 for game in fixture:
                     a.append(f"{game[0]} vs {game[1]}")
                 embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
             await ctx.send(embed=embed)
+            if len(fixtures) > 25:
+                embed = discord.Embed(color=0xFF0000)
+                for i, fixture in enumerate(fixtures[25:], 25):
+                    a = []
+                    for game in fixture:
+                        a.append(f"{game[0]} vs {game[1]}")
+                    embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
+                await ctx.send(embed=embed)
+        else:
+            try:
+                games = fixtures
+                games.reverse()
+                games.append("None")
+                games.reverse()
+                games = games[week]
+            except IndexError:
+                return await ctx.send("Invalid gameweek.")
+            a = []
+            for fixture in games:
+                a.append(f"{fixture[0]} vs {fixture[1]}")
+            await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
     async def standings(self, ctx, verbose: bool = False):
@@ -639,9 +648,7 @@ class SimLeague(commands.Cog):
     @commands.command(aliases=["sim"])
     async def playsim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
-        uff = False
-        if ctx.guild.id == 410031796105773057:
-            uff = True
+        uff = await self.config.guild(ctx.guild).mee6()
 
         teams = await self.config.guild(ctx.guild).teams()
         if team1 not in teams or team2 not in teams:
@@ -661,6 +668,8 @@ class SimLeague(commands.Cog):
         self.teams = [team1, team2]
         reds = {team1: 0, team2: 0}
         bettime = await self.config.guild(ctx.guild).bettime()
+
+        await self.matchnotif(ctx, team1, team2)
         bet = await ctx.send(
             "Betting is now open, game will commence in {} seconds.\nUsage: {}bet <amount> <team>".format(
                 bettime, ctx.prefix
@@ -809,12 +818,10 @@ class SimLeague(commands.Cog):
                 return output
 
         # Start of Simulation!
-        await self.matchnotif(ctx, team1, team2)
-        im = await self.walkout(ctx, team1)
-        im2 = await self.walkout(ctx, team2)
+        im = await self.walkout(ctx, team1, "home")
+        im2 = await self.walkout(ctx, team2, "away")
         await ctx.send("Teams:", file=im)
         await ctx.send(file=im2)
-        await asyncio.sleep(10)
         timemsg = await ctx.send("Kickoff!")
         gametime = await self.config.guild(ctx.guild).gametime()
         for min in range(1, 91):
@@ -1214,7 +1221,7 @@ class SimLeague(commands.Cog):
                 im = await self.timepic(
                     ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "FT", logo
                 )
-                await timemsg.edit(content="Match Concluded")
+                await timemsg.delete()
                 await ctx.send(file=im)
                 if team1Stats[8] > team2Stats[8]:
                     async with self.config.guild(ctx.guild).standings() as standings:
@@ -1508,7 +1515,7 @@ class SimLeague(commands.Cog):
             )
             draw.text(
                 (label_align, 78),
-                "{} {} : {} {}".format(team1.upper(), score1, score2, team2.upper()),
+                "{} {} : {} {}".format(team1.upper()[:3], score1, score2, team2.upper()[:3]),
                 font=general_info_fnt,
                 fill=label_text_color,
             )
@@ -1533,7 +1540,7 @@ class SimLeague(commands.Cog):
             )
             draw.text(
                 (label_align, 98),
-                "{} {} : {} {}".format(team1.upper(), score1, score2, team2.upper()),
+                "{} {} : {} {}".format(team1.upper()[:3], score1, score2, team2.upper()[:3]),
                 font=general_info_fnt,
                 fill=label_text_color,
             )
@@ -1801,7 +1808,7 @@ class SimLeague(commands.Cog):
         image = discord.File(file, filename="extratime.png")
         return image
 
-    async def walkout(self, ctx, team1):
+    async def walkout(self, ctx, team1, home_or_away):
 
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
@@ -1809,9 +1816,11 @@ class SimLeague(commands.Cog):
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         teams = await self.config.guild(ctx.guild).teams()
-
         # set canvas
-        width = 420
+        if teams[team1]["kits"][home_or_away] is None:
+            width = 420
+        else:
+            width = 550
         height = 200
         bg_color = (255, 255, 255, 0)
         result = Image.new("RGBA", (width, height), bg_color)
@@ -1859,7 +1868,11 @@ class SimLeague(commands.Cog):
             profile_image = profile_image.resize((profile_size, profile_size), Image.ANTIALIAS)
             process.paste(profile_image, (circle_left + border, circle_top + border), mask)
             circle_left += 90
-            draw.text((x, 160), player.name, font=general_info_fnt, fill=(255, 255, 255, 255))
+            if len(player.name) > 7:
+                name = player.name[:6] + "..."
+            else:
+                name = player.name
+            draw.text((x, 160), name, font=general_info_fnt, fill=(255, 255, 255, 255))
             x += 90
 
         def _write_unicode(text, init_x, y, font, unicode_font, fill):
@@ -1875,26 +1888,51 @@ class SimLeague(commands.Cog):
 
         grey_color = (110, 110, 110, 255)
         level = teams[team1]["cachedlevel"]
-        if ctx.guild.id == 410031796105773057:
-            _write_unicode(
-                "Team: {} | Total Level: {} ".format(team1, level),
-                10,
-                vert_pos + 3,
-                name_fnt,
-                header_u_fnt,
-                grey_color,
+        _write_unicode(
+            "Team: {} | Total Level: {} ".format(team1, level),
+            10,
+            vert_pos + 3,
+            name_fnt,
+            header_u_fnt,
+            grey_color,
+        )
+        if teams[team1]["kits"][home_or_away] is not None:
+            vert_pos = 5
+            right_pos = width - vert_pos
+            title_height = 22
+            gap = 3
+
+            content_top = vert_pos + title_height + gap
+            content_bottom = 100 - vert_pos
+            info_color = (30, 30, 30, 160)
+            server_icon = await self.getimg(teams[team1]["kits"][home_or_away])
+            server_icon_image = Image.open(server_icon).convert("RGBA")
+            server_size = content_bottom - content_top - 10
+            server_border_size = server_size + 4
+            radius = 20
+            light_border = (150, 150, 150, 180)
+            dark_border = (90, 90, 90, 180)
+            border_color = self._contrast(info_color, light_border, dark_border)
+
+            draw_server_border = Image.new(
+                "RGBA",
+                (server_border_size * multiplier, server_border_size * multiplier),
+                border_color,
             )
-        else:
-            _write_unicode(
-                "Team: {} | Captain: {} | Total Level: {} ".format(
-                    team1, list(teams[team1]["captain"].keys())[0], level
-                ),
-                10,
-                vert_pos + 3,
-                name_fnt,
-                header_u_fnt,
-                grey_color,
+            draw_server_border = self._add_corners(
+                draw_server_border, int(radius * multiplier / 2)
             )
+            draw_server_border = draw_server_border.resize((140, 140), Image.ANTIALIAS)
+            server_icon_image = server_icon_image.resize(
+                (server_size * multiplier, server_size * multiplier), Image.ANTIALIAS
+            )
+            server_icon_image = self._add_corners(
+                server_icon_image, int(radius * multiplier / 2) - 10
+            )
+            server_icon_image = server_icon_image.resize((136, 136), Image.ANTIALIAS)
+            process.paste(draw_server_border, (408, 45), draw_server_border)
+            process.paste(server_icon_image, (410, 47), server_icon_image)
+
         result = Image.alpha_composite(result, process)
         file = BytesIO()
         result.save(file, "PNG", quality=100)
@@ -2102,47 +2140,30 @@ class SimLeague(commands.Cog):
             return True
 
     async def update(self, guild):
-        data = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057??page=0&?limit=999"
-        )
-        data1 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=1&?limit=999"
-        )
-        data2 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=2&?limit=999"
-        )
-        data3 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=3&?limit=999"
-        )
-        data4 = await self.get(
-            "https://mee6.xyz/api/plugins/levels/leaderboard/410031796105773057?page=4&?limit=999"
-        )
         a = {}
-        for player in data["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data1["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data2["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data3["players"]:
-            a[player["username"]] = str(player["level"])
-        for player in data4["players"]:
-            a[player["username"]] = str(player["level"])
+        pageamount = await self.config.guild(guild).pageamount()
+        for i in range(pageamount):
+            data = await self.get(
+                f"https://mee6.xyz/api/plugins/levels/leaderboard/{guild.id}??page={i}&?limit=999"
+            )
+            for player in data["players"]:
+                a[player["id"]] = str(player["level"])
         await self.config.guild(guild).levels.set(a)
 
     async def updatecacheall(self, guild):
         print("Updating CACHE.")
+        mee6 = await self.config.guild(guild).mee6()
         async with self.config.guild(guild).teams() as teams:
             for team in teams:
                 t1totalxp = 0
                 teams[team]
                 team1pl = teams[team]["ids"]
-                if guild.id == 410031796105773057:
+
+                if mee6:
                     xp = await self.config.guild(guild).levels()
                     for memberid in team1pl:
-                        member = await self.bot.fetch_user(memberid)
                         try:
-                            t1totalxp += int(xp[member.name])
+                            t1totalxp += int(xp[str(memberid)])
                         except KeyError:
                             t1totalxp += 1
                     teams[team]["cachedlevel"] = t1totalxp
@@ -2160,22 +2181,21 @@ class SimLeague(commands.Cog):
     async def updatecachegame(self, guild, team1, team2):
         t1totalxp = 0
         t2totalxp = 0
+        mee6 = await self.config.guild(guild).mee6()
         async with self.config.guild(guild).teams() as teams:
             team1pl = teams[team1]["ids"]
-            if guild.id == 410031796105773057:
+            if mee6:
                 xp = await self.config.guild(guild).levels()
                 for memberid in team1pl:
-                    member = await self.bot.fetch_user(memberid)
                     try:
-                        t1totalxp += int(xp[member.name])
+                        t1totalxp += int(xp[str(memberid)])
                     except KeyError:
                         t1totalxp += 1
                 teams[team1]["cachedlevel"] = t1totalxp
                 team2pl = teams[team2]["ids"]
                 for memberid in team2pl:
-                    member = await self.bot.fetch_user(memberid)
                     try:
-                        t2totalxp += int(xp[member.name])
+                        t2totalxp += int(xp[str(memberid)])
                     except KeyError:
                         t2totalxp += 1
                 teams[team2]["cachedlevel"] = t2totalxp
@@ -2200,3 +2220,23 @@ class SimLeague(commands.Cog):
                     except (KeyError, TypeError):
                         t2totalxp += 1
                 teams[team2]["cachedlevel"] = t2totalxp
+
+    async def transfer(
+        self, guild, team1, member1: discord.Member, team2, member2: discord.Member
+    ):
+        async with self.config.guild(guild).teams() as teams:
+            teams[team1]["members"][member2.name] = member2.id
+            del teams[team1]["members"][member1.name]
+            teams[team2]["members"][member1.name] = member1.id
+            del teams[team2]["members"][member2.name]
+            teams[team1]["ids"].remove(member1.id)
+            teams[team2]["ids"].remove(member2.id)
+            teams[team1]["ids"].append(member2.id)
+            teams[team2]["ids"].append(member1.id)
+
+    @checks.admin()
+    @teamset.command(name="transfer")
+    async def _transfer(self, ctx, team1, player1: discord.Member, team2, player2: discord.Member):
+        """Transfer two players."""
+        await self.transfer(ctx.guild, team1, player1, team2, player2)
+        await ctx.tick()
