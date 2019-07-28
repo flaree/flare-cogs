@@ -23,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.3.1"
+    __version__ = "2.4.0"
 
     def __init__(self, bot):
         defaults = {
@@ -42,6 +42,13 @@ class SimLeague(commands.Cog):
             "betmin": 10,
             "pageamount": 5,
             "mee6": False,
+            "probability": {
+                "goalchance": 96,
+                "yellowchance": 98,
+                "redchance": 299,
+                "penaltychance": 249,
+                "penaltyblock": 0.6,
+            },
         }
         defaults_user = {"notify": True}
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
@@ -94,7 +101,7 @@ class SimLeague(commands.Cog):
                 msg += "Min Bet: {}.\n".format(betmin)
             if mee6:
                 pages = await self.config.guild(guild).pageamount()
-                msg += "Using MEE6 Levels: {}s.\n".format("Yes" if mee6 else "No")
+                msg += "Using MEE6 Levels: {}.\n".format("Yes" if mee6 else "No")
                 msg += "Mee6 API Pages: {}.\n".format(pages)
             await ctx.send(box(msg))
 
@@ -109,6 +116,62 @@ class SimLeague(commands.Cog):
     async def bet(self, ctx):
         """Simulation Betting Settings."""
         pass
+
+    @checks.guildowner()
+    @simset.group(autohelp=True)
+    async def probability(self, ctx):
+        """Simulation Probability Settings."""
+        pass
+
+    @checks.guildowner()
+    @probability.command()
+    async def goals(self, ctx, amount: int = 96):
+        """Goal probability. Default = 96"""
+        if amount > 100 or amount < 1:
+            return await ctx.send("Amount must be greater than 0 and less than 100.")
+        async with self.config.guild(ctx.guild).probability() as probability:
+            probability["goalchance"] = amount
+        await ctx.tick()
+
+    @checks.guildowner()
+    @probability.command()
+    async def yellow(self, ctx, amount: int = 98):
+        """Yellow Card probability. Default = 98"""
+        if amount > 100 or amount < 1:
+            return await ctx.send("Amount must be greater than 0 and less than 100.")
+        async with self.config.guild(ctx.guild).probability() as probability:
+            probability["yellowchance"] = amount
+        await ctx.tick()
+
+    @checks.guildowner()
+    @probability.command()
+    async def red(self, ctx, amount: int = 299):
+        """Red Card probability. Default = 299"""
+        if amount > 300 or amount < 1:
+            return await ctx.send("Amount must be greater than 0 and less than 300.")
+        async with self.config.guild(ctx.guild).probability() as probability:
+            probability["redchance"] = amount
+        await ctx.tick()
+
+    @checks.guildowner()
+    @probability.command()
+    async def penalty(self, ctx, amount: int = 249):
+        """Penalty Chance probability. Default = 249"""
+        if amount > 250 or amount < 1:
+            return await ctx.send("Amount must be greater than 0 and less than 250.")
+        async with self.config.guild(ctx.guild).probability() as probability:
+            probability["penaltychance"] = amount
+        await ctx.tick()
+
+    @checks.guildowner()
+    @probability.command()
+    async def penaltyblock(self, ctx, amount: float = 0.6):
+        """Penalty Block probability. Default = 0.6"""
+        if amount > 1 or amount < 0:
+            return await ctx.send("Amount must be greater than 0 and less than 1.")
+        async with self.config.guild(ctx.guild).probability() as probability:
+            probability["penaltyblock"] = amount
+        await ctx.tick()
 
     @commands.group(autohelp=True)
     async def stats(self, ctx):
@@ -180,7 +243,7 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @simset.command()
-    async def halftimetime(self, ctx, time: int = 1):
+    async def halftimebreak(self, ctx, time: int = 1):
         """Set the half time break - 20 seconds is the max. 5 is default."""
         if time < 0 or time > 20:
             time = 5
@@ -200,7 +263,32 @@ class SimLeague(commands.Cog):
     async def levels_updatecache(self, ctx):
         """Update the level cache."""
         async with ctx.typing():
+            mee6 = await self.config.guild(ctx.guild).mee6()
+            if mee6:
+                await self.update(ctx.guild)
             await self.updatecacheall(ctx.guild)
+        await ctx.tick()
+
+    @checks.admin()
+    @simset.command(name="mee6", hidden=True)
+    async def levels_mee6(self, ctx, true_or_false: bool):
+        """Enable mee6 rankings."""
+        if true_or_false:
+            await self.config.guild(ctx.guild).mee6.set(True)
+            await ctx.tick()
+        else:
+            await self.config.guild(ctx.guild).mee6.set(False)
+            await ctx.send("Now using Pikachus rankings.")
+
+    @checks.admin()
+    @simset.command(name="pages", hidden=True)
+    async def levels_mee6pages(self, ctx, amount: int):
+        """Update the amount of mee6 API pages to use. Default is 5, Max is 20."""
+        if amount > 20:
+            amount = 20
+        if amount > 1:
+            return await ctx.send("Invalid amount.")
+        await self.config.guild(ctx.guild).pages.set(amount)
         await ctx.tick()
 
     @checks.admin()
@@ -560,8 +648,8 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).standings.set({})
         await ctx.tick()
 
-    @stats.command(alies=["topscorer", "topscorers"])
-    async def goals(self, ctx):
+    @stats.command(name="goals", alias=["topscorer", "topscorers"])
+    async def _goals(self, ctx):
         """Players with the most goals."""
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["goals"]
@@ -684,6 +772,7 @@ class SimLeague(commands.Cog):
                 )
             await asyncio.sleep(1)
         await bet.delete()
+        probability = await self.config.guild(ctx.guild).probability()
         self.started = True
         team1players = list(teams[team1]["members"].keys())
         team2players = list(teams[team2]["members"].keys())
@@ -829,7 +918,7 @@ class SimLeague(commands.Cog):
             if min % 5 == 0:
                 await timemsg.edit(content="Minute: {}".format(min))
             if events is False:
-                gC = self.goalChance()
+                gC = await self.goalChance(ctx.guild, probability)
                 if gC is True:
                     teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
                     playerGoal = PlayerGenerator(
@@ -889,7 +978,7 @@ class SimLeague(commands.Cog):
                         )
                     await ctx.send(file=image)
             if events is False:
-                pC = self.penaltyChance()
+                pC = await self.penaltyChance(ctx.guild, probability)
                 if pC is True:
                     teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
                     playerPenalty = PlayerGenerator(
@@ -905,7 +994,7 @@ class SimLeague(commands.Cog):
                         ctx, str(playerPenalty[0]), str(min), playerPenalty[1]
                     )
                     await ctx.send(file=image)
-                    pB = self.penaltyBlock()
+                    pB = await self.penaltyBlock(ctx.guild, probability)
                     if pB is True:
                         events = True
                         uid = teams[str(playerPenalty[0])]["members"][playerPenalty[1]]
@@ -958,7 +1047,7 @@ class SimLeague(commands.Cog):
                         )
                         await ctx.send(file=image)
             if events is False:
-                yC = self.yCardChance()
+                yC = await self.yCardChance(ctx.guild, probability)
                 if yC is True:
                     teamStats = await TeamChance()
                     playerYellow = PlayerGenerator(
@@ -1027,7 +1116,7 @@ class SimLeague(commands.Cog):
                         )
                         await ctx.send(file=image)
             if events is False:
-                rC = self.rCardChance()
+                rC = await self.rCardChance(ctx.guild, probability)
                 if rC is True:
                     teamStats = await TeamChance()
                     playerRed = PlayerGenerator(
@@ -1076,7 +1165,7 @@ class SimLeague(commands.Cog):
                 s = 45
                 for i in range(added):
                     s += 1
-                    gC = self.goalChance()
+                    gC = await self.goalChance(ctx.guild, probability)
                     if gC is True:
                         teamStats = await TeamWeightChance(
                             ctx, lvl1, lvl2, reds[team1], reds[team2]
@@ -1155,7 +1244,7 @@ class SimLeague(commands.Cog):
                 s = 90
                 for i in range(added):
                     s += 1
-                    gC = self.goalChance()
+                    gC = await self.goalChance(ctx.guild, probability)
                     if gC is True:
                         teamStats = await TeamWeightChance(
                             ctx, lvl1, lvl2, reds[team1], reds[team2]
@@ -2114,29 +2203,29 @@ class SimLeague(commands.Cog):
                                 except discord.Forbidden:
                                     print("Failed to remove role from {}".format(member.name))
 
-    def yCardChance(self):
+    async def yCardChance(self, guild, probability):
         rdmint = random.randint(0, 100)
-        if rdmint > 98:
+        if rdmint > probability["yellowchance"]:  # 98 default
             return True
 
-    def rCardChance(self):
+    async def rCardChance(self, guild, probability):
         rdmint = random.randint(0, 300)
-        if rdmint > 299:
+        if rdmint > probability["redchance"]:  # 299 default
             return True
 
-    def goalChance(self):
+    async def goalChance(self, guild, probability):
         rdmint = random.randint(0, 100)
-        if rdmint > 96:
+        if rdmint > probability["goalchance"]:  # 96 default
             return True
 
-    def penaltyChance(self):
+    async def penaltyChance(self, guild, probability):
         rdmint = random.randint(0, 250)
-        if rdmint > 249:
+        if rdmint > probability["penaltychance"]:  # 249 probability
             return True
 
-    def penaltyBlock(self):
+    async def penaltyBlock(self, guild, probability):
         rdmint = random.randint(0, 1)
-        if rdmint > 0.6:
+        if rdmint > probability["penaltyblock"]:  # 0.6 default
             return True
 
     async def update(self, guild):
