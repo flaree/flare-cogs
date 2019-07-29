@@ -23,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.4.0"
+    __version__ = "2.4.1"
 
     def __init__(self, bot):
         defaults = {
@@ -120,8 +120,11 @@ class SimLeague(commands.Cog):
     @checks.guildowner()
     @simset.group(autohelp=True)
     async def probability(self, ctx):
-        """Simulation Probability Settings."""
-        pass
+        """Simulation Probability Settings. May break the cog if changed."""
+        if ctx.invoked_subcommand is None:
+            await ctx.send(
+                box("This has the chance to break the game completely, no support is offered.")
+            )
 
     @checks.guildowner()
     @probability.command()
@@ -434,8 +437,10 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command(name="teams", aliases=["list"])
-    async def _list(self, ctx, mobilefriendly: bool = True):
+    async def _list(self, ctx, updatecache: bool = False, mobilefriendly: bool = True):
         """List current teams."""
+        if updatecache:
+            await self.updatecacheall(ctx.guild)
         teams = await self.config.guild(ctx.guild).teams()
         if not teams:
             return await ctx.send("No teams have been registered.")
@@ -777,6 +782,7 @@ class SimLeague(commands.Cog):
         team1players = list(teams[team1]["members"].keys())
         team2players = list(teams[team2]["members"].keys())
         logos = ["sky", "bt", "bein", "bbc"]
+        yellowcards = []
         logo = random.choice(logos)
         events = False
 
@@ -849,7 +855,7 @@ class SimLeague(commands.Cog):
             else:
                 return team2Stats
 
-        def PlayerGenerator(event, team, yc, rc, injury, sub_in, sub_out):
+        def PlayerGenerator(event, team, yc, rc):
             random.shuffle(team1players)
             random.shuffle(team2players)
             output = []
@@ -857,20 +863,12 @@ class SimLeague(commands.Cog):
                 fs_players = team1players
                 yc = yC_team1
                 rc = rC_team1
-                injury = injury_team1
-                sub_in = sub_in_team1
-                sub_out = sub_out_team1
             elif team == team2:
                 fs_players = team2players
                 yc = yC_team2
                 rc = rC_team2
-                injury = injury_team2
-                sub_in = sub_in_team2
-                sub_out = sub_out_team2
             if event == 0:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                for i in sub_in:
-                    rosterUpdate.append(i)
                 isassist = False
                 assist = random.randint(0, 100)
                 playernum = random.randint(0, len(rosterUpdate) - 1)
@@ -883,26 +881,21 @@ class SimLeague(commands.Cog):
                     assister = rosterUpdate[assisternum]
                     output = [team, player, assister]
                 else:
-                    player = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
+                    player = random.choice(rosterUpdate)
                     output = [team, player]
                 return output
             elif event == 1:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                for i in sub_in:
-                    rosterUpdate.append(i)
-                player = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
-                if player[:] in yc:
+                player = random.choice(rosterUpdate)
+                if player in yc or player in yellowcards:
                     output = [team, player, 2]
                     return output
                 else:
-                    player = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
                     output = [team, player]
                     return output
             elif event == 2 or event == 3:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                for i in sub_in:
-                    rosterUpdate.append(i)
-                player_out = rosterUpdate[random.randint(0, len(rosterUpdate) - 1)]
+                player_out = random.choice(rosterUpdate)
                 output = [team, player_out]
                 return output
 
@@ -921,15 +914,7 @@ class SimLeague(commands.Cog):
                 gC = await self.goalChance(ctx.guild, probability)
                 if gC is True:
                     teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
-                    playerGoal = PlayerGenerator(
-                        0,
-                        teamStats[0],
-                        teamStats[1],
-                        teamStats[2],
-                        teamStats[3],
-                        teamStats[4],
-                        teamStats[5],
-                    )
+                    playerGoal = PlayerGenerator(0, teamStats[0], teamStats[1], teamStats[2])
                     teamStats[8] += 1
                     async with self.config.guild(ctx.guild).stats() as stats:
                         if playerGoal[1] not in stats["goals"]:
@@ -981,15 +966,7 @@ class SimLeague(commands.Cog):
                 pC = await self.penaltyChance(ctx.guild, probability)
                 if pC is True:
                     teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
-                    playerPenalty = PlayerGenerator(
-                        3,
-                        teamStats[0],
-                        teamStats[1],
-                        teamStats[2],
-                        teamStats[3],
-                        teamStats[4],
-                        teamStats[5],
-                    )
+                    playerPenalty = PlayerGenerator(3, teamStats[0], teamStats[1], teamStats[2])
                     image = await self.penaltyimg(
                         ctx, str(playerPenalty[0]), str(min), playerPenalty[1]
                     )
@@ -1050,15 +1027,7 @@ class SimLeague(commands.Cog):
                 yC = await self.yCardChance(ctx.guild, probability)
                 if yC is True:
                     teamStats = await TeamChance()
-                    playerYellow = PlayerGenerator(
-                        1,
-                        teamStats[0],
-                        teamStats[1],
-                        teamStats[2],
-                        teamStats[3],
-                        teamStats[4],
-                        teamStats[5],
-                    )
+                    playerYellow = PlayerGenerator(1, teamStats[0], teamStats[1], teamStats[2])
                     if len(playerYellow) == 3:
                         teamStats[7] += 1
                         teamStats[2].append(playerYellow[1])
@@ -1091,8 +1060,8 @@ class SimLeague(commands.Cog):
                         )
                         await ctx.send(file=image)
                     else:
-
                         teamStats[1].append(playerYellow[1])
+                        yellowcards.append(str(playerYellow[1]))
                         async with self.config.guild(ctx.guild).stats() as stats:
                             if playerYellow[1] not in stats["yellows"]:
                                 stats["yellows"][playerYellow[1]] = 1
@@ -1119,15 +1088,7 @@ class SimLeague(commands.Cog):
                 rC = await self.rCardChance(ctx.guild, probability)
                 if rC is True:
                     teamStats = await TeamChance()
-                    playerRed = PlayerGenerator(
-                        2,
-                        teamStats[0],
-                        teamStats[1],
-                        teamStats[2],
-                        teamStats[3],
-                        teamStats[4],
-                        teamStats[5],
-                    )
+                    playerRed = PlayerGenerator(2, teamStats[0], teamStats[1], teamStats[2])
                     teamStats[7] += 1
                     async with self.config.guild(ctx.guild).stats() as stats:
                         if playerRed[1] not in stats["reds"]:
@@ -1170,15 +1131,7 @@ class SimLeague(commands.Cog):
                         teamStats = await TeamWeightChance(
                             ctx, lvl1, lvl2, reds[team1], reds[team2]
                         )
-                        playerGoal = PlayerGenerator(
-                            0,
-                            teamStats[0],
-                            teamStats[1],
-                            teamStats[2],
-                            teamStats[3],
-                            teamStats[4],
-                            teamStats[5],
-                        )
+                        playerGoal = PlayerGenerator(0, teamStats[0], teamStats[1], teamStats[2])
                         teamStats[8] += 1
                         async with self.config.guild(ctx.guild).stats() as stats:
                             if playerGoal[1] not in stats["goals"]:
@@ -1249,15 +1202,7 @@ class SimLeague(commands.Cog):
                         teamStats = await TeamWeightChance(
                             ctx, lvl1, lvl2, reds[team1], reds[team2]
                         )
-                        playerGoal = PlayerGenerator(
-                            0,
-                            teamStats[0],
-                            teamStats[1],
-                            teamStats[2],
-                            teamStats[3],
-                            teamStats[4],
-                            teamStats[5],
-                        )
+                        playerGoal = PlayerGenerator(0, teamStats[0], teamStats[1], teamStats[2])
                         teamStats[8] += 1
                         async with self.config.guild(ctx.guild).stats() as stats:
                             if playerGoal[1] not in stats["goals"]:
@@ -1378,7 +1323,8 @@ class SimLeague(commands.Cog):
             await ctx.send("You have already entered a bet for the game.")
             return False
         if team not in self.teams:
-            return await ctx.send("That team isn't currently playing.")
+            await ctx.send("That team isn't currently playing.")
+            return False
 
         minbet = await self.config.guild(ctx.guild).betmin()
         if bet < minbet:
@@ -1396,7 +1342,7 @@ class SimLeague(commands.Cog):
             return True
 
     @commands.command(name="bet")
-    async def _bet(self, ctx, bet: int, team: str):
+    async def _bet(self, ctx, bet: int, *, team: str):
         """Bet on a team."""
         if await self.bet_conditions(ctx, bet, team):
             self.bets[ctx.author] = {"Bets": [(team, bet)]}
@@ -2311,9 +2257,13 @@ class SimLeague(commands.Cog):
                 teams[team2]["cachedlevel"] = t2totalxp
 
     async def transfer(
-        self, guild, team1, member1: discord.Member, team2, member2: discord.Member
+        self, ctx, guild, team1, member1: discord.Member, team2, member2: discord.Member
     ):
         async with self.config.guild(guild).teams() as teams:
+            if member1.id not in teams[team1]["ids"]:
+                return await ctx.send(f"{member1.name} is not on {team1}.")
+            if member2.id not in teams[team2]["ids"]:
+                return await ctx.send(f"{member2.name} is not on {team2}.")
             teams[team1]["members"][member2.name] = member2.id
             del teams[team1]["members"][member1.name]
             teams[team2]["members"][member1.name] = member1.id
@@ -2323,9 +2273,28 @@ class SimLeague(commands.Cog):
             teams[team1]["ids"].append(member2.id)
             teams[team2]["ids"].append(member1.id)
 
+    async def sign(self, ctx, guild, team1, member1: discord.Member, member2: discord.Member):
+        users = await self.config.guild(guild).users()
+        if member2.id in users:
+            return await ctx.send("User is currently not a free agent.")
+        async with self.config.guild(guild).teams() as teams:
+            if member1.id not in teams[team1]["ids"]:
+                return await ctx.send(f"{member1.name} is not on {team1}.")
+            teams[team1]["members"][member2.name] = member2.id
+            del teams[team1]["members"][member1.name]
+            teams[team1]["ids"].remove(member1.id)
+            teams[team1]["ids"].append(member2.id)
+
     @checks.admin()
     @teamset.command(name="transfer")
     async def _transfer(self, ctx, team1, player1: discord.Member, team2, player2: discord.Member):
         """Transfer two players."""
-        await self.transfer(ctx.guild, team1, player1, team2, player2)
+        await self.transfer(ctx, ctx.guild, team1, player1, team2, player2)
+        await ctx.tick()
+
+    @checks.admin()
+    @teamset.command(name="sign")
+    async def _sign(self, ctx, team1, player1: discord.Member, player2: discord.Member):
+        """Release a player and sign a free agent."""
+        await self.sign(ctx, ctx.guild, team1, player1, player2)
         await ctx.tick()
