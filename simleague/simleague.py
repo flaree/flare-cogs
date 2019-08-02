@@ -23,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.0"
+    __version__ = "2.5.1"
 
     def __init__(self, bot):
         defaults = {
@@ -31,7 +31,14 @@ class SimLeague(commands.Cog):
             "teams": {},
             "fixtures": [],
             "standings": {},
-            "stats": {"goals": {}, "yellows": {}, "reds": {}, "penalties": {}, "assists": {}},
+            "stats": {
+                "goals": {},
+                "yellows": {},
+                "reds": {},
+                "penalties": {},
+                "assists": {},
+                "motm": {},
+            },
             "users": [],
             "resultchannel": [],
             "gametime": 1,
@@ -50,15 +57,15 @@ class SimLeague(commands.Cog):
                 "penaltyblock": 0.6,
             },
             "maxplayers": 4,
+            "active": False,
+            "started": False,
+            "betteams": [],
         }
         defaults_user = {"notify": True}
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
         self.config.register_guild(**defaults)
         self.config.register_user(**defaults_user)
         self.bot = bot
-        self.active = False
-        self.started = False
-        self.teams = []
         self.bets = {}
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.cache = time.time()
@@ -742,6 +749,23 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("No stats available.")
 
+    @stats.command(alies=["motms"])
+    async def motm(self, ctx):
+        """Players with the most MOTMs."""
+        stats = await self.config.guild(ctx.guild).stats()
+        stats = stats["motm"]
+        if stats:
+            a = []
+            for k in sorted(stats, key=stats.get, reverse=True):
+                user = self.bot.get_user(k)
+                a.append(f"{user.name} - {stats[k]}")
+            embed = discord.Embed(
+                title="Most MOTMs", description="\n".join(a[:10]), colour=0xFF0000
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No stats available.")
+
     @stats.command()
     async def penalties(self, ctx):
         """Penalties scored and missed statistics."""
@@ -804,9 +828,10 @@ class SimLeague(commands.Cog):
             draw = homewin / awaywin
         except ZeroDivisionError:
             draw = 0.5
-
-        self.active = True
-        self.teams = [team1, team2]
+        await self.config.guild(ctx.guild).active.set(True)
+        await self.config.guild(ctx.guild).betteams.set([team1, team2])
+        goals = {}
+        assists = {}
         reds = {team1: 0, team2: 0}
         bettime = await self.config.guild(ctx.guild).bettime()
 
@@ -826,12 +851,13 @@ class SimLeague(commands.Cog):
             await asyncio.sleep(1)
         await bet.delete()
         probability = await self.config.guild(ctx.guild).probability()
-        self.started = True
+        await self.config.guild(ctx.guild).started.set(True)
         team1players = list(teams[team1]["members"].keys())
         team2players = list(teams[team2]["members"].keys())
         logos = ["sky", "bt", "bein", "bbc"]
         yellowcards = []
         logo = random.choice(logos)
+        motm = {}
         events = False
 
         yC_team1 = []
@@ -993,9 +1019,25 @@ class SimLeague(commands.Cog):
                         user2 = self.bot.get_user(assister)
                         if user2 is None:
                             user2 = await self.bot.fetch_user(uid)
+                        if user2 not in motm:
+                            motm[user2] = 1
+                        else:
+                            motm[user2] += 1
+                        if user2.id not in assists:
+                            assists[user2.id] = 1
+                        else:
+                            assists[user2.id] += 1
                     user = self.bot.get_user(uid)
                     if user is None:
                         user = await self.bot.fetch_user(uid)
+                    if user not in motm:
+                        motm[user] = 2
+                    else:
+                        motm[user] += 2
+                    if user.id not in goals:
+                        goals[user.id] = 1
+                    else:
+                        goals[user.id] += 1
                     if len(playerGoal) == 3:
                         image = await self.simpic(
                             ctx,
@@ -1073,6 +1115,14 @@ class SimLeague(commands.Cog):
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
+                        if user not in motm:
+                            motm[user] = 2
+                        else:
+                            motm[user] += 2
+                        if user.id not in goals:
+                            goals[user.id] = 1
+                        else:
+                            goals[user.id] += 1
                         image = await self.simpic(
                             ctx,
                             str(min),
@@ -1109,6 +1159,10 @@ class SimLeague(commands.Cog):
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
+                        if user not in motm:
+                            motm[user] = -2
+                        else:
+                            motm[user] += -2
                         image = await self.simpic(
                             ctx,
                             str(min),
@@ -1138,6 +1192,10 @@ class SimLeague(commands.Cog):
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
+                        if user not in motm:
+                            motm[user] = -1
+                        else:
+                            motm[user] += -1
                         image = await self.simpic(
                             ctx,
                             str(min),
@@ -1168,6 +1226,10 @@ class SimLeague(commands.Cog):
                     user = self.bot.get_user(uid)
                     if user is None:
                         user = await self.bot.fetch_user(uid)
+                    if user not in motm:
+                        motm[user] = -2
+                    else:
+                        motm[user] += -2
                     image = await self.simpic(
                         ctx,
                         str(min),
@@ -1216,11 +1278,27 @@ class SimLeague(commands.Cog):
                             user2 = self.bot.get_user(assister)
                             if user2 is None:
                                 user2 = await self.bot.fetch_user(uid)
+                            if user2 not in motm:
+                                motm[user2] = 1
+                            else:
+                                motm[user2] += 1
+                            if user2.id not in assists:
+                                assists[user2.id] = 1
+                            else:
+                                assists[user2.id] += 1
                         events = True
                         uid = teams[str(playerGoal[0])]["members"][playerGoal[1]]
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
+                        if user not in motm:
+                            motm[user] = 2
+                        else:
+                            motm[user] += 2
+                        if user.id not in goals:
+                            goals[user.id] = 1
+                        else:
+                            goals[user.id] += 1
                         if len(playerGoal) == 3:
                             image = await self.simpic(
                                 ctx,
@@ -1247,7 +1325,7 @@ class SimLeague(commands.Cog):
                                 str(team2Stats[8]),
                             )
                         await ctx.send(file=image)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(gametime)
                     events = False
                     ht = await self.config.guild(ctx.guild).htbreak()
                 im = await self.timepic(
@@ -1289,11 +1367,27 @@ class SimLeague(commands.Cog):
                             user2 = self.bot.get_user(assister)
                             if user2 is None:
                                 user2 = await self.bot.fetch_user(uid)
+                            if user2 not in motm:
+                                motm[user2] = 1
+                            else:
+                                motm[user2] += 1
+                            if user2.id not in assists:
+                                assists[user2.id] = 1
+                            else:
+                                assists[user2.id] += 1
                         events = True
                         uid = teams[str(playerGoal[0])]["members"][playerGoal[1]]
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
+                        if user not in motm:
+                            motm[user] = 2
+                        else:
+                            motm[user] += 2
+                        if user.id not in goals:
+                            goals[user.id] = 1
+                        else:
+                            goals[user.id] += 1
                         if len(playerGoal) == 3:
                             image = await self.simpic(
                                 ctx,
@@ -1320,7 +1414,7 @@ class SimLeague(commands.Cog):
                                 str(team2Stats[8]),
                             )
                         await ctx.send(file=image)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(gametime)
                     events = False
                 im = await self.timepic(
                     ctx, team1, team2, str(team1Stats[8]), str(team2Stats[8]), "FT", logo
@@ -1366,20 +1460,47 @@ class SimLeague(commands.Cog):
                         standings[team1]["gf"] += team1Stats[8]
                         standings[team2]["ga"] += team1Stats[8]
         await self.postresults(ctx, team1, team2, team1Stats[8], team2Stats[8])
-        self.active = False
-        self.started = False
+        await self.config.guild(ctx.guild).active.set(False)
+        await self.config.guild(ctx.guild).started.set(False)
+        await self.config.guild(ctx.guild).betteams.set([])
         self.bets = {}
+        if motm:
+            motmwinner = sorted(motm, key=motm.get, reverse=True)[0]
+            if motmwinner.id in goals:
+                motmgoals = goals[motmwinner.id]
+            else:
+                motmgoals = 0
+            if motmwinner.id in assists:
+                motmassists = assists[motmwinner.id]
+            else:
+                motmassists = 0
+            await bank.deposit_credits(motmwinner, (25 * motmgoals) + (10 * motmassists))
+            im = await self.motmpic(
+                ctx,
+                motmwinner,
+                team1 if motmwinner.id in teams[team1]["ids"] else team2,
+                motmgoals,
+                motmassists,
+            )
+            async with self.config.guild(ctx.guild).stats() as stats:
+                if playerGoal[1] not in stats["motm"]:
+                    stats["motm"][motmwinner.id] = 1
+                else:
+                    stats["motm"][motmwinner.id] += 1
+            await ctx.send(file=im)
         if t is not None:
             await ctx.send("Bet Winners:\n" + t)
 
     async def bet_conditions(self, ctx, bet, team):
         bettoggle = await self.config.guild(ctx.guild).bettoggle()
+        active = await self.config.guild(ctx.guild).active()
+        started = await self.config.guild(ctx.guild).started()
         if not bettoggle:
             return await ctx.send("Betting is currently disabled.")
-        if not self.active:
+        if not active:
             await ctx.send("There isn't a game onright now.")
             return False
-        elif self.started:
+        elif started:
             try:
                 await ctx.author.send("You can't place a bet after the game has started.")
             except discord.HTTPException:
@@ -1389,10 +1510,11 @@ class SimLeague(commands.Cog):
                     )
                 )
             return False
-        elif ctx.author in self.bets:
+        elif ctx.author.id in self.bets:
             await ctx.send("You have already entered a bet for the game.")
             return False
-        if team not in self.teams and team != "draw":
+        teams = await self.config.guild(ctx.guild).teams()
+        if team not in teams and team != "draw":
             await ctx.send("That team isn't currently playing.")
             return False
 
@@ -1914,6 +2036,169 @@ class SimLeague(commands.Cog):
         file.seek(0)
         image = discord.File(file, filename="extratime.png")
         return image
+
+    async def motmpic(self, ctx, user, team, goals, assists):
+        font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
+        name_fnt = ImageFont.truetype(font_bold_file, 22)
+        font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
+        general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
+        header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        rank_avatar = BytesIO()
+        await user.avatar_url.save(rank_avatar, seek_begin=True)
+        teams = await self.config.guild(ctx.guild).teams()
+        server_icon = await self.getimg(
+            teams[team]["logo"]
+            if teams[team]["logo"] is not None
+            else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+        )
+
+        profile_image = Image.open(rank_avatar).convert("RGBA")
+        server_icon_image = Image.open(server_icon).convert("RGBA")
+
+        # set canvas
+        width = 300
+        height = 100
+        bg_color = (255, 255, 255, 0)
+        result = Image.new("RGBA", (width, height), bg_color)
+        process = Image.new("RGBA", (width, height), bg_color)
+
+        # draw
+        draw = ImageDraw.Draw(process)
+
+        # draw transparent overlay
+        vert_pos = 5
+        left_pos = 135
+        right_pos = width - vert_pos
+        title_height = 22
+        gap = 3
+
+        draw.rectangle(
+            [(left_pos - 20, vert_pos), (right_pos, vert_pos + title_height)],
+            fill=(230, 230, 230, 230),
+        )  # title box
+
+        content_top = vert_pos + title_height + gap
+        content_bottom = 100 - vert_pos
+
+        info_color = (30, 30, 30, 160)
+
+        # draw level circle
+        multiplier = 6
+        lvl_circle_dia = 94
+        circle_left = 15
+        circle_top = int((height - lvl_circle_dia) / 2)
+        raw_length = lvl_circle_dia * multiplier
+
+        # create mask
+        mask = Image.new("L", (raw_length, raw_length), 0)
+        draw_thumb = ImageDraw.Draw(mask)
+        draw_thumb.ellipse((0, 0) + (raw_length, raw_length), fill=255, outline=0)
+
+        # draws mask
+        total_gap = 10
+        border = int(total_gap / 2)
+        profile_size = lvl_circle_dia - total_gap
+        raw_length = profile_size * multiplier
+        # put in profile picture
+        output = ImageOps.fit(profile_image, (raw_length, raw_length), centering=(0.5, 0.5))
+        output.resize((profile_size, profile_size), Image.ANTIALIAS)
+        mask = mask.resize((profile_size, profile_size), Image.ANTIALIAS)
+        profile_image = profile_image.resize((profile_size, profile_size), Image.ANTIALIAS)
+        process.paste(profile_image, (circle_left + border, circle_top + border), mask)
+
+        # put in server picture
+        server_size = content_bottom - content_top - 10
+        server_border_size = server_size + 4
+        radius = 20
+        light_border = (150, 150, 150, 180)
+        dark_border = (90, 90, 90, 180)
+        border_color = self._contrast(info_color, light_border, dark_border)
+
+        draw_server_border = Image.new(
+            "RGBA",
+            (server_border_size * multiplier, server_border_size * multiplier),
+            border_color,
+        )
+        draw_server_border = self._add_corners(draw_server_border, int(radius * multiplier / 2))
+        draw_server_border = draw_server_border.resize(
+            (server_border_size, server_border_size), Image.ANTIALIAS
+        )
+        server_icon_image = server_icon_image.resize(
+            (server_size * multiplier, server_size * multiplier), Image.ANTIALIAS
+        )
+        server_icon_image = self._add_corners(server_icon_image, int(radius * multiplier / 2) - 10)
+        server_icon_image = server_icon_image.resize((server_size, server_size), Image.ANTIALIAS)
+        process.paste(
+            draw_server_border,
+            (circle_left + profile_size + 2 * border + 8, content_top + 3),
+            draw_server_border,
+        )
+        process.paste(
+            server_icon_image,
+            (circle_left + profile_size + 2 * border + 10, content_top + 5),
+            server_icon_image,
+        )
+
+        def _write_unicode(text, init_x, y, font, unicode_font, fill):
+            write_pos = init_x
+
+            for char in text:
+                if char.isalnum() or char in string.punctuation or char in string.whitespace:
+                    draw.text((write_pos, y), char, font=font, fill=fill)
+                    write_pos += font.getsize(char)[0]
+                else:
+                    draw.text((write_pos, y), "{}".format(char), font=unicode_font, fill=fill)
+                    write_pos += unicode_font.getsize(char)[0]
+
+        left_text_align = 130
+        grey_color = (110, 110, 110, 255)
+        white_text = (240, 240, 240, 255)
+        dark_text = (35, 35, 35, 230)
+        # goal text
+        name = user.name
+        if len(name) > 15:
+            name = name[:13] + "..."
+        _write_unicode(
+            "MOTM: {}".format(name),
+            left_text_align - 12,
+            vert_pos + 3,
+            name_fnt,
+            header_u_fnt,
+            grey_color,
+        )
+        label_align = 200
+        label_text_color = self._contrast(info_color, white_text, dark_text)
+        draw.text(
+            (label_align, 38),
+            "Team: {}".format(team),
+            font=general_info_fnt,
+            fill=label_text_color,
+        )
+        draw.text(
+            (label_align, 58),
+            "Goals: {}".format(goals),
+            font=general_info_fnt,
+            fill=label_text_color,
+        )
+        draw.text(
+            (label_align, 78),
+            "Assists: {}".format(assists),
+            font=general_info_fnt,
+            fill=label_text_color,
+        )
+
+        result = Image.alpha_composite(result, process)
+        file = BytesIO()
+        result.save(file, "PNG", quality=100)
+        file.seek(0)
+        image = discord.File(file, filename="pikaleague.png")
+        return image
+
+    @commands.command()
+    async def test(self, ctx):
+        """."""
+        im = await self.motmpic(ctx, ctx.author, "gods", 0, 4)
+        await ctx.send(file=im)
 
     async def walkout(self, ctx, team1, home_or_away):
 
