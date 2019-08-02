@@ -23,7 +23,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.1"
+    __version__ = "2.5.2"
 
     def __init__(self, bot):
         defaults = {
@@ -758,6 +758,8 @@ class SimLeague(commands.Cog):
             a = []
             for k in sorted(stats, key=stats.get, reverse=True):
                 user = self.bot.get_user(k)
+                if user is None:
+                    user = await self.bot.fetch_user(k)
                 a.append(f"{user.name} - {stats[k]}")
             embed = discord.Embed(
                 title="Most MOTMs", description="\n".join(a[:10]), colour=0xFF0000
@@ -803,8 +805,9 @@ class SimLeague(commands.Cog):
 
     @checks.mod()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
-    @commands.command(aliases=["sim"])
-    async def playsim(self, ctx, team1: str, team2: str):
+    @commands.bot_has_permissions(manage_roles=True, manage_messages=True)
+    @commands.command(aliases=["playsim", "simulate"])
+    async def sim(self, ctx, team1: str, team2: str):
         """Manually sim a game."""
         uff = await self.config.guild(ctx.guild).mee6()
 
@@ -817,7 +820,9 @@ class SimLeague(commands.Cog):
             msg = await ctx.send("Updating levels. Please wait...")
             await self.update(ctx.guild)
             await msg.delete()
+        msg = await ctx.send("Updating cached levels...")
         await self.updatecachegame(ctx.guild, team1, team2)
+        await msg.delete()
         teams = await self.config.guild(ctx.guild).teams()
         await asyncio.sleep(2)
         lvl1 = teams[team1]["cachedlevel"]
@@ -1474,7 +1479,12 @@ class SimLeague(commands.Cog):
                 motmassists = assists[motmwinner.id]
             else:
                 motmassists = 0
-            await bank.deposit_credits(motmwinner, (25 * motmgoals) + (10 * motmassists))
+            try:
+                await bank.deposit_credits(
+                    self.bot.get_user(motmwinner.id), (25 * motmgoals) + (10 * motmassists)
+                )
+            except AttributeError:
+                pass
             im = await self.motmpic(
                 ctx,
                 motmwinner,
@@ -2193,12 +2203,6 @@ class SimLeague(commands.Cog):
         file.seek(0)
         image = discord.File(file, filename="pikaleague.png")
         return image
-
-    @commands.command()
-    async def test(self, ctx):
-        """."""
-        im = await self.motmpic(ctx, ctx.author, "gods", 0, 4)
-        await ctx.send(file=im)
 
     async def walkout(self, ctx, team1, home_or_away):
 
