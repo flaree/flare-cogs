@@ -539,7 +539,7 @@ class Stats:
         return image
 
     def cog_unload(self):
-        self.bot.loop.create_task(self.session.close())
+        self.bot.loop.create_task(self.session.detach())
 
     def round_corner(self, radius):
         """Draw a round corner"""

@@ -16,7 +16,7 @@ class Samp(commands.Cog):
         self._session = aiohttp.ClientSession(loop=self.bot.loop)
 
     def cog_unload(self):
-        self.bot.loop.create_task(self._session.close())
+        self.bot.loop.create_task(self._session.detach())
 
     async def get(self, url):
         async with self._session.get(url) as response:
