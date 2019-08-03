@@ -25,7 +25,7 @@ db = client["leveler"]
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.2"
+    __version__ = "2.5.3"
 
     def __init__(self, bot):
         defaults = {
@@ -1467,7 +1467,8 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).active.set(False)
         await self.config.guild(ctx.guild).started.set(False)
         await self.config.guild(ctx.guild).betteams.set([])
-        self.bets = {}
+        if ctx.guild.id in self.bets:
+            self.bets[ctx.guild.id] = {}
         if motm:
             motmwinner = sorted(motm, key=motm.get, reverse=True)[0]
             if motmwinner.id in goals:
@@ -1519,7 +1520,9 @@ class SimLeague(commands.Cog):
                     )
                 )
             return False
-        elif ctx.author.id in self.bets:
+        if ctx.guild.id not in self.bets:
+            self.bets[ctx.guild.id] = {}
+        elif ctx.author.id in self.bets[ctx.guild.id]:
             await ctx.send("You have already entered a bet for the game.")
             return False
         teams = await self.config.guild(ctx.guild).teams()
@@ -1546,7 +1549,7 @@ class SimLeague(commands.Cog):
     async def _bet(self, ctx, bet: int, *, team: str):
         """Bet on a team or a draw."""
         if await self.bet_conditions(ctx, bet, team):
-            self.bets[ctx.author] = {"Bets": [(team, bet)]}
+            self.bets[ctx.guild.id][ctx.author] = {"Bets": [(team, bet)]}
             currency = await bank.get_currency_name(ctx.guild)
             await bank.withdraw_credits(ctx.author, bet)
             await ctx.send(f"{ctx.author.mention} placed a {bet} {currency} bet on {str(team)}.")
@@ -1557,8 +1560,8 @@ class SimLeague(commands.Cog):
         if odds > 2.5:
             odds = 2.5
         bet_winners = []
-        for better in self.bets:
-            for team, bet in self.bets[better]["Bets"]:
+        for better in self.bets[guild.id]:
+            for team, bet in self.bets[guild.id][better]["Bets"]:
                 if team == winner:
                     bet_winners.append(f"{better.mention} - Winnings: {int(bet + (bet * odds))}")
                     await bank.deposit_credits(better, int(bet + (bet * odds)))
