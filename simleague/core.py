@@ -1,28 +1,22 @@
-import asyncio
 import random
 import string
-import time
 from io import BytesIO
-from typing import Optional
 
 import aiohttp
 import discord
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from prettytable import PrettyTable
 from pymongo import MongoClient
-from redbot.core import Config, bank, checks, commands
 from redbot.core.data_manager import bundled_data_path
-from redbot.core.utils.chat_formatting import box
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 client = MongoClient()
 db = client["leveler"]
 
-class SimHelper():
+
+class SimHelper:
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
-    
+
     async def simpic(
         self,
         ctx,
@@ -809,7 +803,7 @@ class SimHelper():
             buffer = BytesIO(await response.read())
             buffer.name = "picture.png"
             return buffer
-    
+
     async def addrole(self, ctx, user, rolename):
         role_obj = discord.utils.get(ctx.guild.roles, name=rolename)
         if role_obj is not None:
@@ -1126,7 +1120,7 @@ class SimHelper():
             teams[team1]["ids"].append(member2.id)
         async with cog.config.guild(guild).users() as users:
             users.remove(member1.id)
-    
+
     async def team_delete(self, ctx, team):
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(ctx.guild).teams() as teams:
@@ -1141,4 +1135,4 @@ class SimHelper():
             return await ctx.send("Team successfully removed.")
 
     def cog_unload(self):
-        self.bot.loop.create_task(self.session.close())
+        self.bot.loop.create_task(self.session.detach())

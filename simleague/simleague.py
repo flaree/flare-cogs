@@ -1,24 +1,15 @@
 import asyncio
 import random
-import string
 import time
-from io import BytesIO
 from typing import Optional
 
-import aiohttp
 import discord
-from PIL import Image, ImageDraw, ImageFont, ImageOps
 from prettytable import PrettyTable
-from pymongo import MongoClient
 from redbot.core import Config, bank, checks, commands
-from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .core import SimHelper
-
-client = MongoClient()
-db = client["leveler"]
 
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER
@@ -286,8 +277,8 @@ class SimLeague(commands.Cog):
         async with ctx.typing():
             mee6 = await self.config.guild(ctx.guild).mee6()
             if mee6:
-                await self.update(ctx.guild)
-            await self.updatecacheall(ctx.guild)
+                await self.helper.update(ctx.guild)
+            await self.helper.updatecacheall(ctx.guild)
         await ctx.tick()
 
     @checks.admin()
@@ -804,7 +795,6 @@ class SimLeague(commands.Cog):
 
     @checks.mod()
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
-    @commands.bot_has_permissions(manage_roles=True, manage_messages=True)
     @commands.command(aliases=["playsim", "simulate"])
     async def sim(self, ctx, team1: str, team2: str):
         """Simulate a game between two teams."""
@@ -1493,7 +1483,7 @@ class SimLeague(commands.Cog):
                 motmassists,
             )
             async with self.config.guild(ctx.guild).stats() as stats:
-                if playerGoal[1] not in stats["motm"]:
+                if motmwinner.id not in stats["motm"]:
                     stats["motm"][motmwinner.id] = 1
                 else:
                     stats["motm"][motmwinner.id] += 1
@@ -1560,6 +1550,8 @@ class SimLeague(commands.Cog):
         if odds > 2.5:
             odds = 2.5
         bet_winners = []
+        if guild.id not in self.bets:
+            return None
         for better in self.bets[guild.id]:
             for team, bet in self.bets[guild.id][better]["Bets"]:
                 if team == winner:
