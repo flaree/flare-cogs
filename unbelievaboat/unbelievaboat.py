@@ -196,7 +196,7 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send(embed=embed)
         failrates = await self.config.guild(ctx.guild).failrates()
         fail = random.randint(1, 100)
-        if fail > failrates["crime"]:
+        if fail < failrates["crime"]:
             return await self.fine(ctx, "crime")
         payouts = await self.config.guild(ctx.guild).payouts()
         wage = random.randint(payouts["crime"]["min"], payouts["crime"]["max"])
@@ -231,7 +231,7 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send(embed=embed)
         failrates = await self.config.guild(ctx.guild).failrates()
         fail = random.randint(1, 100)
-        if fail > failrates["rob"]:
+        if fail < failrates["rob"]:
             return await self.fine(ctx, "rob")
         userbalance = await bank.get_balance(user)
         if userbalance <= 50:

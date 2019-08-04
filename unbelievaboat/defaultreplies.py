@@ -19,6 +19,8 @@ work = [
     "You work in a local bookmakers and earn {amount}.",
     "You work in your local shop and get paid {amount}.",
     "You earn {amount} from a football bet.",
+    "You got featured and won {amount}",
+    "You work as a vibration consultant and earn {amount}",
 ]
 crimes = [
     "You rob a bank for {amount}.",
@@ -30,4 +32,11 @@ crimes = [
     "You and your posy rob a bank for {amount}.",
     "You see a man digging up a grave. He pays you {amount} to help him.",
     "You sell drugs on the corner block for {amount}.",
+    "You pickpocket a noble and find {amount} in his wallet.",
+    "You launder {amount} through a local hairdressers.",
+    "You robbed the Grinch and happen to find something in his collection! You sell it for {amount}",
+    "You scam an old couple out of {amount}",
+    "You earn {amount} from an insurance fraud scheme",
+    "You gain {amount} after breaking into a house.",
+    "You rob your friends wallet and find {amount}"
 ]
