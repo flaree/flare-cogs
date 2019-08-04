@@ -38,5 +38,5 @@ crimes = [
     "You scam an old couple out of {amount}",
     "You earn {amount} from an insurance fraud scheme",
     "You gain {amount} after breaking into a house.",
-    "You rob your friends wallet and find {amount}"
+    "You rob your friends wallet and find {amount}",
 ]

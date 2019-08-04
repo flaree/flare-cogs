@@ -3,12 +3,19 @@ import random
 
 import discord
 from redbot.core import Config, bank, checks, commands
-from redbot.core.utils.chat_formatting import humanize_timedelta
+from redbot.core.utils.chat_formatting import humanize_timedelta  #
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .defaultreplies import work, crimes
 
-def check_global_setting_admin():
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i : i + n]
+
+
+def check_global_setting_admin():
     async def predicate(ctx):
         author = ctx.author
         if not await bank.is_global():
@@ -31,12 +38,12 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def __init__(self, bot):
         self.bot = bot
         defaults = {
-            "cooldowns": {"workcd": 14400, "crimecd": 14400, "robcd": 14400},
+            "cooldowns": {"workcd": 14400, "crimecd": 14400, "robcd": 86400},
             "defaultreplies": True,
             "replies": {"crimereplies": [], "workreplies": []},
             "rob": [],
@@ -91,17 +98,17 @@ class Unbelievaboat(commands.Cog):
         job,
         time: commands.TimedeltaConverter(
             minimum=datetime.timedelta(seconds=0),
-            maximum=datetime.timedelta(hours=6),
+            maximum=datetime.timedelta(days=2),
             default_unit="minutes",
         ),
     ):
         """Set the cooldown for the work, crime or rob commands. Minimum cooldown is 30 seconds."""
-        if job not in ["work", "crime"]:
+        if job not in ["work", "crime", "rob"]:
             return await ctx.send("Invalid job.")
         seconds = time.total_seconds()
         if seconds < 30:
             return await ctx.send("The miniumum interval is 30 seconds.")
-        jobcd = {"work": "workcd", "crime": "crimecd"}
+        jobcd = {"work": "workcd", "crime": "crimecd", "robcd": "robcd"}
         async with self.config.guild(ctx.guild).cooldowns() as cooldowns:
             cooldowns[jobcd[job]] = int(seconds)
         await ctx.tick()
@@ -234,7 +241,7 @@ class Unbelievaboat(commands.Cog):
                 )
             job = random.choice(replies["crimereplies"])
             line = job.format(amount=wagesentence)
-            linenum = replies["workreplies"].index(job)
+            linenum = replies["crimereplies"].index(job)
         embed = discord.Embed(
             colour=discord.Color.green(), description=line, timestamp=datetime.datetime.now()
         )
@@ -306,6 +313,26 @@ class Unbelievaboat(commands.Cog):
                 return await ctx.send("Invalid ID.")
             replies[jobreplies[job]].pop(id)
         await ctx.send("Your reply has been removed")
+
+    @checks.admin()
+    @commands.command(name="list-replies")
+    async def list_reply(self, ctx, job):
+        """List custom reply."""
+        if job not in ["work", "crime"]:
+            return await ctx.send("Invalid job.")
+        jobreplies = {"work": "workreplies", "crime": "crimereplies"}
+        async with self.config.guild(ctx.guild).replies() as replies:
+            if len(replies[jobreplies[job]]) == 0:
+                return await ctx.send("This job has no custom replies.")
+            a = chunks(replies[jobreplies[job]], 10)
+            embeds = []
+            for item in a:
+                embed = discord.Embed(colour=discord.Color.red(), description="\n".join(item))
+                embeds.append(embed)
+            if len(embeds) == 1:
+                await ctx.send(embeds[0])
+            else:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @checks.admin()
     @commands.command(name="default-replies", usage="<enable | disable>")
