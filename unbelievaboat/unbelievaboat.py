@@ -2,15 +2,36 @@ import datetime
 import random
 
 import discord
-from redbot.cogs.bank import check_global_setting_admin
 from redbot.core import Config, bank, checks, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
 
 from .defaultreplies import work, crimes
 
+def check_global_setting_admin():
+
+    async def predicate(ctx):
+        author = ctx.author
+        if not await bank.is_global():
+            if not isinstance(ctx.channel, discord.abc.GuildChannel):
+                return False
+            if await ctx.bot.is_owner(author):
+                return True
+            if author == ctx.guild.owner:
+                return True
+            if ctx.channel.permissions_for(author).manage_guild:
+                return True
+            admin_roles = set(await ctx.bot.db.guild(ctx.guild).admin_role())
+            for role in author.roles:
+                if role.id in admin_roles:
+                    return True
+        else:
+            return await ctx.bot.is_owner(author)
+
+    return commands.check(predicate)
+
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def __init__(self, bot):
         self.bot = bot
