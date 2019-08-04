@@ -48,14 +48,14 @@ class Unbelievaboat(commands.Cog):
             await bank.withdraw_credits(ctx.author, randint)
             embed = discord.Embed(
                 colour=discord.Color.red(),
-                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the polce and fined {amount}",
+                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}",
             )
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         except ValueError:
             await bank.set_balance(ctx.author, 0)
             embed = discord.Embed(
                 colour=discord.Color.red(),
-                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the polce and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
+                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
             )
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
