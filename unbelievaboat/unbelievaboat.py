@@ -108,6 +108,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="set-cooldown")
     async def cooldown_set(
         self,
