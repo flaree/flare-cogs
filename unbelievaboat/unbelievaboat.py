@@ -57,13 +57,13 @@ class Unbelievaboat(commands.Cog):
         self.config.register_guild(**defaults)
         self.config.register_member(**defaults_member)
         self.config.register_user(**defaults_member)
-    
+
     async def configglobalcheck(self, ctx):
         if await bank.is_global():
             return self.config
         else:
             return self.config.guild(ctx.guild)
-    
+
     async def configglobalcheckuser(self, ctx):
         if await bank.is_global():
             return self.config.user(ctx.author)
@@ -379,7 +379,7 @@ class Unbelievaboat(commands.Cog):
         else:
             await ctx.send("Default replies are now disabled.")
             await conf.defaultreplies.set(enable)
-    
+
     @commands.command()
     async def cooldowns(self, ctx):
         """List all the current cooldowns."""
@@ -388,5 +388,7 @@ class Unbelievaboat(commands.Cog):
         workcd = humanize_timedelta(seconds=cooldowns["workcd"])
         robcd = humanize_timedelta(seconds=cooldowns["robcd"])
         crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
-        msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(workcd, crimecd, robcd)
+        msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
+            workcd, crimecd, robcd
+        )
         await ctx.maybe_send_embed(msg)
