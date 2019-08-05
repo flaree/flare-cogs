@@ -38,7 +38,7 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.0.5"
+    __version__ = "0.1.0"
 
     def __init__(self, bot):
         self.bot = bot
@@ -436,8 +436,8 @@ class Unbelievaboat(commands.Cog):
             inline=True,
         )
         payouts = await conf.payouts()
-        crimepayout = f"**Crime Payouts**\n**Max**: {payouts['crime']['max']}\n**Min**: {payouts['crime']['min']}"
-        workpayout = f"**Work Payouts**\n**Max**: {payouts['work']['max']}\n**Min**: {payouts['work']['min']}"
+        crimepayout = f"**Max**: {payouts['crime']['max']}\n**Min**: {payouts['crime']['min']}"
+        workpayout = f"**Max**: {payouts['work']['max']}\n**Min**: {payouts['work']['min']}"
         embed.add_field(name="Work Payouts", value=workpayout, inline=True)
         embed.add_field(name="Crime Payouts", value=crimepayout, inline=True)
         failrates = await conf.failrates()
