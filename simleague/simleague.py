@@ -118,7 +118,7 @@ class SimLeague(commands.Cog):
         pass
 
     @checks.guildowner()
-    @simset.group(autohelp=True)
+    @simset.group(autohelp=True, hidden=True)
     async def probability(self, ctx):
         """Simulation Probability Settings. May break the cog if changed."""
         if ctx.invoked_subcommand is None:
