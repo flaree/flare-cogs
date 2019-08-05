@@ -38,7 +38,7 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def __init__(self, bot):
         self.bot = bot
@@ -63,6 +63,27 @@ class Unbelievaboat(commands.Cog):
             return self.config
         else:
             return self.config.guild(ctx.guild)
+
+    def roll(self):
+        roll = random.randint(1, 20)
+        if roll == 1:
+            return 0.005
+        if roll > 1 and roll <= 6:
+            return 0.01
+        if roll > 6 and roll <= 8:
+            return 0.02
+        if roll > 8 and roll <= 10:
+            return 0.03
+        if roll > 10 and roll <= 13:
+            return 0.04
+        if roll > 13 and roll <= 16:
+            return 0.06
+        if roll > 16 and roll <= 17:
+            return 0.075
+        if roll > 17 and roll <= 19:
+            return 0.085
+        if roll == 20:
+            return 0.1
 
     async def configglobalcheckuser(self, ctx):
         if await bank.is_global():
@@ -297,7 +318,8 @@ class Unbelievaboat(commands.Cog):
             )
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
             return await ctx.send(embed=embed)
-        stolen = random.randint(1, int(userbalance * 0.075))
+        modifier = self.roll()
+        stolen = random.randint(1, int(userbalance * modifier))
         await bank.withdraw_credits(user, stolen)
         await bank.deposit_credits(ctx.author, stolen)
         embed = discord.Embed(
@@ -393,3 +415,40 @@ class Unbelievaboat(commands.Cog):
             workcd, crimecd, robcd
         )
         await ctx.maybe_send_embed(msg)
+
+    @commands.command()
+    @check_global_setting_admin()
+    @checks.admin()
+    async def settings(self, ctx):
+        """Current unbelievaboat settings."""
+        conf = await self.configglobalcheck(ctx)
+        cooldowns = await conf.cooldowns()
+        workcd = humanize_timedelta(seconds=cooldowns["workcd"])
+        robcd = humanize_timedelta(seconds=cooldowns["robcd"])
+        crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
+        cooldowns = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
+            workcd, crimecd, robcd
+        )
+        embed = discord.Embed(colour=ctx.author.colour, title="Unbelievaboat Settings")
+        embed.add_field(
+            name="Using Default Replies?",
+            value="Yes" if await conf.defaultreplies() else "No",
+            inline=True,
+        )
+        payouts = await conf.payouts()
+        crimepayout = f"**Crime Payouts**\n**Max**: {payouts['crime']['max']}\n**Min**: {payouts['crime']['min']}"
+        workpayout = f"**Work Payouts**\n**Max**: {payouts['work']['max']}\n**Min**: {payouts['work']['min']}"
+        embed.add_field(name="Work Payouts", value=workpayout, inline=True)
+        embed.add_field(name="Crime Payouts", value=crimepayout, inline=True)
+        failrates = await conf.failrates()
+        embed.add_field(
+            name="Fail Rates",
+            value=f"**Crime**: {failrates['crime']}%\n**Rob**: {failrates['rob']}%",
+            inline=True,
+        )
+        fines = await conf.fines()
+        embed.add_field(
+            name="Fines", value=f"**Max**: {fines['max']}\n**Min**: {fines['min']}", inline=True
+        )
+        embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
+        await ctx.send(embed=embed)
