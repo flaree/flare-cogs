@@ -108,7 +108,7 @@ class Unbelievaboat(commands.Cog):
         seconds = time.total_seconds()
         if seconds < 30:
             return await ctx.send("The miniumum interval is 30 seconds.")
-        jobcd = {"work": "workcd", "crime": "crimecd", "robcd": "robcd"}
+        jobcd = {"work": "workcd", "crime": "crimecd", "rob": "robcd"}
         async with self.config.guild(ctx.guild).cooldowns() as cooldowns:
             cooldowns[jobcd[job]] = int(seconds)
         await ctx.tick()
@@ -200,7 +200,7 @@ class Unbelievaboat(commands.Cog):
             linenum = work.index(job)
         else:
             replies = await self.config.guild(ctx.guild).replies()
-            if len(replies["workreplies"]) == 0:
+            if not replies["workreplies"]:
                 return await ctx.send(
                     "You have custom replies enabled yet haven't added any replies yet."
                 )
@@ -235,7 +235,7 @@ class Unbelievaboat(commands.Cog):
             linenum = crimes.index(job)
         else:
             replies = await self.config.guild(ctx.guild).replies()
-            if len(replies["crimereplies"]) == 0:
+            if not replies["crimereplies"]:
                 return await ctx.send(
                     "You have custom replies enabled yet haven't added any replies yet."
                 )
@@ -307,7 +307,7 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send("Invalid job.")
         jobreplies = {"work": "workreplies", "crime": "crimereplies"}
         async with self.config.guild(ctx.guild).replies() as replies:
-            if len(replies[jobreplies[job]]) == 0:
+            if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             if id > len(replies[jobreplies[job]]):
                 return await ctx.send("Invalid ID.")
@@ -317,12 +317,12 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @commands.command(name="list-replies")
     async def list_reply(self, ctx, job):
-        """List custom reply."""
+        """List custom replies."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
         jobreplies = {"work": "workreplies", "crime": "crimereplies"}
         async with self.config.guild(ctx.guild).replies() as replies:
-            if len(replies[jobreplies[job]]) == 0:
+            if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             a = chunks(replies[jobreplies[job]], 10)
             embeds = []
