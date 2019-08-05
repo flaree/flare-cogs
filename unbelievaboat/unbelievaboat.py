@@ -3,7 +3,7 @@ import random
 
 import discord
 from redbot.core import Config, bank, checks, commands
-from redbot.core.utils.chat_formatting import humanize_timedelta  #
+from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .defaultreplies import work, crimes
@@ -38,7 +38,7 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def __init__(self, bot):
         self.bot = bot
@@ -53,25 +53,42 @@ class Unbelievaboat(commands.Cog):
         }
         defaults_member = {"cooldowns": {"workcd": None, "crimecd": None, "robcd": None}}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
+        self.config.register_global(**defaults)
         self.config.register_guild(**defaults)
         self.config.register_member(**defaults_member)
+        self.config.register_user(**defaults_member)
+    
+    async def configglobalcheck(self, ctx):
+        if await bank.is_global():
+            return self.config
+        else:
+            return self.config.guild(ctx.guild)
+    
+    async def configglobalcheckuser(self, ctx):
+        if await bank.is_global():
+            return self.config.user(ctx.author)
+        else:
+            return self.config.member(ctx.author)
 
     async def cdcheck(self, ctx, job):
-        cd = await self.config.member(ctx.author).cooldowns()
-        jobcd = await self.config.guild(ctx.guild).cooldowns()
+        conf = await self.configglobalcheck(ctx)
+        userconf = await self.configglobalcheckuser(ctx)
+        cd = await userconf.cooldowns()
+        jobcd = await conf.cooldowns()
         if cd[job] is None:
-            async with self.config.member(ctx.author).cooldowns() as cd:
+            async with userconf.cooldowns() as cd:
                 cd[job] = int(datetime.datetime.utcnow().timestamp())
             return True
         time = int(datetime.datetime.utcnow().timestamp()) - cd[job]
         if time < jobcd[job]:
             return (False, humanize_timedelta(seconds=jobcd[job] - time))
-        async with self.config.member(ctx.author).cooldowns() as cd:
+        async with userconf.cooldowns() as cd:
             cd[job] = int(datetime.datetime.utcnow().timestamp())
         return True
 
     async def fine(self, ctx, job):
-        fines = await self.config.guild(ctx.guild).fines()
+        conf = await self.configglobalcheck(ctx)
+        fines = await conf.fines()
         randint = random.randint(fines["min"], fines["max"])
         amount = str(randint) + " " + await bank.get_currency_name(ctx.guild)
         try:
@@ -109,7 +126,8 @@ class Unbelievaboat(commands.Cog):
         if seconds < 30:
             return await ctx.send("The miniumum interval is 30 seconds.")
         jobcd = {"work": "workcd", "crime": "crimecd", "rob": "robcd"}
-        async with self.config.guild(ctx.guild).cooldowns() as cooldowns:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.cooldowns() as cooldowns:
             cooldowns[jobcd[job]] = int(seconds)
         await ctx.tick()
 
@@ -132,7 +150,8 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send("Invalid job.")
         if min_or_max not in ["max", "min"]:
             return await ctx.send("You must choose between min or max.")
-        async with self.config.guild(ctx.guild).payouts() as payouts:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.payouts() as payouts:
             payouts[job][min_or_max] = amount
         await ctx.tick()
 
@@ -145,7 +164,8 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send("Invalid job.")
         if amount < 50 or amount > 100:
             return await ctx.send("Amount must be higher than 50 or less than 100")
-        async with self.config.guild(ctx.guild).failrates() as failrates:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.failrates() as failrates:
             failrates[job] = amount
         await ctx.tick()
 
@@ -156,7 +176,8 @@ class Unbelievaboat(commands.Cog):
         """Set the min or max fine rate for crimes"""
         if min_or_max not in ["max", "min"]:
             return await ctx.send("You must choose between min or max.")
-        async with self.config.guild(ctx.guild).fines() as fines:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.fines() as fines:
             fines[min_or_max] = amount
         await ctx.tick()
 
@@ -191,15 +212,16 @@ class Unbelievaboat(commands.Cog):
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "work")
             return await ctx.send(embed=embed)
-        payouts = await self.config.guild(ctx.guild).payouts()
+        conf = await self.configglobalcheck(ctx)
+        payouts = await conf.payouts()
         wage = random.randint(payouts["work"]["min"], payouts["work"]["max"])
         wagesentence = str(wage) + " " + await bank.get_currency_name(ctx.guild)
-        if await self.config.guild(ctx.guild).defaultreplies():
+        if await conf.defaultreplies():
             job = random.choice(work)
             line = job.format(amount=wagesentence)
             linenum = work.index(job)
         else:
-            replies = await self.config.guild(ctx.guild).replies()
+            replies = await conf.replies()
             if not replies["workreplies"]:
                 return await ctx.send(
                     "You have custom replies enabled yet haven't added any replies yet."
@@ -222,19 +244,20 @@ class Unbelievaboat(commands.Cog):
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "crime")
             return await ctx.send(embed=embed)
-        failrates = await self.config.guild(ctx.guild).failrates()
+        conf = await self.configglobalcheck(ctx)
+        failrates = await conf.failrates()
         fail = random.randint(1, 100)
         if fail < failrates["crime"]:
             return await self.fine(ctx, "crime")
-        payouts = await self.config.guild(ctx.guild).payouts()
+        payouts = await conf.payouts()
         wage = random.randint(payouts["crime"]["min"], payouts["crime"]["max"])
         wagesentence = str(wage) + " " + await bank.get_currency_name(ctx.guild)
-        if await self.config.guild(ctx.guild).defaultreplies():
+        if await conf.defaultreplies():
             job = random.choice(crimes)
             line = job.format(amount=wagesentence)
             linenum = crimes.index(job)
         else:
-            replies = await self.config.guild(ctx.guild).replies()
+            replies = await conf.replies()
             if not replies["crimereplies"]:
                 return await ctx.send(
                     "You have custom replies enabled yet haven't added any replies yet."
@@ -257,7 +280,8 @@ class Unbelievaboat(commands.Cog):
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "rob")
             return await ctx.send(embed=embed)
-        failrates = await self.config.guild(ctx.guild).failrates()
+        conf = await self.configglobalcheck(ctx)
+        failrates = await conf.failrates()
         fail = random.randint(1, 100)
         if fail < failrates["rob"]:
             return await self.fine(ctx, "rob")
@@ -284,6 +308,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="add-reply")
     async def add_reply(self, ctx, job, *, reply: str):
         """Add a custom reply for working or crime. Put {amount} in place of where you want the amount earned to be."""
@@ -291,8 +316,9 @@ class Unbelievaboat(commands.Cog):
             return await ctx.send("Invalid job.")
         if "{amount}" not in reply:
             return await ctx.send("{amount} must be present in the reply.")
+        conf = await self.configglobalcheck(ctx)
         jobreplies = {"work": "workreplies", "crime": "crimereplies"}
-        async with self.config.guild(ctx.guild).replies() as replies:
+        async with conf.replies() as replies:
             if reply in replies[jobreplies[job]]:
                 return await ctx.send("That is already a response.")
             replies[jobreplies[job]].append(reply)
@@ -300,13 +326,15 @@ class Unbelievaboat(commands.Cog):
         await ctx.send("Your reply has been added and is reply ID #{}".format(ind))
 
     @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="del-reply")
     async def del_reply(self, ctx, job, *, id: int):
         """Delete a custom reply."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
         jobreplies = {"work": "workreplies", "crime": "crimereplies"}
-        async with self.config.guild(ctx.guild).replies() as replies:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.replies() as replies:
             if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             if id > len(replies[jobreplies[job]]):
@@ -315,32 +343,50 @@ class Unbelievaboat(commands.Cog):
         await ctx.send("Your reply has been removed")
 
     @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="list-replies")
     async def list_reply(self, ctx, job):
         """List custom replies."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
         jobreplies = {"work": "workreplies", "crime": "crimereplies"}
-        async with self.config.guild(ctx.guild).replies() as replies:
+        conf = await self.configglobalcheck(ctx)
+        async with conf.replies() as replies:
             if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             a = chunks(replies[jobreplies[job]], 10)
             embeds = []
             for item in a:
-                embed = discord.Embed(colour=discord.Color.red(), description="\n".join(item))
+                items = []
+                for i, strings in enumerate(item):
+                    items.append(f"Reply {i}: {strings}")
+                embed = discord.Embed(colour=discord.Color.red(), description="\n".join(items))
                 embeds.append(embed)
             if len(embeds) == 1:
-                await ctx.send(embeds[0])
+                await ctx.send(embed=embeds[0])
             else:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="default-replies", usage="<enable | disable>")
     async def default_replies(self, ctx, enable: bool):
         """Whether to use the default replies to work and crime."""
+        conf = await self.configglobalcheck(ctx)
         if enable:
             await ctx.send("Default replies are enabled.")
-            await self.config.guild(ctx.guild).defaultreplies.set(enable)
+            await conf.defaultreplies.set(enable)
         else:
             await ctx.send("Default replies are now disabled.")
-            await self.config.guild(ctx.guild).defaultreplies.set(enable)
+            await conf.defaultreplies.set(enable)
+    
+    @commands.command()
+    async def cooldowns(self, ctx):
+        """List all the current cooldowns."""
+        conf = await self.configglobalcheck(ctx)
+        cooldowns = await conf.cooldowns()
+        workcd = humanize_timedelta(seconds=cooldowns["workcd"])
+        robcd = humanize_timedelta(seconds=cooldowns["robcd"])
+        crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
+        msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(workcd, crimecd, robcd)
+        await ctx.maybe_send_embed(msg)
