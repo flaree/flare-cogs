@@ -38,7 +38,7 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def __init__(self, bot):
         self.bot = bot
@@ -407,12 +407,35 @@ class Unbelievaboat(commands.Cog):
 
     @commands.command()
     async def cooldowns(self, ctx):
-        """List all the current cooldowns."""
+        """List your remaining cooldowns.."""
         conf = await self.configglobalcheck(ctx)
-        cooldowns = await conf.cooldowns()
-        workcd = humanize_timedelta(seconds=cooldowns["workcd"])
-        robcd = humanize_timedelta(seconds=cooldowns["robcd"])
-        crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
+        userconf = await self.configglobalcheckuser(ctx)
+        cd = await userconf.cooldowns()
+        jobcd = await conf.cooldowns()
+        if cd["workcd"] is None:
+            workcd = "None"
+        else:
+            time = int(datetime.datetime.utcnow().timestamp()) - cd["workcd"]
+            if time < jobcd["workcd"]:
+                workcd = humanize_timedelta(seconds=jobcd["workcd"] - time)
+            else:
+                workcd = "Ready to use."
+        if cd["crimecd"] is None:
+            crimecd = "Ready to use."
+        else:
+            time = int(datetime.datetime.utcnow().timestamp()) - cd["crimecd"]
+            if time < jobcd["crimecd"]:
+                crimecd = humanize_timedelta(seconds=jobcd["crimecd"] - time)
+            else:
+                crimecd = "Ready to use."
+        if cd["robcd"] is None:
+            robcd = "Ready to use."
+        else:
+            time = int(datetime.datetime.utcnow().timestamp()) - cd["robcd"]
+            if time < jobcd["robcd"]:
+                robcd = humanize_timedelta(seconds=jobcd["robcd"] - time)
+            else:
+                robcd = "Ready to use."
         msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
             workcd, crimecd, robcd
         )
