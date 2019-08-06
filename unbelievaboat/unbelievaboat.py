@@ -298,6 +298,8 @@ class Unbelievaboat(commands.Cog):
     @commands.command()
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
+        if user == ctx.author:
+            return await ctx.send("Robbing yourself doesn't make much sense.")
         cdcheck = await self.cdcheck(ctx, "robcd")
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "rob")
