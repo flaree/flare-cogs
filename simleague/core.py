@@ -69,7 +69,13 @@ class SimHelper:
             )
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
-        server_icon_image = Image.open(server_icon).convert("RGBA")
+        try:
+            server_icon_image = Image.open(server_icon).convert("RGBA")
+        except:
+            server_icon = await self.getimg(
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            )
+            server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
         width = 360
@@ -344,7 +350,13 @@ class SimHelper:
             else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
         )
 
-        server_icon_image = Image.open(server_icon).convert("RGBA")
+        try:
+            server_icon_image = Image.open(server_icon).convert("RGBA")
+        except:
+            server_icon = await self.getimg(
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            )
+            server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
         width = 360
@@ -518,7 +530,13 @@ class SimHelper:
         )
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
-        server_icon_image = Image.open(server_icon).convert("RGBA")
+        try:
+            server_icon_image = Image.open(server_icon).convert("RGBA")
+        except:
+            server_icon = await self.getimg(
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            )
+            server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
         width = 300
