@@ -113,6 +113,8 @@ class Livescores(commands.Cog):
         if data["success"] is False:
             return await ctx.send("Failed.")
         embeds = []
+        if not data["data"]["match"]:
+            return await ctx.send("No matches available.")
         for match in data["data"]["match"]:
             embed = discord.Embed(
                 colour=ctx.author.color, title=f"{match['home_name']} vs {match['away_name']}"

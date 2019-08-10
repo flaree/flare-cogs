@@ -16,7 +16,7 @@ from .core import SimHelper
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.3"
+    __version__ = "2.5.4"
 
     def __init__(self, bot):
         defaults = {
