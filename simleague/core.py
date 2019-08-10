@@ -811,6 +811,135 @@ class SimHelper:
         image = discord.File(file, filename="pikaleague.png")
         return image
 
+    async def matchinfo(self, ctx, teamlist, weather, stadium, homeodds, awayodds, drawodds):
+        width = 500
+        height = 160
+        bg_color = (255, 255, 255, 0)
+        result = Image.new("RGBA", (width, height), bg_color)
+        process = Image.new("RGBA", (width, height), bg_color)
+        draw = ImageDraw.Draw(process)
+
+        font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
+        general_info_fnt = ImageFont.truetype(font_bold_file, 18, encoding="utf-8")
+        cog = self.bot.get_cog("SimLeague")
+        teams = await cog.config.guild(ctx.guild).teams()
+        level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
+        level_label_fnt2 = ImageFont.truetype(font_bold_file, 18, encoding="utf-8")
+        x = 10
+        for team in teamlist:
+            server_icon = await self.getimg(
+                teams[team]["logo"]
+                if teams[team]["logo"] is not None
+                else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            )
+            try:
+                server_icon_image = Image.open(server_icon).convert("RGBA")
+            except:
+                server_icon = await self.getimg(
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                )
+                server_icon_image = Image.open(server_icon).convert("RGBA")
+            vert_pos = 5
+            # draw level circle
+            multiplier = 6
+            title_height = 22
+            gap = 3
+            content_top = vert_pos + title_height + gap
+            content_bottom = 100 - vert_pos
+            # put in server picture
+            server_size = content_bottom - content_top - 10
+            server_border_size = server_size + 4
+            radius = 20
+            light_border = (150, 150, 150, 180)
+            dark_border = (90, 90, 90, 180)
+            info_color = (30, 30, 30, 160)
+            border_color = self._contrast(info_color, light_border, dark_border)
+
+            draw_server_border = Image.new(
+                "RGBA",
+                (server_border_size * multiplier, server_border_size * multiplier),
+                border_color,
+            )
+            draw_server_border = self._add_corners(
+                draw_server_border, int(radius * multiplier / 2)
+            )
+            draw_server_border = draw_server_border.resize(
+                (server_border_size, server_border_size), Image.ANTIALIAS
+            )
+            server_icon_image = server_icon_image.resize(
+                (server_size * multiplier, server_size * multiplier), Image.ANTIALIAS
+            )
+            server_icon_image = self._add_corners(
+                server_icon_image, int(radius * multiplier / 2) - 10
+            )
+            server_icon_image = server_icon_image.resize(
+                (server_size, server_size), Image.ANTIALIAS
+            )
+            process.paste(draw_server_border, (x + 8, content_top + 12), draw_server_border)
+            process.paste(server_icon_image, (x + 10, content_top + 14), server_icon_image)
+            x += 390
+
+        teamtext = f"{teamlist[0][:15]} vs {teamlist[1][:15]}"
+        draw.text((10, 20), "HOME TEAM:", font=level_label_fnt, fill=(255, 255, 255, 255))
+        draw.text((400, 20), "AWAY TEAM:", font=level_label_fnt, fill=(255, 255, 255, 255))
+        draw.text(
+            (self._center(0, width, teamtext, level_label_fnt), 20),
+            teamtext,
+            font=level_label_fnt,
+            fill=(255, 255, 255, 255),
+        )
+        stadiumtxt = stadium + " - " + weather
+        if stadium is not None:
+            draw.text(
+                (self._center(0, width, stadiumtxt, level_label_fnt2), 70),
+                stadiumtxt,
+                font=level_label_fnt2,
+                fill=(255, 255, 255, 255),
+            )
+        teammembers = teams[teamlist[0]]["ids"] + teams[teamlist[1]]["ids"]
+        commentator = "Commentator: " + random.choice(
+            [x.name for x in ctx.guild.members if x.id not in teammembers and len(x.name) < 25]
+        )
+        draw.text(
+            (self._center(0, width, commentator, level_label_fnt2), 45),
+            commentator,
+            font=level_label_fnt2,
+            fill=(255, 255, 255, 255),
+        )
+
+        # odds
+        draw.text(
+            (10, 120),
+            f"HOME ODDS:\n{str(homeodds)[:7]}",
+            font=general_info_fnt,
+            fill=(255, 255, 255, 255),
+        )
+        draw.text(
+            (400, 120),
+            f"AWAY ODDS:\n{str(awayodds)[:7]}",
+            font=general_info_fnt,
+            fill=(255, 255, 255, 255),
+        )
+        draw.text(
+            (self._center(0, width, f"Draw:", general_info_fnt), 120),
+            f"Draw:",
+            font=general_info_fnt,
+            fill=(255, 255, 255, 255),
+        )
+        draw.text(
+            (self._center(0, width, str(drawodds)[:7], general_info_fnt), 137),
+            str(drawodds)[:7],
+            font=general_info_fnt,
+            fill=(255, 255, 255, 255),
+        )
+
+        result = Image.alpha_composite(result, process)
+        file = BytesIO()
+        result.save(file, "PNG", quality=100)
+        file.seek(0)
+        image = discord.File(file, filename="pikaleague.png")
+        return image
+
     async def get(self, url):
         async with self.session.get(url) as response:
             resp = await response.json(content_type=None)
@@ -993,8 +1122,8 @@ class SimHelper:
             return True
 
     async def rCardChance(self, guild, probability):
-        rdmint = random.randint(0, 300)
-        if rdmint > probability["redchance"]:  # 299 default
+        rdmint = random.randint(0, 400)
+        if rdmint > probability["redchance"]:  # 398 default
             return True
 
     async def goalChance(self, guild, probability):

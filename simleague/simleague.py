@@ -16,7 +16,7 @@ from .core import SimHelper
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.4"
+    __version__ = "2.5.5"
 
     def __init__(self, bot):
         defaults = {
@@ -45,7 +45,7 @@ class SimLeague(commands.Cog):
             "probability": {
                 "goalchance": 96,
                 "yellowchance": 98,
-                "redchance": 299,
+                "redchance": 398,
                 "penaltychance": 249,
                 "penaltyblock": 0.6,
             },
@@ -157,9 +157,9 @@ class SimLeague(commands.Cog):
 
     @checks.guildowner()
     @probability.command()
-    async def red(self, ctx, amount: int = 299):
-        """Red Card probability. Default = 299"""
-        if amount > 300 or amount < 1:
+    async def red(self, ctx, amount: int = 398):
+        """Red Card probability. Default = 398"""
+        if amount > 400 or amount < 1:
             return await ctx.send("Amount must be greater than 0 and less than 300.")
         async with self.config.guild(ctx.guild).probability() as probability:
             probability["redchance"] = amount
@@ -315,6 +315,16 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @teamset.command()
+    async def stadium(self, ctx, team: str, *, stadium: str):
+        """Set a teams stadium."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["stadium"] = stadium
+        await ctx.tick()
+
+    @checks.admin()
+    @teamset.command()
     async def logo(self, ctx, team: str, *, logo: str):
         """Set a teams logo."""
         async with self.config.guild(ctx.guild).teams() as teams:
@@ -430,6 +440,7 @@ class SimLeague(commands.Cog):
                 "cachedlevel": 0,
                 "fullname": None,
                 "kits": {"home": None, "away": None, "third": None},
+                "stadium": None,
             }
         async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
@@ -471,7 +482,7 @@ class SimLeague(commands.Cog):
                     lvl = teams[team]["cachedlevel"]
                     embed.add_field(
                         name="Team {}".format(team),
-                        value="{}**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}".format(
+                        value="{}**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}{}".format(
                             "**Full Name**:\n{}\n".format(teams[team]["fullname"])
                             if teams[team]["fullname"] is not None
                             else "",
@@ -480,6 +491,9 @@ class SimLeague(commands.Cog):
                             lvl,
                             "\n**Role**: {}".format(teams[team]["role"])
                             if teams[team]["role"] is not None
+                            else "",
+                            "\n**Stadium**: {}".format(teams[team]["stadium"])
+                            if teams[team]["stadium"] is not None
                             else "",
                         ),
                         inline=True,
@@ -531,6 +545,8 @@ class SimLeague(commands.Cog):
             embed.add_field(name="Level:", value=teams[team]["cachedlevel"], inline=True)
             if teams[team]["role"] is not None:
                 embed.add_field(name="Role:", value=teams[team]["role"], inline=True)
+            if teams[team]["stadium"] is not None:
+                embed.add_field(name="Stadium:", value=teams[team]["stadium"], inline=True)
             if teams[team]["logo"] is not None:
                 embed.set_thumbnail(url=teams[team]["logo"])
             embeds.append(embed)
@@ -828,6 +844,26 @@ class SimLeague(commands.Cog):
         assists = {}
         reds = {team1: 0, team2: 0}
         bettime = await self.config.guild(ctx.guild).bettime()
+        stadium = teams[team1]["stadium"] if teams[team1]["stadium"] is not None else None
+        weathers = [
+            "rainy",
+            "thunderstorms",
+            "sunny",
+            "dusk",
+            "dawn",
+            "night",
+            "snowy",
+            "hazy rain",
+            "windy",
+            "partly cloudy",
+            "overcast",
+            "cloudy",
+        ]
+        weather = random.choice(weathers)
+        im = await self.helper.matchinfo(
+            ctx, [team1, team2], weather, stadium, homewin, awaywin, draw
+        )
+        await ctx.send(file=im)
 
         await self.helper.matchnotif(ctx, team1, team2)
         bet = await ctx.send(
