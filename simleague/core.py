@@ -888,8 +888,8 @@ class SimHelper:
             font=level_label_fnt,
             fill=(255, 255, 255, 255),
         )
-        stadiumtxt = stadium + " - " + weather
         if stadium is not None:
+            stadiumtxt = stadium + " - " + weather
             draw.text(
                 (self._center(0, width, stadiumtxt, level_label_fnt2), 70),
                 stadiumtxt,
