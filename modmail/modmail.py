@@ -22,17 +22,17 @@ class Modmail(commands.Cog):
         async with self.config.toggle() as toggle:
             if not toggle["status"]:
                 return
-        async with self.config.modmail() as modmail:
-            invalid = []
-            for stats in modmail:
-                channel = self.bot.get_channel(modmail[stats])
+        modmail = await self.config.modmail()
+        invalid = []
+        for stats in modmail:
+            channel = self.bot.get_channel(modmail[stats])
 
-                if channel is None:
-                    invalid.append(stats)
-                else:
-                    await channel.send(embed=embed2)
-            if invalid:
-                del modmail[stats]
+            if channel is None:
+                invalid.append(stats)
+            else:
+                await channel.send(embed=embed2)
+        if invalid:
+            del modmail[stats]
 
     @commands.Cog.listener()
     async def on_message_without_command(self, message):
@@ -40,12 +40,12 @@ class Modmail(commands.Cog):
             return
         if message.author == self.bot.user:
             return
-        async with self.config.ignore() as ignore:
-            if message.author.id in ignore:
-                return
-        async with self.config.toggle() as toggle:
-            if not toggle["dms"]:
-                return
+        ignore = await self.config.ignore()
+        if message.author.id in ignore:
+            return
+        toggle = await self.config.toggle()
+        if not toggle["dms"]:
+            return
         embeds = []
         attachments_urls = []
         embeds.append(discord.Embed(description=message.content))
@@ -67,16 +67,16 @@ class Modmail(commands.Cog):
         embeds[-1].timestamp = message.created_at
         for embed in embeds:
             await self.channelsend(embed)
-        async with self.config.toggle() as toggle:
-            if "respond" not in toggle:
-                return
-            if not toggle["respond"]:
-                return
-            else:
-                reply = "Your message has been delivered."
-                if toggle["reply"] is not None:
-                    reply = toggle["reply"]
-                await message.author.send(f"{reply}")
+        toggle = await self.config.toggle()
+        if "respond" not in toggle:
+            return
+        if not toggle["respond"]:
+            return
+        else:
+            reply = "Your message has been delivered."
+            if toggle["reply"] is not None:
+                reply = toggle["reply"]
+            await message.author.send(f"{reply}")
 
     @checks.admin_or_permissions(manage_channels=True)
     @commands.group(autohelp=True)
@@ -87,9 +87,9 @@ class Modmail(commands.Cog):
     @commands.command()
     async def modmail(self, ctx, *, content: str = None):
         """Manually send modmail."""
-        async with self.config.ignore() as ignore:
-            if ctx.author.id in ignore:
-                return
+        ignore = await self.config.ignore()
+        if ctx.author.id in ignore:
+            return
         if ctx.message.attachments or content:
             embeds = []
             attachments_urls = []
@@ -114,16 +114,16 @@ class Modmail(commands.Cog):
             embeds[-1].timestamp = ctx.message.created_at
             for embed in embeds:
                 await self.channelsend(embed)
-            async with self.config.toggle() as toggle:
-                if "respond" not in toggle:
-                    return
-                if not toggle["respond"]:
-                    return
-                else:
-                    reply = "Your message has been delivered."
-                    if toggle["reply"] is not None:
-                        reply = toggle["reply"]
-                    await ctx.send(f"{reply}")
+            toggle = await self.config.toggle()
+            if "respond" not in toggle:
+                return
+            if not toggle["respond"]:
+                return
+            else:
+                reply = "Your message has been delivered."
+                if toggle["reply"] is not None:
+                    reply = toggle["reply"]
+                await ctx.send(f"{reply}")
 
     @checks.is_owner()
     @modmailset.command()
@@ -150,23 +150,23 @@ class Modmail(commands.Cog):
     @modmailset.command(name="list")
     async def _list(self, ctx):
         """List all current modmail channels."""
-        async with self.config.modmail() as modmail:
-            if not modmail:
-                await ctx.send("No channels are currently set.")
-            valid = []
-            invalid = []
-            for stats in modmail:
-                channel = self.bot.get_channel(int(modmail[stats]))
-                if channel is None:
-                    invalid.append(stats)
-                else:
-                    valid.append(f"{channel.mention} - {channel.guild}")
-            for channel in invalid:
-                del modmail[channel]
-            em = discord.Embed(colour=0xFF0000, title="Modmail List")
-            if valid:
-                em.add_field(name="Modmail Channels", value="\n".join(valid))
-                await ctx.send(embed=em)
+        modmail = await self.config.modmail()
+        if not modmail:
+            await ctx.send("No channels are currently set.")
+        valid = []
+        invalid = []
+        for stats in modmail:
+            channel = self.bot.get_channel(int(modmail[stats]))
+            if channel is None:
+                invalid.append(stats)
+            else:
+                valid.append(f"{channel.mention} - {channel.guild}")
+        for channel in invalid:
+            del modmail[channel]
+        em = discord.Embed(colour=0xFF0000, title="Modmail List")
+        if valid:
+            em.add_field(name="Modmail Channels", value="\n".join(valid))
+            await ctx.send(embed=em)
 
     @checks.is_owner()
     @modmailset.command()
@@ -261,13 +261,13 @@ class Modmail(commands.Cog):
     async def ignoredlist(self, ctx):
         """List ignored users."""
         ignored = []
-        async with self.config.ignore() as ignore:
-            if not ignore:
-                await ctx.send("The ignored list is currently empty.")
-                return
-            for user in ignore:
-                uid = self.bot.get_user(int(user))
-                ignored.append(f"{uid.name} - {user}")
+        ignore = await self.config.ignore()
+        if not ignore:
+            await ctx.send("The ignored list is currently empty.")
+            return
+        for user in ignore:
+            uid = self.bot.get_user(int(user))
+            ignored.append(f"{uid.name} - {user}")
         users = "\n".join(ignored)
         for page in pagify(users):
             await ctx.send(page)
