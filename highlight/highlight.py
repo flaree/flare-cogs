@@ -12,50 +12,46 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.1"
+    __version__ = "1.1.2"
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
-        async with self.config.channel(message.channel).highlight() as highlight:
-            for user in highlight:
-                if int(user) == message.author.id:
-                    return
-                for word in highlight[user]:
-                    if word.lower() in message.content.lower():
-                        if message.author.bot:
-                            async with self.config.channel(message.channel).ignore() as ignorebots:
-                                if not ignorebots[user]:
-                                    return
-                        async with self.config.channel(message.channel).toggle() as toggle:
-                            if not toggle[user]:
-                                return
-                        before = []
-                        async for messages in message.channel.history(
-                            limit=5, before=message, oldest_first=False
-                        ):
-                            before.append(messages)
-                        highlighted = self.bot.get_user(int(user))
-                        context = "\n".join([f"**{x.author}**: {x.content}" for x in before])
-                        if len(context) > 2000:
-                            context = "**Context omitted due to message size limits.\n**"
-                        embed = discord.Embed(
-                            title="Context:",
-                            colour=0xFF0000,
-                            timestamp=message.created_at,
-                            description="{}\n{}".format(
-                                context, f"**{message.author}**: {message.content}"
-                            ),
-                        )
-                        embed.add_field(
-                            name="Jump",
-                            value=f"[Click for context](https://discordapp.com/channels/{message.guild.id}/{message.channel.id}/{message.id})",
-                        )
-                        await highlighted.send(
-                            f"Your highlighted word `{word}` was mentioned in <#{message.channel.id}> in {message.guild.name}.\n",
-                            embed=embed,
-                        )
+        highlight = await self.config.channel(message.channel).highlight()
+        for user in highlight:
+            if int(user) == message.author.id:
+                return
+            for word in highlight[user]:
+                if word.lower() in message.content.lower():
+                    if message.author.bot:
+                        return
+                    toggle = await self.config.channel(message.channel).toggle()
+                    if not toggle[user]:
+                        return
+                    msglist = []
+                    async for messages in message.channel.history(
+                        limit=5, before=message, oldest_first=False
+                    ):
+                        msglist.append(messages)
+                    msglist.append(message)
+                    highlighted = self.bot.get_user(int(user))
+                    if user is None:
+                        highlighted = await self.bot.fetch_user(int(user))
+                    context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
+                    if len(context) > 2000:
+                        context = "**Context omitted due to message size limits.\n**"
+                    embed = discord.Embed(
+                        title="Context:",
+                        colour=0xFF0000,
+                        timestamp=message.created_at,
+                        description="{}".format(context),
+                    )
+                    embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
+                    await highlighted.send(
+                        f"Your highlighted word `{word}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
+                        embed=embed,
+                    )
 
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
@@ -117,46 +113,22 @@ class Highlight(commands.Cog):
                     "{} has disabled their highlighting in this channel.".format(ctx.author.name)
                 )
 
-    @highlight.command()
-    async def bots(self, ctx, state: bool):
-        """Toggle highlighting on bot messages."""
-        async with self.config.channel(ctx.channel).ignore() as ignore:
-            if state:
-                ignore[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "Bots messages will now be included in {}'s highlighted messages".format(
-                        ctx.author.name
-                    )
-                )
-            elif not state:
-                ignore[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "Bot messages will not longer be highlighted for {}.".format(ctx.author.name)
-                )
-
     @highlight.command(name="list")
     async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for the current channel."""
         channel = channel or ctx.channel
-        async with self.config.channel(channel).highlight() as highlight:
-            if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
-                async with self.config.channel(channel).toggle() as toggle:
-                    async with self.config.channel(channel).ignore() as ignore:
-                        words = [word for word in highlight[f"{ctx.author.id}"]]
-                        words = "\n".join(words)
-                        try:
-                            embed = discord.Embed(
-                                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
-                                description=f"**Word(s)**: {words}\n**Toggle**: {toggle[f'{ctx.author.id}']}\n**Ignoring Bots**: {not ignore[f'{ctx.author.id}']}",
-                            )
-                        except KeyError:
-                            embed = discord.Embed(
-                                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
-                                description=f"**Word(s)**: {words}\n**Toggle**: Use [p]highlight toggle",
-                            )
+        highlight = await self.config.channel(channel).highlight()
+        if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
+            toggle = await self.config.channel(channel).toggle()
+            words = [word for word in highlight[f"{ctx.author.id}"]]
+            words = "\n".join(words)
+            embed = discord.Embed(
+                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                colour=ctx.author.colour,
+            )
+            embed.add_field(name="Words:", value=words)
+            embed.add_field(name="Toggled:", value="Yes" if toggle[f"{ctx.author.id}"] else "No")
 
-                    await ctx.send(embed=embed)
-            else:
-                await ctx.send(
-                    "You currently do not have any highlighted text set up in that channel."
-                )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"You currently do not have any highlighted words set up in {channel}.")
