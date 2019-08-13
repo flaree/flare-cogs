@@ -74,10 +74,10 @@ class Connect4(commands.Cog):
 
         await self.end_game(game, message)
         winnernum = game.whomst_won()
-        async with self.config.stats() as stats:
+        async with self.config.guild(ctx.guild).stats() as stats:
             stats["played"] += 1
         if int(winnernum) == 1:
-            async with self.config.stats() as stats:
+            async with self.config.guild(ctx.guild).stats() as stats:
                 if player1.id in stats["wins"]:
                     stats["wins"][player1.id] += 1
                 else:
@@ -87,7 +87,7 @@ class Connect4(commands.Cog):
                 else:
                     stats["losses"][player2.id] = 1
         elif int(winnernum) == -1:
-            async with self.config.stats() as stats:
+            async with self.config.guild(ctx.guild).stats() as stats:
                 if player1.id in stats["draws"]:
                     stats["draws"][player1.id] += 1
                 else:
@@ -97,7 +97,7 @@ class Connect4(commands.Cog):
                 else:
                     stats["draws"][player2.id] = 1
         else:
-            async with self.config.stats() as stats:
+            async with self.config.guild(ctx.guild).stats() as stats:
                 if player2.id in stats["wins"]:
                     stats["wins"][player2.id] += 1
                 else:
