@@ -358,6 +358,20 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
+    @teamset.command()
+    async def captain(self, ctx, team: str, captain: discord.Member):
+        """Set a teams captain."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            if captain.id not in teams[team]["ids"]:
+                return await ctx.send("He is not a member of that team.")
+            teams[team]["captain"] = {}
+            teams[team]["captain"] = {captain.name: captain.id}
+
+        await ctx.tick()
+
+    @checks.admin()
     @teamset.group(autohelp=True)
     async def kits(self, ctx):
         """Kit Settings."""
