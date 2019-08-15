@@ -16,7 +16,7 @@ from .core import SimHelper
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.5"
+    __version__ = "2.5.6"
 
     def __init__(self, bot):
         defaults = {
@@ -631,7 +631,7 @@ class SimLeague(commands.Cog):
         if standings is None:
             return await ctx.send("The table is empty.")
         if not verbose:
-            t = PrettyTable(["Team", "Wins", "Losses", "Played", "Points"])
+            t = PrettyTable(["Team", "W", "L", "D", "PL", "PO"])
             for x in sorted(
                 standings,
                 key=lambda x: (standings[x]["points"], standings[x]["gd"], standings[x]["gf"]),
@@ -642,6 +642,7 @@ class SimLeague(commands.Cog):
                         x,
                         standings[x]["wins"],
                         standings[x]["losses"],
+                        standings[x]["draws"],
                         standings[x]["played"],
                         standings[x]["points"],
                     ]
