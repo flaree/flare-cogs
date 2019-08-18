@@ -3,6 +3,7 @@ import discord
 import aiohttp
 import asyncio
 from redbot.core.data_manager import bundled_data_path
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 import hashlib
@@ -15,7 +16,9 @@ class PokecordNotifier(commands.Cog):
         self.config = Config.get_conf(self, identifier=145519400223506432)
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         defaults = {"notify": {}}
+        defaultsg = {"notify": []}
         self.config.register_global(**defaults)
+        self.config.register_guild(**defaultsg)
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -47,12 +50,28 @@ class PokecordNotifier(commands.Cog):
                 notify[pokemon] = []
                 notify[pokemon].append(user.id)
                 await ctx.send("Notif added")
+    
+    @checks.admin()
+    @commands.command()
+    async def notifyallpokemon(self, ctx):
+        """Notify on all pokemon"""
+        async with self.config.guild(ctx.guild).notify() as notify:
+            if ctx.author.id in notify:
+                notify.remove(ctx.author.id)
+                await ctx.send("Removed that notif.")
+            else:
+                notify.append(ctx.author.id)
+                await ctx.send("Notif added")
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == 365975655608745985:
             if message.embeds:
                 if "A wild" in message.embeds[0].title:
+                    notifs = await self.config.guild(message.guild).notify()
+                    if notifs:
+                        mentions = [self.bot.get_user(user).mention for user in notifs]
+                        await message.channel.send(humanize_list(mentions))
                     url = message.embeds[0].image.url
                     na = await self.find_pokemon(url)
                     await asyncio.sleep(0.5)
