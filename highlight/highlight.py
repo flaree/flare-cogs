@@ -12,7 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.2"
+    __version__ = "1.1.3"
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -21,14 +21,14 @@ class Highlight(commands.Cog):
         highlight = await self.config.channel(message.channel).highlight()
         for user in highlight:
             if int(user) == message.author.id:
-                return
+                continue
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
                     if message.author.bot:
                         return
                     toggle = await self.config.channel(message.channel).toggle()
                     if not toggle[user]:
-                        return
+                        continue
                     msglist = []
                     async for messages in message.channel.history(
                         limit=5, before=message, oldest_first=False
@@ -38,6 +38,8 @@ class Highlight(commands.Cog):
                     highlighted = self.bot.get_user(int(user))
                     if user is None:
                         highlighted = await self.bot.fetch_user(int(user))
+                    if highlighted not in message.guild.members:
+                        continue
                     context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
                     if len(context) > 2000:
                         context = "**Context omitted due to message size limits.\n**"
