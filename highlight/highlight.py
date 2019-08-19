@@ -9,7 +9,7 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        default_channel = {"highlight": {}, "toggle": {}, "ignore": {}}
+        default_channel = {"highlight": {}, "toggle": {}}
         self.config.register_channel(**default_channel)
 
     __version__ = "1.1.3"
@@ -78,9 +78,6 @@ class Highlight(commands.Cog):
         async with self.config.channel(channel).toggle() as toggle:
             if str(ctx.author.id) not in toggle:
                 toggle[f"{ctx.author.id}"] = False
-        async with self.config.channel(channel).ignore() as ignore:
-            if str(ctx.author.id) not in ignore:
-                ignore[f"{ctx.author.id}"] = False
 
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
