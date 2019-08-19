@@ -36,7 +36,7 @@ class Highlight(commands.Cog):
                         msglist.append(messages)
                     msglist.append(message)
                     highlighted = self.bot.get_user(int(user))
-                    if user is None:
+                    if highlighted is None:
                         highlighted = await self.bot.fetch_user(int(user))
                     if highlighted not in message.guild.members:
                         continue
