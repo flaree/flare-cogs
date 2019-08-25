@@ -16,7 +16,7 @@ from .core import SimHelper
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.6"
+    __version__ = "2.5.7"
 
     def __init__(self, bot):
         defaults = {
@@ -31,6 +31,7 @@ class SimLeague(commands.Cog):
                 "penalties": {},
                 "assists": {},
                 "motm": {},
+                "cleansheets": {},
             },
             "users": [],
             "resultchannel": [],
@@ -42,6 +43,7 @@ class SimLeague(commands.Cog):
             "betmin": 10,
             "pageamount": 5,
             "mee6": False,
+            "redcardmodifier": 22,
             "probability": {
                 "goalchance": 96,
                 "yellowchance": 98,
@@ -86,10 +88,12 @@ class SimLeague(commands.Cog):
             bettoggle = await self.config.guild(guild).bettoggle()
             mee6 = await self.config.guild(guild).mee6()
             maxplayers = await self.config.guild(guild).maxplayers()
+            redcardmodif = await self.config.guild(guild).redcardmodifier()
             msg = ""
             msg += "Game Time: 1m for every {}s.\n".format(gametime)
             msg += "Team Limit: {} players.\n".format(maxplayers)
             msg += "HT Break: {}s.\n".format(htbreak)
+            msg += "Red Card Modifier: {}% loss per red card.\n".format(redcardmodif)
             msg += "Posting Results: {}.\n".format("Yes" if results else "No")
             msg += "Accepting Bets: {}.\n".format("Yes" if bettoggle else "No")
             if bettoggle:
@@ -153,6 +157,15 @@ class SimLeague(commands.Cog):
         if amount < 3 or amount > 7:
             return await ctx.send("Amount must be between 3 and 5.")
         await self.config.guild(ctx.guild).maxplayers.set(amount)
+        await ctx.tick()
+
+    @checks.guildowner()
+    @simset.command()
+    async def redcardmodifier(self, ctx, amount: int):
+        """Set the max team players."""
+        if amount < 1 or amount > 30:
+            return await ctx.send("Amount must be between 1 and 3.")
+        await self.config.guild(ctx.guild).redcardmodifer.set(amount)
         await ctx.tick()
 
     @checks.guildowner()
@@ -789,6 +802,22 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("No stats available.")
 
+    @stats.command(name="cleansheets")
+    async def _cleansheets(self, ctx):
+        """Teams with the most cleansheets."""
+        stats = await self.config.guild(ctx.guild).stats()
+        stats = stats["cleansheets"]
+        if stats:
+            a = []
+            for k in sorted(stats, key=stats.get, reverse=True)[:10]:
+                a.append(f"{k} - {stats[k]}")
+            embed = discord.Embed(
+                title="Most Cleansheets", description="\n".join(a), colour=0xFF0000
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No stats available.")
+
     @stats.command()
     async def penalties(self, ctx):
         """Penalties scored and missed statistics."""
@@ -797,9 +826,9 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             b = []
-            for k in sorted(stats, key=lambda x: stats[x]["scored"], reverse=True):
+            for k in sorted(stats, key=lambda x: stats[x]["scored"], reverse=True)[:10]:
                 a.append(f"{k} - {stats[k]['scored']}")
-            for k in sorted(stats, key=lambda x: stats[x]["missed"], reverse=True):
+            for k in sorted(stats, key=lambda x: stats[x]["missed"], reverse=True)[:10]:
                 b.append(f"{k} - {stats[k]['missed']}")
             embed = discord.Embed(title="Penalty Statistics", colour=0xFF0000)
             embed.add_field(name="Penalties Scored", value="\n".join(a))
@@ -815,7 +844,7 @@ class SimLeague(commands.Cog):
         stats = stats["assists"]
         if stats:
             a = []
-            for k in sorted(stats, key=stats.get, reverse=True):
+            for k in sorted(stats, key=stats.get, reverse=True)[:10]:
                 a.append(f"{k} - {stats[k]}")
             embed = discord.Embed(
                 title="Assist Statistics", description="\n".join(a), colour=0xFF0000
@@ -897,6 +926,7 @@ class SimLeague(commands.Cog):
         await bet.delete()
         probability = await self.config.guild(ctx.guild).probability()
         await self.config.guild(ctx.guild).started.set(True)
+        redcardmodifier = await self.config.guild(ctx.guild).redcardmodifier()
         team1players = list(teams[team1]["members"].keys())
         team2players = list(teams[team2]["members"].keys())
         logos = ["sky", "bt", "bein", "bbc"]
@@ -905,6 +935,7 @@ class SimLeague(commands.Cog):
         motm = {}
         events = False
 
+        # Team 1 stuff
         yC_team1 = []
         rC_team1 = []
         injury_team1 = []
@@ -927,6 +958,7 @@ class SimLeague(commands.Cog):
             injury_count1,
         ]
 
+        # Team 2 stuff
         yC_team2 = []
         rC_team2 = []
         injury_team2 = []
@@ -954,8 +986,8 @@ class SimLeague(commands.Cog):
                 t1totalxp = 1
             if t2totalxp < 2:
                 t2totalxp = 1
-            redst1 = reds1 / 10
-            redst2 = reds2 / 10
+            redst1 = float(f"0.{reds1 * redcardmodifier}")
+            redst2 = float(f"0.{reds2 * redcardmodifier}")
             if redst1 == 0:
                 redst1 = 1
             if redst2 == 0:
@@ -1009,10 +1041,8 @@ class SimLeague(commands.Cog):
                 return output
             elif event == 1:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                if len(rosterUpdate) == 0:
-                    return await ctx.send(
-                        "Game abandoned, no score recorded due to no players remaining."
-                    )
+                if len(rosterUpdate) == 1:
+                    return None
                 player = random.choice(rosterUpdate)
                 if player in yc or player in yellowcards:
                     output = [team, player, 2]
@@ -1022,10 +1052,8 @@ class SimLeague(commands.Cog):
                     return output
             elif event == 2 or event == 3:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                if len(rosterUpdate) == 0:
-                    return await ctx.send(
-                        "Game abandoned, no score recorded due to no players remaining."
-                    )
+                if len(rosterUpdate) == 1 and event == 2:
+                    return None
                 player_out = random.choice(rosterUpdate)
                 output = [team, player_out]
                 return output
@@ -1187,20 +1215,90 @@ class SimLeague(commands.Cog):
                     playerYellow = await PlayerGenerator(
                         1, teamStats[0], teamStats[1], teamStats[2]
                     )
-                    if len(playerYellow) == 3:
-                        teamStats[7] += 1
-                        teamStats[2].append(playerYellow[1])
-                        async with self.config.guild(ctx.guild).stats() as stats:
-                            reds[str(playerYellow[0])] += 1
-                            if playerYellow[1] not in stats["reds"]:
-                                stats["reds"][playerYellow[1]] = 1
-                                stats["yellows"][playerYellow[1]] += 1
-                            else:
+                    if playerYellow is not None:
+                        if len(playerYellow) == 3:
+                            teamStats[7] += 1
+                            teamStats[2].append(playerYellow[1])
+                            async with self.config.guild(ctx.guild).stats() as stats:
+                                reds[str(playerYellow[0])] += 1
+                                if playerYellow[1] not in stats["reds"]:
+                                    stats["reds"][playerYellow[1]] = 1
+                                    stats["yellows"][playerYellow[1]] += 1
+                                else:
 
-                                stats["yellows"][playerYellow[1]] += 1
-                                stats["reds"][playerYellow[1]] += 1
+                                    stats["yellows"][playerYellow[1]] += 1
+                                    stats["reds"][playerYellow[1]] += 1
+                            events = True
+                            uid = teams[str(playerYellow[0])]["members"][playerYellow[1]]
+                            user = self.bot.get_user(uid)
+                            if user is None:
+                                user = await self.bot.fetch_user(uid)
+                            if user not in motm:
+                                motm[user] = -2
+                            else:
+                                motm[user] += -2
+                            image = await self.helper.simpic(
+                                ctx,
+                                str(min),
+                                "2yellow",
+                                user,
+                                team1,
+                                team2,
+                                str(playerYellow[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                                None,
+                                str(
+                                    len(teams[str(str(playerYellow[0]))]["ids"])
+                                    - (int(teamStats[7]))
+                                ),
+                            )
+                            await ctx.send(file=image)
+                        else:
+                            teamStats[1].append(playerYellow[1])
+                            yellowcards.append(str(playerYellow[1]))
+                            async with self.config.guild(ctx.guild).stats() as stats:
+                                if playerYellow[1] not in stats["yellows"]:
+                                    stats["yellows"][playerYellow[1]] = 1
+                                else:
+                                    stats["yellows"][playerYellow[1]] += 1
+                            events = True
+                            uid = teams[str(playerYellow[0])]["members"][playerYellow[1]]
+                            user = self.bot.get_user(uid)
+                            if user is None:
+                                user = await self.bot.fetch_user(uid)
+                            if user not in motm:
+                                motm[user] = -1
+                            else:
+                                motm[user] += -1
+                            image = await self.helper.simpic(
+                                ctx,
+                                str(min),
+                                "yellow",
+                                user,
+                                team1,
+                                team2,
+                                str(playerYellow[0]),
+                                str(team1Stats[8]),
+                                str(team2Stats[8]),
+                            )
+                            await ctx.send(file=image)
+            if events is False:
+                rC = await self.helper.rCardChance(ctx.guild, probability)
+                if rC is True:
+                    teamStats = await TeamChance()
+                    playerRed = await PlayerGenerator(2, teamStats[0], teamStats[1], teamStats[2])
+                    if playerRed is not None:
+                        teamStats[7] += 1
+                        async with self.config.guild(ctx.guild).stats() as stats:
+                            if playerRed[1] not in stats["reds"]:
+                                stats["reds"][playerRed[1]] = 1
+                            else:
+                                stats["reds"][playerRed[1]] += 1
+                        reds[str(playerRed[0])] += 1
+                        teamStats[2].append(playerRed[1])
                         events = True
-                        uid = teams[str(playerYellow[0])]["members"][playerYellow[1]]
+                        uid = teams[str(playerRed[0])]["members"][playerRed[1]]
                         user = self.bot.get_user(uid)
                         if user is None:
                             user = await self.bot.fetch_user(uid)
@@ -1211,84 +1309,17 @@ class SimLeague(commands.Cog):
                         image = await self.helper.simpic(
                             ctx,
                             str(min),
-                            "2yellow",
+                            "red",
                             user,
                             team1,
                             team2,
-                            str(playerYellow[0]),
+                            str(playerRed[0]),
                             str(team1Stats[8]),
                             str(team2Stats[8]),
                             None,
-                            str(
-                                len(teams[str(str(playerYellow[0]))]["ids"]) - (int(teamStats[7]))
-                            ),
+                            str(len(teams[str(str(playerRed[0]))]["ids"]) - (int(teamStats[7]))),
                         )
                         await ctx.send(file=image)
-                    else:
-                        teamStats[1].append(playerYellow[1])
-                        yellowcards.append(str(playerYellow[1]))
-                        async with self.config.guild(ctx.guild).stats() as stats:
-                            if playerYellow[1] not in stats["yellows"]:
-                                stats["yellows"][playerYellow[1]] = 1
-                            else:
-                                stats["yellows"][playerYellow[1]] += 1
-                        events = True
-                        uid = teams[str(playerYellow[0])]["members"][playerYellow[1]]
-                        user = self.bot.get_user(uid)
-                        if user is None:
-                            user = await self.bot.fetch_user(uid)
-                        if user not in motm:
-                            motm[user] = -1
-                        else:
-                            motm[user] += -1
-                        image = await self.helper.simpic(
-                            ctx,
-                            str(min),
-                            "yellow",
-                            user,
-                            team1,
-                            team2,
-                            str(playerYellow[0]),
-                            str(team1Stats[8]),
-                            str(team2Stats[8]),
-                        )
-                        await ctx.send(file=image)
-            if events is False:
-                rC = await self.helper.rCardChance(ctx.guild, probability)
-                if rC is True:
-                    teamStats = await TeamChance()
-                    playerRed = await PlayerGenerator(2, teamStats[0], teamStats[1], teamStats[2])
-                    teamStats[7] += 1
-                    async with self.config.guild(ctx.guild).stats() as stats:
-                        if playerRed[1] not in stats["reds"]:
-                            stats["reds"][playerRed[1]] = 1
-                        else:
-                            stats["reds"][playerRed[1]] += 1
-                    reds[str(playerRed[0])] += 1
-                    teamStats[2].append(playerRed[1])
-                    events = True
-                    uid = teams[str(playerRed[0])]["members"][playerRed[1]]
-                    user = self.bot.get_user(uid)
-                    if user is None:
-                        user = await self.bot.fetch_user(uid)
-                    if user not in motm:
-                        motm[user] = -2
-                    else:
-                        motm[user] += -2
-                    image = await self.helper.simpic(
-                        ctx,
-                        str(min),
-                        "red",
-                        user,
-                        team1,
-                        team2,
-                        str(playerRed[0]),
-                        str(team1Stats[8]),
-                        str(team2Stats[8]),
-                        None,
-                        str(len(teams[str(str(playerRed[0]))]["ids"]) - (int(teamStats[7]))),
-                    )
-                    await ctx.send(file=image)
             if events is False:
                 pass
             events = False
@@ -1491,6 +1522,7 @@ class SimLeague(commands.Cog):
                         standings[team2]["draws"] += 1
                         standings[team1]["draws"] += 1
                         t = await self.payout(ctx.guild, "draw", draw)
+                await self.cleansheets(ctx, team1, team2, team1Stats[8], team2Stats[8])
                 team1gd = team1Stats[8] - team2Stats[8]
                 team2gd = team2Stats[8] - team1Stats[8]
                 async with self.config.guild(ctx.guild).standings() as standings:
@@ -1522,7 +1554,7 @@ class SimLeague(commands.Cog):
                 motmassists = 0
             try:
                 await bank.deposit_credits(
-                    self.bot.get_user(motmwinner.id), (25 * motmgoals) + (10 * motmassists)
+                    self.bot.get_user(motmwinner.id), (75 * motmgoals) + (30 * motmassists)
                 )
             except AttributeError:
                 pass
@@ -1534,10 +1566,10 @@ class SimLeague(commands.Cog):
                 motmassists,
             )
             async with self.config.guild(ctx.guild).stats() as stats:
-                if motmwinner.id not in stats["motm"]:
-                    stats["motm"][motmwinner.id] = 1
+                if str(motmwinner.id) not in stats["motm"]:
+                    stats["motm"][str(motmwinner.id)] = 1
                 else:
-                    stats["motm"][motmwinner.id] += 1
+                    stats["motm"][str(motmwinner.id)] += 1
             await ctx.send(file=im)
         if t is not None:
             await ctx.send("Bet Winners:\n" + t)
@@ -1598,8 +1630,6 @@ class SimLeague(commands.Cog):
     async def payout(self, guild, winner, odds):
         if winner is None:
             return None
-        if odds > 2.5:
-            odds = 2.5
         bet_winners = []
         if guild.id not in self.bets:
             return None
@@ -1629,3 +1659,17 @@ class SimLeague(commands.Cog):
     async def _delete(self, ctx, *, team):
         """Delete a team."""
         await self.helper.team_delete(ctx, team)
+
+    async def cleansheets(self, ctx, team1, team2, team1score, team2score):
+        if team1score == 0 and team2score > 0:
+            async with self.config.guild(ctx.guild).stats() as stats:
+                if team2 in stats["cleansheets"]:
+                    stats["cleansheets"][team2] += 1
+                else:
+                    stats["cleansheets"][team2] = 1
+        elif team2score == 0 and team1score > 0:
+            async with self.config.guild(ctx.guild).stats() as stats:
+                if team2 in stats["cleansheets"]:
+                    stats["cleansheets"][team1] += 1
+                else:
+                    stats["cleansheets"][team1] = 1
