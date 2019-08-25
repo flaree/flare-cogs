@@ -36,7 +36,7 @@ class SimLeague(commands.Cog):
             "users": [],
             "resultchannel": [],
             "gametime": 1,
-            "bettime": 90,
+            "bettime": 180,
             "htbreak": 5,
             "bettoggle": True,
             "betmax": 10000,
@@ -224,10 +224,10 @@ class SimLeague(commands.Cog):
 
     @checks.admin()
     @bet.command()
-    async def time(self, ctx, time: int = 90):
-        """Set the time allowed for betting - 120 seconds is the max."""
-        if time < 0 or time > 120:
-            time = 90
+    async def time(self, ctx, time: int = 180):
+        """Set the time allowed for betting - 600 seconds is the max, 180 is default."""
+        if time < 0 or time > 600:
+            time = 180
         await self.config.guild(ctx.guild).bettime.set(time)
         await ctx.tick()
 
