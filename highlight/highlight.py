@@ -31,7 +31,7 @@ class Highlight(commands.Cog):
                         continue
                     msglist = []
                     async for messages in message.channel.history(
-                        limit=5, before=message, oldest_first=False
+                        limit=5, before=message, oldest_first=True
                     ):
                         msglist.append(messages)
                     msglist.append(message)
