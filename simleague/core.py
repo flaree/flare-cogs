@@ -686,7 +686,7 @@ class SimHelper:
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
-        teamplayers = len(teams[team1]["ids"])
+        teamplayers = len(teams[team1]["members"])
         # set canvas
         if teams[team1]["kits"][home_or_away] is None:
             width = 105 * teamplayers
@@ -727,7 +727,7 @@ class SimHelper:
         profile_size = lvl_circle_dia - total_gap
         raw_length = profile_size * multiplier
         x = 40
-        for player in teams[team1]["ids"]:
+        for player in teams[team1]["members"]:
             player = await self.bot.fetch_user(player)
             rank_avatar = BytesIO()
             await player.avatar_url.save(rank_avatar, seek_begin=True)
@@ -896,9 +896,14 @@ class SimHelper:
                 font=level_label_fnt2,
                 fill=(255, 255, 255, 255),
             )
-        teammembers = teams[teamlist[0]]["ids"] + teams[teamlist[1]]["ids"]
+        teammembers = list(teams[teamlist[0]]["members"].keys()) + list(
+            teams[teamlist[1]]["members"].keys()
+        )
         commentator = "Commentator: " + random.choice(
             [x.name for x in ctx.guild.members if x.id not in teammembers and len(x.name) < 25]
+        )
+        referee = "Referee: " + random.choice(
+            [x.name for x in ctx.guild.members if x.id not in teammembers and len(x.name) < 30]
         )
         draw.text(
             (self._center(0, width, commentator, level_label_fnt2), 45),
@@ -964,8 +969,8 @@ class SimHelper:
     async def matchnotif(self, ctx, team1, team2):
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
-        teamone = teams[team1]["ids"]
-        teamtwo = teams[team2]["ids"]
+        teamone = list(teams[team1]["members"].keys())
+        teamtwo = list(teams[team2]["members"].keys())
         role1 = False
         role2 = False
         msg = ""
@@ -1042,8 +1047,8 @@ class SimHelper:
         if results:
             result = ""
             teams = await cog.config.guild(ctx.guild).teams()
-            teamone = teams[team1]["ids"]
-            teamtwo = teams[team2]["ids"]
+            teamone = teams[team1]["members"]
+            teamtwo = teams[team2]["members"]
             if teams[team1]["role"]:
                 role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
                 if role_obj is not None:
@@ -1161,7 +1166,7 @@ class SimHelper:
             for team in teams:
                 t1totalxp = 0
                 teams[team]
-                team1pl = teams[team]["ids"]
+                team1pl = teams[team]["members"]
 
                 if mee6:
                     xp = await cog.config.guild(guild).levels()
@@ -1173,7 +1178,7 @@ class SimHelper:
                     teams[team]["cachedlevel"] = t1totalxp
                 else:
                     for memberid in team1pl:
-                        user = await self.bot.fetch_user(memberid)
+                        user = await self.bot.fetch_user(int(memberid))
                         try:
                             userinfo = db.users.find_one({"user_id": str(user.id)})
                             level = userinfo["servers"][str(guild.id)]["level"]
@@ -1188,7 +1193,7 @@ class SimHelper:
         cog = self.bot.get_cog("SimLeague")
         mee6 = await cog.config.guild(guild).mee6()
         async with cog.config.guild(guild).teams() as teams:
-            team1pl = teams[team1]["ids"]
+            team1pl = teams[team1]["members"]
             if mee6:
                 xp = await cog.config.guild(guild).levels()
                 for memberid in team1pl:
@@ -1197,7 +1202,7 @@ class SimHelper:
                     except KeyError:
                         t1totalxp += 1
                 teams[team1]["cachedlevel"] = t1totalxp
-                team2pl = teams[team2]["ids"]
+                team2pl = teams[team2]["members"]
                 for memberid in team2pl:
                     try:
                         t2totalxp += int(xp[str(memberid)])
@@ -1206,7 +1211,7 @@ class SimHelper:
                 teams[team2]["cachedlevel"] = t2totalxp
             else:
                 for memberid in team1pl:
-                    user = await self.bot.fetch_user(memberid)
+                    user = await self.bot.fetch_user(int(memberid))
                     try:
                         userinfo = db.users.find_one({"user_id": str(user.id)})
                         level = userinfo["servers"][str(guild.id)]["level"]
@@ -1215,9 +1220,9 @@ class SimHelper:
                         t1totalxp += 1
                 teams[team1]["cachedlevel"] = t1totalxp
 
-                team2pl = teams[team2]["ids"]
+                team2pl = teams[team2]["members"]
                 for memberid in team2pl:
-                    user = await self.bot.fetch_user(memberid)
+                    user = await self.bot.fetch_user(int(memberid))
                     try:
                         userinfo = db.users.find_one({"user_id": str(user.id)})
                         level = userinfo["servers"][str(guild.id)]["level"]
@@ -1231,24 +1236,20 @@ class SimHelper:
     ):
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(guild).teams() as teams:
-            if member1.id not in teams[team1]["ids"]:
+            if str(member1.id) not in teams[team1]["members"]:
                 return await ctx.send(f"{member1.name} is not on {team1}.")
-            if member2.id not in teams[team2]["ids"]:
+            if str(member2.id) not in teams[team2]["members"]:
                 return await ctx.send(f"{member2.name} is not on {team2}.")
-            if member1.id in list(teams[team1]["captain"].values()):
+            if str(member1.id) in teams[team1]["captain"]:
                 teams[team1]["captain"] = {}
-                teams[team1]["captain"][member2.name] = member2.id
-            if member2.id in list(teams[team2]["captain"].values()):
+                teams[team1]["captain"][str(member2.id)] = member2.name
+            if str(member2.id) in teams[team2]["captain"]:
                 teams[team2]["captain"] = {}
-                teams[team2]["captain"][member1.name] = member1.id
-            teams[team1]["members"][member2.name] = member2.id
-            del teams[team1]["members"][member1.name]
-            teams[team2]["members"][member1.name] = member1.id
-            del teams[team2]["members"][member2.name]
-            teams[team1]["ids"].remove(member1.id)
-            teams[team2]["ids"].remove(member2.id)
-            teams[team1]["ids"].append(member2.id)
-            teams[team2]["ids"].append(member1.id)
+                teams[team2]["captain"][str(member1.id)] = member1.name
+            teams[team1]["members"][str(member2.id)] = member2.name
+            del teams[team1]["members"][str(member1.id)]
+            teams[team2]["members"][str(member1.id)] = member1.name
+            del teams[team2]["members"][str(member2.id)]
 
     async def sign(self, ctx, guild, team1, member1: discord.Member, member2: discord.Member):
         cog = self.bot.get_cog("SimLeague")
@@ -1256,17 +1257,16 @@ class SimHelper:
         if member2.id in users:
             return await ctx.send("User is currently not a free agent.")
         async with cog.config.guild(guild).teams() as teams:
-            if member1.id not in teams[team1]["ids"]:
+            if str(member1.id) not in teams[team1]["members"]:
                 return await ctx.send(f"{member1.name} is not on {team1}.")
-            if member1.name in list(teams[team1]["captain"].values()):
+            if str(member1.id) in teams[team1]["captain"]:
                 teams[team1]["captain"] = {}
-                teams[team1]["captain"] = {member2.name: member2.id}
-            teams[team1]["members"][member2.name] = member2.id
-            del teams[team1]["members"][member1.name]
-            teams[team1]["ids"].remove(member1.id)
-            teams[team1]["ids"].append(member2.id)
+                teams[team1]["captain"] = {str(member2.id): member2.name}
+            teams[team1]["members"][str(member2.id)] = member2.name
+            del teams[team1]["members"][str(member1.id)]
         async with cog.config.guild(guild).users() as users:
-            users.remove(member1.id)
+            users.remove(str(member1.id))
+            users.append(str(member2.id))
 
     async def team_delete(self, ctx, team):
         cog = self.bot.get_cog("SimLeague")
@@ -1274,7 +1274,7 @@ class SimHelper:
             if team not in teams:
                 return await ctx.send("Team was not found, ensure capitilization is correct.")
             async with cog.config.guild(ctx.guild).users() as users:
-                for uid in teams[team]["ids"]:
+                for uid in teams[team]["members"]:
                     users.remove(uid)
             del teams[team]
             async with cog.config.guild(ctx.guild).standings() as standings:
