@@ -30,12 +30,12 @@ class Highlight(commands.Cog):
                     if not toggle[user]:
                         continue
                     msglist = []
+                    msglist.append(message)
                     async for messages in message.channel.history(
                         limit=5, before=message, oldest_first=False
                     ):
                         msglist.append(messages)
                     msglist.reverse()
-                    msglist.append(message)
                     highlighted = self.bot.get_user(int(user))
                     if highlighted is None:
                         highlighted = await self.bot.fetch_user(int(user))
