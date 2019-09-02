@@ -33,7 +33,7 @@ class R6(commands.Cog):
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
         """General R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -100,7 +100,7 @@ class R6(commands.Cog):
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
         """Casual R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -160,7 +160,7 @@ class R6(commands.Cog):
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
         """Ranked R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -220,7 +220,7 @@ class R6(commands.Cog):
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
         """R6 Operator Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -276,7 +276,7 @@ class R6(commands.Cog):
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: int):
         """R6 Seasonal Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -337,7 +337,7 @@ class R6(commands.Cog):
             "meele_kills",
             "playtime",
         ]
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -407,7 +407,7 @@ class R6(commands.Cog):
     @r6.command()
     async def general(self, ctx, profile, platform="uplay"):
         """General R6S Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -438,7 +438,7 @@ class R6(commands.Cog):
     @r6.command()
     async def weapontype(self, ctx, profile, platform="uplay"):
         """R6 Weapon type statistics."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -475,7 +475,7 @@ class R6(commands.Cog):
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6 Weapon Statistics.
         If the weapon name has a space, please surround it with quotes."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -514,7 +514,7 @@ class R6(commands.Cog):
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
         """R6 Leaderboard Statistics.
         Regions: all, eu, na, asia"""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -551,7 +551,7 @@ class R6(commands.Cog):
     @r6.command()
     async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
         """R6 Gamemode Statistics."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
@@ -587,7 +587,7 @@ class R6(commands.Cog):
     @r6.command()
     async def queue(self, ctx, profile: str, platform: str = "uplay"):
         """R6 stats from casual, ranked & other together."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        api = await self.bot.get_shared_api_keys("r6stats")
         if api["authorization"] is None:
             return await ctx.send(
                 "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
