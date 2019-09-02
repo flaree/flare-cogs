@@ -622,7 +622,7 @@ class R6(commands.Cog):
 
     @r6.command()
     async def setpicture(self, ctx, toggle: bool = True):
-        """Set wheter to recieve an embed or a picture.
+        """Set wheter to receive an embed or a picture.
         Toggle must be a valid bool."""
         await self.config.member(ctx.author).picture.set(toggle)
         if toggle:
@@ -634,7 +634,7 @@ class R6(commands.Cog):
     @commands.command()
     async def r6set(self, ctx):
         """Instructions on how to set the api key."""
-        message = "1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{}set api r6stats authorization,your_r6stats_apikey`".format(
+        message = "**These instructions will be revised once the R6Stats API is public.**\n1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{}set api r6stats authorization,your_r6stats_apikey`".format(
             ctx.prefix
         )
         await ctx.maybe_send_embed(message)

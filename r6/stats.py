@@ -92,8 +92,7 @@ class Stats:
                 try:
                     seasonss = resp["seasons"]
                     seasons = list(seasonss.keys())
-                    for i in range(1, 6):
-                        seasons.append("None")
+                    seasons = seasons + ["None"] * 6
                     seasons.reverse()
                     return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
                 except IndexError:
