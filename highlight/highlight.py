@@ -58,19 +58,20 @@ class Highlight(commands.Cog):
 
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
-        """Highlighting Commands"""
+        """Highlighting Commands."""
         pass
 
     @highlight.command()
     async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *, text: str):
-        """Add a word to be highlighted on."""
+        """Add a word to be highlighted on.
+        Text will be converted to lowercase."""
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
-            if text not in highlight[f"{ctx.author.id}"]:
-                highlight[f"{ctx.author.id}"][text] = None
+            if text.lower() not in highlight[f"{ctx.author.id}"]:
+                highlight[f"{ctx.author.id}"][text.lower()] = None
                 await ctx.send(
                     f"The word `{text}` has been added to your highlight list for {channel}."
                 )
@@ -82,7 +83,7 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
-        """Remove highlighting in a certain channel"""
+        """Remove highlighting in a certain channel."""
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
