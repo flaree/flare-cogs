@@ -43,6 +43,7 @@ class SimLeague(commands.Cog):
             "betmin": 10,
             "pageamount": 5,
             "mee6": False,
+            "mentions": True,
             "redcardmodifier": 22,
             "probability": {
                 "goalchance": 96,
@@ -91,6 +92,7 @@ class SimLeague(commands.Cog):
             maxplayers = await self.config.guild(guild).maxplayers()
             redcardmodif = await self.config.guild(guild).redcardmodifier()
             transfers = await self.config.guild(guild).transferwindow()
+            mentions = await self.config.guild(guild).mentions()
             msg = ""
             msg += "Game Time: 1m for every {}s.\n".format(gametime)
             msg += "Team Limit: {} players.\n".format(maxplayers)
@@ -99,6 +101,7 @@ class SimLeague(commands.Cog):
             msg += "Posting Results: {}.\n".format("Yes" if results else "No")
             msg += "Transfer Window: {}.\n".format("Open" if transfers else "Closed")
             msg += "Accepting Bets: {}.\n".format("Yes" if bettoggle else "No")
+            msg += "Mentions on game start: {}.\n".format("Yes" if mentions else "No")
         
             if bettoggle:
                 bettime = await self.config.guild(guild).bettime()
@@ -273,6 +276,15 @@ class SimLeague(commands.Cog):
             await self.config.guild(ctx.guild).transferwindow.set(True)
         else:
             await self.config.guild(ctx.guild).transferwindow.set(False)
+
+    @checks.admin()
+    @simset.command()
+    async def mentions(self, ctx, bool: bool):
+        """Toggle mentions on game start."""
+        if bool:
+            await self.config.guild(ctx.guild).mentions.set(True)
+        else:
+            await self.config.guild(ctx.guild).mentions.set(False)
 
 
     @checks.admin()

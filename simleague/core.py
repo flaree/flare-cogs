@@ -53,19 +53,19 @@ class SimHelper:
             server_icon = await self.getimg(
                 teams[teamevent]["logo"]
                 if teams[teamevent]["logo"] is not None
-                else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                else "https://i.imgur.com/pQMaU8U.png"
             )
         if event == "yellow":
             server_icon = await self.getimg(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Yellow_card.svg/788px-Yellow_card.svg.png"
+                "https://i.imgur.com/wFS9zdd.png"
             )
         if event == "red":
             server_icon = await self.getimg(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Red_card.svg/788px-Red_card.svg.png"
+                "https://i.imgur.com/2rlT6Ag.png"
             )
         if event == "2yellow":
             server_icon = await self.getimg(
-                "https://cdn.imgbin.com/16/2/12/imgbin-penalty-card-red-card-yellow-card-football-7QjpVbCPUywdmmVAh8MH2aSv6.jpg"
+                "https://i.imgur.com/SMZXrVz.jpg"
             )
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
@@ -73,7 +73,7 @@ class SimHelper:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
             server_icon = await self.getimg(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                "https://i.imgur.com/pQMaU8U.png"
             )
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
@@ -347,14 +347,14 @@ class SimHelper:
         server_icon = await self.getimg(
             teams[teamevent]["logo"]
             if teams[teamevent]["logo"] is not None
-            else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            else "https://i.imgur.com/pQMaU8U.png"
         )
 
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
             server_icon = await self.getimg(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                "https://i.imgur.com/pQMaU8U.png"
             )
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
@@ -526,7 +526,7 @@ class SimHelper:
         server_icon = await self.getimg(
             teams[team]["logo"]
             if teams[team]["logo"] is not None
-            else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+            else "https://i.imgur.com/pQMaU8U.png"
         )
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
@@ -534,7 +534,7 @@ class SimHelper:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
             server_icon = await self.getimg(
-                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                "https://i.imgur.com/pQMaU8U.png"
             )
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
@@ -830,7 +830,7 @@ class SimHelper:
             server_icon = await self.getimg(
                 teams[team]["logo"]
                 if teams[team]["logo"] is not None
-                else "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/A_blank_black_picture.jpg/1536px-A_blank_black_picture.jpg"
+                else "https://i.imgur.com/pQMaU8U.png"
             )
             try:
                 server_icon_image = Image.open(server_icon).convert("RGBA")
@@ -902,9 +902,6 @@ class SimHelper:
         commentator = "Commentator: " + random.choice(
             [x.name for x in ctx.guild.members if x.id not in teammembers and len(x.name) < 25]
         )
-        referee = "Referee: " + random.choice(
-            [x.name for x in ctx.guild.members if x.id not in teammembers and len(x.name) < 30]
-        )
         draw.text(
             (self._center(0, width, commentator, level_label_fnt2), 45),
             commentator,
@@ -969,12 +966,13 @@ class SimHelper:
     async def matchnotif(self, ctx, team1, team2):
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
+        mentions = await cog.config.guild(ctx.guild).mentions()
         teamone = list(teams[team1]["members"].keys())
         teamtwo = list(teams[team2]["members"].keys())
         role1 = False
         role2 = False
         msg = ""
-        if teams[team1]["role"]:
+        if teams[team1]["role"] and mentions:
             role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
             if role_obj is not None:
                 await role_obj.edit(mentionable=True)
@@ -996,7 +994,7 @@ class SimHelper:
         else:
             msg += team1
         msg += " VS "
-        if teams[team2]["role"]:
+        if teams[team2]["role"] and mentions:
             role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
             if role_obj is not None:
                 await role_obj.edit(mentionable=True)
@@ -1094,7 +1092,8 @@ class SimHelper:
                 result += team2
             for channel in results:
                 channel = self.bot.get_channel(channel)
-                await channel.send(result)
+                if channel is not None:
+                    await channel.send(result)
             if role1:
                 role_obj = discord.utils.get(ctx.guild.roles, name=teams[team1]["role"])
                 if role_obj is not None:
