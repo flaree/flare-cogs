@@ -169,11 +169,11 @@ class Unbelievaboat(commands.Cog):
                 description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
             )
         else:
-            if await bank.can_spend(ctx.author, amount):
-                await bank.withdraw_credits(ctx.author, amount * 1.05)
+            if await bank.can_spend(ctx.author, randint):
+                await bank.withdraw_credits(ctx.author, int(randint * 1.05))
                 embed = discord.Embed(
                     colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a 5% interest fee..",
+                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a 5% interest fee ({int(randint * 1.05)} {await bank.get_currency_name(ctx.guild)}).",
                 )
             else:
                 await bank.set_balance(ctx.author, 0)
