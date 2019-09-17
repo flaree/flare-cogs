@@ -324,7 +324,8 @@ class R6(commands.Cog):
                 embed.add_field(name="End Rank:", value=data[1]["rank_text"])
                 if data[1]["rank_text"] == "Champions":
                     embed.add_field(
-                        name="Champions Position:", value="#" + data[1]["champions_rank_position"]
+                        name="Champions Position:",
+                        value="#" + str(data[1]["champions_rank_position"]),
                     )
                 await ctx.send(embed=embed)
 
