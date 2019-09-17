@@ -11,29 +11,56 @@ class Stats:
     def __init__(self, bot):
         self.bot = bot
         self.url = "https://api2.r6stats.com/public-api/"
-        self.rank = {
-            "Unranked": "https://i.imgur.com/jNJ1BBl.png",
-            "Copper IV": "https://i.imgur.com/deTjm7V.png",
-            "Copper III": "https://i.imgur.com/zx5KbBO.png",
-            "Copper II": "https://i.imgur.com/RTCvQDV.png",
-            "Copper I": "https://i.imgur.com/SN55IoP.png",
-            "Bronve IV": "https://i.imgur.com/DmfZeRP.png",
-            "Bronze III": "https://i.imgur.com/QOuIDW4.png",
-            "Bronze II": "ttps://i.imgur.com/ry1KwLe.png",
-            "Bronze I": "https://i.imgur.com/64eQSbG.png",
-            "Silver IV": "https://i.imgur.com/fOmokW9.png",
-            "Silver III": "https://i.imgur.com/e84XmHl.png",
-            "Silver II": "https://i.imgur.com/f68iB99.png",
-            "Silver I": "https://i.imgur.com/iQGr0yz.png",
-            "Gold IV": "https://i.imgur.com/DelhMBP.png",
-            "Gold III": "https://i.imgur.com/5fYa6cM.png",
-            "Gold II": "https://i.imgur.com/7c4dBTz.png",
-            "Gold I": "https://i.imgur.com/cOFgDW5.png",
-            "Platinum III": "https://i.imgur.com/27k46er.png",
-            "Platinum II": "https://i.imgur.com/0nSeDwK.png",
-            "Platinum I": "https://i.imgur.com/p8J2gyx.png",
-            "Diamond": "https://i.imgur.com/h02BrKN.png",
-            "Diamond I": "https://i.imgur.com/h02BrKN.png",
+        self.rankurl = "https://cdn.r6stats.com/seasons/rank-imgs/"
+        self.ranksember = {
+            "Unranked": "unranked.png",
+            "Copper V": "copper-5.png",
+            "Copper IV": "copper-4.png",
+            "Copper III": "copper-3.png",
+            "Copper II": "copper-2.png",
+            "Copper I": "copper-1.png",
+            "Bronze V": "bronze-5.png",
+            "Bronve IV": "bronze-4.png",
+            "Bronze III": "bronze-3.png",
+            "Bronze II": "bronze-2.png",
+            "Bronze I": "bronze-1.png",
+            "Silver V": "silver-5.png",
+            "Silver IV": "silver-4.png",
+            "Silver III": "silver-3.png",
+            "Silver II": "silver-2.png",
+            "Silver I": "silver-1.png",
+            "Gold III": "gold-3.png",
+            "Gold II": "gold-2.png",
+            "Gold I": "gold-1.png",
+            "Platinum III": "platinum-3.png",
+            "Platinum II": "platinum-2.png",
+            "Platinum I": "platinum-1.png",
+            "Diamond": "diamond.png",
+            "Champions": "champions.png",
+        }
+        self.ranks = {
+            "Unranked": "unranked.png",
+            "Copper IV": "copper-4.png",
+            "Copper III": "copper-3.png",
+            "Copper II": "copper-2.png",
+            "Copper I": "copper-1.png",
+            "Bronve IV": "bronze-4.png",
+            "Bronze III": "bronze-3.png",
+            "Bronze II": "bronze-2.png",
+            "Bronze I": "bronze-1.png",
+            "Silver IV": "silver-4.png",
+            "Silver III": "silver-3.png",
+            "Silver II": "silver-2.png",
+            "Silver I": "silver-1.png",
+            "Gold IIII": "gold-4.png",
+            "Gold III": "gold-3.png",
+            "Gold II": "gold-2.png",
+            "Gold I": "gold-1.png",
+            "Platinum III": "platinum-3-old.png",
+            "Platinum II": "platinum-2-old.png",
+            "Platinum I": "platinum-1-old.png",
+            "Diamond": "diamond-old.png",
+            "Diamond I": "diamond-old.png",
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
@@ -407,12 +434,22 @@ class Stats:
         return image
 
     async def seasoncreate(self, data, season, profile):
-        img = Image.new("RGBA", (400, 380), (17, 17, 17, 0))
+        if data[1]["rank_text"] == "Champions":
+            width = 420
+        else:
+            width = 380
+        img = Image.new("RGBA", (400, width), (17, 17, 17, 0))
         aviholder = self.add_corners(Image.new("RGBA", (140, 140), (255, 255, 255, 255)), 10)
         nameplate = self.add_corners(Image.new("RGBA", (240, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = self.rank[list(self.rank)[data[1]["max_rank"]]]
+        if season >= 14:
+            ranks = self.ranksember
+        else:
+            ranks = self.ranks
+        print(len(ranks))
+        print(data[1]["max_rank"])
+        url = self.rankurl + ranks[list(ranks)[data[1]["max_rank"]]]
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -423,7 +460,7 @@ class Stats:
         draw.text((162, 14), profile, fill=(255, 255, 255, 255), font=font)
         draw.text(
             (162, 40),
-            "Rank: {}".format(list(self.rank)[data[1]["max_rank"]]),
+            "Rank: {}".format(list(ranks)[data[1]["max_rank"]]),
             fill=(255, 255, 255, 255),
             font=font,
         )
@@ -463,6 +500,13 @@ class Stats:
             fill=(255, 255, 255, 255),
             font=font,
         )
+        if width == 420:
+            draw.text(
+                (10, 380),
+                "Champion Position: #{}".format(data[1]["champions_rank_position"]),
+                fill=(255, 255, 255, 255),
+                font=font,
+            )
         file = BytesIO()
         img.save(file, "png")
         file.name = "season.png"

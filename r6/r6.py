@@ -13,7 +13,7 @@ from .stats import Stats
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.3.3"
+    __version__ = "1.3.4"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -175,11 +175,11 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.casualstatscreate(data)
+                image = await self.stats.rankedstatscreate(data)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
-                    colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
+                    colour=ctx.author.colour, title="R6 Ranked Statistics for {}".format(profile)
                 )
                 embed.set_thumbnail(url=data["avatar_url_256"])
                 embed.add_field(name="Level:", value=data["progression"]["level"])
@@ -295,6 +295,10 @@ class R6(commands.Cog):
             return await ctx.send("The season you provided was not found.")
         if season > len(data[0]) or season < 7:
             return await ctx.send("Invalid season.")
+        if season >= 14:
+            ranks = self.stats.ranksember
+        else:
+            ranks = self.stats.ranks
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -308,7 +312,7 @@ class R6(commands.Cog):
                     ),
                 )
                 embed.set_thumbnail(
-                    url=self.stats.rank[list(self.stats.rank)[data[1]["max_rank"]]]
+                    url=self.stats.rankurl + ranks[list(ranks)[data[1]["max_rank"]]]
                 )
                 embed.add_field(name="Wins:", value=data[1]["wins"])
                 embed.add_field(name="Losses:", value=data[1]["losses"])
@@ -316,8 +320,12 @@ class R6(commands.Cog):
                 embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
                 embed.add_field(name="Max MMR:", value=data[1]["max_mmr"])
                 embed.add_field(name="End MMR:", value=data[1]["mmr"])
-                embed.add_field(name="Max Rank:", value=list(self.stats.rank)[data[1]["max_rank"]])
+                embed.add_field(name="Max Rank:", value=list(ranks)[data[1]["max_rank"]])
                 embed.add_field(name="End Rank:", value=data[1]["rank_text"])
+                if data[1]["rank_text"] == "Champions":
+                    embed.add_field(
+                        name="Champions Position:", value="#" + data[1]["champions_rank_position"]
+                    )
                 await ctx.send(embed=embed)
 
     @r6.command()
