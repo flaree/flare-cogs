@@ -109,13 +109,13 @@ class Unbelievaboat(commands.Cog):
     async def bankdeposit(self, ctx, user, amount):
         conf = await self.configglobalcheckuser(user)
         wallet = await conf.wallet()
-        if amount > wallet:
+        if abs(amount) > wallet:
             return await ctx.send("You have insufficent funds to complete this deposit.")
         else:
-            await bank.deposit_credits(user, amount)
-            await self.walletset(user, wallet - amount)
+            await bank.deposit_credits(user, abs(amount))
+            await self.walletset(user, wallet - abs(amount))
             return await ctx.send(
-                f"You have succesfully deposited {amount} {await bank.get_currency_name(ctx.guild)} into your bank account."
+                f"You have succesfully deposited {abs(amount)} {await bank.get_currency_name(ctx.guild)} into your bank account."
             )
 
     async def walletbalance(self, user):
