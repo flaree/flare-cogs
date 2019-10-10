@@ -306,6 +306,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.tick()
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def work(self, ctx):
         """Work for some cash."""
         cdcheck = await self.cdcheck(ctx, "workcd")
@@ -338,6 +339,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def crime(self, ctx):
         """Commit a crime, more risk but higher payout."""
         cdcheck = await self.cdcheck(ctx, "crimecd")
@@ -374,6 +376,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
         if user == ctx.author:
@@ -526,6 +529,7 @@ class Unbelievaboat(commands.Cog):
     @commands.command()
     @check_global_setting_admin()
     @checks.admin()
+    @commands.bot_has_permissions(embed_links=True)
     async def settings(self, ctx):
         """Current unbelievaboat settings."""
         conf = await self.configglobalcheck(ctx)
