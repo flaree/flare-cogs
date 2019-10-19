@@ -33,7 +33,7 @@ class SimLeague(commands.Cog):
                 "motm": {},
                 "cleansheets": {},
             },
-            "users": [],
+            "users": set(),
             "resultchannel": [],
             "gametime": 1,
             "bettime": 180,
@@ -57,6 +57,7 @@ class SimLeague(commands.Cog):
             "started": False,
             "betteams": [],
             "transferwindow": False,
+            "cupmode": False,
         }
         defaults_user = {"notify": True}
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
@@ -128,6 +129,18 @@ class SimLeague(commands.Cog):
         """Simulation Betting Settings."""
         pass
 
+    @checks.guildowner()
+    @simset.command(autohelp=True, hidden=True)
+    async def cupmode(self, ctx, bool: bool):
+        """Set if the simulation is in cup mode.
+        It disables the standings command."""
+        if bool:
+            await ctx.send("Cup mode is now active.")
+            await self.config.guild(ctx.guild).cupmode.set(bool)
+        else:
+            await ctx.send("Cup mode is now disabled.")
+            await self.config.guild(ctx.guild).cupmode.set(bool)
+    
     @checks.guildowner()
     @simset.group(autohelp=True, hidden=True)
     async def probability(self, ctx):
@@ -662,6 +675,8 @@ class SimLeague(commands.Cog):
     @commands.command()
     async def standings(self, ctx, verbose: bool = False):
         """Current sim standings."""
+        if await self.config.guild(ctx.guild).cupmode():
+            return await ctx.send("This simulation league is in cup mode, contact the maintainer of the league for the current standings.")
         standings = await self.config.guild(ctx.guild).standings()
         if standings is None:
             return await ctx.send("The table is empty.")
@@ -1727,5 +1742,4 @@ class SimLeague(commands.Cog):
                 teams[team]["members"] = {v: k for k, v in teams[team]["members"].items()}
                 teams[team]["captain"] = {v: k for k, v in teams[team]["captain"].items()}
         async with self.config.guild(ctx.guild).users() as users:
-            for i, j in enumerate(users):
-                users[i] = str(j)
+            users = set([str(x) for x in users])

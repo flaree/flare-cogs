@@ -43,6 +43,7 @@ class SimHelper:
         name_fnt = ImageFont.truetype(font_bold_file, 22)
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        general_u_font = ImageFont.truetype(font_unicode_file, 15)
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
         rank_avatar = BytesIO()
@@ -202,7 +203,7 @@ class SimHelper:
             draw.text(
                 (label_align, 38),
                 "Player: {}".format(player.name),
-                font=general_info_fnt,
+                font=general_u_font,
                 fill=label_text_color,
             )
             draw.text(
@@ -221,7 +222,7 @@ class SimHelper:
             draw.text(
                 (label_align, 38),
                 "Player: {}".format(player.name),
-                font=general_info_fnt,
+                font=general_u_font,
                 fill=label_text_color,
             )
             draw.text(
@@ -233,7 +234,7 @@ class SimHelper:
             draw.text(
                 (label_align, 78),
                 "Team: {}".format(teamevent.upper()),
-                font=general_info_fnt,
+                font=general_u_font,
                 fill=label_text_color,
             )
             draw.text(
@@ -340,6 +341,7 @@ class SimHelper:
         name_fnt = ImageFont.truetype(font_bold_file, 22)
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        general_u_font = ImageFont.truetype(font_unicode_file, 18)
         general_info_fnt = ImageFont.truetype(font_bold_file, 18, encoding="utf-8")
         level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
         cog = self.bot.get_cog("SimLeague")
@@ -474,7 +476,7 @@ class SimHelper:
         draw.text(
             (label_align, 58),
             "{} takes up position to shoot!".format(player),
-            font=general_info_fnt,
+            font=general_u_font,
             fill=label_text_color,
         )
 
@@ -519,6 +521,7 @@ class SimHelper:
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        general_u_fnt = ImageFont.truetype(font_unicode_file, 15)
         rank_avatar = BytesIO()
         await user.avatar_url.save(rank_avatar, seek_begin=True)
         cog = self.bot.get_cog("SimLeague")
@@ -683,6 +686,7 @@ class SimHelper:
         name_fnt = ImageFont.truetype(font_bold_file, 22)
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        general_u_fnt = ImageFont.truetype(font_unicode_file, 15)
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
@@ -743,7 +747,7 @@ class SimHelper:
                 name = player.name[:6] + "..."
             else:
                 name = player.name
-            draw.text((x, 160), name, font=general_info_fnt, fill=(255, 255, 255, 255))
+            draw.text((x, 160), name, font=general_u_fnt, fill=(255, 255, 255, 255))
             x += 90
 
         def _write_unicode(text, init_x, y, font, unicode_font, fill):
