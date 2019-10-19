@@ -9,10 +9,10 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        default_channel = {"highlight": {}, "toggle": {}}
+        default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.3"
+    __version__ = "1.1.4"
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -21,14 +21,21 @@ class Highlight(commands.Cog):
         highlight = await self.config.channel(message.channel).highlight()
         for user in highlight:
             if int(user) == message.author.id:
-                continue
+                return
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
-                    if message.author.bot:
-                        return
+                    bots = await self.config.channel(message.channel).bots()
+                    if user in bots:  # ensure the user is in the dict - stops breakages.
+                        if not bots[user]:
+                            if message.author.bot:
+                                return
+                    else:
+                        if message.author.bot:
+                            return
+
                     toggle = await self.config.channel(message.channel).toggle()
                     if not toggle[user]:
-                        continue
+                        return
                     msglist = []
                     msglist.append(message)
                     async for messages in message.channel.history(
@@ -40,7 +47,7 @@ class Highlight(commands.Cog):
                     if highlighted is None:
                         highlighted = await self.bot.fetch_user(int(user))
                     if highlighted not in message.guild.members:
-                        continue
+                        return
                     context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
                     if len(context) > 2000:
                         context = "**Context omitted due to message size limits.\n**"
@@ -56,6 +63,7 @@ class Highlight(commands.Cog):
                         embed=embed,
                     )
 
+    @commands.guild_only()
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
         """Highlighting Commands."""
@@ -64,7 +72,9 @@ class Highlight(commands.Cog):
     @highlight.command()
     async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *, text: str):
         """Add a word to be highlighted on.
-        Text will be converted to lowercase."""
+
+        Text will be converted to lowercase.
+        Can also provide an optional channel arguement for the highlight to be applied to that channel."""
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
@@ -83,7 +93,10 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
-        """Remove highlighting in a certain channel."""
+        """Remove highlighting in a channel.
+        
+        An optional channel can be provided to remove a highlight from that channel."""
+        word = word.lower()
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
@@ -101,26 +114,52 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def toggle(self, ctx, state: bool):
-        """Toggle highlighting - must be a valid bool."""
+        """Toggle highlighting.
+        
+        Must be a valid bool."""
         async with self.config.channel(ctx.channel).toggle() as toggle:
             if state:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send(
                     "{} has enabled their highlighting in this channel.".format(ctx.author.name)
                 )
-            elif not state:
+            else:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send(
                     "{} has disabled their highlighting in this channel.".format(ctx.author.name)
                 )
 
+    @highlight.command()
+    async def bots(self, ctx, state: bool):
+        """Enable highlighting of bot messages.
+        
+        Expects a valid bool."""
+        async with self.config.channel(ctx.channel).bots() as bots:
+            if state:
+                bots[f"{ctx.author.id}"] = state
+                await ctx.send(
+                    "{} has enabled their highlighting of bot messages in this channel.".format(
+                        ctx.author.name
+                    )
+                )
+            else:
+                bots[f"{ctx.author.id}"] = state
+                await ctx.send(
+                    "{} has disabled their highlighting of bot messages in this channel.".format(
+                        ctx.author.name
+                    )
+                )
+
     @highlight.command(name="list")
     async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
-        """Current highlight settings for the current channel."""
+        """Current highlight settings for a channel.
+        
+        A channel arguement can be supplied to view settings for said channel."""
         channel = channel or ctx.channel
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
             toggle = await self.config.channel(channel).toggle()
+            bots = toggle = await self.config.channel(channel).toggle()
             words = [word for word in highlight[f"{ctx.author.id}"]]
             words = "\n".join(words)
             embed = discord.Embed(
@@ -129,6 +168,14 @@ class Highlight(commands.Cog):
             )
             embed.add_field(name="Words:", value=words)
             embed.add_field(name="Toggled:", value="Yes" if toggle[f"{ctx.author.id}"] else "No")
+            if str(ctx.author.id) in bots:
+                if bots[str(ctx.author.id)]:
+                    val = False
+                else:
+                    val = True
+            else:
+                val = True
+            embed.add_field(name="Ignoring Bots:", value="Yes" if val else "No")
 
             await ctx.send(embed=embed)
         else:
