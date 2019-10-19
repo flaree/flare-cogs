@@ -21,21 +21,21 @@ class Highlight(commands.Cog):
         highlight = await self.config.channel(message.channel).highlight()
         for user in highlight:
             if int(user) == message.author.id:
-                return
+                continue
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
                     bots = await self.config.channel(message.channel).bots()
                     if user in bots:  # ensure the user is in the dict - stops breakages.
                         if not bots[user]:
                             if message.author.bot:
-                                return
+                                continue
                     else:
                         if message.author.bot:
-                            return
+                            continue
 
                     toggle = await self.config.channel(message.channel).toggle()
                     if not toggle[user]:
-                        return
+                        continue
                     msglist = []
                     msglist.append(message)
                     async for messages in message.channel.history(
@@ -47,7 +47,7 @@ class Highlight(commands.Cog):
                     if highlighted is None:
                         highlighted = await self.bot.fetch_user(int(user))
                     if highlighted not in message.guild.members:
-                        return
+                        continue
                     context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
                     if len(context) > 2000:
                         context = "**Context omitted due to message size limits.\n**"
