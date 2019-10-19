@@ -332,6 +332,7 @@ class R6(commands.Cog):
     @r6.command()
     async def operators(self, ctx, profile, platform, statistic):
         """Statistics for all operators.
+
         If you do not have any stats for an operator then it is ommited.
         Different stats include kills, deaths, kd, wins, losses, headshots, dbnos, meele_kills and playtime"""
         stats = [
@@ -483,6 +484,7 @@ class R6(commands.Cog):
     @r6.command()
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6 Weapon Statistics.
+
         If the weapon name has a space, please surround it with quotes."""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
@@ -522,6 +524,7 @@ class R6(commands.Cog):
     @r6.command()
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
         """R6 Leaderboard Statistics.
+
         Regions: all, eu, na, asia"""
         api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
         if api["authorization"] is None:
@@ -632,6 +635,7 @@ class R6(commands.Cog):
     @r6.command()
     async def setpicture(self, ctx, toggle: bool = True):
         """Set wheter to recieve an embed or a picture.
+
         Toggle must be a valid bool."""
         await self.config.member(ctx.author).picture.set(toggle)
         if toggle:

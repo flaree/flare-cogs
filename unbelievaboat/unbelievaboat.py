@@ -266,6 +266,7 @@ class Unbelievaboat(commands.Cog):
         self, ctx, amount: int, role: discord.Role, destination: Optional[str] = "wallet"
     ):
         """Add money to the balance of all users within a role.
+
         Valid arguements are 'banks' or 'wallet'."""
         if destination.lower() not in ["bank", "wallet"]:
             return await ctx.send(
@@ -289,6 +290,7 @@ class Unbelievaboat(commands.Cog):
         self, ctx, amount: int, role: discord.Role, destination: Optional[str] = "wallet"
     ):
         """Remove money from the bank balance of all users within a role.
+
         Valid arguements are 'banks' or 'wallet'."""
         if destination.lower() not in ["bank", "wallet"]:
             return await ctx.send(
@@ -572,6 +574,7 @@ class Unbelievaboat(commands.Cog):
     @wallet.command()
     async def balance(self, ctx, user=None):
         """Show the user's wallet balance.
+
         Defaults to yours."""
         if user is None:
             user = ctx.author

@@ -184,6 +184,7 @@ class Modmail(commands.Cog):
     @modmailset.command()
     async def dms(self, ctx, mode: bool):
         """Toggle modmail forwarding from DMs.
+
            True - Allow DM Forwarding.
            False - Disallow DM Forwarding."""
         async with self.config.toggle() as toggle:
