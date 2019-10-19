@@ -109,13 +109,13 @@ class Unbelievaboat(commands.Cog):
     async def bankdeposit(self, ctx, user, amount):
         conf = await self.configglobalcheckuser(user)
         wallet = await conf.wallet()
-        if amount > wallet:
+        if abs(amount) > wallet:
             return await ctx.send("You have insufficent funds to complete this deposit.")
         else:
-            await bank.deposit_credits(user, amount)
-            await self.walletset(user, wallet - amount)
+            await bank.deposit_credits(user, abs(amount))
+            await self.walletset(user, wallet - abs(amount))
             return await ctx.send(
-                f"You have succesfully deposited {amount} {await bank.get_currency_name(ctx.guild)} into your bank account."
+                f"You have succesfully deposited {abs(amount)} {await bank.get_currency_name(ctx.guild)} into your bank account."
             )
 
     async def walletbalance(self, user):
@@ -306,6 +306,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.tick()
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def work(self, ctx):
         """Work for some cash."""
         cdcheck = await self.cdcheck(ctx, "workcd")
@@ -338,6 +339,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def crime(self, ctx):
         """Commit a crime, more risk but higher payout."""
         cdcheck = await self.cdcheck(ctx, "crimecd")
@@ -374,6 +376,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
         if user == ctx.author:
@@ -526,6 +529,7 @@ class Unbelievaboat(commands.Cog):
     @commands.command()
     @check_global_setting_admin()
     @checks.admin()
+    @commands.bot_has_permissions(embed_links=True)
     async def settings(self, ctx):
         """Current unbelievaboat settings."""
         conf = await self.configglobalcheck(ctx)
