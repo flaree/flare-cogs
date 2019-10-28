@@ -1,13 +1,31 @@
-import discord
-import aiohttp
 import asyncio
-from redbot.core import commands, checks, Config
+import datetime
+import typing
 from io import BytesIO
+
+import aiohttp
+import discord
+import r6statsapi
 from PIL import Image, ImageDraw, ImageFont
+from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-import datetime
+
 from .stats import Stats
+
+
+async def tokencheck(ctx):
+
+    token = await ctx.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+    if token["authorization"] is not None:
+        return True
+    else:
+        await ctx.send(
+            "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
+                ctx.prefix
+            )
+        )
+        return False
 
 
 class R6(commands.Cog):
@@ -21,30 +39,39 @@ class R6(commands.Cog):
         self.config.register_member(**default_member)
         self.bot = bot
         self.stats = Stats(bot)
-        self.platforms = ["psn", "xbl", "uplay"]
+        self.platforms = {
+            "psn": r6statsapi.Platform.psn,
+            "xbl": r6statsapi.Platform.xbox,
+            "uplay": r6statsapi.Platform.uplay,
+        }
         self.regions = {"na": "ncsa", "eu": "emea", "asia": "apac"}
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
+        self.client = None
+
+    async def initalize(self):
+        token = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        self.client = r6statsapi.Client(token["authorization"])
+
+    def cog_unload(self):
+        self.client.destroy()
 
     @commands.group(autohelp=True)
     async def r6(self, ctx):
         """R6 Commands - Valid consoles are psn, xbl and uplay."""
         pass
 
+    @commands.check(tokencheck)
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
         """General R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_generic_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -54,30 +81,22 @@ class R6(commands.Cog):
                 embed = discord.Embed(
                     colour=ctx.author.color, title="R6 Profile for {}".format(profile)
                 )
-                embed.set_thumbnail(url=data["avatar_url_256"])
-                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.set_thumbnail(url=data.avatar_url_256)
+                embed.add_field(name="Level:", value=data.level)
                 embed.add_field(
                     name="Timeplayed:",
-                    value=str(
-                        datetime.timedelta(seconds=int(data["stats"]["general"]["playtime"]))
-                    ),
+                    value=str(datetime.timedelta(seconds=int(data.general_stats["playtime"]))),
                 )
-                embed.add_field(name="Total Wins:", value=data["stats"]["general"]["wins"])
-                embed.add_field(name="Total Losses:", value=data["stats"]["general"]["losses"])
-                embed.add_field(name="Draws:", value=data["stats"]["general"]["draws"])
-                embed.add_field(
-                    name="Lootbox %:", value=data["progression"]["lootbox_probability"]
-                )
-                embed.add_field(name="Kills:", value=data["stats"]["general"]["kills"])
-                embed.add_field(name="Deaths:", value=data["stats"]["general"]["deaths"])
-                embed.add_field(name="KDR:", value=data["stats"]["general"]["kd"])
+                embed.add_field(name="Total Wins:", value=data.general_stats["wins"])
+                embed.add_field(name="Total Losses:", value=data.general_stats["losses"])
+                embed.add_field(name="Draws:", value=data.general_stats["draws"])
+                embed.add_field(name="Lootbox %:", value=data.lootbox_probability)
+                embed.add_field(name="Kills:", value=data.general_stats["kills"])
+                embed.add_field(name="Deaths:", value=data.general_stats["deaths"])
+                embed.add_field(name="KDR:", value=data.general_stats["kd"])
                 try:
                     wlr = (
-                        round(
-                            data["stats"]["general"]["wins"]
-                            / data["stats"]["general"]["games_played"],
-                            2,
-                        )
+                        round(data.general_stats["wins"] / data.general_stats["games_played"], 2)
                         * 100
                     )
                 except ZeroDivisionError:
@@ -86,8 +105,8 @@ class R6(commands.Cog):
                 try:
                     rwlr = (
                         round(
-                            data["stats"]["queue"]["ranked"]["wins"]
-                            / data["stats"]["queue"]["ranked"]["games_played"],
+                            data.queue_stats["ranked"]["wins"]
+                            / data.queue_stats["ranked"]["games_played"],
                             2,
                         )
                         * 100
@@ -97,19 +116,19 @@ class R6(commands.Cog):
                 embed.add_field(name="Total Ranked W/LR:", value=rwlr)
                 await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
         """Casual R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
+
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
+        try:
+            data = await self.client.get_generic_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         if data is None:
             return await ctx.send("User not found.")
         async with ctx.typing():
@@ -121,33 +140,28 @@ class R6(commands.Cog):
                 embed = discord.Embed(
                     colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
                 )
-                embed.set_thumbnail(url=data["avatar_url_256"])
-                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.set_thumbnail(url=data.avatar_url_256)
+                embed.add_field(name="Level:", value=data.level)
                 embed.add_field(
                     name="Timeplayed:",
                     value=str(
-                        datetime.timedelta(
-                            seconds=int(data["stats"]["queue"]["casual"]["playtime"])
-                        )
+                        datetime.timedelta(seconds=int(data.queue_stats["casual"]["playtime"]))
                     ),
                 )
-                embed.add_field(name="Total Wins:", value=data["stats"]["queue"]["casual"]["wins"])
+                embed.add_field(name="Total Wins:", value=data.queue_stats["casual"]["wins"])
+                embed.add_field(name="Total Losses:", value=data.queue_stats["casual"]["losses"])
+                embed.add_field(name="Draws:", value=data.queue_stats["casual"]["draws"])
                 embed.add_field(
-                    name="Total Losses:", value=data["stats"]["queue"]["casual"]["losses"]
+                    name="Total Games Played:", value=data.queue_stats["casual"]["games_played"]
                 )
-                embed.add_field(name="Draws:", value=data["stats"]["queue"]["casual"]["draws"])
-                embed.add_field(
-                    name="Total Games Played:",
-                    value=data["stats"]["queue"]["casual"]["games_played"],
-                )
-                embed.add_field(name="Kills:", value=data["stats"]["queue"]["casual"]["kills"])
-                embed.add_field(name="Deaths:", value=data["stats"]["queue"]["casual"]["deaths"])
-                embed.add_field(name="KDR:", value=data["stats"]["queue"]["casual"]["kd"])
+                embed.add_field(name="Kills:", value=data.queue_stats["casual"]["kills"])
+                embed.add_field(name="Deaths:", value=data.queue_stats["casual"]["deaths"])
+                embed.add_field(name="KDR:", value=data.queue_stats["casual"]["kd"])
                 try:
                     wlr = (
                         round(
-                            data["stats"]["queue"]["casual"]["wins"]
-                            / data["stats"]["queue"]["casual"]["games_played"],
+                            data.queue_stats["casual"]["wins"]
+                            / data.queue_stats["casual"]["games_played"],
                             2,
                         )
                         * 100
@@ -160,18 +174,14 @@ class R6(commands.Cog):
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
         """Ranked R6 Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_generic_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -181,33 +191,28 @@ class R6(commands.Cog):
                 embed = discord.Embed(
                     colour=ctx.author.colour, title="R6 Ranked Statistics for {}".format(profile)
                 )
-                embed.set_thumbnail(url=data["avatar_url_256"])
-                embed.add_field(name="Level:", value=data["progression"]["level"])
+                embed.set_thumbnail(url=data.avatar_url_256)
+                embed.add_field(name="Level:", value=data.level)
                 embed.add_field(
                     name="Timeplayed:",
                     value=str(
-                        datetime.timedelta(
-                            seconds=int(data["stats"]["queue"]["ranked"]["playtime"])
-                        )
+                        datetime.timedelta(seconds=int(data.queue_stats["ranked"]["playtime"]))
                     ),
                 )
-                embed.add_field(name="Total Wins:", value=data["stats"]["queue"]["ranked"]["wins"])
+                embed.add_field(name="Total Wins:", value=data.queue_stats["ranked"]["wins"])
+                embed.add_field(name="Total Losses:", value=data.queue_stats["ranked"]["losses"])
+                embed.add_field(name="Draws:", value=data.queue_stats["ranked"]["draws"])
                 embed.add_field(
-                    name="Total Losses:", value=data["stats"]["queue"]["ranked"]["losses"]
+                    name="Total Games Played:", value=data.queue_stats["ranked"]["games_played"]
                 )
-                embed.add_field(name="Draws:", value=data["stats"]["queue"]["ranked"]["draws"])
-                embed.add_field(
-                    name="Total Games Played:",
-                    value=data["stats"]["queue"]["ranked"]["games_played"],
-                )
-                embed.add_field(name="Kills:", value=data["stats"]["queue"]["ranked"]["kills"])
-                embed.add_field(name="Deaths:", value=data["stats"]["queue"]["ranked"]["deaths"])
-                embed.add_field(name="KDR:", value=data["stats"]["queue"]["ranked"]["kd"])
+                embed.add_field(name="Kills:", value=data.queue_stats["ranked"]["kills"])
+                embed.add_field(name="Deaths:", value=data.queue_stats["ranked"]["deaths"])
+                embed.add_field(name="KDR:", value=data.queue_stats["ranked"]["kd"])
                 try:
                     wlr = (
                         round(
-                            data["stats"]["queue"]["ranked"]["wins"]
-                            / data["stats"]["queue"]["ranked"]["games_played"],
+                            data.queue_stats["ranked"]["wins"]
+                            / data.queue_stats["ranked"]["games_played"],
                             2,
                         )
                         * 100
@@ -220,22 +225,19 @@ class R6(commands.Cog):
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
         """R6 Operator Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if operator in self.foreignops:
             operator = self.foreignops[operator]
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.operators(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_operators_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
+
         ops = []
-        for operators in data:
+        for operators in data.operators:
             ops.append(operators["name"].lower())
         if operator.lower() not in ops:
             return await ctx.send(
@@ -248,7 +250,7 @@ class R6(commands.Cog):
                 image = await self.stats.operatorstatscreate(data[ind], profile)
                 await ctx.send(file=image)
             else:
-                data = data[ind]
+                data = data.operators[ind]
                 embed = discord.Embed(
                     colour=ctx.author.colour,
                     title="{} Statistics for {}".format(operator.title(), profile),
@@ -273,28 +275,38 @@ class R6(commands.Cog):
                     pass
                 await ctx.send(embed=embed)
 
-    @r6.command()
-    async def season(self, ctx, profile, platform, region, season: int):
-        """R6 Seasonal Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
+    async def seasonalstats(self, ctx, profile, platform):
+        try:
+            data = await self.client.get_seasonal_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
             )
+        seasons = list(data.seasons.keys())
+        seasons += [None] * 6
+        seasons.reverse()
+        print(seasons)
+        return (seasons, data.seasons)
+
+    @r6.command()
+    async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
+        """R6 Seasonal Stats."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
             return await ctx.send("Not a valid region.")
         region = self.regions[region]
-        data = await self.stats.ranked(profile, platform, region, season, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
-        if data == "Season not found":
-            return await ctx.send("The season you provided was not found.")
-        if season > len(data[0]) or season < 7:
+        try:
+            data = await self.seasonalstats(ctx, profile, platform)
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
+        if not season:
+            season = len(data[0]) - 1
+        if season > len(data[0]) - 1 or season < 6:
             return await ctx.send("Invalid season.")
+        seasondata = data[1][data[0][season]]["regions"][region][0]
         if season >= 14:
             ranks = self.stats.ranksember
         else:
@@ -302,7 +314,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.seasoncreate(data, season, profile)
+                image = await self.stats.seasoncreate(seasondata, season, profile)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -312,20 +324,20 @@ class R6(commands.Cog):
                     ),
                 )
                 embed.set_thumbnail(
-                    url=self.stats.rankurl + ranks[list(ranks)[data[1]["max_rank"]]]
+                    url=self.stats.rankurl + ranks[list(ranks)[seasondata["max_rank"]]]
                 )
-                embed.add_field(name="Wins:", value=data[1]["wins"])
-                embed.add_field(name="Losses:", value=data[1]["losses"])
-                embed.add_field(name="Abandons:", value=data[1]["abandons"])
+                embed.add_field(name="Wins:", value=seasondata["wins"])
+                embed.add_field(name="Losses:", value=seasondata["losses"])
+                embed.add_field(name="Abandons:", value=seasondata["abandons"])
                 embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
-                embed.add_field(name="Max MMR:", value=data[1]["max_mmr"])
-                embed.add_field(name="End MMR:", value=data[1]["mmr"])
-                embed.add_field(name="Max Rank:", value=list(ranks)[data[1]["max_rank"]])
-                embed.add_field(name="End Rank:", value=data[1]["rank_text"])
-                if data[1]["rank_text"] == "Champions":
+                embed.add_field(name="Max MMR:", value=seasondata["max_mmr"])
+                embed.add_field(name="End MMR:", value=seasondata["mmr"])
+                embed.add_field(name="Max Rank:", value=list(ranks)[seasondata["max_rank"]])
+                embed.add_field(name="End Rank:", value=seasondata["rank_text"])
+                if seasondata["rank_text"] == "Champions":
                     embed.add_field(
                         name="Champions Position:",
-                        value="#" + str(data[1]["champions_rank_position"]),
+                        value="#" + str(seasondata["champions_rank_position"]),
                     )
                 await ctx.send(embed=embed)
 
@@ -433,15 +445,15 @@ class R6(commands.Cog):
             embed = discord.Embed(
                 title="General R6S Stats for {}".format(profile), color=ctx.author.colour
             )
-            for stat in data["stats"]["general"]:
+            for stat in data.general_stats:
                 if stat != "playtime":
                     embed.add_field(
-                        name=stat.replace("_", " ").title(), value=data["stats"]["general"][stat]
+                        name=stat.replace("_", " ").title(), value=data.general_stats[stat]
                     )
                 else:
                     embed.add_field(
                         name=stat.replace("_", " ").title(),
-                        value=str(datetime.timedelta(seconds=int(data["stats"]["general"][stat]))),
+                        value=str(datetime.timedelta(seconds=int(data.general_stats[stat]))),
                     )
         await ctx.send(embed=embed)
 

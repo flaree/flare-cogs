@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import r6statsapi
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import discord
