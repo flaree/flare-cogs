@@ -63,84 +63,7 @@ class Stats:
             "Diamond": "diamond-old.png",
             "Diamond I": "diamond-old.png",
         }
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
-
-    async def profile(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/generic",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def weapontypes(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/weapon-categories",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def weapons(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/weapons",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def operators(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/operators",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                resp = resp["operators"]
-                return sorted(resp, key=lambda x: x["name"])
-            else:
-                return None
-
-    async def ranked(self, profile, platform, region, season, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/seasonal",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                try:
-                    seasonss = resp["seasons"]
-                    seasons = list(seasonss.keys())
-                    for i in range(1, 6):
-                        seasons.append("None")
-                    seasons.reverse()
-                    return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
-                except IndexError:
-                    return "Season not found"
-                except TypeError:
-                    return None
-            else:
-                return None
-
-    async def leaderboard(self, platform, region, page, api):
-        async with self.session.get(
-            self.url + f"leaderboard/{platform}/{region}?page={page}",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
+        self.session = aiohttp.ClientSession()
 
     async def getimg(self, url):
         async with self.session.get(url) as response:
@@ -153,7 +76,7 @@ class Stats:
         nameplate = self.add_corners(Image.new("RGBA", (200, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = data["avatar_url_256"]
+        url = data.avatar_url_256
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)

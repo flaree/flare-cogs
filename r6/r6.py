@@ -75,7 +75,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.profilecreate(data)
+                image = await self.stats.profilecreate(data.general_stats)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -134,7 +134,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.casualstatscreate(data)
+                image = await self.stats.casualstatscreate(data.queue_stats)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -171,6 +171,7 @@ class R6(commands.Cog):
                 embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
         """Ranked R6 Stats."""
@@ -185,7 +186,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.rankedstatscreate(data)
+                image = await self.stats.rankedstatscreate(data.queue_stats)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -222,6 +223,7 @@ class R6(commands.Cog):
                 embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
         """R6 Operator Stats."""
@@ -247,7 +249,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.operatorstatscreate(data[ind], profile)
+                image = await self.stats.operatorstatscreate(data.operators[ind], profile)
                 await ctx.send(file=image)
             else:
                 data = data.operators[ind]
@@ -285,9 +287,9 @@ class R6(commands.Cog):
         seasons = list(data.seasons.keys())
         seasons += [None] * 6
         seasons.reverse()
-        print(seasons)
         return (seasons, data.seasons)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
         """R6 Seasonal Stats."""
@@ -341,6 +343,7 @@ class R6(commands.Cog):
                     )
                 await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def operators(self, ctx, profile, platform, statistic):
         """Statistics for all operators.
@@ -359,22 +362,22 @@ class R6(commands.Cog):
             "meele_kills",
             "playtime",
         ]
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
-        if statistic.lower() not in stats:
-            return await ctx.send("Not a valid statistic.")
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.operators(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        if statistic not in stats:
+            return await ctx.send(
+                "Invalid Statistic. Please use one of the following:\n```{}```".format(
+                    ", ".join(stats)
+                )
+            )
+        try:
+            data = await self.client.get_operators_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         ops = []
-        for operators in data:
+        for operators in data.operators:
             ops.append(operators["name"].lower())
         if not ops:
             return await ctx.send("No operator statistics found.")
@@ -392,20 +395,28 @@ class R6(commands.Cog):
                 )
                 for i in range(len(opsone)):
                     if statistic.lower() != "playtime":
-                        em1.add_field(name=data[i]["name"], value=data[i][statistic])
+                        em1.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
+                        )
                     else:
                         em1.add_field(
-                            name=data[i]["name"],
-                            value=str(datetime.timedelta(seconds=int(data[i][statistic]))),
+                            name=data.operators[i]["name"],
+                            value=str(
+                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                            ),
                         )
                 for i in range(len(opstwo)):
                     i += 25
                     if statistic.lower() != "playtime":
-                        em2.add_field(name=data[i]["name"], value=data[i][statistic])
+                        em2.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
+                        )
                     else:
                         em2.add_field(
-                            name=data[i]["name"],
-                            value=str(datetime.timedelta(seconds=int(data[i][statistic]))),
+                            name=data.operators[i]["name"],
+                            value=str(
+                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                            ),
                         )
             embeds = []
             embeds.append(em1)
@@ -418,29 +429,30 @@ class R6(commands.Cog):
                 )
                 for i in range(len(ops)):
                     if statistic.lower() != "playtime":
-                        em1.add_field(name=data[i]["name"], value=data[i][statistic])
+                        em1.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
+                        )
                     else:
                         em1.add_field(
-                            name=data[i]["name"],
-                            value=str(datetime.timedelta(seconds=int(data[i][statistic]))),
+                            name=data.operators[i]["name"],
+                            value=str(
+                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                            ),
                         )
             await ctx.send(embed=em1)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def general(self, ctx, profile, platform="uplay"):
         """General R6S Stats."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_generic_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         async with ctx.typing():
             embed = discord.Embed(
                 title="General R6S Stats for {}".format(profile), color=ctx.author.colour
@@ -457,25 +469,22 @@ class R6(commands.Cog):
                     )
         await ctx.send(embed=embed)
 
-    @r6.command()
-    async def weapontype(self, ctx, profile, platform="uplay"):
+    @commands.check(tokencheck)
+    @r6.command(aliases=["weapontypes"])
+    async def weaponcategories(self, ctx, profile, platform="uplay"):
         """R6 Weapon type statistics."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.weapontypes(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_weaponcategory_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         embed = discord.Embed(
             color=ctx.author.colour, title="Weapon Statistics for {}".format(profile)
         )
-        weps = data["categories"]
+        weps = data.weapon_categories
         for wep in weps:
             embed.add_field(
                 name=wep["category"],
@@ -493,25 +502,22 @@ class R6(commands.Cog):
         embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
         await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6 Weapon Statistics.
 
         If the weapon name has a space, please surround it with quotes."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.weapons(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_weapon_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         weapons = []
-        for wep in data["weapons"]:
+        for wep in data.weapons:
             weapons.append(wep["weapon"].lower())
         if weapon.lower() not in weapons:
             return await ctx.send("Invalid weapon or no statistics available.")
@@ -520,31 +526,25 @@ class R6(commands.Cog):
             colour=ctx.author.colour,
             title="{} information for {}".format(weapon.upper(), profile),
             description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
-                data["weapons"][ind]["category"],
-                data["weapons"][ind]["kills"],
-                data["weapons"][ind]["deaths"],
-                data["weapons"][ind]["kd"],
-                data["weapons"][ind]["headshots"],
-                data["weapons"][ind]["headshot_percentage"],
-                data["weapons"][ind]["times_chosen"],
-                data["weapons"][ind]["bullets_fired"],
-                data["weapons"][ind]["bullets_hit"],
+                data.weapons[ind]["category"],
+                data.weapons[ind]["kills"],
+                data.weapons[ind]["deaths"],
+                data.weapons[ind]["kd"],
+                data.weapons[ind]["headshots"],
+                data.weapons[ind]["headshot_percentage"],
+                data.weapons[ind]["times_chosen"],
+                data.weapons[ind]["bullets_fired"],
+                data.weapons[ind]["bullets_hit"],
             ),
         )
         await ctx.send(embed=embed)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
         """R6 Leaderboard Statistics.
 
         Regions: all, eu, na, asia"""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region != "all" and region not in self.regions:
@@ -555,16 +555,19 @@ class R6(commands.Cog):
             pass
         else:
             region = self.regions[region]
-        data = await self.stats.leaderboard(platform, region, page, api["authorization"])
-        if data is None:
-            return await ctx.send("Invalid request, no statistics found.")
+        try:
+            data = await self.client.get_leaderboard(self.platforms[platform], region, page)
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         embeds = []
         for i in range(0, 100, 25):
             embed = discord.Embed(
                 colour=ctx.author.colour,
                 title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
             )
-            for player in data[i : i + 25]:
+            for player in data.leaderboard[i : i + 25]:
                 embed.add_field(
                     name=f"{player['position']}. {player['username']}",
                     value=f"**Level**: {player['stats']['level']}\n**KD**: {player['stats']['kd']}\n**WL/R**: {player['stats']['wl']}\n**Score**: {round(player['score'], 2)}",
@@ -572,74 +575,70 @@ class R6(commands.Cog):
             embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
         """R6 Gamemode Statistics."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
-        if data is None:
-            return await ctx.send("User not found.")
+        try:
+            data = await self.client.get_gamemode_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
         embeds = []
         async with ctx.typing():
-            for gm in data["stats"]["gamemode"]:
+            for gm in data.gamemode_stats:
                 embed = discord.Embed(
                     colour=ctx.author.colour,
                     title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
                 )
-                for stat in data["stats"]["gamemode"][gm]:
+                for stat in data.gamemode_stats[gm]:
                     if stat == "playtime":
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=datetime.timedelta(seconds=data["stats"]["gamemode"][gm][stat]),
+                            value=datetime.timedelta(seconds=data.gamemode_stats[gm][stat]),
                         )
                     else:
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=data["stats"]["gamemode"][gm][stat],
+                            value=data.gamemode_stats[gm][stat],
                         )
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
+    @commands.check(tokencheck)
     @r6.command()
     async def queue(self, ctx, profile: str, platform: str = "uplay"):
         """R6 stats from casual, ranked & other together."""
-        api = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-        if api["authorization"] is None:
-            return await ctx.send(
-                "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                    ctx.prefix
-                )
-            )
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        data = await self.stats.profile(profile, platform, api["authorization"])
-        if data is None:
+        try:
+            data = await self.client.get_queue_stats(profile, self.platforms[platform])
+        except r6statsapi.errors.R6StatsApiException:
+            await ctx.send(
+                "Error occured during your request, the player you requested may be invalid."
+            )
+        if data.queue_stats is None:
             return await ctx.send("User not found.")
         embeds = []
         async with ctx.typing():
-            for gm in data["stats"]["queue"]:
+            for gm in data.queue_stats:
                 embed = discord.Embed(
                     colour=ctx.author.colour,
                     title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
                 )
-                for stat in data["stats"]["queue"][gm]:
+                for stat in data.queue_stats[gm]:
                     if stat == "playtime":
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=datetime.timedelta(seconds=data["stats"]["queue"][gm][stat]),
+                            value=datetime.timedelta(seconds=data.queue_stats[gm][stat]),
                         )
                     else:
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=data["stats"]["queue"][gm][stat],
+                            value=data.queue_stats[gm][stat],
                         )
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
