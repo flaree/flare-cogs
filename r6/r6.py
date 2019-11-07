@@ -1,12 +1,8 @@
-import asyncio
 import datetime
 import typing
-from io import BytesIO
 
-import aiohttp
 import discord
 import r6statsapi
-from PIL import Image, ImageDraw, ImageFont
 from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
@@ -16,7 +12,7 @@ from .stats import Stats
 
 async def tokencheck(ctx):
 
-    token = await ctx.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+    token = await ctx.bot.get_shared_api_tokens("r6stats")
     if token["authorization"] is not None:
         return True
     else:
@@ -31,7 +27,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.3.4"
+    __version__ = "1.4.0"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -49,7 +45,7 @@ class R6(commands.Cog):
         self.client = None
 
     async def initalize(self):
-        token = await self.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+        token = await self.bot.get_shared_api_tokens("r6stats")
         self.client = r6statsapi.Client(token["authorization"])
 
     def cog_unload(self):
@@ -75,7 +71,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.profilecreate(data.general_stats)
+                image = await self.stats.profilecreate(data)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -134,7 +130,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.casualstatscreate(data.queue_stats)
+                image = await self.stats.casualstatscreate(data)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -186,7 +182,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.rankedstatscreate(data.queue_stats)
+                image = await self.stats.rankedstatscreate(data)
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
@@ -316,7 +312,9 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.seasoncreate(seasondata, season, profile)
+                image = await self.stats.seasoncreate(
+                    seasondata, season, profile, data[1][data[0][season]]["name"]
+                )
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(

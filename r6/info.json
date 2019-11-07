@@ -3,8 +3,8 @@
     "install_msg": "R6Stats API, comes bundled with a font file.",
     "name": "R6",
     "disabled": false,
-    "short": "Show R6 player info",
-    "description": "List R6 stats from whatever season and/or operator stats etc.",
+    "short": "Show R6 Statistics.",
+    "description": "List R6 Statistics from seasons, individual operators, all operators and more!",
     "tags": ["r6", "stats", "operators"],
-    "requirements": ["pillow"]
+    "requirements": ["pillow", "r6statsapi"]
 }
