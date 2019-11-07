@@ -1,22 +1,45 @@
 from redbot.core import commands, checks, Config
 import discord
 
+from typing import Union
+
 
 class Forward(commands.Cog):
-    """Forward messages to the bot to the bot owner."""
+    """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.1"
+    __version__ = "1.2.2"
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1398467138476)
-        default_global = {"toggles": {"botmessages": True}}
+
+        self.config = Config.get_conf(self, 1398467138476, force_registration=True)
+        default_global = {"toggles": {"botmessages": True}, "destination": None}
         self.config.register_global(**default_global)
 
-    async def sendowner(self, embed2):
-        await self.bot.is_owner(discord.Object(id=None))
-        owner = self.bot.get_user(self.bot.owner_id)
-        await owner.send(embed=embed2)
+    async def _destination(self, msg: str = None, embed: discord.Embed = None):
+        await self.bot.wait_until_ready()
+        channel = await self.config.destination()
+        destination = (
+            self.bot.get_channel(channel) if channel else self.bot.get_user(self.bot.owner_id)
+        )
+        await destination.send(msg, embed=embed)
+
+    @staticmethod
+    def _append_attachements(message: discord.Message, embeds: list):
+        attachments_urls = []
+        for attachment in message.attachments:
+            if any(attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]):
+                if embeds[0].image:
+                    embed = discord.Embed()
+                    embed.set_image(url=attachment.url)
+                    embeds.append(embed)
+                else:
+                    embeds[0].set_image(url=attachment.url)
+            else:
+                attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
+        if attachments_urls:
+            embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+        return embeds
 
     @commands.Cog.listener()
     async def on_message_without_command(self, message):
@@ -28,56 +51,37 @@ class Forward(commands.Cog):
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
                     return
+            msg = f"Sent PM to {message.channel.recipient} (`{message.channel.recipient.id}`)"
             if message.embeds:
-                embed = discord.Embed(
-                    title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
-                    description=f"{message.embeds[0].description}",
-                    timestamp=message.created_at,
+                embed = discord.Embed.from_dict(
+                    {**message.embeds[0].to_dict(), "timestamp": str(message.created_at)}
                 )
-                for field in message.embeds[0].fields:
-                    embed.add_field(name=field.name, value=field.value, inline=field.inline)
             else:
-                embed = discord.Embed(
-                    title=f"Sent PM to {message.channel.recipient}({message.channel.recipient.id}).",
-                    description=message.content,
-                    timestamp=message.created_at,
-                )
-            await self.sendowner(embed)
+                embed = discord.Embed(description=message.content, timestamp=message.created_at)
+            await self._destination(msg, embed)
         else:
             embeds = []
-            attachments_urls = []
             embeds.append(discord.Embed(description=message.content))
             embeds[0].set_author(
                 name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
             )
-            for attachment in message.attachments:
-                if any(
-                    attachment.filename.endswith(imageext) for imageext in ["jpg", "png", "gif"]
-                ):
-                    if embeds[0].image:
-                        embed = discord.Embed()
-                        embed.set_image(url=attachment.url)
-                        embeds.append(embed)
-                    else:
-                        embeds[0].set_image(url=attachment.url)
-                else:
-                    attachments_urls.append(f"[{attachment.filename}]({attachment.url})")
-            if attachments_urls:
-                embeds[0].add_field(name="Attachments", value="\n".join(attachments_urls))
+            embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
             for embed in embeds:
-                await self.sendowner(embed)
+                await self._destination(msg=None, embed=embed)
 
     @checks.is_owner()
-    @commands.group(autohelp=True)
+    @commands.group()
     async def forwardset(self, ctx):
-        """Forwarding Commands"""
+        """Forwarding commands."""
         pass
 
     @forwardset.command(aliases=["botmessage"])
     async def botmsg(self, ctx, type: bool):
-        """Set whether to send notifications when the bot sends a message.
-        Type must be a valid bool."""
+        """
+        Set whether to send notifications when the bot sends a message.
+        Type must be a valid bool.
+        """
         async with self.config.toggles() as toggles:
             if type:
                 toggles["botmessages"] = True
@@ -86,25 +90,40 @@ class Forward(commands.Cog):
                 toggles["botmessages"] = False
                 await ctx.send("Bot message notifications have been disabled.")
 
+    @forwardset.command()
+    async def channel(self, ctx, channel: discord.TextChannel = None):
+        """
+        Set if you want to receive notifications in a channel instead of your DMs.
+        Leave blank if you want to set back to your DMs.
+        """
+        data = (
+            {"msg": "Notifications will be sent in your DMs.", "config": None}
+            if channel is None
+            else {"msg": f"Notifications will be sent in {channel.mention}.", "config": channel.id}
+        )
+        await self.config.destination.set(data["config"])
+        await ctx.send(data["msg"])
+
     @commands.command()
     @checks.guildowner()
-    async def pm(self, ctx, user_id: int, *, message: str):
-        """PMs a person.
-           Separate version of [p]dm but allows for guild owners."""
-        user = discord.utils.get(ctx.bot.get_all_members(), id=user_id)
-        e = discord.Embed(colour=discord.Colour.red(), description=message)
+    async def pm(self, ctx, user: Union[discord.Member, int], *, message: str):
+        """
+        PMs a person.
+        Separate version of [p]dm but allows for guild owners.
+        """
+        destination = ctx.guild.get_member(user.id if isinstance(user, discord.Member) else user)
+        em = discord.Embed(colour=discord.Colour.red(), description=message)
 
         if ctx.bot.user.avatar_url:
-            e.set_author(
+            em.set_author(
                 name=f"Message from {ctx.author} | {ctx.author.id}",
                 icon_url=ctx.bot.user.avatar_url,
             )
         else:
-            e.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
+            em.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
 
-        try:
-            await user.send(embed=e)
-        except discord.HTTPException:
-            await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
-        else:
+        if destination:
+            await destination.send(embed=em)
             await ctx.send("Message delivered to {}".format(user))
+        else:
+            await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
