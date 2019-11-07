@@ -3,11 +3,11 @@
     "flare(flare#0001)",
     "Aikaterna"
   ],
-  "install_msg": "Forward messages to the bot owner.",
+  "install_msg": "Forward messages sent to the bot to the bot owner or in a specified channel.",
   "name": "Forward",
   "disabled": false,
-  "short": "Forward messages to bot owner.",
-  "description": "Forward DMs to the bot to the bot owner.",
+  "short": "Forward messages sent to the bot to the bot owner or in a specified channel.",
+  "description": "Forward messages sent to the bot to the bot owner or in a specified channel.",
   "tags": [
     "forward",
     "forwarding"
