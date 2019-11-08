@@ -37,8 +37,12 @@ class R6(commands.Cog):
         self.stats = Stats(bot)
         self.platforms = {
             "psn": r6statsapi.Platform.psn,
+            "ps4": r6statsapi.Platform.psn,
+            "ps": r6statsapi.Platform.psn,
             "xbl": r6statsapi.Platform.xbox,
+            "xbox": r6statsapi.Platform.xbox,
             "uplay": r6statsapi.Platform.uplay,
+            "pc": r6statsapi.Platform.uplay,
         }
         self.regions = {"na": "ncsa", "eu": "emea", "asia": "apac"}
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
@@ -59,7 +63,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
-        """General R6 Stats."""
+        """General R6 Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -115,7 +121,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
-        """Casual R6 Stats."""
+        """Casual R6 Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
 
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
@@ -170,7 +178,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
-        """Ranked R6 Stats."""
+        """Ranked R6 Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -222,7 +232,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
-        """R6 Operator Stats."""
+        """R6 Operator Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
         if operator in self.foreignops:
             operator = self.foreignops[operator]
         if platform not in self.platforms:
@@ -288,7 +300,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
-        """R6 Seasonal Stats."""
+        """R6 Seasonal Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region not in self.regions:
@@ -347,7 +361,9 @@ class R6(commands.Cog):
         """Statistics for all operators.
 
         If you do not have any stats for an operator then it is ommited.
-        Different stats include kills, deaths, kd, wins, losses, headshots, dbnos, meele_kills and playtime"""
+        Different stats include kills, deaths, kd, wins, losses, headshots, dbnos, meele_kills and playtime
+        
+        Valid platforms are psn, xbl and uplay."""
         stats = [
             "kills",
             "deaths",
@@ -442,7 +458,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def general(self, ctx, profile, platform="uplay"):
-        """General R6S Stats."""
+        """General R6 Stats.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -470,7 +488,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command(aliases=["weapontypes"])
     async def weaponcategories(self, ctx, profile, platform="uplay"):
-        """R6 Weapon type statistics."""
+        """R6 Weapon type statistics.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -505,7 +525,9 @@ class R6(commands.Cog):
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6 Weapon Statistics.
 
-        If the weapon name has a space, please surround it with quotes."""
+        If the weapon name has a space, please surround it with quotes.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -542,7 +564,9 @@ class R6(commands.Cog):
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
         """R6 Leaderboard Statistics.
 
-        Regions: all, eu, na, asia"""
+        Regions: all, eu, na, asia
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         if region != "all" and region not in self.regions:
@@ -576,7 +600,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
-        """R6 Gamemode Statistics."""
+        """R6 Gamemode Statistics.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
@@ -609,7 +635,9 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @r6.command()
     async def queue(self, ctx, profile: str, platform: str = "uplay"):
-        """R6 stats from casual, ranked & other together."""
+        """R6 stats from casual, ranked & other together.
+        
+        Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
         try:
