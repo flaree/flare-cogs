@@ -10,21 +10,29 @@ from typing import Union
 
 # thanks to DevilXD for ASL which provided the inspiration/parts of code for this cog.
 
-class Spammute(commands.Cog):
 
+class Spammute(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        defaults = {"bannedwords": [], "toggle": False, "muterole": None, "ignored": [], "count": 3, "spamduration": 120, "muteduration": 30}
+        defaults = {
+            "bannedwords": [],
+            "toggle": False,
+            "muterole": None,
+            "ignored": [],
+            "count": 3,
+            "spamduration": 120,
+            "muteduration": 30,
+        }
         default = {"muted": {}}
         self.config.register_guild(**defaults)
         self.config.register_global(**default)
         self.spam = {}
-        self.expiredcheck.start() # pylint: disable=E1101
-    
+        self.expiredcheck.start()  # pylint: disable=E1101
+
     def cog_unload(self):
-        self.expiredcheck.cancel() # pylint: disable=E1101
-    
+        self.expiredcheck.cancel()  # pylint: disable=E1101
+
     @checks.mod()
     @commands.group()
     async def spamset(self, ctx):
@@ -37,7 +45,7 @@ class Spammute(commands.Cog):
         async with self.config.guild(ctx.guild).bannedwords() as words:
             words.append(word)
         await ctx.tick()
-    
+
     @checks.admin()
     @spamset.command()
     async def status(self, ctx):
@@ -49,26 +57,36 @@ class Spammute(commands.Cog):
         spam = await self.config.guild(ctx.guild).spamduration()
         mute = await self.config.guild(ctx.guild).muteduration()
         if muterole is None:
-            return await ctx.send("Ensure a valid mute role is set via {}spamset muterole".format(ctx.prefix))
+            return await ctx.send(
+                "Ensure a valid mute role is set via {}spamset muterole".format(ctx.prefix)
+            )
         mute_role = ctx.guild.get_role(muterole)
         if mute_role is None:
-            return await ctx.send("Ensure a valid mute role is set via {}spamset muterole".format(ctx.prefix))
-        embed = discord.Embed(title="Spam Settings for {}".format(ctx.guild.name), colour=ctx.author.color)
+            return await ctx.send(
+                "Ensure a valid mute role is set via {}spamset muterole".format(ctx.prefix)
+            )
+        embed = discord.Embed(
+            title="Spam Settings for {}".format(ctx.guild.name), colour=ctx.author.color
+        )
         embed.add_field(name="Toggled:", value="{}".format("Yes" if toggle else "No"))
         embed.add_field(name="Mute Role:", value=mute_role.mention)
         embed.add_field(name="Amount Before Mute:", value=count)
         embed.add_field(name="Spam Duration:", value=humanize_timedelta(seconds=spam))
-        embed.add_field(name="Mute Duration:", value=humanize_timedelta(timedelta=timedelta(minutes=mute)))
-        embed.add_field(name="Banned Words:", value=humanize_list(bannedwords) if bannedwords else "None")
+        embed.add_field(
+            name="Mute Duration:", value=humanize_timedelta(timedelta=timedelta(minutes=mute))
+        )
+        embed.add_field(
+            name="Banned Words:", value=humanize_list(bannedwords) if bannedwords else "None"
+        )
         await ctx.send(embed=embed)
-    
+
     @checks.admin()
     @spamset.command()
     async def muterole(self, ctx, role: discord.Role):
         """Set the mute role for the server."""
         await self.config.guild(ctx.guild).muterole.set(role.id)
         await ctx.tick()
-    
+
     @checks.admin()
     @spamset.command()
     async def amount(self, ctx, amount: int):
@@ -78,10 +96,31 @@ class Spammute(commands.Cog):
             await ctx.tick()
         else:
             await ctx.send("Provide an amount between 1 and 10.")
-    
+
+    @checks.mod()
+    @spamset.command(name="unmute")
+    async def _unmute(self, ctx, user: discord.Member):
+        """Manually unmute a user."""
+        muted_role = await self.config.guild(ctx.guild).muterole()
+        muted_role = ctx.guild.get_role(muted_role)
+        if muted_role is None:
+            return
+        if muted_role in user.roles:
+            await self.unmute(user, ctx.guild, by=ctx.author)
+        await ctx.tick()
+
     @checks.admin()
     @spamset.command()
-    async def spamduration(self, ctx, duration: TimedeltaConverter(minimum=timedelta(), maximum=timedelta(minutes=5), default_unit="seconds", allowed_units=["seconds", "minutes"])):
+    async def spamduration(
+        self,
+        ctx,
+        duration: TimedeltaConverter(
+            minimum=timedelta(),
+            maximum=timedelta(minutes=5),
+            default_unit="seconds",
+            allowed_units=["seconds", "minutes"],
+        ),
+    ):
         """Set the time in seconds for the duration of spam checking.
         
         Default is 120 seconds."""
@@ -93,7 +132,16 @@ class Spammute(commands.Cog):
 
     @checks.admin()
     @spamset.command()
-    async def muteduration(self, ctx, duration: TimedeltaConverter(minimum=timedelta(), maximum=timedelta(hours=3), default_unit="minutes", allowed_units=["seconds", "minutes", "hours"])):
+    async def muteduration(
+        self,
+        ctx,
+        duration: TimedeltaConverter(
+            minimum=timedelta(),
+            maximum=timedelta(hours=3),
+            default_unit="minutes",
+            allowed_units=["seconds", "minutes", "hours"],
+        ),
+    ):
         """Set the time in seconds for the duration of mutes.
         
         Default is 30 minutes."""
@@ -128,7 +176,9 @@ class Spammute(commands.Cog):
 
     @checks.admin()
     @spamset.command()
-    async def ignore(self, ctx, *, to_ignore: Union[discord.Member, discord.TextChannel, discord.Role]):
+    async def ignore(
+        self, ctx, *, to_ignore: Union[discord.Member, discord.TextChannel, discord.Role]
+    ):
         """Ignore a member, channel or role."""
         if isinstance(to_ignore, discord.Member):
             name = "`{}`".format(to_ignore)
@@ -136,7 +186,7 @@ class Spammute(commands.Cog):
             name = "{}".format(to_ignore.mention)
         elif isinstance(to_ignore, discord.Role):
             name = "`{}`".format(to_ignore.name)
-        
+
         async with self.config.guild(ctx.guild).ignored() as ignored:
             if to_ignore.id in ignored:
                 ignored.remove(to_ignore.id)
@@ -147,7 +197,9 @@ class Spammute(commands.Cog):
 
     @checks.mod()
     @spamset.command()
-    async def isignored(self, ctx, *, to_check: Union[discord.Member, discord.TextChannel, discord.Role]):
+    async def isignored(
+        self, ctx, *, to_check: Union[discord.Member, discord.TextChannel, discord.Role]
+    ):
         """Check if a member, channel or role is ignored."""
         guild = ctx.guild
         if isinstance(to_check, discord.Member):
@@ -172,7 +224,6 @@ class Spammute(commands.Cog):
             to_check.extend(r.id for r in member.roles)
         return bool(ignored.intersection(to_check))
 
-
     @tasks.loop(seconds=30)
     async def expiredcheck(self):
         muted = await self.config.muted()
@@ -181,7 +232,9 @@ class Spammute(commands.Cog):
             if guildobj is None:
                 return
             for user in muted[guild]:
-                if datetime.utcnow() - datetime.fromtimestamp(int(muted[guild][user]["time"].split(".")[0])) > timedelta(minutes=await self.config.guild(guildobj).muteduration()): 
+                if datetime.utcnow() - datetime.fromtimestamp(
+                    int(muted[guild][user]["time"].split(".")[0])
+                ) > timedelta(minutes=await self.config.guild(guildobj).muteduration()):
                     await self.unmute(muted[guild][user]["id"], guildobj)
 
     async def unmute(self, user_id, guild, *, by: discord.Member = None):
@@ -199,7 +252,7 @@ class Spammute(commands.Cog):
         await user.remove_roles(muted_role, reason=reason)
         async with self.config.muted() as muted:
             del muted[str(guild.id)][str(user.id)]
-    
+
     @commands.Cog.listener()
     async def on_message(self, message):
         guild = message.guild
@@ -216,10 +269,22 @@ class Spammute(commands.Cog):
         if guild.id not in self.spam:
             self.spam[guild.id] = {}
         if author.id not in self.spam[guild.id]:
-            self.spam[guild.id][author.id] = {"guild": guild.id, "id": author.id, "time": datetime.utcnow(), "count": 1}
+            self.spam[guild.id][author.id] = {
+                "guild": guild.id,
+                "id": author.id,
+                "time": datetime.utcnow(),
+                "count": 1,
+            }
         else:
-            if datetime.utcnow() - self.spam[guild.id][author.id]["time"] > timedelta(seconds=await self.config.guild(guild).spamduration()):
-                self.spam[guild.id][author.id] = {"guild": guild.id, "id": author.id, "time": datetime.utcnow(), "count": 1}
+            if datetime.utcnow() - self.spam[guild.id][author.id]["time"] > timedelta(
+                seconds=await self.config.guild(guild).spamduration()
+            ):
+                self.spam[guild.id][author.id] = {
+                    "guild": guild.id,
+                    "id": author.id,
+                    "time": datetime.utcnow(),
+                    "count": 1,
+                }
                 return
             self.spam[guild.id][author.id]["count"] += 1
             if self.spam[guild.id][author.id]["count"] >= await self.config.guild(guild).count():
@@ -227,16 +292,21 @@ class Spammute(commands.Cog):
                 muted_role = guild.get_role(muted_role)
                 if muted_role is None:
                     return
-                await author.add_roles(muted_role, reason="Muted due to spamming banned words for {}.".format(humanize_timedelta(timedelta=timedelta(minutes=await self.config.guild(guild).muteduration()))))
+                await author.add_roles(
+                    muted_role,
+                    reason="Muted due to spamming banned words for {}.".format(
+                        humanize_timedelta(
+                            timedelta=timedelta(
+                                minutes=await self.config.guild(guild).muteduration()
+                            )
+                        )
+                    ),
+                )
                 async with self.config.muted() as muted:
                     if guild.id not in muted:
                         muted[guild.id] = {}
-                    muted[guild.id][author.id] = {"guild": guild.id, "id": author.id, "time": str(datetime.utcnow().timestamp())}
-
-            
-
-        
-
-
-
-    
+                    muted[guild.id][author.id] = {
+                        "guild": guild.id,
+                        "id": author.id,
+                        "time": str(datetime.utcnow().timestamp()),
+                    }

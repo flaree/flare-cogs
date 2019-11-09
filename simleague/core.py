@@ -57,25 +57,17 @@ class SimHelper:
                 else "https://i.imgur.com/pQMaU8U.png"
             )
         if event == "yellow":
-            server_icon = await self.getimg(
-                "https://i.imgur.com/wFS9zdd.png"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/wFS9zdd.png")
         if event == "red":
-            server_icon = await self.getimg(
-                "https://i.imgur.com/2rlT6Ag.png"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/2rlT6Ag.png")
         if event == "2yellow":
-            server_icon = await self.getimg(
-                "https://i.imgur.com/SMZXrVz.jpg"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/SMZXrVz.jpg")
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg(
-                "https://i.imgur.com/pQMaU8U.png"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
@@ -355,9 +347,7 @@ class SimHelper:
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg(
-                "https://i.imgur.com/pQMaU8U.png"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
@@ -536,9 +526,7 @@ class SimHelper:
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg(
-                "https://i.imgur.com/pQMaU8U.png"
-            )
+            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas

@@ -103,7 +103,7 @@ class SimLeague(commands.Cog):
             msg += "Transfer Window: {}.\n".format("Open" if transfers else "Closed")
             msg += "Accepting Bets: {}.\n".format("Yes" if bettoggle else "No")
             msg += "Mentions on game start: {}.\n".format("Yes" if mentions else "No")
-        
+
             if bettoggle:
                 bettime = await self.config.guild(guild).bettime()
                 betmax = await self.config.guild(guild).betmax()
@@ -140,7 +140,7 @@ class SimLeague(commands.Cog):
         else:
             await ctx.send("Cup mode is now disabled.")
             await self.config.guild(ctx.guild).cupmode.set(bool)
-    
+
     @checks.guildowner()
     @simset.group(autohelp=True, hidden=True)
     async def probability(self, ctx):
@@ -278,7 +278,7 @@ class SimLeague(commands.Cog):
         async with self.config.guild(ctx.guild).resultchannel() as result:
             result.append(channel.id)
         await ctx.tick()
-    
+
     @checks.admin()
     @simset.command()
     async def window(self, ctx, status: str):
@@ -298,7 +298,6 @@ class SimLeague(commands.Cog):
             await self.config.guild(ctx.guild).mentions.set(True)
         else:
             await self.config.guild(ctx.guild).mentions.set(False)
-
 
     @checks.admin()
     @simset.command(name="updatecache")
@@ -676,7 +675,9 @@ class SimLeague(commands.Cog):
     async def standings(self, ctx, verbose: bool = False):
         """Current sim standings."""
         if await self.config.guild(ctx.guild).cupmode():
-            return await ctx.send("This simulation league is in cup mode, contact the maintainer of the league for the current standings.")
+            return await ctx.send(
+                "This simulation league is in cup mode, contact the maintainer of the league for the current standings."
+            )
         standings = await self.config.guild(ctx.guild).standings()
         if standings is None:
             return await ctx.send("The table is empty.")
@@ -757,7 +758,7 @@ class SimLeague(commands.Cog):
                 }
         await self.config.guild(ctx.guild).stats.set({})
         await ctx.tick()
-    
+
     @commands.group(autohelp=True)
     async def stats(self, ctx):
         """Sim League Statistics."""
@@ -785,7 +786,7 @@ class SimLeague(commands.Cog):
             msg += "**MOTMs**: {}\n".format(await self.statsmention(ctx, motms))
             msg += "**Cleansheets**: {}\n".format(cleansheets[0] if cleansheets else "None")
             await ctx.maybe_send_embed(msg)
-    
+
     async def statsmention(self, ctx, stats):
         if stats:
             user = ctx.guild.get_member(int(stats[0]))
@@ -794,7 +795,6 @@ class SimLeague(commands.Cog):
             return user.mention
         else:
             return "None"
-    
 
     @stats.command(name="goals", alias=["topscorer", "topscorers"])
     async def _goals(self, ctx):
@@ -804,7 +804,7 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             for k in sorted(stats, key=stats.get, reverse=True):
-                user = self.bot.get_user(int(k)) 
+                user = self.bot.get_user(int(k))
                 a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]}")
             embed = discord.Embed(
                 title="Top Scorers", description="\n".join(a[:10]), colour=0xFF0000
@@ -821,7 +821,7 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             for k in sorted(stats, key=stats.get, reverse=True):
-                user = self.bot.get_user(int(k)) 
+                user = self.bot.get_user(int(k))
                 a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]}")
             embed = discord.Embed(
                 title="Most Yellow Cards", description="\n".join(a[:10]), colour=0xFF0000
@@ -838,7 +838,7 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             for k in sorted(stats, key=stats.get, reverse=True):
-                user = self.bot.get_user(int(k)) 
+                user = self.bot.get_user(int(k))
                 a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]}")
             embed = discord.Embed(
                 title="Most Red Cards", description="\n".join(a[:10]), colour=0xFF0000
@@ -855,7 +855,7 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             for k in sorted(stats, key=stats.get, reverse=True):
-                user = self.bot.get_user(int(k)) 
+                user = self.bot.get_user(int(k))
                 a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]}")
             embed = discord.Embed(
                 title="Most MOTMs", description="\n".join(a[:10]), colour=0xFF0000
@@ -889,11 +889,15 @@ class SimLeague(commands.Cog):
             a = []
             b = []
             for k in sorted(stats, key=lambda x: stats[x]["scored"], reverse=True)[:10]:
-                user = self.bot.get_user(int(k)) 
-                a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]['scored']}")
+                user = self.bot.get_user(int(k))
+                a.append(
+                    f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]['scored']}"
+                )
             for k in sorted(stats, key=lambda x: stats[x]["missed"], reverse=True)[:10]:
-                user = self.bot.get_user(int(k)) 
-                b.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]['missed']}")
+                user = self.bot.get_user(int(k))
+                b.append(
+                    f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]['missed']}"
+                )
             embed = discord.Embed(title="Penalty Statistics", colour=0xFF0000)
             embed.add_field(name="Penalties Scored", value="\n".join(a))
             embed.add_field(name="Penalties Missed", value="\n".join(b))
@@ -909,7 +913,7 @@ class SimLeague(commands.Cog):
         if stats:
             a = []
             for k in sorted(stats, key=stats.get, reverse=True)[:10]:
-                user = self.bot.get_user(int(k)) 
+                user = self.bot.get_user(int(k))
                 a.append(f"{user.mention if user else 'Invalid User {}'.format(k)} - {stats[k]}")
             embed = discord.Embed(
                 title="Assist Statistics", description="\n".join(a), colour=0xFF0000
