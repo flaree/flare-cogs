@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)", "DevilXD"
+  ],
+  "install_msg": "Mute after repeated spam of a message X times in 2 minutes.",
+  "name": "Spammute",
+  "disabled": false,
+  "short": "Spam Mute - Mute for spam",
+  "description": "Mute for spam of X messages in 2 minutes.",
+  "tags": [
+    "spam mute"
+  ],
+  "hidden": true
+}
