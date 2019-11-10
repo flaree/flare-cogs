@@ -159,7 +159,7 @@ class Highlight(commands.Cog):
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
             toggle = await self.config.channel(channel).toggle()
-            bots = toggle = await self.config.channel(channel).toggle()
+            bots = await self.config.channel(channel).bots()
             words = [word for word in highlight[f"{ctx.author.id}"]]
             words = "\n".join(words)
             embed = discord.Embed(
