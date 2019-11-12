@@ -33,7 +33,7 @@ class SimLeague(commands.Cog):
                 "motm": {},
                 "cleansheets": {},
             },
-            "users": set(),
+            "users": [],
             "resultchannel": [],
             "gametime": 1,
             "bettime": 180,
