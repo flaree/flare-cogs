@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Mute .",
+  "name": "Mod",
+  "disabled": false,
+  "short": "Mod",
+  "description": "Mute ",
+  "tags": [
+    "spam mute"
+  ],
+  "hidden": true
+}
