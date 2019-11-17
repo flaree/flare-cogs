@@ -50,7 +50,7 @@ class Mod(ModClass):
         muterole = guild.get_role(mutedroleid)
         member = guild.get_member(int(user))
         await member.remove_roles(muterole, reason="Mute expired.")
-        log.info("Unmuted {} in {}".format(member, guild))
+        log.info("Unmuted {} in {}.".format(member, guild))
         async with self.config.muted() as muted:
             del muted[guildid][user]
 
@@ -126,7 +126,7 @@ class Mod(ModClass):
                     "expiry": int(expiry.timestamp()),
                 }
         await ctx.send(
-            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}"
+            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}."
         )
 
     @checks.admin()
@@ -139,12 +139,28 @@ class Mod(ModClass):
     @checks.mod()
     @checks.bot_has_permissions(manage_roles=True)
     @commands.group(invoke_without_command=True, name="unmute")
-    async def _unmute(self, ctx, user: discord.Member):
-        """Unmute usuers."""
+    async def _unmute(self, ctx, users: commands.Greedy[discord.Member]):
+        """Unmute users."""
         muted = await self.config.muted()
-        if str(ctx.guild.id) not in muted:
-            return await ctx.send("There is nobody currently muted in this server.")
-        if str(user.id) not in muted[str(ctx.guild.id)]:
-            return await ctx.send("That user is currently not muted.")
-        await self.unmute(str(user.id), str(ctx.guild.id))
-        await ctx.tick()
+        for user in users:
+            if str(ctx.guild.id) not in muted:
+                return await ctx.send("There is nobody currently muted in this server.")
+            if str(user.id) not in muted[str(ctx.guild.id)]:
+                await ctx.send("{} is currently not muted.".format(user))
+                continue
+            await self.unmute(str(user.id), str(ctx.guild.id))
+            await ctx.tick()
+
+    @checks.mod()
+    @mute.command()
+    async def list(self, ctx):
+        """List those who are muted."""
+        muted = await self.config.muted()
+        guildmuted = muted.get(str(ctx.guild.id))
+        if guildmuted is None:
+            return await ctx.send("There is currently nobody muted in {}".format(ctx.guild))
+        msg = ""
+        for user in guildmuted:
+            expiry = datetime.utcfromtimestamp(guildmuted[user]["expiry"]) - datetime.utcnow()
+            msg += f"{self.bot.get_user(int(user)).mention} is muted for {humanize_timedelta(timedelta=expiry)}\n"
+        await ctx.maybe_send_embed(msg if msg else "Nobody is currently muted.")

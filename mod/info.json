@@ -2,13 +2,15 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "Mute .",
+  "install_msg": "This cog subclasses core Mod to add a role mute as default.",
   "name": "Mod",
   "disabled": false,
-  "short": "Mod",
-  "description": "Mute ",
+  "short": "Mod with role mute/",
+  "description": "This is a subclass of core Mod with role timed mutes.",
   "tags": [
-    "spam mute"
+    "mute",
+    "temp mute",
+    "rolemute"
   ],
   "hidden": true
 }
