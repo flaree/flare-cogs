@@ -214,7 +214,7 @@ class Spammute(commands.Cog):
         else:
             await ctx.send("This member / channel / role is not ignored! :x:")
 
-    async def is_ignored(self, guild, member=None, channel=None):
+    async def is_ignored(self, guild, member: discord.Member = None, channel=None):
         ignored = set(await self.config.guild(guild).ignored())
         to_check = []
         if channel:
