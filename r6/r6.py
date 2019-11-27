@@ -11,8 +11,10 @@ from .stats import Stats
 
 
 async def tokencheck(ctx):
-
-    token = await ctx.bot.get_shared_api_tokens("r6stats")
+    try:
+        token = await ctx.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
+    except AttributeError:
+        token = await ctx.bot.get_shared_api_tokens("r6stats")
     if token["authorization"] is not None:
         return True
     else:
@@ -49,7 +51,12 @@ class R6(commands.Cog):
         self.client = None
 
     async def initalize(self):
-        token = await self.bot.get_shared_api_tokens("r6stats")
+        try:
+            token = await self.bot.db.api_tokens.get_raw(
+                "r6stats", default={"authorization": None}
+            )
+        except AttributeError:
+            token = await self.bot.get_shared_api_tokens("r6stats")
         self.client = r6statsapi.Client(token["authorization"])
 
     def cog_unload(self):
