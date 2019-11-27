@@ -105,6 +105,7 @@ class Forward(commands.Cog):
         await ctx.send(data["msg"])
 
     @commands.command()
+    @commands.guild_only()
     @checks.guildowner()
     async def pm(self, ctx, user: Union[discord.Member, int], *, message: str):
         """
