@@ -43,7 +43,7 @@ class Spammute(commands.Cog):
     async def add(self, ctx, *, word: str):
         """Add a word to the ban list."""
         async with self.config.guild(ctx.guild).bannedwords() as words:
-            words.append(word)
+            words.append(word.lower())
         await ctx.tick()
 
     @checks.admin()
@@ -259,7 +259,7 @@ class Spammute(commands.Cog):
             return
         guild = message.guild
         author = message.author
-        content = message.content.split()
+        content = message.content.lower().split()
         toggle = await self.config.guild(guild).toggle()
         if not toggle:
             return
