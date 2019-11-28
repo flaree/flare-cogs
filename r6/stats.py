@@ -1,9 +1,11 @@
-import aiohttp
 import asyncio
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
-import discord
 import datetime
+from io import BytesIO
+
+import aiohttp
+import discord
+import r6statsapi
+from PIL import Image, ImageDraw, ImageFont
 from redbot.core.data_manager import bundled_data_path
 
 
@@ -64,83 +66,6 @@ class Stats:
         }
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
 
-    async def profile(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/generic",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def weapontypes(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/weapon-categories",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def weapons(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/weapons",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
-    async def operators(self, profile, platform, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/operators",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                resp = resp["operators"]
-                return sorted(resp, key=lambda x: x["name"])
-            else:
-                return None
-
-    async def ranked(self, profile, platform, region, season, api):
-        async with self.session.get(
-            self.url + f"stats/{profile}/{platform}/seasonal",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                try:
-                    seasonss = resp["seasons"]
-                    seasons = list(seasonss.keys())
-                    for i in range(1, 6):
-                        seasons.append("None")
-                    seasons.reverse()
-                    return [seasons, resp["seasons"][seasons[season]]["regions"][region][0]]
-                except IndexError:
-                    return "Season not found"
-                except TypeError:
-                    return None
-            else:
-                return None
-
-    async def leaderboard(self, platform, region, page, api):
-        async with self.session.get(
-            self.url + f"leaderboard/{platform}/{region}?page={page}",
-            headers={"Authorization": "Bearer {}".format(api)},
-        ) as response:
-            resp = await response.json()
-            if response.status == 200:
-                return resp
-            else:
-                return None
-
     async def getimg(self, url):
         async with self.session.get(url) as response:
             rank = await response.read()
@@ -152,7 +77,7 @@ class Stats:
         nameplate = self.add_corners(Image.new("RGBA", (200, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = data["avatar_url_256"]
+        url = data.avatar_url_256
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -160,71 +85,63 @@ class Stats:
         draw = ImageDraw.Draw(img)
         font2 = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 22)
         font = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), data["username"], fill=(255, 255, 255, 255), font=font)
+        draw.text((162, 14), data.name, fill=(255, 255, 255, 255), font=font)
         draw.text(
             (10, 180),
             "Playtime: {}".format(
-                str(datetime.timedelta(seconds=int(data["stats"]["general"]["playtime"])))
+                str(datetime.timedelta(seconds=int(data.general_stats["playtime"])))
             ),
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text(
-            (162, 40),
-            "Level: {}".format(data["progression"]["level"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
+        draw.text((162, 40), "Level: {}".format(data.level), fill=(255, 255, 255, 255), font=font)
         draw.text((162, 70), "General Statistics", fill=(255, 255, 255, 255), font=font2)
         draw.text(
             (10, 220),
-            "Total Wins: {}".format(data["stats"]["general"]["wins"]),
+            "Total Wins: {}".format(data.general_stats["wins"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 260),
-            "Total Losses: {}".format(data["stats"]["general"]["losses"]),
+            "Total Losses: {}".format(data.general_stats["losses"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 300),
-            "Draws: {}".format(data["stats"]["general"]["draws"]),
+            "Draws: {}".format(data.general_stats["draws"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 340),
-            "Lootbox %: {}%".format(data["progression"]["lootbox_probability"]),
+            "Lootbox %: {}%".format(data.lootbox_probability),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 380),
-            "Kills: {}".format(data["stats"]["general"]["kills"]),
+            "Kills: {}".format(data.general_stats["kills"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 420),
-            "Deaths: {}".format(data["stats"]["general"]["deaths"]),
+            "Deaths: {}".format(data.general_stats["deaths"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 460),
-            "KDR: {}".format(data["stats"]["general"]["kd"]),
+            "KDR: {}".format(data.general_stats["kd"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 500),
             "Total W/LR: {}%".format(
-                round(
-                    data["stats"]["general"]["wins"] / data["stats"]["general"]["games_played"], 2
-                )
-                * 100
+                round(data.general_stats["wins"] / data.general_stats["games_played"], 2) * 100
             ),
             fill=(255, 255, 255, 255),
             font=font,
@@ -233,8 +150,8 @@ class Stats:
             (10, 540),
             "Total Ranked W/LR: {}%".format(
                 round(
-                    data["stats"]["queue"]["ranked"]["wins"]
-                    / data["stats"]["queue"]["ranked"]["games_played"],
+                    data.queue_stats["ranked"]["wins"]
+                    / data.queue_stats["ranked"]["games_played"],
                     2,
                 )
                 * 100
@@ -255,7 +172,7 @@ class Stats:
         nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = data["avatar_url_256"]
+        url = data.avatar_url_256
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -263,61 +180,56 @@ class Stats:
         draw = ImageDraw.Draw(img)
         font2 = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 22)
         font = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), data["username"], fill=(255, 255, 255, 255), font=font)
+        draw.text((162, 14), data.name, fill=(255, 255, 255, 255), font=font)
         draw.text(
             (10, 180),
             "Playtime: {}".format(
-                str(datetime.timedelta(seconds=int(data["stats"]["queue"]["ranked"]["playtime"])))
+                str(datetime.timedelta(seconds=int(data.queue_stats["ranked"]["playtime"])))
             ),
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text(
-            (162, 40),
-            "Level: {}".format(data["progression"]["level"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
+        draw.text((162, 40), "Level: {}".format(data.level), fill=(255, 255, 255, 255), font=font)
         draw.text((162, 70), "Ranked Statistics", fill=(255, 255, 255, 255), font=font2)
         draw.text(
             (10, 220),
-            "Total Wins: {}".format(data["stats"]["queue"]["ranked"]["wins"]),
+            "Total Wins: {}".format(data.queue_stats["ranked"]["wins"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 260),
-            "Total Losses: {}".format(data["stats"]["queue"]["ranked"]["losses"]),
+            "Total Losses: {}".format(data.queue_stats["ranked"]["losses"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 300),
-            "Draws: {}".format(data["stats"]["queue"]["ranked"]["draws"]),
+            "Draws: {}".format(data.queue_stats["ranked"]["draws"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 340),
-            "Total Games Played: {}".format(data["stats"]["queue"]["ranked"]["games_played"]),
+            "Total Games Played: {}".format(data.queue_stats["ranked"]["games_played"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 380),
-            "Kills: {}".format(data["stats"]["queue"]["ranked"]["kills"]),
+            "Kills: {}".format(data.queue_stats["ranked"]["kills"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 420),
-            "Deaths: {}".format(data["stats"]["queue"]["ranked"]["deaths"]),
+            "Deaths: {}".format(data.queue_stats["ranked"]["deaths"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 460),
-            "KDR: {}".format(data["stats"]["queue"]["ranked"]["kd"]),
+            "KDR: {}".format(data.queue_stats["ranked"]["kd"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
@@ -325,8 +237,8 @@ class Stats:
             (10, 500),
             "Total W/LR: {}%".format(
                 round(
-                    data["stats"]["queue"]["ranked"]["wins"]
-                    / data["stats"]["queue"]["ranked"]["games_played"],
+                    data.queue_stats["ranked"]["wins"]
+                    / data.queue_stats["ranked"]["games_played"],
                     2,
                 )
                 * 100
@@ -347,7 +259,7 @@ class Stats:
         nameplate = self.add_corners(Image.new("RGBA", (180, 90), (0, 0, 0, 255)), 10)
         img.paste(nameplate, (155, 10), nameplate)
         img.paste(aviholder, (10, 10), aviholder)
-        url = data["avatar_url_256"]
+        url = data.avatar_url_256
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -355,61 +267,56 @@ class Stats:
         draw = ImageDraw.Draw(img)
         font2 = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 22)
         font = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 24)
-        draw.text((162, 14), data["username"], fill=(255, 255, 255, 255), font=font)
+        draw.text((162, 14), data.name, fill=(255, 255, 255, 255), font=font)
         draw.text(
             (10, 180),
             "Playtime: {}".format(
-                str(datetime.timedelta(seconds=int(data["stats"]["queue"]["casual"]["playtime"])))
+                str(datetime.timedelta(seconds=int(data.queue_stats["casual"]["playtime"])))
             ),
             fill=(255, 255, 255, 255),
             font=font,
         )
-        draw.text(
-            (162, 40),
-            "Level: {}".format(data["progression"]["level"]),
-            fill=(255, 255, 255, 255),
-            font=font,
-        )
+        draw.text((162, 40), "Level: {}".format(data.level), fill=(255, 255, 255, 255), font=font)
         draw.text((162, 70), "Casual Statistics", fill=(255, 255, 255, 255), font=font2)
         draw.text(
             (10, 220),
-            "Total Wins: {}".format(data["stats"]["queue"]["casual"]["wins"]),
+            "Total Wins: {}".format(data.queue_stats["casual"]["wins"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 260),
-            "Total Losses: {}".format(data["stats"]["queue"]["casual"]["losses"]),
+            "Total Losses: {}".format(data.queue_stats["casual"]["losses"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 300),
-            "Draws: {}".format(data["stats"]["queue"]["casual"]["draws"]),
+            "Draws: {}".format(data.queue_stats["casual"]["draws"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 340),
-            "Total Games Played: {}".format(data["stats"]["queue"]["casual"]["games_played"]),
+            "Total Games Played: {}".format(data.queue_stats["casual"]["games_played"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 380),
-            "Kills: {}".format(data["stats"]["queue"]["casual"]["kills"]),
+            "Kills: {}".format(data.queue_stats["casual"]["kills"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 420),
-            "Deaths: {}".format(data["stats"]["queue"]["casual"]["deaths"]),
+            "Deaths: {}".format(data.queue_stats["casual"]["deaths"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
             (10, 460),
-            "KDR: {}".format(data["stats"]["queue"]["casual"]["kd"]),
+            "KDR: {}".format(data.queue_stats["casual"]["kd"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
@@ -417,8 +324,8 @@ class Stats:
             (10, 500),
             "Total W/LR: {}%".format(
                 round(
-                    data["stats"]["queue"]["casual"]["wins"]
-                    / data["stats"]["queue"]["casual"]["games_played"],
+                    data.queue_stats["casual"]["wins"]
+                    / data.queue_stats["casual"]["games_played"],
                     2,
                 )
                 * 100
@@ -433,8 +340,8 @@ class Stats:
         image = discord.File(file)
         return image
 
-    async def seasoncreate(self, data, season, profile):
-        if data[1]["rank_text"] == "Champions":
+    async def seasoncreate(self, data, season, profile, seasonname):
+        if data["rank_text"] == "Champions":
             width = 420
         else:
             width = 380
@@ -447,9 +354,7 @@ class Stats:
             ranks = self.ranksember
         else:
             ranks = self.ranks
-        print(len(ranks))
-        print(data[1]["max_rank"])
-        url = self.rankurl + ranks[list(ranks)[data[1]["max_rank"]]]
+        url = self.rankurl + ranks[data["rank_text"]]
         im = Image.open(BytesIO(await self.getimg(url)))
         im_size = 130, 130
         im.thumbnail(im_size)
@@ -459,51 +364,35 @@ class Stats:
         font = ImageFont.truetype(str(bundled_data_path(self) / "ARIALUNI.ttf"), 24)
         draw.text((162, 14), profile, fill=(255, 255, 255, 255), font=font)
         draw.text(
-            (162, 40),
-            "Rank: {}".format(list(ranks)[data[1]["max_rank"]]),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (162, 40), "Rank: {}".format(data["rank_text"]), fill=(255, 255, 255, 255), font=font
         )
+        draw.text((162, 70), f"{seasonname} Statistics", fill=(255, 255, 255, 255), font=font2)
+        draw.text((10, 180), "Wins: {}".format(data["wins"]), fill=(255, 255, 255, 255), font=font)
         draw.text(
-            (162, 70),
-            f"{data[0][season].title().replace('_', ' ')} Statistics",
-            fill=(255, 255, 255, 255),
-            font=font2,
-        )
-        draw.text(
-            (10, 180), "Wins: {}".format(data[1]["wins"]), fill=(255, 255, 255, 255), font=font
-        )
-        draw.text(
-            (200, 180),
-            "Losses: {}".format(data[1]["losses"]),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (200, 180), "Losses: {}".format(data["losses"]), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 220),
-            "Abandons: {}".format(data[1]["abandons"]),
+            "Abandons: {}".format(data["abandons"]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         draw.text(
-            (10, 260),
-            "Max MMR: {}".format(data[1]["max_mmr"]),
-            fill=(255, 255, 255, 255),
-            font=font,
+            (10, 260), "Max MMR: {}".format(data["max_mmr"]), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
-            (10, 300), "End MMR: {}".format(data[1]["mmr"]), fill=(255, 255, 255, 255), font=font
+            (10, 300), "End MMR: {}".format(data["mmr"]), fill=(255, 255, 255, 255), font=font
         )
         draw.text(
             (10, 340),
-            "End Rank: {}".format(data[1]["rank_text"]),
+            "Max Rank: {}".format(list(ranks)[data["max_rank"]]),
             fill=(255, 255, 255, 255),
             font=font,
         )
         if width == 420:
             draw.text(
                 (10, 380),
-                "Champion Position: #{}".format(data[1]["champions_rank_position"]),
+                "Champion Position: #{}".format(data["champions_rank_position"]),
                 fill=(255, 255, 255, 255),
                 font=font,
             )
