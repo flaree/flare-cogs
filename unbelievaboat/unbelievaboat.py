@@ -191,13 +191,17 @@ class Unbelievaboat(commands.Cog):
         self,
         ctx,
         job,
+        *,
         time: commands.TimedeltaConverter(
             minimum=datetime.timedelta(seconds=0),
             maximum=datetime.timedelta(days=2),
             default_unit="minutes",
         ),
     ):
-        """Set the cooldown for the work, crime or rob commands. Minimum cooldown is 30 seconds."""
+        """Set the cooldown for the work, crime or rob commands. Minimum cooldown is 30 seconds.
+        
+        The time can be formatted as so `1h30m` etc.
+        Valid times are hours, minutes and seconds."""
         if job not in ["work", "crime", "rob"]:
             return await ctx.send("Invalid job.")
         seconds = time.total_seconds()
