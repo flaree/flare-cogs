@@ -62,12 +62,12 @@ class R6(commands.Cog):
     def cog_unload(self):
         self.client.destroy()
 
+    @commands.check(tokencheck)
     @commands.group(autohelp=True)
     async def r6(self, ctx):
         """R6 Commands - Valid consoles are psn, xbl and uplay."""
         pass
 
-    @commands.check(tokencheck)
     @r6.command()
     async def profile(self, ctx, profile, platform="uplay"):
         """General R6 Stats.
@@ -125,7 +125,6 @@ class R6(commands.Cog):
                 embed.add_field(name="Total Ranked W/LR:", value=rwlr)
                 await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def casual(self, ctx, profile, platform="uplay"):
         """Casual R6 Stats.
@@ -182,7 +181,6 @@ class R6(commands.Cog):
                 embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def ranked(self, ctx, profile, platform="uplay"):
         """Ranked R6 Stats.
@@ -236,7 +234,6 @@ class R6(commands.Cog):
                 embed.add_field(name="Total W/LR %:", value=wlr)
                 await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def operator(self, ctx, profile, operator: str, platform="uplay"):
         """R6 Operator Stats.
@@ -304,7 +301,6 @@ class R6(commands.Cog):
         seasons.reverse()
         return (seasons, data.seasons)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
         """R6 Seasonal Stats.
@@ -362,7 +358,6 @@ class R6(commands.Cog):
                     )
                 await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def operators(self, ctx, profile, platform, statistic):
         """Statistics for all operators.
@@ -462,7 +457,6 @@ class R6(commands.Cog):
                         )
             await ctx.send(embed=em1)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def general(self, ctx, profile, platform="uplay"):
         """General R6 Stats.
@@ -492,7 +486,6 @@ class R6(commands.Cog):
                     )
         await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command(aliases=["weapontypes"])
     async def weaponcategories(self, ctx, profile, platform="uplay"):
         """R6 Weapon type statistics.
@@ -527,7 +520,6 @@ class R6(commands.Cog):
         embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
         await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
         """R6 Weapon Statistics.
@@ -566,7 +558,6 @@ class R6(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
         """R6 Leaderboard Statistics.
@@ -604,7 +595,6 @@ class R6(commands.Cog):
             embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
         """R6 Gamemode Statistics.
@@ -639,7 +629,6 @@ class R6(commands.Cog):
                 embeds.append(embed)
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @commands.check(tokencheck)
     @r6.command()
     async def queue(self, ctx, profile: str, platform: str = "uplay"):
         """R6 stats from casual, ranked & other together.
