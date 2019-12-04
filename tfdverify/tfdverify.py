@@ -13,7 +13,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -40,7 +40,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -67,7 +67,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -94,7 +94,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -121,7 +121,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -148,7 +148,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -175,7 +175,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -205,7 +205,7 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?"
+        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
