@@ -15,7 +15,7 @@ async def tokencheck(ctx):
         token = await ctx.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
     except AttributeError:
         token = await ctx.bot.get_shared_api_tokens("r6stats")
-    if token["authorization"] is not None:
+    if token.get("authorization") is not None:
         return True
     else:
         await ctx.send(
@@ -29,7 +29,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.4.0"
+    __version__ = "1.4.1"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -57,7 +57,7 @@ class R6(commands.Cog):
             )
         except AttributeError:
             token = await self.bot.get_shared_api_tokens("r6stats")
-        self.client = r6statsapi.Client(token["authorization"])
+        self.client = r6statsapi.Client(token.get("authorization", None))
 
     def cog_unload(self):
         self.client.destroy()
@@ -78,7 +78,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_generic_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         async with ctx.typing():
@@ -137,7 +137,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_generic_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         if data is None:
@@ -193,7 +193,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_generic_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         async with ctx.typing():
@@ -249,7 +249,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_operators_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
 
@@ -296,7 +296,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_seasonal_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         seasons = list(data.seasons.keys())
@@ -318,7 +318,7 @@ class R6(commands.Cog):
         try:
             data = await self.seasonalstats(ctx, profile, platform)
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         if not season:
@@ -394,7 +394,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_operators_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         ops = []
@@ -473,7 +473,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_generic_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         async with ctx.typing():
@@ -503,7 +503,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_weaponcategory_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         embed = discord.Embed(
@@ -540,7 +540,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_weapon_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         weapons = []
@@ -587,7 +587,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_leaderboard(self.platforms[platform], region, page)
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         embeds = []
@@ -615,7 +615,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_gamemode_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         embeds = []
@@ -650,7 +650,7 @@ class R6(commands.Cog):
         try:
             data = await self.client.get_queue_stats(profile, self.platforms[platform])
         except r6statsapi.errors.R6StatsApiException:
-            await ctx.send(
+            return await ctx.send(
                 "Error occured during your request, the player you requested may be invalid."
             )
         if data.queue_stats is None:
