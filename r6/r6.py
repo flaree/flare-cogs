@@ -1,10 +1,9 @@
-import datetime
 import typing
 
 import discord
 import r6statsapi
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.chat_formatting import pagify, humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .stats import Stats
@@ -29,7 +28,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.4.1"
+    __version__ = "1.4.2"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -62,6 +61,43 @@ class R6(commands.Cog):
     def cog_unload(self):
         self.client.destroy()
 
+    async def request_data(self, ctx, type, **kwargs):
+        types = {
+            "generic": self.client.get_generic_stats,
+            "seasonal": self.client.get_seasonal_stats,
+            "operator": self.client.get_operators_stats,
+            "weapon": self.client.get_weapon_stats,
+            "weaponcategories": self.client.get_weaponcategory_stats,
+            "queue": self.client.get_queue_stats,
+            "gamemodes": self.client.get_gamemode_stats,
+            "leaderboard": self.client.get_leaderboard,
+        }
+        request = types[type]
+        exceptionstatus = False
+        try:
+            data = await request(**kwargs)
+        except r6statsapi.errors.Unauthorized:
+            await ctx.send(
+                f"The current token is invalid. Please set a new one with help from the {ctx.prefix}r6set command and reload the cog."
+            )
+            exceptionstatus = True
+        except r6statsapi.errors.HTTPException as e:
+            await ctx.send(f"There was an error during the request.\nError Message: {e.message}")
+            exceptionstatus = True
+        except r6statsapi.errors.InternalError:
+            await ctx.send(
+                "There was an internal error processing your request, please try again later."
+            )
+            exceptionstatus = True
+        except r6statsapi.errors.PlayerNotFound:
+            await ctx.send(
+                "The player provided was not found, please check your spelling and platform and try again."
+            )
+            exceptionstatus = True
+        if exceptionstatus:
+            return None
+        return data
+
     @commands.check(tokencheck)
     @commands.group(autohelp=True)
     async def r6(self, ctx):
@@ -75,12 +111,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_generic_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "generic", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -94,7 +129,7 @@ class R6(commands.Cog):
                 embed.add_field(name="Level:", value=data.level)
                 embed.add_field(
                     name="Timeplayed:",
-                    value=str(datetime.timedelta(seconds=int(data.general_stats["playtime"]))),
+                    value=str(humanize_timedelta(seconds=int(data.general_stats["playtime"]))),
                 )
                 embed.add_field(name="Total Wins:", value=data.general_stats["wins"])
                 embed.add_field(name="Total Losses:", value=data.general_stats["losses"])
@@ -133,14 +168,11 @@ class R6(commands.Cog):
 
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_generic_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "generic", player=profile, platform=self.platforms[platform]
+        )
         if data is None:
-            return await ctx.send("User not found.")
+            return
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -155,7 +187,7 @@ class R6(commands.Cog):
                 embed.add_field(
                     name="Timeplayed:",
                     value=str(
-                        datetime.timedelta(seconds=int(data.queue_stats["casual"]["playtime"]))
+                        humanize_timedelta(seconds=int(data.queue_stats["casual"]["playtime"]))
                     ),
                 )
                 embed.add_field(name="Total Wins:", value=data.queue_stats["casual"]["wins"])
@@ -188,12 +220,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_generic_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "generic", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -208,7 +239,7 @@ class R6(commands.Cog):
                 embed.add_field(
                     name="Timeplayed:",
                     value=str(
-                        datetime.timedelta(seconds=int(data.queue_stats["ranked"]["playtime"]))
+                        humanize_timedelta(seconds=int(data.queue_stats["ranked"]["playtime"]))
                     ),
                 )
                 embed.add_field(name="Total Wins:", value=data.queue_stats["ranked"]["wins"])
@@ -243,13 +274,11 @@ class R6(commands.Cog):
             operator = self.foreignops[operator]
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_operators_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
-
+        data = await self.request_data(
+            ctx, "operator", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         ops = []
         for operators in data.operators:
             ops.append(operators["name"].lower())
@@ -276,7 +305,7 @@ class R6(commands.Cog):
                 embed.add_field(name="Losses:", value=data["losses"])
                 embed.add_field(name="KDR:", value=data["kd"])
                 embed.add_field(
-                    name="Playtime:", value=str(datetime.timedelta(seconds=int(data["playtime"])))
+                    name="Playtime:", value=str(humanize_timedelta(seconds=int(data["playtime"])))
                 )
                 embed.add_field(name="Headshots:", value=data["headshots"])
                 embed.add_field(
@@ -290,12 +319,9 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     async def seasonalstats(self, ctx, profile, platform):
-        try:
-            data = await self.client.get_seasonal_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(ctx, "seasonal", player=profile, platform=platform)
+        if data is None:
+            return None
         seasons = list(data.seasons.keys())
         seasons += [None] * 6
         seasons.reverse()
@@ -311,12 +337,9 @@ class R6(commands.Cog):
         if region not in self.regions:
             return await ctx.send("Not a valid region.")
         region = self.regions[region]
-        try:
-            data = await self.seasonalstats(ctx, profile, platform)
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.seasonalstats(ctx, profile, platform)
+        if data is None:
+            return
         if not season:
             season = len(data[0]) - 1
         if season > len(data[0]) - 1 or season < 6:
@@ -386,12 +409,11 @@ class R6(commands.Cog):
                     ", ".join(stats)
                 )
             )
-        try:
-            data = await self.client.get_operators_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "operator", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         ops = []
         for operators in data.operators:
             ops.append(operators["name"].lower())
@@ -418,7 +440,7 @@ class R6(commands.Cog):
                         em1.add_field(
                             name=data.operators[i]["name"],
                             value=str(
-                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                                humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
                         )
                 for i in range(len(opstwo)):
@@ -431,7 +453,7 @@ class R6(commands.Cog):
                         em2.add_field(
                             name=data.operators[i]["name"],
                             value=str(
-                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                                humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
                         )
             embeds = []
@@ -452,7 +474,7 @@ class R6(commands.Cog):
                         em1.add_field(
                             name=data.operators[i]["name"],
                             value=str(
-                                datetime.timedelta(seconds=int(data.operators[i][statistic]))
+                                humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
                         )
             await ctx.send(embed=em1)
@@ -464,12 +486,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_generic_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "generic", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         async with ctx.typing():
             embed = discord.Embed(
                 title="General R6S Stats for {}".format(profile), color=ctx.author.colour
@@ -482,7 +503,7 @@ class R6(commands.Cog):
                 else:
                     embed.add_field(
                         name=stat.replace("_", " ").title(),
-                        value=str(datetime.timedelta(seconds=int(data.general_stats[stat]))),
+                        value=str(humanize_timedelta(seconds=int(data.general_stats[stat]))),
                     )
         await ctx.send(embed=embed)
 
@@ -493,12 +514,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_weaponcategory_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "weaponcategories", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         embed = discord.Embed(
             color=ctx.author.colour, title="Weapon Statistics for {}".format(profile)
         )
@@ -529,12 +549,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_weapon_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "weapon", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         weapons = []
         for wep in data.weapons:
             weapons.append(wep["weapon"].lower())
@@ -575,12 +594,11 @@ class R6(commands.Cog):
             pass
         else:
             region = self.regions[region]
-        try:
-            data = await self.client.get_leaderboard(self.platforms[platform], region, page)
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "leaderboard", platform=self.platforms[platform], region=region, page=page
+        )
+        if data is None:
+            return
         embeds = []
         for i in range(0, 100, 25):
             embed = discord.Embed(
@@ -602,12 +620,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_gamemode_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "gamemodes", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         embeds = []
         async with ctx.typing():
             for gm in data.gamemode_stats:
@@ -619,7 +636,7 @@ class R6(commands.Cog):
                     if stat == "playtime":
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=datetime.timedelta(seconds=data.gamemode_stats[gm][stat]),
+                            value=humanize_timedelta(seconds=data.gamemode_stats[gm][stat]),
                         )
                     else:
                         embed.add_field(
@@ -636,12 +653,11 @@ class R6(commands.Cog):
         Valid platforms are psn, xbl and uplay."""
         if platform not in self.platforms:
             return await ctx.send("Not a valid platform.")
-        try:
-            data = await self.client.get_queue_stats(profile, self.platforms[platform])
-        except r6statsapi.errors.R6StatsApiException:
-            return await ctx.send(
-                "Error occured during your request, the player you requested may be invalid."
-            )
+        data = await self.request_data(
+            ctx, "queue", player=profile, platform=self.platforms[platform]
+        )
+        if data is None:
+            return
         if data.queue_stats is None:
             return await ctx.send("User not found.")
         embeds = []
@@ -655,7 +671,7 @@ class R6(commands.Cog):
                     if stat == "playtime":
                         embed.add_field(
                             name=f"{stat.replace('_', ' ').title()}",
-                            value=datetime.timedelta(seconds=data.queue_stats[gm][stat]),
+                            value=humanize_timedelta(seconds=data.queue_stats[gm][stat]),
                         )
                     else:
                         embed.add_field(
