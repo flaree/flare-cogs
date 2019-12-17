@@ -101,7 +101,6 @@ class Mod(ModClass):
                 await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
                 await self.create_muted_role(guild)
                 roleid = await self.config.guild(guild).muterole()
-                await ctx.send(roleid if roleid else "None")
             else:
                 await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
                 return

@@ -255,7 +255,7 @@ class Spammute(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if isinstance(message.channel, discord.abc.PrivateChannel):
+        if not message.guild:
             return
         guild = message.guild
         author = message.author
