@@ -364,7 +364,7 @@ class R6(commands.Cog):
                     ),
                 )
                 embed.set_thumbnail(
-                    url=self.stats.rankurl + ranks[list(ranks)[seasondata["max_rank"]]]
+                    url=self.stats.rankurl + ranks[list(ranks)[seasondata["rank_text"]]]
                 )
                 embed.add_field(name="Wins:", value=seasondata["wins"])
                 embed.add_field(name="Losses:", value=seasondata["losses"])
