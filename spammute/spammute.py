@@ -255,7 +255,8 @@ class Spammute(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if not message.guild:
+        guild = message.guild
+        if guild is None or message.author.bot:
             return
         guild = message.guild
         author = message.author
