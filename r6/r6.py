@@ -28,7 +28,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.5.0"
+    __version__ = "1.5.1"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -364,7 +364,7 @@ class R6(commands.Cog):
                     ),
                 )
                 embed.set_thumbnail(
-                    url=self.stats.rankurl + ranks[list(ranks)[seasondata["rank_text"]]]
+                    url= self.stats.rankurl + ranks[seasondata["rank_text"]]
                 )
                 embed.add_field(name="Wins:", value=seasondata["wins"])
                 embed.add_field(name="Losses:", value=seasondata["losses"])
