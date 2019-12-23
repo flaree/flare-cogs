@@ -28,7 +28,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.4.2"
+    __version__ = "1.5.0"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -290,7 +290,7 @@ class R6(commands.Cog):
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
-                image = await self.stats.operatorstatscreate(data.operators[ind], profile)
+                image = await self.stats.operatorstatscreate(data, ind, profile)
                 await ctx.send(file=image)
             else:
                 data = data.operators[ind]
@@ -325,7 +325,7 @@ class R6(commands.Cog):
         seasons = list(data.seasons.keys())
         seasons += [None] * 6
         seasons.reverse()
-        return (seasons, data.seasons)
+        return (seasons, data.seasons, data)
 
     @r6.command()
     async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
@@ -353,7 +353,7 @@ class R6(commands.Cog):
             picture = await self.config.member(ctx.author).picture()
             if picture:
                 image = await self.stats.seasoncreate(
-                    seasondata, season, profile, data[1][data[0][season]]["name"]
+                    data[2], seasondata, season, profile, data[1][data[0][season]]["name"]
                 )
                 await ctx.send(file=image)
             else:
