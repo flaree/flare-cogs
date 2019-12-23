@@ -240,7 +240,7 @@ class Stats:
             font=name_fnt,
         )
 
-        m, _ = divmod(data.queue_stats["ranked"]["playtime"], 60)
+        m, _ = divmod(data.general_stats["playtime"], 60)
         h, m = divmod(m, 60)
         d, h = divmod(h, 24)
         draw.text(

@@ -363,9 +363,7 @@ class R6(commands.Cog):
                         data[0][season].title().replace("_", " "), profile
                     ),
                 )
-                embed.set_thumbnail(
-                    url= self.stats.rankurl + ranks[seasondata["rank_text"]]
-                )
+                embed.set_thumbnail(url=self.stats.rankurl + ranks[seasondata["rank_text"]])
                 embed.add_field(name="Wins:", value=seasondata["wins"])
                 embed.add_field(name="Losses:", value=seasondata["losses"])
                 embed.add_field(name="Abandons:", value=seasondata["abandons"])
