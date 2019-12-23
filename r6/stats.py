@@ -1,9 +1,4 @@
-import asyncio
-import datetime
-import platform
 import random
-import string
-import textwrap
 from io import BytesIO
 
 import aiohttp
