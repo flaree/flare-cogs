@@ -89,7 +89,7 @@ class R6(commands.Cog):
             )
             exceptionstatus = True
         except r6statsapi.errors.HTTPException as e:
-            await ctx.send(f"There was an error during the request.\nError Message: {e.message}")
+            await ctx.send(f"There was an error during the request.\nError Message: {' '.join(e.message.strip('_'))}")
             exceptionstatus = True
         except r6statsapi.errors.InternalError:
             await ctx.send(
