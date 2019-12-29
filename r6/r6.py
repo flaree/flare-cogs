@@ -28,7 +28,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.5.1"
+    __version__ = "1.5.2"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -45,7 +45,14 @@ class R6(commands.Cog):
             "uplay": r6statsapi.Platform.uplay,
             "pc": r6statsapi.Platform.uplay,
         }
-        self.regions = {"na": "ncsa", "eu": "emea", "asia": "apac"}
+        self.regions = {
+            "na": "ncsa",
+            "eu": "emea",
+            "asia": "apac",
+            "na": "ncsa",
+            "as": "apac",
+            "europe": "emea",
+        }
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
         self.client = None
 
@@ -125,19 +132,6 @@ class R6(commands.Cog):
                 embed = discord.Embed(
                     colour=ctx.author.color, title="R6 Profile for {}".format(profile)
                 )
-                embed.set_thumbnail(url=data.avatar_url_256)
-                embed.add_field(name="Level:", value=data.level)
-                embed.add_field(
-                    name="Timeplayed:",
-                    value=str(humanize_timedelta(seconds=int(data.general_stats["playtime"]))),
-                )
-                embed.add_field(name="Total Wins:", value=data.general_stats["wins"])
-                embed.add_field(name="Total Losses:", value=data.general_stats["losses"])
-                embed.add_field(name="Draws:", value=data.general_stats["draws"])
-                embed.add_field(name="Lootbox %:", value=data.lootbox_probability)
-                embed.add_field(name="Kills:", value=data.general_stats["kills"])
-                embed.add_field(name="Deaths:", value=data.general_stats["deaths"])
-                embed.add_field(name="KDR:", value=data.general_stats["kd"])
                 try:
                     wlr = (
                         round(data.general_stats["wins"] / data.general_stats["games_played"], 2)
@@ -145,19 +139,13 @@ class R6(commands.Cog):
                     )
                 except ZeroDivisionError:
                     wlr = 0
-                embed.add_field(name="Total W/LR %:", value=wlr)
-                try:
-                    rwlr = (
-                        round(
-                            data.queue_stats["ranked"]["wins"]
-                            / data.queue_stats["ranked"]["games_played"],
-                            2,
-                        )
-                        * 100
-                    )
-                except ZeroDivisionError:
-                    rwlr = 0
-                embed.add_field(name="Total Ranked W/LR:", value=rwlr)
+                embed.set_thumbnail(url=data.avatar_url_256)
+                accstats = f'**Level**: {data.level}\n**Playtime**: {humanize_timedelta(seconds=int(data.general_stats["playtime"]))}\n**Lootbox %**: {data.lootbox_probability}%'
+                stats = f'**Wins**: {data.general_stats["wins"]}\n**Losses**: {data.general_stats["losses"]}\n**Draws**: {data.general_stats["draws"]}\n**W/L Ratio**: {wlr}%'
+                killstats = f'**Kills**: {data.general_stats["kills"]}\n**Deaths**: {data.general_stats["deaths"]}\n**KDR**: {data.general_stats["kd"]}'
+                embed.add_field(name="Account Stats", value=accstats, inline=False)
+                embed.add_field(name="Match Stats", value=stats, inline=True)
+                embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -183,22 +171,6 @@ class R6(commands.Cog):
                     colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
                 )
                 embed.set_thumbnail(url=data.avatar_url_256)
-                embed.add_field(name="Level:", value=data.level)
-                embed.add_field(
-                    name="Timeplayed:",
-                    value=str(
-                        humanize_timedelta(seconds=int(data.queue_stats["casual"]["playtime"]))
-                    ),
-                )
-                embed.add_field(name="Total Wins:", value=data.queue_stats["casual"]["wins"])
-                embed.add_field(name="Total Losses:", value=data.queue_stats["casual"]["losses"])
-                embed.add_field(name="Draws:", value=data.queue_stats["casual"]["draws"])
-                embed.add_field(
-                    name="Total Games Played:", value=data.queue_stats["casual"]["games_played"]
-                )
-                embed.add_field(name="Kills:", value=data.queue_stats["casual"]["kills"])
-                embed.add_field(name="Deaths:", value=data.queue_stats["casual"]["deaths"])
-                embed.add_field(name="KDR:", value=data.queue_stats["casual"]["kd"])
                 try:
                     wlr = (
                         round(
@@ -210,7 +182,12 @@ class R6(commands.Cog):
                     )
                 except ZeroDivisionError:
                     wlr = 0
-                embed.add_field(name="Total W/LR %:", value=wlr)
+                accstats = f'**Level**: {data.level}\n**Playtime**: {humanize_timedelta(seconds=int(data.queue_stats["casual"]["playtime"]))}'
+                stats = f'**Games Playes**: {data.queue_stats["casual"]["games_played"]}\n**Wins**: {data.queue_stats["casual"]["wins"]}\n**Losses**: {data.queue_stats["casual"]["losses"]}\n**Draws**: {data.queue_stats["casual"]["draws"]}\n**W/L Ratio**: {wlr}%'
+                killstats = f'**Kills**: {data.queue_stats["casual"]["kills"]}\n**Deaths**: {data.queue_stats["casual"]["deaths"]}\n**KDR**: {data.queue_stats["casual"]["kd"]}'
+                embed.add_field(name="Account Stats", value=accstats, inline=False)
+                embed.add_field(name="Match Stats", value=stats, inline=True)
+                embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -235,22 +212,6 @@ class R6(commands.Cog):
                     colour=ctx.author.colour, title="R6 Ranked Statistics for {}".format(profile)
                 )
                 embed.set_thumbnail(url=data.avatar_url_256)
-                embed.add_field(name="Level:", value=data.level)
-                embed.add_field(
-                    name="Timeplayed:",
-                    value=str(
-                        humanize_timedelta(seconds=int(data.queue_stats["ranked"]["playtime"]))
-                    ),
-                )
-                embed.add_field(name="Total Wins:", value=data.queue_stats["ranked"]["wins"])
-                embed.add_field(name="Total Losses:", value=data.queue_stats["ranked"]["losses"])
-                embed.add_field(name="Draws:", value=data.queue_stats["ranked"]["draws"])
-                embed.add_field(
-                    name="Total Games Played:", value=data.queue_stats["ranked"]["games_played"]
-                )
-                embed.add_field(name="Kills:", value=data.queue_stats["ranked"]["kills"])
-                embed.add_field(name="Deaths:", value=data.queue_stats["ranked"]["deaths"])
-                embed.add_field(name="KDR:", value=data.queue_stats["ranked"]["kd"])
                 try:
                     wlr = (
                         round(
@@ -262,7 +223,12 @@ class R6(commands.Cog):
                     )
                 except ZeroDivisionError:
                     wlr = 0
-                embed.add_field(name="Total W/LR %:", value=wlr)
+                accstats = f'**Level**: {data.level}\n**Playtime**: {humanize_timedelta(seconds=int(data.queue_stats["ranked"]["playtime"]))}'
+                stats = f'**Games Playes**: {data.queue_stats["ranked"]["games_played"]}\n**Wins**: {data.queue_stats["ranked"]["wins"]}\n**Losses**: {data.queue_stats["ranked"]["losses"]}\n**Draws**: {data.queue_stats["casual"]["draws"]}\n**W/L Ratio**: {wlr}%'
+                killstats = f'**Kills**: {data.queue_stats["ranked"]["kills"]}\n**Deaths**: {data.queue_stats["ranked"]["deaths"]}\n**KDR**: {data.queue_stats["ranked"]["kd"]}'
+                embed.add_field(name="Account Stats", value=accstats, inline=False)
+                embed.add_field(name="Match Stats", value=stats, inline=True)
+                embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 await ctx.send(embed=embed)
 
     @r6.command()
@@ -299,21 +265,18 @@ class R6(commands.Cog):
                     title="{} Statistics for {}".format(operator.title(), profile),
                 )
                 embed.set_thumbnail(url=data["badge_image"])
-                embed.add_field(name="Kills:", value=data["kills"])
-                embed.add_field(name="Deaths:", value=data["deaths"])
-                embed.add_field(name="Wins:", value=data["wins"])
-                embed.add_field(name="Losses:", value=data["losses"])
-                embed.add_field(name="KDR:", value=data["kd"])
-                embed.add_field(
-                    name="Playtime:", value=str(humanize_timedelta(seconds=int(data["playtime"])))
-                )
-                embed.add_field(name="Headshots:", value=data["headshots"])
-                embed.add_field(
-                    name="W/LR %:", value=round(data["wins"] / (data["wins"] + data["losses"]), 2)
-                )
+                wlr = round(data["wins"] / (data["wins"] + data["losses"]), 2)
+                accstats = f'**Operator**: {operator.title()}\n**Playtime**: {humanize_timedelta(seconds=int(data["playtime"]))}'
+                stats = f'**Wins**: {data["wins"]}\n**Losses**: {data["losses"]}\n**W/L Ratio**: {wlr}%'
+                killstats = f'**Kills**: {data["kills"]}\n**Deaths**: {data["deaths"]}\n**KDR**: {data["kd"]}\n**Headshots**: {data["headshots"]}'
+                embed.add_field(name="Operator Info", value=accstats, inline=False)
+                embed.add_field(name="Match Stats", value=stats, inline=True)
+                embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 try:
+                    msg = ""
                     for ability in data["abilities"]:
-                        embed.add_field(name=ability["ability"], value=ability["value"])
+                        msg += f'**{ability["ability"]}**: {ability["value"]}'
+                    embed.add_field(name="Operator Stats", value=msg)
                 except KeyError:
                     pass
                 await ctx.send(embed=embed)
@@ -363,20 +326,36 @@ class R6(commands.Cog):
                         data[0][season].title().replace("_", " "), profile
                     ),
                 )
+                print(seasondata)
                 embed.set_thumbnail(url=self.stats.rankurl + ranks[seasondata["rank_text"]])
-                embed.add_field(name="Wins:", value=seasondata["wins"])
-                embed.add_field(name="Losses:", value=seasondata["losses"])
-                embed.add_field(name="Abandons:", value=seasondata["abandons"])
-                embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
-                embed.add_field(name="Max MMR:", value=seasondata["max_mmr"])
-                embed.add_field(name="End MMR:", value=seasondata["mmr"])
-                embed.add_field(name="Max Rank:", value=list(ranks)[seasondata["max_rank"]])
-                embed.add_field(name="End Rank:", value=seasondata["rank_text"])
+
+                accstats = f'**Rank**: {seasondata["rank_text"]}\n**MMR**: {seasondata["mmr"]}\n**Max Rank**: {list(ranks)[seasondata["max_rank"]]}\n**Max MMR**: {seasondata["max_mmr"]}'
                 if seasondata["rank_text"] == "Champions":
-                    embed.add_field(
-                        name="Champions Position:",
-                        value="#" + str(seasondata["champions_rank_position"]),
+                    accstats += (
+                        f'\n**Champions Position**: #{str(seasondata["champions_rank_position"])}'
                     )
+                try:
+                    wlr = (
+                        round(
+                            seasondata["wins"]
+                            / (seasondata["wins"] + seasondata["losses"] + seasondata["abandons"]),
+                            2,
+                        )
+                        * 100
+                    )
+                except ZeroDivisionError:
+                    wlr = 0
+                stats = f'**Wins**: {seasondata["wins"]}\n**Losses**: {seasondata["losses"]}\n**Abandons**: {seasondata["abandons"]}\n**W/L Ratio**: {wlr}%'
+                try:
+                    kd = round(seasondata["kills"] / seasondata["deaths"], 2)
+                except ZeroDivisionError:
+                    kd = 0
+                except TypeError:
+                    kd = "Error calculating KDR"
+                killstats = f'**Kills**: {seasondata["kills"]}\n**Deaths**: {seasondata["deaths"]}\n**KDR**: {kd}'
+                embed.add_field(name="Season Stats", value=accstats, inline=False)
+                embed.add_field(name="Match Stats", value=stats, inline=True)
+                embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 await ctx.send(embed=embed)
 
     @r6.command()
