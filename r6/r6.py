@@ -49,7 +49,7 @@ class R6(commands.Cog):
             "na": "ncsa",
             "eu": "emea",
             "asia": "apac",
-            "na": "ncsa",
+            "us": "ncsa",
             "as": "apac",
             "europe": "emea",
         }
