@@ -108,7 +108,10 @@ class R6(commands.Cog):
     @commands.check(tokencheck)
     @commands.group(autohelp=True)
     async def r6(self, ctx):
-        """R6 Commands - Valid consoles are psn, xbl and uplay."""
+        """Rainbow 6 Siege Statistics
+        
+        Valid consoles are psn, xbox and pc.
+        Valid regions are NA, EU and Asia"""
         pass
 
     @r6.command()
@@ -326,7 +329,6 @@ class R6(commands.Cog):
                         data[0][season].title().replace("_", " "), profile
                     ),
                 )
-                print(seasondata)
                 embed.set_thumbnail(url=self.stats.rankurl + ranks[seasondata["rank_text"]])
 
                 accstats = f'**Rank**: {seasondata["rank_text"]}\n**MMR**: {seasondata["mmr"]}\n**Max Rank**: {list(ranks)[seasondata["max_rank"]]}\n**Max MMR**: {seasondata["max_mmr"]}'
