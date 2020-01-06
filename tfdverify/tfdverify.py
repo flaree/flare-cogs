@@ -13,7 +13,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -31,6 +37,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(539097159350484992)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -40,7 +48,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -58,6 +72,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(588752725144109060)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -67,7 +83,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -85,6 +107,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(539101117477421081)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -94,7 +118,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -112,6 +142,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(588752838746963999)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -121,7 +153,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -139,6 +177,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(568202085233852427)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -148,7 +188,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -166,6 +212,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(539112501959196673)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -175,7 +223,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -196,6 +250,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(539111785819799578)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         efl = ctx.guild.get_role(539076954469695491)
         roles = [role, efl]
         await user.add_roles(
@@ -205,7 +261,13 @@ class TFDVerify(commands.Cog):
 
     @commands.check(tfdcheck)
     @commands.has_any_role(
-        "Moderator", "Administrator", "Assistant Manager", "Manager", "Pikachu", "flare?", "Helper",
+        "Moderator",
+        "Administrator",
+        "Assistant Manager",
+        "Manager",
+        "Pikachu",
+        "flare?",
+        "Helper",
     )
     @checks.bot_has_permissions(manage_nicknames=True, manage_roles=True)
     @commands.command()
@@ -228,6 +290,8 @@ class TFDVerify(commands.Cog):
 
             await ctx.send("I do not have permission to rename that member.")
         role = ctx.guild.get_role(539076954469695491)
+        if role in user.roles:
+            return await ctx.send("User is already verified.")
         await user.add_roles(
             role, reason="Verified as a {} supporter. Verified by :{}".format(team, ctx.author)
         )
