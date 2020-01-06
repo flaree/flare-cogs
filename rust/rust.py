@@ -73,7 +73,7 @@ class Rust(commands.Cog):
         if isinstance(profile, discord.Member):
             profile = await self.config.member(profile).id()
         try:
-            profile = await SteamUser.convert(ctx, name)
+            profile = await SteamUser.convert(ctx, profile)
         except:
             return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
@@ -113,7 +113,7 @@ class Rust(commands.Cog):
         if isinstance(profile, discord.Member):
             profile = await self.config.member(profile).id()
         try:
-            profile = await SteamUser.convert(ctx, name)
+            profile = await SteamUser.convert(ctx, profile)
         except:
             return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
