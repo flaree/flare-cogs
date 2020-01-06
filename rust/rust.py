@@ -79,19 +79,23 @@ class Rust(commands.Cog):
         try:
             profile = await SteamUser.convert(ctx, profile)
         except:
-            return await ctx.send("Error converting.")
+            return await ctx.send(
+                "Error converting your name to a SteamID. Use your SteamIDs to be more precise.\n<https://steamid.io/lookup/>"
+            )
         data = await self.get_stats(profile.steamid64)
         if data is None:
             return await ctx.send(
-                "No stats available, profile may be private. If not, use your steam64ID."
+                "No stats available, profile may be private. If not, use your steam64ID. \n<https://steamid.io/lookup/>"
             )
         embed = discord.Embed(
             color=discord.Color.red(), title="Rust Stats for {}".format(profile.personaname)
         )
         embed.set_thumbnail(url=profile.avatar184)
-
+        playerstats = data.get("playerstats")
+        if playerstats is None:
+            return await ctx.send("No stats returned, ensure you specified the right account.")
         stats = {}
-        for stat in data["playerstats"]["stats"]:
+        for stat in playerstats["stats"]:
             stats[stat["name"]] = stat["value"]
         killstats = "**Player Kills**: {}\n**Deaths**: {}\n**Suicides**: {}\n**Headshots**: {}".format(
             stats.get("kill_player", 0),
