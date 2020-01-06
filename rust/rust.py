@@ -72,7 +72,10 @@ class Rust(commands.Cog):
             profile = ctx.author
         if isinstance(profile, discord.Member):
             name = await self.config.member(profile).id()
-            profile = await SteamUser.convert(ctx, name)
+            try:
+                profile = await SteamUser.convert(ctx, name)
+            except:
+                return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
         if data is None:
             return await ctx.send("No stats available, profile may be private. If not, use your steam64ID.")
@@ -109,7 +112,10 @@ class Rust(commands.Cog):
             profile = ctx.author
         if isinstance(profile, discord.Member):
             name = await self.config.member(profile).id()
-            profile = await SteamUser.convert(ctx, name)
+            try:
+                profile = await SteamUser.convert(ctx, name)
+            except:
+                return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
         if data is None:
             return await ctx.send("No stats available, profile may be private. If not, use your steam64ID.")
