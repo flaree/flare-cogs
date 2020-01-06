@@ -36,7 +36,7 @@ class Rust(commands.Cog):
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         defaults = {"id": None}
-        self.config.register_member(**defaults)
+        self.config.register_user(**defaults)
 
     def cog_unload(self):
         self.session.detach()
@@ -62,7 +62,7 @@ class Rust(commands.Cog):
     @commands.command()
     async def rustset(self, ctx, name: str):
         """Set your rust steam acc"""
-        await self.config.member(ctx.author).id.set(name)
+        await self.config.user(ctx.author).id.set(name)
         await ctx.tick()
 
     @commands.check(tokencheck)
@@ -71,7 +71,9 @@ class Rust(commands.Cog):
         if profile is None:
             profile = ctx.author
         if isinstance(profile, discord.Member):
-            profile = await self.config.member(profile).id()
+            profile = await self.config.user(profile).id()
+            if profile is None:
+                return await ctx.send("User hasn't set a profile yet.")
         try:
             profile = await SteamUser.convert(ctx, profile)
         except:
@@ -111,7 +113,9 @@ class Rust(commands.Cog):
         if profile is None:
             profile = ctx.author
         if isinstance(profile, discord.Member):
-            profile = await self.config.member(profile).id()
+            profile = await self.config.user(profile).id()
+            if profile is None:
+                return await ctx.send("User hasn't set a profile yet.")
         try:
             profile = await SteamUser.convert(ctx, profile)
         except:
