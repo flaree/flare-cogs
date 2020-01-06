@@ -1,5 +1,6 @@
 from .rust import Rust
 
+
 async def setup(bot):
     cog = Rust(bot)
     await cog.initalize()

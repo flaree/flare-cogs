@@ -44,9 +44,7 @@ class SteamUser:
         except IndexError:
             raise BadArgument(
                 _(
-                    "Unable to get profile for {} ({}). "
-                    "Check your input or try again later."
+                    "Unable to get profile for {} ({}). " "Check your input or try again later."
                 ).format(argument, id64)
             )
         return profile
-       

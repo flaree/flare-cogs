@@ -8,12 +8,15 @@ from functools import partial
 
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i : i + n]
 
+
 BASE_URL = "http://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?appid=252490&key={steamkey}&steamid={steamid}"
+
 
 async def tokencheck(ctx):
     try:
@@ -23,10 +26,9 @@ async def tokencheck(ctx):
     if token.get("web") is not None:
         return True
     else:
-        await ctx.send(
-            "Your steam API key has not been set."
-        )
+        await ctx.send("Your steam API key has not been set.")
         return False
+
 
 class Rust(commands.Cog):
     """Rust Commands"""
@@ -43,9 +45,7 @@ class Rust(commands.Cog):
 
     async def initalize(self):
         try:
-            self.apikeys = await self.bot.db.api_tokens.get_raw(
-                "steam", default={"web": None}
-            )
+            self.apikeys = await self.bot.db.api_tokens.get_raw("steam", default={"web": None})
         except AttributeError:
             self.apikeys = await self.bot.get_shared_api_tokens("steam")
         self.steam = await self.bot.loop.run_in_executor(
@@ -53,7 +53,9 @@ class Rust(commands.Cog):
         )
 
     async def get_stats(self, id):
-        async with self.session.get(BASE_URL.format(steamkey=self.apikeys.get("web"), steamid=id)) as request:
+        async with self.session.get(
+            BASE_URL.format(steamkey=self.apikeys.get("web"), steamid=id)
+        ) as request:
             try:
                 return await request.json()
             except:
@@ -80,17 +82,39 @@ class Rust(commands.Cog):
             return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
         if data is None:
-            return await ctx.send("No stats available, profile may be private. If not, use your steam64ID.")
-        embed = discord.Embed(color=discord.Color.red(), title="Rust Stats for {}".format(profile.personaname))
+            return await ctx.send(
+                "No stats available, profile may be private. If not, use your steam64ID."
+            )
+        embed = discord.Embed(
+            color=discord.Color.red(), title="Rust Stats for {}".format(profile.personaname)
+        )
         embed.set_thumbnail(url=profile.avatar184)
 
         stats = {}
         for stat in data["playerstats"]["stats"]:
-            stats.get(stat["name"]] = stat["value"]
-        killstats = "**Player Kills**: {}\n**Deaths**: {}\n**Suicides**: {}\n**Headshots**: {}".format(stats.get('kill_player', 0), stats.get("deaths", 0), stats.get("death_suicide", 0), stats.get("headshot", 0))
-        killstatsnpc = "**Bear Kills**: {}\n**Boar Kills**: {}\n**Chicken Kills**: {}\n**Horse Kills**: {}".format(stats.get("kill_bear", 0), stats.get("kill_boar", 0), stats.get("kill_chicken", ), stats.get("kill_horse", 0))
-        harveststats = "**Wood Harvested**: {}\n**Cloth Harvested**: {}\n**Stone Harvested**: {}\n**Leather Harvested**: {}\n**Scrap Harvested**: {}\n**Metal Ore Aquired**: {}\n**LGF Aquired**: {}".format(stats.get("harvested_wood", 0), stats.get("harvested_cloth", 0), stats.get("harvested_stones", 0), stats.get("harvested_leather", 0), stats.get("acquired_scrap", 0, stats.get("acquired_metal.ore", 0), stats.get("acquired_lowgradefuel", 0))
-        deathstats = f"**Deaths**: {stats.get('deaths'', 0)}\n**Suicides**: {stats.get('death_suicide'', 0)}\n**Death by Fall**: {stats.get('death_fall'', 0)}\n**Death by Entity**: {stats.get('death_entity', 0)}\n**Death by Bear**: {stats.get('death_bear', 0)}"
+            stats[stat["name"]] = stat["value"]
+        killstats = "**Player Kills**: {}\n**Deaths**: {}\n**Suicides**: {}\n**Headshots**: {}".format(
+            stats.get("kill_player", 0),
+            stats.get("deaths", 0),
+            stats.get("death_suicide", 0),
+            stats.get("headshot", 0),
+        )
+        killstatsnpc = "**Bear Kills**: {}\n**Boar Kills**: {}\n**Chicken Kills**: {}\n**Horse Kills**: {}".format(
+            stats.get("kill_bear", 0),
+            stats.get("kill_boar", 0),
+            stats.get("kill_chicken",),
+            stats.get("kill_horse", 0),
+        )
+        harveststats = "**Wood Harvested**: {}\n**Cloth Harvested**: {}\n**Stone Harvested**: {}\n**Leather Harvested**: {}\n**Scrap Harvested**: {}\n**Metal Ore Aquired**: {}\n**LGF Aquired**: {}".format(
+            stats.get("harvested_wood", 0),
+            stats.get("harvested_cloth", 0),
+            stats.get("harvested_stones", 0),
+            stats.get("harvested_leather", 0),
+            stats.get("acquired_scrap", 0),
+            stats.get("acquired_metal.ore", 0),
+            stats.get("acquired_lowgradefuel", 0),
+        )
+        deathstats = f"**Deaths**: {stats.get('deaths', 0)}\n**Suicides**: {stats.get('death_suicide', 0)}\n**Death by Fall**: {stats.get('death_fall', 0)}\n**Death by Entity**: {stats.get('death_entity', 0)}\n**Death by Bear**: {stats.get('death_bear', 0)}"
         bulletstats = f"**Bullets Fired**: {stats.get('bullet_fired', 0)}\n**Bullets Hit (Player)**: {stats.get('bullet_hit_player', 0)}\n**Bullets Hit (Entity)**: {stats.get('bullet_hit_entity', 0)}\n**Bullets Hit (Building)**: {stats.get('bullet_hit_building', 0)}"
         arrowstats = f"**Arrows Shot**: {stats.get('arrow_fired', 0)}\n**Arrows Hit (Player)**: {stats.get('arrow_hit_player', 0)}\n**Arrows Hit (Entity)**: {stats.get('arrow_hit_entity', 0)}\n**Arrows Hit (Building)**: {stats.get('arrow_hit_building', 0)}"
         shotgunstats = f"**Shotgun Shots**: {stats.get('shotgun_fired', 0)}\n**Shotgun Hits (Player)**: {stats.get('shotgun_hit_player', 0)}\n**Shotgun Hits (Entity)**: {stats.get('shotgun_hit_entity', 0)}\n**Shotguns Hits (Building)**: {stats.get('shotgun_hit_entity', 0)}"
@@ -106,10 +130,11 @@ class Rust(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    
     @commands.check(tokencheck)
     @commands.command()
-    async def rustachievements(self, ctx, *, profile: typing.Union[discord.Member, SteamUser] = None):
+    async def rustachievements(
+        self, ctx, *, profile: typing.Union[discord.Member, SteamUser] = None
+    ):
         if profile is None:
             profile = ctx.author
         if isinstance(profile, discord.Member):
@@ -122,24 +147,23 @@ class Rust(commands.Cog):
             return await ctx.send("Error converting.")
         data = await self.get_stats(profile.steamid64)
         if data is None:
-            return await ctx.send("No stats available, profile may be private. If not, use your steam64ID.")
+            return await ctx.send(
+                "No stats available, profile may be private. If not, use your steam64ID."
+            )
         embeds = []
         chunk = chunks(data["playerstats"]["achievements"], 15)
         for achivements in chunk:
             msg = ""
             for achivement in achivements:
                 msg += "**{}** - Achieved\n".format(achivement["name"].replace("_", " ").title())
-            embed = discord.Embed(color=discord.Color.red(), title="Rust Achievements for {}".format(profile.personaname), description=msg)
+            embed = discord.Embed(
+                color=discord.Color.red(),
+                title="Rust Achievements for {}".format(profile.personaname),
+                description=msg,
+            )
             embed.set_thumbnail(url=profile.avatar184)
             embeds.append(embed)
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
-            
-
-
-        
-
-
-    
