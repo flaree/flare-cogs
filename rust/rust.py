@@ -86,15 +86,15 @@ class Rust(commands.Cog):
 
         stats = {}
         for stat in data["playerstats"]["stats"]:
-            stats[stat["name"]] = stat["value"]
-        killstats = "**Player Kills**: {}\n**Deaths**: {}\n**Suicides**: {}\n**Headshots**: {}".format(stats["kill_player"], stats["deaths"], stats["death_suicide"], stats["headshot"])
-        killstatsnpc = "**Bear Kills**: {}\n**Boar Kills**: {}\n**Chicken Kills**: {}\n**Horse Kills**: {}".format(stats["kill_bear"], stats["kill_boar"], stats["kill_chicken"], stats["kill_horse"])
-        harveststats = "**Wood Harvested**: {}\n**Cloth Harvested**: {}\n**Stone Harvested**: {}\n**Leather Harvested**: {}\n**Scrap Harvested**: {}\n**Metal Ore Aquired**: {}\n**LGF Aquired**: {}".format(stats["harvested_wood"], stats["harvested_cloth"], stats["harvested_stones"], stats["harvested_leather"], stats["acquired_scrap"], stats["acquired_metal.ore"], stats["acquired_lowgradefuel"])
-        deathstats = f"**Deaths**: {stats['deaths']}\n**Suicides**: {stats['death_suicide']}\n**Death by Fall**: {stats['death_fall']}\n**Death by Entity**: {stats['death_entity']}\n**Death by Bear**: {stats['death_bear']}"
-        bulletstats = f"**Bullets Fired**: {stats['bullet_fired']}\n**Bullets Hit (Player)**: {stats['bullet_hit_player']}\n**Bullets Hit (Entity)**: {stats['bullet_hit_entity']}\n**Bullets Hit (Building)**: {stats['bullet_hit_building']}"
-        arrowstats = f"**Arrows Shot**: {stats['arrow_fired']}\n**Arrows Hit (Player)**: {stats['arrow_hit_player']}\n**Arrows Hit (Entity)**: {stats['arrow_hit_entity']}\n**Arrows Hit (Building)**: {stats['arrow_hit_building']}"
-        shotgunstats = f"**Shotgun Shots**: {stats['shotgun_fired']}\n**Shotgun Hits (Player)**: {stats['shotgun_hit_player']}\n**Shotgun Hits (Entity)**: {stats['shotgun_hit_entity']}\n**Shotguns Hits (Building)**: {stats['shotgun_hit_entity']}"
-        miscstats = f"**Items Dropped**: {stats['item_drop']}\n**Wounded**: {stats['wounded']}\n**Wounded Assisted**: {stats['wounded_assisted']}\n**Wounded Healed**: {stats['wounded_healed']}\n**Inventory Opened**: {stats['INVENTORY_OPENED']}\n**Crafting Opened**: {stats['CRAFTING_OPENED']}\n**Map Opened**: {stats['MAP_OPENED']}"
+            stats.get(stat["name"]] = stat["value"]
+        killstats = "**Player Kills**: {}\n**Deaths**: {}\n**Suicides**: {}\n**Headshots**: {}".format(stats.get('kill_player', 0), stats.get("deaths", 0), stats.get("death_suicide", 0), stats.get("headshot", 0))
+        killstatsnpc = "**Bear Kills**: {}\n**Boar Kills**: {}\n**Chicken Kills**: {}\n**Horse Kills**: {}".format(stats.get("kill_bear", 0), stats.get("kill_boar", 0), stats.get("kill_chicken", ), stats.get("kill_horse", 0))
+        harveststats = "**Wood Harvested**: {}\n**Cloth Harvested**: {}\n**Stone Harvested**: {}\n**Leather Harvested**: {}\n**Scrap Harvested**: {}\n**Metal Ore Aquired**: {}\n**LGF Aquired**: {}".format(stats.get("harvested_wood", 0), stats.get("harvested_cloth", 0), stats.get("harvested_stones", 0), stats.get("harvested_leather", 0), stats.get("acquired_scrap", 0, stats.get("acquired_metal.ore", 0), stats.get("acquired_lowgradefuel", 0))
+        deathstats = f"**Deaths**: {stats.get('deaths'', 0)}\n**Suicides**: {stats.get('death_suicide'', 0)}\n**Death by Fall**: {stats.get('death_fall'', 0)}\n**Death by Entity**: {stats.get('death_entity', 0)}\n**Death by Bear**: {stats.get('death_bear', 0)}"
+        bulletstats = f"**Bullets Fired**: {stats.get('bullet_fired', 0)}\n**Bullets Hit (Player)**: {stats.get('bullet_hit_player', 0)}\n**Bullets Hit (Entity)**: {stats.get('bullet_hit_entity', 0)}\n**Bullets Hit (Building)**: {stats.get('bullet_hit_building', 0)}"
+        arrowstats = f"**Arrows Shot**: {stats.get('arrow_fired', 0)}\n**Arrows Hit (Player)**: {stats.get('arrow_hit_player', 0)}\n**Arrows Hit (Entity)**: {stats.get('arrow_hit_entity', 0)}\n**Arrows Hit (Building)**: {stats.get('arrow_hit_building', 0)}"
+        shotgunstats = f"**Shotgun Shots**: {stats.get('shotgun_fired', 0)}\n**Shotgun Hits (Player)**: {stats.get('shotgun_hit_player', 0)}\n**Shotgun Hits (Entity)**: {stats.get('shotgun_hit_entity', 0)}\n**Shotguns Hits (Building)**: {stats.get('shotgun_hit_entity', 0)}"
+        miscstats = f"**Items Dropped**: {stats.get('item_drop', 0)}\n**Wounded**: {stats.get('wounded', 0)}\n**Wounded Assisted**: {stats.get('wounded_assisted', 0)}\n**Wounded Healed**: {stats.get('wounded_healed', 0)}\n**Inventory Opened**: {stats.get('INVENTORY_OPENED', 0)}\n**Crafting Opened**: {stats.get('CRAFTING_OPENED', 0)}\n**Map Opened**: {stats.get('MAP_OPENED', 0)}"
         embed.add_field(name="General Statistics", value=killstats)
         embed.add_field(name="Kill Statistics NPC", value=killstatsnpc)
         embed.add_field(name="Death Statistics", value=deathstats)
