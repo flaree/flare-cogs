@@ -67,7 +67,7 @@ class Rust(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def rust(self, ctx, profile: typing.Union[discord.Member, SteamUser] = None):
+    async def rust(self, ctx, *, profile: typing.Union[discord.Member, SteamUser] = None):
         if profile is None:
             profile = ctx.author
         if isinstance(profile, discord.Member):
@@ -107,7 +107,7 @@ class Rust(commands.Cog):
     
     @commands.check(tokencheck)
     @commands.command()
-    async def rustachievements(self, ctx, profile: typing.Union[discord.Member, SteamUser] = None):
+    async def rustachievements(self, ctx, *, profile: typing.Union[discord.Member, SteamUser] = None):
         if profile is None:
             profile = ctx.author
         if isinstance(profile, discord.Member):
