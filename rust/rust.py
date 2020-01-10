@@ -1,12 +1,13 @@
-import discord
-from redbot.core import commands, checks, Config
-import aiohttp
 import typing
-from .steam import SteamUser
-from valve.steam.api import interface
 from functools import partial
 
+import aiohttp
+import discord
+from redbot.core import Config, checks, commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from valve.steam.api import interface
+
+from .steam import SteamUser
 
 
 def chunks(l, n):
