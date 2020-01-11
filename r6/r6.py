@@ -17,11 +17,6 @@ async def tokencheck(ctx):
     if token.get("authorization") is not None:
         return True
     else:
-        await ctx.send(
-            "Your R6Stats API key has not been set. Check out {}r6set for more informtion.".format(
-                ctx.prefix
-            )
-        )
         return False
 
 
