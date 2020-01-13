@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import discord
 from discord.ext import tasks
 from redbot.cogs.mod import Mod as ModClass
-from redbot.core import Config, checks, commands
+from redbot.core import Config, checks, commands, modlog
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import humanize_list, humanize_timedelta
 from redbot.core.utils.predicates import MessagePredicate
@@ -79,6 +79,7 @@ class Mod(ModClass):
         duration: TimedeltaConverter(
             minimum=timedelta(), maximum=timedelta(weeks=99999), default_unit="minutes"
         ),
+        reason: str = ""
     ):
         """Mute users."""
         if not users or duration is None:
@@ -124,9 +125,14 @@ class Mod(ModClass):
                     "time": datetime.utcnow().timestamp(),
                     "expiry": int(expiry.timestamp()),
                 }
+                await modlog.create_case(
+                    ctx.bot, ctx.guild, ctx.message.created_at, action_type="servermute",
+                    user=user, moderator=ctx.author, reason=reason, until=expiry
+                )
         await ctx.send(
             f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}."
         )
+        
 
     @checks.admin()
     @mute.command()
