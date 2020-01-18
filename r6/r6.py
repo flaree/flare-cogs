@@ -20,7 +20,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.5.2"
+    __version__ = "1.5.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -55,6 +55,14 @@ class R6(commands.Cog):
     async def initalize(self):
         token = await self.bot.get_shared_api_tokens("r6stats")
         self.client = r6statsapi.Client(token.get("authorization", None))
+
+    @commands.Cog.listener()
+    async def on_red_api_tokens_update(self, service_name, api_tokens):
+        if service_name == "r6stats":
+            if self.client is not None:
+                self.client.destroy()
+            self.client = r6statsapi.Client(api_tokens.get("authorization", None))
+
 
     def cog_unload(self):
         self.client.destroy()
