@@ -1,0 +1,15 @@
+{
+    "author": [
+      "flare(flare#0001)"
+    ],
+    "install_msg": "Command Statistics, Check out commands used in a guild, globally or in the current session(while the cog is loaded).",
+    "name": "CommandStats",
+    "disabled": false,
+    "short": "Track all commands used.",
+    "description": "Track all commands used globally, guild wise and during the current session.",
+    "tags": [
+      "commandstats"
+    ],
+    "hidden": true
+  }
+  
