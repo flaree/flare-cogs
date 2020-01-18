@@ -10,10 +10,7 @@ from .stats import Stats
 
 
 async def tokencheck(ctx):
-    try:
-        token = await ctx.bot.db.api_tokens.get_raw("r6stats", default={"authorization": None})
-    except AttributeError:
-        token = await ctx.bot.get_shared_api_tokens("r6stats")
+    token = await ctx.bot.get_shared_api_tokens("r6stats")
     if token.get("authorization") is not None:
         return True
     else:
@@ -24,6 +21,10 @@ class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
     __version__ = "1.5.2"
+
+    def format_help_for_context(self, ctx):
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
@@ -52,12 +53,7 @@ class R6(commands.Cog):
         self.client = None
 
     async def initalize(self):
-        try:
-            token = await self.bot.db.api_tokens.get_raw(
-                "r6stats", default={"authorization": None}
-            )
-        except AttributeError:
-            token = await self.bot.get_shared_api_tokens("r6stats")
+        token = await self.bot.get_shared_api_tokens("r6stats")
         self.client = r6statsapi.Client(token.get("authorization", None))
 
     def cog_unload(self):
@@ -672,7 +668,7 @@ class R6(commands.Cog):
     @commands.command()
     async def r6set(self, ctx):
         """Instructions on how to set the api key."""
-        message = "1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{}set api r6stats authorization,your_r6stats_apikey`".format(
+        message = "1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{}set api r6stats authorization,your_r6stats_apikey`\n**Until a valid API Key is set, the commands are hidden and won't be accessible.**".format(
             ctx.prefix
         )
         await ctx.maybe_send_embed(message)

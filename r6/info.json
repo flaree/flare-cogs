@@ -6,5 +6,6 @@
     "short": "Show R6 Statistics.",
     "description": "List R6 Statistics from seasons, individual operators, all operators and more!",
     "tags": ["r6", "stats", "operators"],
-    "requirements": ["pillow", "r6statsapi"]
+    "requirements": ["pillow", "r6statsapi"],
+    "min_bot_version": "3.2.0"
 }
