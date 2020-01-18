@@ -63,7 +63,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} times!")
+                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -97,7 +97,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} times!")
+                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -117,7 +117,7 @@ class CommandStats(commands.Cog):
 
         else:
             if command in data:
-                await ctx.send(f"`{command}` has been used {data[command]} times in {ctx.guild}!")
+                await ctx.send(f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!")
             else:
                 await ctx.send(f"`{command}` hasn't been used in {ctx.guild}!")
 
@@ -135,7 +135,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} times!")
+                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -155,7 +155,7 @@ class CommandStats(commands.Cog):
 
         else:
             if command in data:
-                await ctx.send(f"`{command}` has been used {data[command]} times in this session!")
+                await ctx.send(f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in this session!")
             else:
                 await ctx.send(f"`{command}` hasn't been used in this session!")
 
