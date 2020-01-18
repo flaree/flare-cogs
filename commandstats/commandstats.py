@@ -18,6 +18,10 @@ class CommandStats(commands.Cog):
 
     __version__ = "0.0.1"
 
+    def format_help_for_context(self, ctx):
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\nCog Version: {self.__version__}"
+
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 1398467138476, force_registration=True)
@@ -117,7 +121,9 @@ class CommandStats(commands.Cog):
 
         else:
             if command in data:
-                await ctx.send(f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!")
+                await ctx.send(
+                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!"
+                )
             else:
                 await ctx.send(f"`{command}` hasn't been used in {ctx.guild}!")
 
@@ -155,7 +161,9 @@ class CommandStats(commands.Cog):
 
         else:
             if command in data:
-                await ctx.send(f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in this session!")
+                await ctx.send(
+                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in this session!"
+                )
             else:
                 await ctx.send(f"`{command}` hasn't been used in this session!")
 
