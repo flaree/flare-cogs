@@ -9,6 +9,10 @@ class Forward(commands.Cog):
 
     __version__ = "1.2.2"
 
+    def format_help_for_context(self, ctx):
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\nCog Version: {self.__version__}"
+
     def __init__(self, bot):
         self.bot = bot
 
