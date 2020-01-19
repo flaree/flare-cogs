@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 
 import discord
 from discord.ext import tasks
@@ -76,14 +77,15 @@ class Mod(ModClass):
         self,
         ctx,
         users: commands.Greedy[discord.Member],
-        duration: TimedeltaConverter(
-            minimum=timedelta(), maximum=timedelta(weeks=99999), default_unit="minutes"
-        ),
-        reason: str = ""
+        duration: Optional[TimedeltaConverter] = None,
+        *,
+        reason: str = None,
     ):
         """Mute users."""
-        if not users or duration is None:
-            return
+        if not users:
+            return await ctx.send_help()
+        if duration is None:
+            duration = timedelta(minutes=10)
         guild = ctx.guild
         roleid = await self.config.guild(guild).muterole()
         if roleid is None:
@@ -116,8 +118,10 @@ class Mod(ModClass):
             for user in users:
                 await user.add_roles(
                     mutedrole,
-                    reason="Muted by {} for {}".format(
-                        ctx.author, humanize_timedelta(timedelta=duration)
+                    reason="Muted by {} for {}{}".format(
+                        ctx.author,
+                        humanize_timedelta(timedelta=duration),
+                        f" | Reason: {reason}" if reason is not None else "",
                     ),
                 )
                 expiry = datetime.utcnow() + timedelta(seconds=duration.total_seconds())
@@ -126,13 +130,19 @@ class Mod(ModClass):
                     "expiry": int(expiry.timestamp()),
                 }
                 await modlog.create_case(
-                    ctx.bot, ctx.guild, ctx.message.created_at, action_type="servermute",
-                    user=user, moderator=ctx.author, reason=reason, until=expiry
+                    ctx.bot,
+                    ctx.guild,
+                    ctx.message.created_at,
+                    action_type="servermute",
+                    user=user,
+                    moderator=ctx.author,
+                    reason=reason,
+                    until=expiry,
                 )
+        msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
         await ctx.send(
-            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}."
+            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
         )
-        
 
     @checks.admin()
     @mute.command()
