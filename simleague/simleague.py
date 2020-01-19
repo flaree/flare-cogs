@@ -282,8 +282,10 @@ class SimLeague(commands.Cog):
             return await ctx.send("You must specify either 'open' or 'close'.")
         if status == "open":
             await self.config.guild(ctx.guild).transferwindow.set(True)
+            await ctx.send("Window is now open.")
         else:
             await self.config.guild(ctx.guild).transferwindow.set(False)
+            await ctx.send("Window is now closed.")
 
     @checks.admin()
     @simset.command()
