@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 from io import BytesIO
@@ -5,11 +6,14 @@ from io import BytesIO
 import aiohttp
 import discord
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from pymongo import MongoClient
 from redbot.core.data_manager import bundled_data_path
+
+from pymongo import MongoClient
 
 client = MongoClient()
 db = client["leveler"]
+
+log = logging.getLogger("red.flarecogs.SimLeague")
 
 
 class SimHelper:
@@ -446,7 +450,7 @@ class SimHelper:
         grey_color = (110, 110, 110, 255)
         # goal text
         _write_unicode(
-            "PENALTY!   ({})".format(teamevent[:3].upper()),
+            "PENALTY!   ({})".format(teamevent[:6].upper()),
             left_text_align - 12,
             vert_pos + 3,
             name_fnt,
@@ -465,7 +469,7 @@ class SimHelper:
         )
         draw.text(
             (label_align, 58),
-            "{} takes up position to shoot!".format(player),
+            "{} takes up position to shoot!".format(player.name),
             font=general_u_font,
             fill=label_text_color,
         )
@@ -511,7 +515,6 @@ class SimHelper:
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
-        general_u_fnt = ImageFont.truetype(font_unicode_file, 15)
         rank_avatar = BytesIO()
         await user.avatar_url.save(rank_avatar, seek_begin=True)
         cog = self.bot.get_cog("SimLeague")
@@ -675,7 +678,6 @@ class SimHelper:
         font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
         general_u_fnt = ImageFont.truetype(font_unicode_file, 15)
-        general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         teamplayers = len(teams[team1]["members"])
@@ -751,8 +753,10 @@ class SimHelper:
 
         grey_color = (110, 110, 110, 255)
         level = teams[team1]["cachedlevel"]
+        teamname = self._truncate_text(team1, 10)
+        bonus = teams[team1]["bonus"]
         _write_unicode(
-            "Team: {} | Total Level: {} ".format(team1, level),
+            "Team: {} | Total Level: {} | Bonus %: {}".format(teamname, level, bonus),
             10,
             vert_pos + 3,
             name_fnt,
@@ -945,15 +949,14 @@ class SimHelper:
             buffer.name = "picture.png"
             return buffer
 
-    async def addrole(self, ctx, user, rolename):
-        role_obj = discord.utils.get(ctx.guild.roles, name=rolename)
+    async def addrole(self, ctx, user, role_obj):
         if role_obj is not None:
             member = ctx.guild.get_member(user)
             if member is not None:
                 try:
                     await member.add_roles(role_obj)
                 except discord.Forbidden:
-                    print("Failed to remove role from {}".format(member.name))
+                    log.info("Failed to remove role from {}".format(member.name))
 
     async def matchnotif(self, ctx, team1, team2):
         cog = self.bot.get_cog("SimLeague")
@@ -965,7 +968,7 @@ class SimHelper:
         role2 = False
         msg = ""
         if teams[team1]["role"] and mentions:
-            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
+            role_obj = ctx.guild.get_role(teams[team1]["role"])
             if role_obj is not None:
                 await role_obj.edit(mentionable=True)
                 msg += role_obj.mention
@@ -982,12 +985,12 @@ class SimHelper:
                                     await member.remove_roles(role_obj)
                                     mem1.append(member.id)
                             except discord.Forbidden:
-                                print("Failed to remove role from {}".format(member.name))
+                                log.info("Failed to remove role from {}".format(member.name))
         else:
             msg += team1
         msg += " VS "
         if teams[team2]["role"] and mentions:
-            role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
+            role_obj = ctx.guild.get_role(teams[team2]["role"])
             if role_obj is not None:
                 await role_obj.edit(mentionable=True)
                 msg += role_obj.mention
@@ -1004,7 +1007,7 @@ class SimHelper:
                                     await member.remove_roles(role_obj)
                                     mem2.append(member.id)
                             except discord.Forbidden:
-                                print("Failed to remove role from {}".format(member.name))
+                                log.info("Failed to remove role from {}".format(member.name))
         else:
             msg += team2
         await ctx.send(msg)
@@ -1017,7 +1020,7 @@ class SimHelper:
                         try:
                             await member.add_roles(roleone)
                         except discord.Forbidden:
-                            print("Failed to remove role from {}".format(member.name))
+                            log.info("Failed to remove role from {}".format(member.name))
         if role2:
             await roletwo.edit(mentionable=False)
             if mem2:
@@ -1027,7 +1030,7 @@ class SimHelper:
                         try:
                             await member.add_roles(roletwo)
                         except discord.Forbidden:
-                            print("Failed to remove role from {}".format(member.name))
+                            log.info("Failed to remove role from {}".format(member.name))
 
     async def postresults(self, ctx, team1, team2, score1, score2):
         cog = self.bot.get_cog("SimLeague")
@@ -1040,7 +1043,7 @@ class SimHelper:
             teamone = teams[team1]["members"]
             teamtwo = teams[team2]["members"]
             if teams[team1]["role"]:
-                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team1]["role"]))
+                role_obj = ctx.guild.get_role(teams[team1]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=True)
                     result += role_obj.mention
@@ -1057,12 +1060,12 @@ class SimHelper:
                                         await member.remove_roles(role_obj)
                                         mem1.append(member.id)
                                 except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
+                                    log.info("Failed to remove role from {}".format(member.name))
             else:
                 result += team1
             result += f" {score1}:{score2} "
             if teams[team2]["role"]:
-                role_obj = discord.utils.get(ctx.guild.roles, name=str(teams[team2]["role"]))
+                role_obj = ctx.guild.get_role(teams[team2]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=True)
                     result += role_obj.mention
@@ -1079,7 +1082,7 @@ class SimHelper:
                                         await member.remove_roles(role_obj)
                                         mem2.append(member.id)
                                 except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
+                                    log.info("Failed to remove role from {}".format(member.name))
             else:
                 result += team2
             for channel in results:
@@ -1087,7 +1090,7 @@ class SimHelper:
                 if channel is not None:
                     await channel.send(result)
             if role1:
-                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team1]["role"])
+                role_obj = ctx.guild.get_role(teams[team1]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=False)
                     if mem1:
@@ -1097,10 +1100,10 @@ class SimHelper:
                                 try:
                                     await member.add_roles(roleone)
                                 except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
+                                    log.info("Failed to remove role from {}".format(member.name))
 
             if role2:
-                role_obj = discord.utils.get(ctx.guild.roles, name=teams[team2]["role"])
+                role_obj = ctx.guild.get_role(teams[team2]["role"])
                 if role_obj is not None:
                     await role_obj.edit(mentionable=False)
                     if mem2:
@@ -1110,7 +1113,7 @@ class SimHelper:
                                 try:
                                     await member.add_roles(roletwo)
                                 except discord.Forbidden:
-                                    print("Failed to remove role from {}".format(member.name))
+                                    log.info("Failed to remove role from {}".format(member.name))
 
     async def yCardChance(self, guild, probability):
         rdmint = random.randint(0, 100)
@@ -1137,70 +1140,15 @@ class SimHelper:
         if rdmint > probability["penaltyblock"]:  # 0.6 default
             return True
 
-    async def update(self, guild):
-        a = {}
-        cog = self.bot.get_cog("SimLeague")
-        pageamount = await cog.config.guild(guild).pageamount()
-        for i in range(pageamount):
-            data = await self.get(
-                f"https://mee6.xyz/api/plugins/levels/leaderboard/{guild.id}??page={i}&?limit=999"
-            )
-            for player in data["players"]:
-                a[player["id"]] = str(player["level"])
-        await cog.config.guild(guild).levels.set(a)
-
     async def updatecacheall(self, guild):
-        print("Updating CACHE.")
+        log.info("Updating global cache.")
         cog = self.bot.get_cog("SimLeague")
-        mee6 = await cog.config.guild(guild).mee6()
         async with cog.config.guild(guild).teams() as teams:
             for team in teams:
                 t1totalxp = 0
                 teams[team]
                 team1pl = teams[team]["members"]
 
-                if mee6:
-                    xp = await cog.config.guild(guild).levels()
-                    for memberid in team1pl:
-                        try:
-                            t1totalxp += int(xp[str(memberid)])
-                        except KeyError:
-                            t1totalxp += 1
-                    teams[team]["cachedlevel"] = t1totalxp
-                else:
-                    for memberid in team1pl:
-                        user = await self.bot.fetch_user(int(memberid))
-                        try:
-                            userinfo = db.users.find_one({"user_id": str(user.id)})
-                            level = userinfo["servers"][str(guild.id)]["level"]
-                            t1totalxp += int(level)
-                        except (KeyError, TypeError):
-                            t1totalxp += 1
-                    teams[team]["cachedlevel"] = t1totalxp
-
-    async def updatecachegame(self, guild, team1, team2):
-        t1totalxp = 0
-        t2totalxp = 0
-        cog = self.bot.get_cog("SimLeague")
-        mee6 = await cog.config.guild(guild).mee6()
-        async with cog.config.guild(guild).teams() as teams:
-            team1pl = teams[team1]["members"]
-            if mee6:
-                xp = await cog.config.guild(guild).levels()
-                for memberid in team1pl:
-                    try:
-                        t1totalxp += int(xp[str(memberid)])
-                    except KeyError:
-                        t1totalxp += 1
-                teams[team1]["cachedlevel"] = t1totalxp
-                team2pl = teams[team2]["members"]
-                for memberid in team2pl:
-                    try:
-                        t2totalxp += int(xp[str(memberid)])
-                    except KeyError:
-                        t2totalxp += 1
-                teams[team2]["cachedlevel"] = t2totalxp
-            else:
                 for memberid in team1pl:
                     user = await self.bot.fetch_user(int(memberid))
                     try:
@@ -1209,24 +1157,51 @@ class SimHelper:
                         t1totalxp += int(level)
                     except (KeyError, TypeError):
                         t1totalxp += 1
-                teams[team1]["cachedlevel"] = t1totalxp
+                teams[team]["cachedlevel"] = t1totalxp
 
-                team2pl = teams[team2]["members"]
-                for memberid in team2pl:
-                    user = await self.bot.fetch_user(int(memberid))
-                    try:
-                        userinfo = db.users.find_one({"user_id": str(user.id)})
-                        level = userinfo["servers"][str(guild.id)]["level"]
-                        t2totalxp += int(level)
-                    except (KeyError, TypeError):
-                        t2totalxp += 1
-                teams[team2]["cachedlevel"] = t2totalxp
+    async def updatecachegame(self, guild, team1, team2):
+        log.info("Updating game cache.")
+        t1totalxp = 0
+        t2totalxp = 0
+        cog = self.bot.get_cog("SimLeague")
+        async with cog.config.guild(guild).teams() as teams:
+            team1pl = teams[team1]["members"]
+
+            for memberid in team1pl:
+                user = await self.bot.fetch_user(int(memberid))
+                try:
+                    userinfo = db.users.find_one({"user_id": str(user.id)})
+                    level = userinfo["servers"][str(guild.id)]["level"]
+                    t1totalxp += int(level)
+                except (KeyError, TypeError):
+                    t1totalxp += 1
+            teams[team1]["cachedlevel"] = t1totalxp
+
+            team2pl = teams[team2]["members"]
+            for memberid in team2pl:
+                user = await self.bot.fetch_user(int(memberid))
+                try:
+                    userinfo = db.users.find_one({"user_id": str(user.id)})
+                    level = userinfo["servers"][str(guild.id)]["level"]
+                    t2totalxp += int(level)
+                except (KeyError, TypeError):
+                    t2totalxp += 1
+            teams[team2]["cachedlevel"] = t2totalxp
 
     async def transfer(
         self, ctx, guild, team1, member1: discord.Member, team2, member2: discord.Member
     ):
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(guild).teams() as teams:
+            role1 = guild.get_role(teams[team1]["role"])
+            role2 = guild.get_role(teams[team2]["role"])
+            if role1 is not None:
+                await member1.remove_roles(role1, reason=f"Transfer from {team1} to {team2}")
+                await member1.add_roles(role2, reason=f"Transfer from {team1} to {team2}")
+            if role2 is not None:
+                await member2.add_roles(role1, reason=f"Transfer from {team2} to {team1}")
+                await member2.remove_roles(role2, reason=f"Transfer from {team2} to {team1}")
+
             if str(member1.id) not in teams[team1]["members"]:
                 return await ctx.send(f"{member1.name} is not on {team1}.")
             if str(member2.id) not in teams[team2]["members"]:
@@ -1248,6 +1223,11 @@ class SimHelper:
         if member2.id in users:
             return await ctx.send("User is currently not a free agent.")
         async with cog.config.guild(guild).teams() as teams:
+            role = guild.get_role(teams[team1]["role"])
+            if role is not None:
+                await member1.remove_roles(role, reason=f"Released from {team1}")
+                await member2.add_roles(role, reason=f"Signed for {team1}")
+
             if str(member1.id) not in teams[team1]["members"]:
                 return await ctx.send(f"{member1.name} is not on {team1}.")
             if str(member1.id) in teams[team1]["captain"]:
@@ -1262,6 +1242,8 @@ class SimHelper:
     async def team_delete(self, ctx, team):
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(ctx.guild).teams() as teams:
+            role = ctx.guild.get_role(teams[team]["role"])
+            await role.delete()
             if team not in teams:
                 return await ctx.send("Team was not found, ensure capitilization is correct.")
             async with cog.config.guild(ctx.guild).users() as users:

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 import time
 from typing import Optional
@@ -11,12 +12,13 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .core import SimHelper
 
+log = logging.getLogger("red.flarecogs.SimLeague")
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER
 
 
 class SimLeague(commands.Cog):
-    __version__ = "2.5.7"
+    __version__ = "3.0.0"
 
     def __init__(self, bot):
         defaults = {
@@ -41,8 +43,6 @@ class SimLeague(commands.Cog):
             "bettoggle": True,
             "betmax": 10000,
             "betmin": 10,
-            "pageamount": 5,
-            "mee6": False,
             "mentions": True,
             "redcardmodifier": 22,
             "probability": {
@@ -89,7 +89,6 @@ class SimLeague(commands.Cog):
             htbreak = await self.config.guild(guild).htbreak()
             results = await self.config.guild(guild).resultchannel()
             bettoggle = await self.config.guild(guild).bettoggle()
-            mee6 = await self.config.guild(guild).mee6()
             maxplayers = await self.config.guild(guild).maxplayers()
             redcardmodif = await self.config.guild(guild).redcardmodifier()
             transfers = await self.config.guild(guild).transferwindow()
@@ -111,10 +110,6 @@ class SimLeague(commands.Cog):
                 msg += "Bet Time: {}s.\n".format(bettime)
                 msg += "Max Bet: {}.\n".format(betmax)
                 msg += "Min Bet: {}.\n".format(betmin)
-            if mee6:
-                pages = await self.config.guild(guild).pageamount()
-                msg += "Using MEE6 Levels: {}.\n".format("Yes" if mee6 else "No")
-                msg += "Mee6 API Pages: {}.\n".format(pages)
             await ctx.send(box(msg))
 
     @checks.mod()
@@ -304,42 +299,46 @@ class SimLeague(commands.Cog):
     async def levels_updatecache(self, ctx):
         """Update the level cache."""
         async with ctx.typing():
-            mee6 = await self.config.guild(ctx.guild).mee6()
-            if mee6:
-                await self.helper.update(ctx.guild)
             await self.helper.updatecacheall(ctx.guild)
         await ctx.tick()
 
     @checks.admin()
-    @simset.command(name="mee6", hidden=True)
-    async def levels_mee6(self, ctx, true_or_false: bool):
-        """Enable mee6 rankings."""
-        if true_or_false:
-            await self.config.guild(ctx.guild).mee6.set(True)
+    @simset.command()
+    @commands.bot_has_permissions(manage_roles=True)
+    async def createroles(self, ctx):
+        """Create roles for teams"""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            for team in teams:
+                if teams[team]["role"] is not None:
+                    continue
+                role = await ctx.guild.create_role(name=team)
+                teams[team]["role"] = role.id
             await ctx.tick()
-        else:
-            await self.config.guild(ctx.guild).mee6.set(False)
-            await ctx.send("Now using Pikachus rankings.")
 
     @checks.admin()
-    @simset.command(name="pages", hidden=True)
-    async def levels_mee6pages(self, ctx, amount: int):
-        """Update the amount of mee6 API pages to use. Default is 5, Max is 20."""
-        if amount > 20:
-            amount = 20
-        if amount > 1:
-            return await ctx.send("Invalid amount.")
-        await self.config.guild(ctx.guild).pages.set(amount)
+    @simset.command()
+    @commands.bot_has_permissions(manage_roles=True)
+    async def updateroles(self, ctx):
+        """Update roles for teammembers."""
+        teams = await self.config.guild(ctx.guild).teams()
+        for team in teams:
+            if teams[team]["role"] is None:
+                log.info(f"Skipping {team}, no role found.")
+                continue
+            role = ctx.guild.get_role(teams[team]["role"])
+            for user in teams[team]["members"]:
+                member = ctx.guild.get_member(int(user))
+                await member.add_roles(role)
         await ctx.tick()
 
     @checks.admin()
     @teamset.command()
-    async def role(self, ctx, team: str, *, role: str):
+    async def role(self, ctx, team: str, *, role: discord.Role):
         """Set a teams role."""
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
-            teams[team]["role"] = role
+            teams[team]["role"] = role.id
         await ctx.tick()
 
     @checks.admin()
@@ -363,6 +362,16 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @checks.admin()
+    @teamset.command(hidden=True)
+    async def bonus(self, ctx, team: str, *, amount: int):
+        """Set a teams bonus multiplier."""
+        async with self.config.guild(ctx.guild).teams() as teams:
+            if team not in teams:
+                return await ctx.send("Not a valid team.")
+            teams[team]["bonus"] = amount
+        await ctx.tick()
+
+    @checks.admin()
     @teamset.command(usage="<current name> <new name>")
     async def name(self, ctx, team: str, *, newname: str):
         """Set a teams name. Try keep names to one word if possible."""
@@ -370,6 +379,9 @@ class SimLeague(commands.Cog):
             if team not in teams:
                 return await ctx.send("Not a valid team.")
             teams[newname] = teams[team]
+            if teams[team]["role"] is not None:
+                role = ctx.guild.get_role(teams[team]["role"])
+                await role.edit(name=newname)
             del teams[team]
         async with self.config.guild(ctx.guild).standings() as teams:
             teams[newname] = teams[team]
@@ -445,16 +457,14 @@ class SimLeague(commands.Cog):
         members: commands.Greedy[discord.Member],
         logo: Optional[str] = None,
         *,
-        role: str = None,
+        role: discord.Role = None,
     ):
         """Register a team.
             Try keep team names to one word if possible."""
         maxplayers = await self.config.guild(ctx.guild).maxplayers()
         if len(members) != maxplayers:
             return await ctx.send(f"You must provide {maxplayers} members.")
-        mee6 = await self.config.guild(ctx.guild).mee6()
-        if mee6:
-            await self.helper.update(ctx.guild)
+
         names = {str(x.id): x.name for x in members}
         a = []
         memids = await self.config.guild(ctx.guild).users()
@@ -478,11 +488,12 @@ class SimLeague(commands.Cog):
                 "members": names,
                 "captain": {str(members[0].id): members[0].name},
                 "logo": logo,
-                "role": role,
+                "role": role.name if role is not None else None,
                 "cachedlevel": 0,
                 "fullname": None,
                 "kits": {"home": None, "away": None, "third": None},
                 "stadium": None,
+                "bonus": 0,
             }
         async with self.config.guild(ctx.guild).standings() as standings:
             standings[teamname] = {
@@ -532,7 +543,9 @@ class SimLeague(commands.Cog):
                             "\n".join(mems),
                             list(teams[team]["captain"].values())[0],
                             lvl,
-                            "\n**Role**: {}".format(teams[team]["role"])
+                            "\n**Role**: {}".format(
+                                ctx.guild.get_role(teams[team]["role"]).mention
+                            )
                             if teams[team]["role"] is not None
                             else "",
                             "\n**Stadium**: {}".format(teams[team]["stadium"])
@@ -558,7 +571,7 @@ class SimLeague(commands.Cog):
                     f"{f'{team}': <{teamlen}} "
                     f"{f'{lvl}': <{lvllen}} "
                     f"{f'{captain}': <{caplen}} "
-                    f"{f'{role if role is not None else non}': <{rolelen}}"
+                    f"{f'{role.name if role is not None else non}': <{rolelen}}"
                     f"{', '.join(list(teams[team]['members'].values()))} \n"
                 )
 
@@ -590,8 +603,13 @@ class SimLeague(commands.Cog):
             )
             embed.add_field(name="Captain:", value=list(teams[team]["captain"].values())[0])
             embed.add_field(name="Level:", value=teams[team]["cachedlevel"], inline=True)
+            embed.add_field(name="Bonus %:", value=f"{teams[team]['bonus'] * 15}%", inline=True)
             if teams[team]["role"] is not None:
-                embed.add_field(name="Role:", value=teams[team]["role"], inline=True)
+                embed.add_field(
+                    name="Role:",
+                    value=ctx.guild.get_role(teams[team]["role"]).mention,
+                    inline=True,
+                )
             if teams[team]["stadium"] is not None:
                 embed.add_field(name="Stadium:", value=teams[team]["stadium"], inline=True)
             if teams[team]["logo"] is not None:
@@ -927,17 +945,11 @@ class SimLeague(commands.Cog):
     @commands.command(aliases=["playsim", "simulate"])
     async def sim(self, ctx, team1: str, team2: str):
         """Simulate a game between two teams."""
-        mee6 = await self.config.guild(ctx.guild).mee6()
-
         teams = await self.config.guild(ctx.guild).teams()
         if team1 not in teams or team2 not in teams:
             return await ctx.send("One of those teams do not exist.")
         if team1 == team2:
             return await ctx.send("You can't sim two of the same teams silly.")
-        if mee6:
-            msg = await ctx.send("Updating mee6 levels. Please wait...")
-            await self.helper.update(ctx.guild)
-            await msg.delete()
         msg = await ctx.send("Updating cached levels...")
         await self.helper.updatecachegame(ctx.guild, team1, team2)
         await msg.delete()
@@ -945,6 +957,8 @@ class SimLeague(commands.Cog):
         teams = await self.config.guild(ctx.guild).teams()
         lvl1 = teams[team1]["cachedlevel"]
         lvl2 = teams[team2]["cachedlevel"]
+        bonuslvl1 = teams[team1]["bonus"]
+        bonuslvl2 = teams[team2]["bonus"]
         homewin = lvl2 / lvl1
         awaywin = lvl1 / lvl2
         try:
@@ -1050,11 +1064,17 @@ class SimLeague(commands.Cog):
             injury_count2,
         ]
 
-        async def TeamWeightChance(ctx, t1totalxp, t2totalxp, reds1: int, reds2: int):
+        async def TeamWeightChance(
+            ctx, t1totalxp, t2totalxp, reds1: int, reds2: int, team1bonus: int, team2bonus: int
+        ):
             if t1totalxp < 2:
                 t1totalxp = 1
             if t2totalxp < 2:
                 t2totalxp = 1
+            team1bonus = team1bonus * 15
+            team2bonus = team2bonus * 15
+            t1totalxp = t1totalxp * float(f"1.{team1bonus}")
+            t2totalxp = t2totalxp * float(f"1.{team2bonus}")
             redst1 = float(f"0.{reds1 * redcardmodifier}")
             redst2 = float(f"0.{reds2 * redcardmodifier}")
             if redst1 == 0:
@@ -1141,7 +1161,9 @@ class SimLeague(commands.Cog):
             if events is False:
                 gC = await self.helper.goalChance(ctx.guild, probability)
                 if gC is True:
-                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
+                    teamStats = await TeamWeightChance(
+                        ctx, lvl1, lvl2, reds[team1], reds[team2], bonuslvl1, bonuslvl2
+                    )
                     playerGoal = await PlayerGenerator(0, teamStats[0], teamStats[1], teamStats[2])
                     teamStats[8] += 1
                     async with self.config.guild(ctx.guild).stats() as stats:
@@ -1207,12 +1229,17 @@ class SimLeague(commands.Cog):
             if events is False:
                 pC = await self.helper.penaltyChance(ctx.guild, probability)
                 if pC is True:
-                    teamStats = await TeamWeightChance(ctx, lvl1, lvl2, reds[team1], reds[team2])
+                    teamStats = await TeamWeightChance(
+                        ctx, lvl1, lvl2, reds[team1], reds[team2], bonuslvl1, bonuslvl2
+                    )
                     playerPenalty = await PlayerGenerator(
                         3, teamStats[0], teamStats[1], teamStats[2]
                     )
+                    user = self.bot.get_user(int(playerPenalty[1]))
+                    if user is None:
+                        user = await self.bot.fetch_user(int(playerPenalty[1]))
                     image = await self.helper.penaltyimg(
-                        ctx, str(playerPenalty[0]), str(min), playerPenalty[1]
+                        ctx, str(playerPenalty[0]), str(min), user
                     )
                     await ctx.send(file=image)
                     pB = await self.helper.penaltyBlock(ctx.guild, probability)
@@ -1397,7 +1424,7 @@ class SimLeague(commands.Cog):
                     gC = await self.helper.goalChance(ctx.guild, probability)
                     if gC is True:
                         teamStats = await TeamWeightChance(
-                            ctx, lvl1, lvl2, reds[team1], reds[team2]
+                            ctx, lvl1, lvl2, reds[team1], reds[team2], bonuslvl1, bonuslvl2
                         )
                         playerGoal = await PlayerGenerator(
                             0, teamStats[0], teamStats[1], teamStats[2]
@@ -1484,7 +1511,7 @@ class SimLeague(commands.Cog):
                     gC = await self.helper.goalChance(ctx.guild, probability)
                     if gC is True:
                         teamStats = await TeamWeightChance(
-                            ctx, lvl1, lvl2, reds[team1], reds[team2]
+                            ctx, lvl1, lvl2, reds[team1], reds[team2], bonuslvl1, bonuslvl2
                         )
                         playerGoal = await PlayerGenerator(
                             0, teamStats[0], teamStats[1], teamStats[2]
@@ -1737,13 +1764,3 @@ class SimLeague(commands.Cog):
                     stats["cleansheets"][team1] += 1
                 else:
                     stats["cleansheets"][team1] = 1
-
-    @commands.command()
-    async def migrate(self, ctx):
-        """migrate old simleague data"""
-        async with self.config.guild(ctx.guild).teams() as teams:
-            for team in teams:
-                teams[team]["members"] = {v: k for k, v in teams[team]["members"].items()}
-                teams[team]["captain"] = {v: k for k, v in teams[team]["captain"].items()}
-        async with self.config.guild(ctx.guild).users() as users:
-            users = set([str(x) for x in users])
