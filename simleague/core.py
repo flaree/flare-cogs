@@ -45,9 +45,8 @@ class SimHelper:
         }
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
-        font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
-        header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
-        general_u_font = ImageFont.truetype(font_unicode_file, 15)
+        header_u_fnt = ImageFont.truetype(font_bold_file, 18)
+        general_u_font = ImageFont.truetype(font_bold_file, 15)
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
         rank_avatar = BytesIO()
@@ -335,9 +334,8 @@ class SimHelper:
     async def penaltyimg(self, ctx, teamevent, time, player):
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
-        font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
-        header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
-        general_u_font = ImageFont.truetype(font_unicode_file, 18)
+        header_u_fnt = ImageFont.truetype(font_bold_file, 18)
+        general_u_font = ImageFont.truetype(font_bold_file, 18)
         general_info_fnt = ImageFont.truetype(font_bold_file, 18, encoding="utf-8")
         level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
         cog = self.bot.get_cog("SimLeague")
@@ -512,9 +510,8 @@ class SimHelper:
     async def motmpic(self, ctx, user, team, goals, assists):
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
-        font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
-        header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
+        header_u_fnt = ImageFont.truetype(font_bold_file, 18)
         rank_avatar = BytesIO()
         await user.avatar_url.save(rank_avatar, seek_begin=True)
         cog = self.bot.get_cog("SimLeague")
@@ -675,9 +672,8 @@ class SimHelper:
 
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
-        font_unicode_file = f"{bundled_data_path(self)}/unicode.ttf"
-        header_u_fnt = ImageFont.truetype(font_unicode_file, 18)
-        general_u_fnt = ImageFont.truetype(font_unicode_file, 15)
+        header_u_fnt = ImageFont.truetype(font_bold_file, 18)
+        general_u_fnt = ImageFont.truetype(font_bold_file, 15)
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         teamplayers = len(teams[team1]["members"])
@@ -1154,7 +1150,7 @@ class SimHelper:
                     try:
                         userinfo = db.users.find_one({"user_id": str(user.id)})
                         level = userinfo["servers"][str(guild.id)]["level"]
-                        t1totalxp += int(level)
+                        t1totalxp += int(level) if int(level) > 0 else 1
                     except (KeyError, TypeError):
                         t1totalxp += 1
                 teams[team]["cachedlevel"] = t1totalxp
@@ -1172,7 +1168,7 @@ class SimHelper:
                 try:
                     userinfo = db.users.find_one({"user_id": str(user.id)})
                     level = userinfo["servers"][str(guild.id)]["level"]
-                    t1totalxp += int(level)
+                    t1totalxp += int(level) if int(level) > 0 else 1
                 except (KeyError, TypeError):
                     t1totalxp += 1
             teams[team1]["cachedlevel"] = t1totalxp
@@ -1183,7 +1179,7 @@ class SimHelper:
                 try:
                     userinfo = db.users.find_one({"user_id": str(user.id)})
                     level = userinfo["servers"][str(guild.id)]["level"]
-                    t2totalxp += int(level)
+                    t2totalxp += int(level) if int(level) > 0 else 1
                 except (KeyError, TypeError):
                     t2totalxp += 1
             teams[team2]["cachedlevel"] = t2totalxp
@@ -1242,8 +1238,10 @@ class SimHelper:
     async def team_delete(self, ctx, team):
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(ctx.guild).teams() as teams:
-            role = ctx.guild.get_role(teams[team]["role"])
-            await role.delete()
+            if teams[team]["role"] is not None:
+                role = ctx.guild.get_role(teams[team]["role"])
+                if role is not None:
+                    await role.delete()
             if team not in teams:
                 return await ctx.send("Team was not found, ensure capitilization is correct.")
             async with cog.config.guild(ctx.guild).users() as users:

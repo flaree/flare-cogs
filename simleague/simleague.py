@@ -656,7 +656,7 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command()
-    async def fixtures(self, ctx, week: int = None):
+    async def fixtures(self, ctx, week: Optional[int] = None, *, simoutput: bool = False):
         """Show all fixtures."""
         fixtures = await self.config.guild(ctx.guild).fixtures()
         if not fixtures:
@@ -678,6 +678,8 @@ class SimLeague(commands.Cog):
                     embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
                 await ctx.send(embed=embed)
         else:
+            if week == 0:
+                return await ctx.send("Try starting with week 1.")
             try:
                 games = fixtures
                 games.reverse()
@@ -687,8 +689,12 @@ class SimLeague(commands.Cog):
             except IndexError:
                 return await ctx.send("Invalid gameweek.")
             a = []
-            for fixture in games:
-                a.append(f"{fixture[0]} vs {fixture[1]}")
+            times = {1: "--start-at Saturday 12:30pm GMT 0", 2: "--start-at Saturday 4:30pm GMT 0", 3: "--start-at Sunday 4:30pm GMT 0"}
+            for i, fixture in enumerate(games, 1):
+                if not simoutput:
+                    a.append(f"{fixture[0]} vs {fixture[1]}")
+                else:
+                    a.append(f"{ctx.clean_prefix}sim {fixture[0]} {fixture[1]} {times[i]}")
             await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
