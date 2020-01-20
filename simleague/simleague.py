@@ -689,12 +689,18 @@ class SimLeague(commands.Cog):
             except IndexError:
                 return await ctx.send("Invalid gameweek.")
             a = []
-            times = {1: "--start-at Saturday 12:30pm GMT 0", 2: "--start-at Saturday 4:30pm GMT 0", 3: "--start-at Sunday 4:30pm GMT 0"}
+            times = {
+                1: "--start-at Saturday 12:30pm GMT +0",
+                2: "--start-at Saturday 4:30pm GMT +0",
+                3: "--start-at Sunday 4:30pm GMT +0",
+            }
             for i, fixture in enumerate(games, 1):
                 if not simoutput:
                     a.append(f"{fixture[0]} vs {fixture[1]}")
                 else:
-                    a.append(f"{ctx.clean_prefix}sim {fixture[0]} {fixture[1]} {times[i]}")
+                    a.append(
+                        f"{ctx.clean_prefix}schedule game{i} sim {fixture[0]} {fixture[1]} {times[i]}"
+                    )
             await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
@@ -1656,7 +1662,7 @@ class SimLeague(commands.Cog):
             im = await self.helper.motmpic(
                 ctx,
                 motmwinner,
-                team1 if motmwinner.id in teams[team1]["members"] else team2,
+                team1 if motmwinner.id in teams[team1]["members"].keys() else team2,
                 motmgoals,
                 motmassists,
             )

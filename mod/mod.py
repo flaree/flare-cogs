@@ -31,7 +31,7 @@ class Mod(ModClass):
     unmute_voice = None
     unmute_channel = None
     unmute_guild = None
-    ban = None
+    # ban = None
 
     def cog_unload(self):
         self.unmute_loop.cancel()  # pylint: disable=E1101

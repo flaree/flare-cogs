@@ -644,7 +644,7 @@ class SimHelper:
         label_text_color = self._contrast(info_color, white_text, dark_text)
         draw.text(
             (label_align, 38),
-            "Team: {}".format(team),
+            "Team: {}".format(self._truncate_text(team, 10)),
             font=general_info_fnt,
             fill=label_text_color,
         )
@@ -1253,4 +1253,4 @@ class SimHelper:
             return await ctx.send("Team successfully removed.")
 
     def cog_unload(self):
-        self.bot.loop.create_task(self.session.detach())
+        self.bot.loop.create_task(self.session.close())
