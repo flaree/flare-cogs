@@ -750,7 +750,7 @@ class SimHelper:
         grey_color = (110, 110, 110, 255)
         level = teams[team1]["cachedlevel"]
         teamname = self._truncate_text(team1, 10)
-        bonus = teams[team1]["bonus"]
+        bonus = teams[team1]["bonus"] * 15
         _write_unicode(
             "Team: {} | Total Level: {} | Bonus %: {}".format(teamname, level, bonus),
             10,

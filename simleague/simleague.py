@@ -12,13 +12,28 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .core import SimHelper
 
+try:
+    from .schedule import Schedule, NonNumeric
+
+    scheduler = True
+except ImportError:
+    scheduler = False
+
+
+def check_scheduling():
+    async def predicate(ctx):
+        return scheduler
+
+    return commands.check(predicate)
+
+
 log = logging.getLogger("red.flarecogs.SimLeague")
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER
 
 
 class SimLeague(commands.Cog):
-    __version__ = "3.0.0"
+    __version__ = "3.0.1"
 
     def __init__(self, bot):
         defaults = {
@@ -656,7 +671,7 @@ class SimLeague(commands.Cog):
         await ctx.tick()
 
     @commands.command()
-    async def fixtures(self, ctx, week: Optional[int] = None, *, simoutput: bool = False):
+    async def fixtures(self, ctx, week: Optional[int] = None):
         """Show all fixtures."""
         fixtures = await self.config.guild(ctx.guild).fixtures()
         if not fixtures:
@@ -689,19 +704,41 @@ class SimLeague(commands.Cog):
             except IndexError:
                 return await ctx.send("Invalid gameweek.")
             a = []
-            times = {
-                1: "--start-at Saturday 12:30pm GMT +0",
-                2: "--start-at Saturday 4:30pm GMT +0",
-                3: "--start-at Sunday 4:30pm GMT +0",
-            }
-            for i, fixture in enumerate(games, 1):
-                if not simoutput:
-                    a.append(f"{fixture[0]} vs {fixture[1]}")
-                else:
-                    a.append(
-                        f"{ctx.clean_prefix}schedule game{i} sim {fixture[0]} {fixture[1]} {times[i]}"
-                    )
+            for fixture in games:
+                a.append(f"{fixture[0]} vs {fixture[1]}")
             await ctx.maybe_send_embed("\n".join(a))
+
+    @check_scheduling()
+    @commands.is_owner()
+    @commands.command()
+    async def schedulegames(self, ctx, week: int):
+        """Schedule the games for the week."""
+        if week == 0:
+            return await ctx.send("Try starting with week 1.")
+        fixtures = await self.config.guild(ctx.guild).fixtures()
+        if not fixtures:
+            return await ctx.send("No fixtures have been made.")
+        try:
+            games = fixtures
+            games.reverse()
+            games.append("None")
+            games.reverse()
+            games = games[week]
+        except IndexError:
+            return await ctx.send("Invalid gameweek.")
+        a = []
+        times = {
+            1: "--start-at Saturday 12:30pm GMT +0",
+            2: "--start-at Saturday 4:30pm GMT +0",
+            3: "--start-at Sunday 4:30pm GMT +0",
+        }
+        command = self.bot.get_command("schedule")
+        for i, fixture in enumerate(games, 1):
+            schedule = await Schedule.convert(ctx, f"sim {fixture[0]} {fixture[1]} {times[i]}")
+            name = await NonNumeric.convert(ctx, f"game{i}")
+            await ctx.invoke(command, name, schedule=schedule)
+            a.append(f"{fixture[0]} vs {fixture[1]} - Schedule for: {times[i][10:]}")
+        await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
     async def standings(self, ctx, verbose: bool = False):
