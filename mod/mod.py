@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import discord
-from discord.ext import tasks
 from redbot.cogs.mod import Mod as ModClass
 from redbot.core import Config, checks, commands, modlog
 from redbot.core.commands.converter import TimedeltaConverter
@@ -15,6 +14,14 @@ log = logging.getLogger("red.mod")
 
 
 class Mod(ModClass):
+    """Mod with ehancements."""
+
+    __version__ = "1.1.0"
+
+    def format_help_for_context(self, ctx):
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\nCog Version: {self.__version__}"
+
     def __init__(self, bot):
         super().__init__(bot)
         self.bot = bot
@@ -23,7 +30,7 @@ class Mod(ModClass):
         defaults = {"muted": {}}
         self.config.register_guild(**defaultsguild)
         self.config.register_global(**defaults)
-        self.unmute_loop.start()  # pylint: disable=E1101
+        self.loop = bot.loop.create_task(self.unmute_loop())
 
     voice_mute = None
     channel_mute = None
@@ -31,28 +38,45 @@ class Mod(ModClass):
     unmute_voice = None
     unmute_channel = None
     unmute_guild = None
-    # ban = None
+    # ban = None # TODO: Merge hackban and ban.
 
     def cog_unload(self):
-        self.unmute_loop.cancel()  # pylint: disable=E1101
+        self.loop.cancel()
 
-    @tasks.loop(seconds=20)
     async def unmute_loop(self):
-        muted = await self.config.muted()
-        for guild in muted:
-            for user in muted[guild]:
-                if datetime.utcfromtimestamp(muted[guild][user]["expiry"]) < datetime.utcnow():
-                    await self.unmute(user, guild)
+        while True:
+            muted = await self.config.muted()
+            for guild in muted:
+                for user in muted[guild]:
+                    if datetime.utcfromtimestamp(muted[guild][user]["expiry"]) < datetime.utcnow():
+                        await self.unmute(user, guild)
+            await asyncio.sleep(15)
 
-    async def unmute(self, user, guildid):
+    async def unmute(self, user, guildid, *, moderator: discord.Member = None):
         guild = self.bot.get_guild(int(guildid))
         if guild is None:
             return
         mutedroleid = await self.config.guild(guild).muterole()
         muterole = guild.get_role(mutedroleid)
         member = guild.get_member(int(user))
-        await member.remove_roles(muterole, reason="Mute expired.")
-        log.info("Unmuted {} in {}.".format(member, guild))
+        if member is not None:
+            if moderator is None:
+                await member.remove_roles(muterole, reason="Mute expired.")
+                log.info("Unmuted {} in {}.".format(member, guild))
+            else:
+                await member.remove_roles(muterole, reason="Unmuted by {}.".format(moderator))
+                log.info("Unmuted {} in {} by {}.".format(member, guild, moderator))
+            await modlog.create_case(
+                self.bot,
+                guild,
+                datetime.utcnow(),
+                "sunmute",
+                member,
+                moderator,
+                "Automatic Unmute" if moderator is None else None,
+            )
+        else:
+            log.info("{} is no longer in {}, removing from muted list.".format(user, guild))
         async with self.config.muted() as muted:
             del muted[guildid][user]
 
@@ -134,12 +158,13 @@ class Mod(ModClass):
                     ctx.bot,
                     ctx.guild,
                     ctx.message.created_at,
-                    action_type="servermute",
-                    user=user,
-                    moderator=ctx.author,
-                    reason=reason,
-                    until=expiry,
+                    "smute",
+                    user,
+                    ctx.author,
+                    reason,
+                    expiry,
                 )
+                log.info(f"{user} muted by {ctx.author} in {ctx.guild}")
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
         await ctx.send(
             f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
@@ -164,7 +189,7 @@ class Mod(ModClass):
             if str(user.id) not in muted[str(ctx.guild.id)]:
                 await ctx.send("{} is currently not muted.".format(user))
                 continue
-            await self.unmute(str(user.id), str(ctx.guild.id))
+            await self.unmute(str(user.id), str(ctx.guild.id), moderator=ctx.author)
             await ctx.tick()
 
     @checks.mod()
