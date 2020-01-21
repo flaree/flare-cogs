@@ -39,10 +39,12 @@ def check_global_setting_admin():
 
 
 class Unbelievaboat(commands.Cog):
+    """Unbelievaboat Commands."""
 
     __version__ = "0.1.2"
 
     def format_help_for_context(self, ctx):
+        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 

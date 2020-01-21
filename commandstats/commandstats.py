@@ -15,10 +15,12 @@ def chunks(l, n):
 
 
 class CommandStats(commands.Cog):
+    """Command Statistics"""
 
     __version__ = "0.0.1"
 
     def format_help_for_context(self, ctx):
+        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 

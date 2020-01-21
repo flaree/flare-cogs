@@ -23,6 +23,7 @@ class R6(commands.Cog):
     __version__ = "1.5.3"
 
     def format_help_for_context(self, ctx):
+        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
@@ -62,7 +63,6 @@ class R6(commands.Cog):
             if self.client is not None:
                 self.client.destroy()
             self.client = r6statsapi.Client(api_tokens.get("authorization", None))
-
 
     def cog_unload(self):
         self.client.destroy()
