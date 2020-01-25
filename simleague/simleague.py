@@ -12,19 +12,6 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .core import SimHelper
 
-try:
-    from .schedule import Schedule, NonNumeric
-
-    scheduler = True
-except ImportError:
-    scheduler = False
-
-
-def check_scheduling():
-    async def predicate(ctx):
-        return scheduler
-
-    return commands.check(predicate)
 
 
 log = logging.getLogger("red.flarecogs.SimLeague")
@@ -715,7 +702,6 @@ class SimLeague(commands.Cog):
                 a.append(f"{fixture[0]} vs {fixture[1]}")
             await ctx.maybe_send_embed("\n".join(a))
 
-    @check_scheduling()
     @commands.is_owner()
     @commands.command()
     async def schedulegames(self, ctx, week: int):
@@ -739,12 +725,8 @@ class SimLeague(commands.Cog):
             2: "--start-at Saturday 4:30pm GMT +0",
             3: "--start-at Sunday 4:30pm GMT +0",
         }
-        command = self.bot.get_command("schedule")
         for i, fixture in enumerate(games, 1):
-            schedule = await Schedule.convert(ctx, f"sim {fixture[0]} {fixture[1]} {times[i]}")
-            name = await NonNumeric.convert(ctx, f"game{i}")
-            await ctx.invoke(command, name, schedule=schedule)
-            a.append(f"{fixture[0]} vs {fixture[1]} - Schedule for: {times[i][10:]}")
+            a.append(f".schedule game{i} sim {fixture[0]} {fixture[1]} {times[i]}")
         await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
@@ -1133,6 +1115,7 @@ class SimLeague(commands.Cog):
             team2bonus = team2bonus * 15
             t1totalxp = t1totalxp * float(f"1.{team1bonus}")
             t2totalxp = t2totalxp * float(f"1.{team2bonus}")
+            log.info(f"Team 1: {t1totalxp} - Team 2: {t2totalxp}")
             redst1 = float(f"0.{reds1 * redcardmodifier}")
             redst2 = float(f"0.{reds2 * redcardmodifier}")
             if redst1 == 0:
