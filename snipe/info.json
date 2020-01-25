@@ -8,7 +8,7 @@
     "short": "Snipe the last message deleted in a channel.",
     "description": "Snipe command converted to Red, get the last message deleted in a channel.",
     "tags": [
-      "snipe",
+      "snipe"
     ],
     "hidden": false
   }
