@@ -4,6 +4,7 @@ from typing import Optional
 
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.commands.converter import TimedeltaConverter
 
 log = logging.getLogger("red.flare.snipe")
 
@@ -11,7 +12,7 @@ log = logging.getLogger("red.flare.snipe")
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -19,7 +20,7 @@ class Snipe(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
-        defaults_guild = {"toggle": False}
+        defaults_guild = {"toggle": False, "timeout": 600}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(**defaults_guild)
         self.bot = bot
@@ -37,6 +38,8 @@ class Snipe(commands.Cog):
             log.info(
                 f"Message {payload.message_id} not found in the cache, not adding to snipe cache. Guild ID: {guild_id} | Channel ID: {payload.channel_id}"
             )
+            return
+        if message.author.bot:
             return
         self.add_cache_entry(message, guild_id, payload.channel_id)
 
@@ -67,7 +70,9 @@ class Snipe(commands.Cog):
         if channelsnipe is None:
             await ctx.send("There's nothing to snipe!")
             return
-        if datetime.utcnow() - channelsnipe["timestamp"] > timedelta(minutes=5):
+        if datetime.utcnow() - channelsnipe["timestamp"] > timedelta(
+            seconds=await self.config.guild(ctx.guild).timeout()
+        ):
             await ctx.send("There's nothing to snipe!")
             return
         author = ctx.guild.get_member(channelsnipe["author"])
@@ -99,3 +104,20 @@ class Snipe(commands.Cog):
             await self.config.guild(ctx.guild).toggle.set(True)
             await ctx.send(f"Sniping has been disabled in {ctx.guild}.")
             return
+
+    @snipeset.command()
+    async def time(
+        self,
+        ctx,
+        *,
+        time: TimedeltaConverter(
+            minimum=timedelta(),
+            maximum=timedelta(minutes=60),
+            default_unit="seconds",
+            allowed_units=["seconds", "minutes"],
+        ),
+    ):
+        """Set the time before snipes expire"""
+        duration = time.total_seconds()
+        await self.config.guild(ctx.guild).timeout.set(duration)
+        await ctx.tick()
