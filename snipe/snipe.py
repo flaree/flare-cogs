@@ -1,7 +1,9 @@
-import discord
-from redbot.core import commands, checks, Config
+from datetime import datetime, timedelta
 import logging
 from typing import Optional
+
+import discord
+from redbot.core import Config, checks, commands
 
 log = logging.getLogger("red.flare.snipe")
 
@@ -9,7 +11,7 @@ log = logging.getLogger("red.flare.snipe")
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -63,6 +65,9 @@ class Snipe(commands.Cog):
             return
         channelsnipe = guildcache.get(channel.id, None)
         if channelsnipe is None:
+            await ctx.send("There's nothing to snipe!")
+            return
+        if datetime.utcnow() - channelsnipe["timestamp"] > timedelta(minutes=5):
             await ctx.send("There's nothing to snipe!")
             return
         author = ctx.guild.get_member(channelsnipe["author"])
