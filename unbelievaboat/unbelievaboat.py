@@ -72,8 +72,7 @@ class Unbelievaboat(commands.Cog):
     async def configglobalcheck(self, ctx):
         if await bank.is_global():
             return self.config
-        else:
-            return self.config.guild(ctx.guild)
+        return self.config.guild(ctx.guild)
 
     def roll(self):
         roll = random.randint(1, 20)
@@ -118,12 +117,11 @@ class Unbelievaboat(commands.Cog):
         wallet = await conf.wallet()
         if abs(amount) > wallet:
             return await ctx.send("You have insufficent funds to complete this deposit.")
-        else:
-            await bank.deposit_credits(user, abs(amount))
-            await self.walletset(user, wallet - abs(amount))
-            return await ctx.send(
-                f"You have succesfully deposited {abs(amount)} {await bank.get_currency_name(ctx.guild)} into your bank account."
-            )
+        await bank.deposit_credits(user, abs(amount))
+        await self.walletset(user, wallet - abs(amount))
+        return await ctx.send(
+            f"You have succesfully deposited {abs(amount)} {await bank.get_currency_name(ctx.guild)} into your bank account."
+        )
 
     async def walletbalance(self, user):
         conf = await self.configglobalcheckuser(user)
@@ -144,8 +142,7 @@ class Unbelievaboat(commands.Cog):
     async def configglobalcheckuser(self, user):
         if await bank.is_global():
             return self.config.user(user)
-        else:
-            return self.config.member(user)
+        return self.config.member(user)
 
     async def cdcheck(self, ctx, job):
         conf = await self.configglobalcheck(ctx)

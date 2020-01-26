@@ -11,10 +11,7 @@ from .stats import Stats
 
 async def tokencheck(ctx):
     token = await ctx.bot.get_shared_api_tokens("r6stats")
-    if token.get("authorization") is not None:
-        return True
-    else:
-        return False
+    return bool(token.get("authorization"))
 
 
 class R6(commands.Cog):
@@ -67,7 +64,7 @@ class R6(commands.Cog):
     def cog_unload(self):
         self.client.destroy()
 
-    async def request_data(self, ctx, type, **kwargs):
+    async def request_data(self, ctx, datatype, **kwargs):
         types = {
             "generic": self.client.get_generic_stats,
             "seasonal": self.client.get_seasonal_stats,
@@ -78,7 +75,7 @@ class R6(commands.Cog):
             "gamemodes": self.client.get_gamemode_stats,
             "leaderboard": self.client.get_leaderboard,
         }
-        request = types[type]
+        request = types[datatype]
         exceptionstatus = False
         try:
             data = await request(**kwargs)
@@ -89,7 +86,7 @@ class R6(commands.Cog):
             exceptionstatus = True
         except r6statsapi.errors.HTTPException as e:
             await ctx.send(
-                f"There was an error during the request.\nError Message: {' '.join(e.message.strip('_'))}"
+                f"There was an error during the request.\n**Error Message**: {e.message.replace('_', ' ').title()}"
             )
             exceptionstatus = True
         except r6statsapi.errors.InternalError:
