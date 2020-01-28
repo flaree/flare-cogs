@@ -13,9 +13,8 @@ PLATFORMS = {
 
 class PlatformConverter:
 
-
     @classmethod
     async def convert(cls, ctx: Context, argument: str):
         if arguement in PLATFORMS: 
-			return cls(PLATFORMS[arguement])
-		raise BadArguement("Platform isn't found, please specify either psn, xbox or pc.")
+		return cls(PLATFORMS[arguement])
+	raise BadArguement("Platform isn't found, please specify either psn, xbox or pc.")
