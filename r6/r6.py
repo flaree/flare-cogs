@@ -7,6 +7,7 @@ from redbot.core.utils.chat_formatting import pagify, humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .stats import Stats
+from .converters import PlatformConverter, RegionConverter
 
 
 async def tokencheck(ctx):
@@ -17,7 +18,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.5.3"
+    __version__ = "1.5.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -30,23 +31,6 @@ class R6(commands.Cog):
         self.config.register_member(**default_member)
         self.bot = bot
         self.stats = Stats(bot)
-        self.platforms = {
-            "psn": r6statsapi.Platform.psn,
-            "ps4": r6statsapi.Platform.psn,
-            "ps": r6statsapi.Platform.psn,
-            "xbl": r6statsapi.Platform.xbox,
-            "xbox": r6statsapi.Platform.xbox,
-            "uplay": r6statsapi.Platform.uplay,
-            "pc": r6statsapi.Platform.uplay,
-        }
-        self.regions = {
-            "na": "ncsa",
-            "eu": "emea",
-            "asia": "apac",
-            "us": "ncsa",
-            "as": "apac",
-            "europe": "emea",
-        }
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
         self.client = None
 
@@ -113,15 +97,12 @@ class R6(commands.Cog):
         pass
 
     @r6.command()
-    async def profile(self, ctx, profile, platform="uplay"):
+    async def profile(self, ctx, profile, platform: PlatformConverter = None):
         """General R6 Stats.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "generic", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "generic", player=profile, platform=platform)
         if data is None:
             return
         async with ctx.typing():
@@ -150,16 +131,13 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     @r6.command()
-    async def casual(self, ctx, profile, platform="uplay"):
+    async def casual(self, ctx, profile, platform: PlatformConverter = None):
         """Casual R6 Stats.
         
         Valid platforms are psn, xbl and uplay."""
 
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "generic", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "generic", player=profile, platform=platform)
         if data is None:
             return
         async with ctx.typing():
@@ -192,15 +170,12 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     @r6.command()
-    async def ranked(self, ctx, profile, platform="uplay"):
+    async def ranked(self, ctx, profile, platform: PlatformConverter = None):
         """Ranked R6 Stats.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "generic", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "generic", player=profile, platform=platform)
         if data is None:
             return
         async with ctx.typing():
@@ -233,17 +208,14 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     @r6.command()
-    async def operator(self, ctx, profile, operator: str, platform="uplay"):
+    async def operator(self, ctx, profile, operator: str, platform: PlatformConverter = None):
         """R6 Operator Stats.
         
         Valid platforms are psn, xbl and uplay."""
         if operator in self.foreignops:
             operator = self.foreignops[operator]
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "operator", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "operator", player=profile, platform=platform)
         if data is None:
             return
         ops = []
@@ -292,15 +264,17 @@ class R6(commands.Cog):
         return (seasons, data.seasons, data)
 
     @r6.command()
-    async def season(self, ctx, profile, platform, region, season: typing.Optional[int]):
+    async def season(
+        self,
+        ctx,
+        profile,
+        platform: PlatformConverter,
+        region: RegionConverter,
+        season: typing.Optional[int],
+    ):
         """R6 Seasonal Stats.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        if region not in self.regions:
-            return await ctx.send("Not a valid region.")
-        region = self.regions[region]
         data = await self.seasonalstats(ctx, profile, platform)
         if data is None:
             return
@@ -308,7 +282,7 @@ class R6(commands.Cog):
             season = len(data[0]) - 1
         if season > len(data[0]) - 1 or season < 6:
             return await ctx.send("Invalid season.")
-        seasondata = data[1][data[0][season]]["regions"][region][0]
+        seasondata = data[1][data[0][season]]["regions"][str(region)][0]
         if season >= 14:
             ranks = self.stats.ranksember
         else:
@@ -359,7 +333,7 @@ class R6(commands.Cog):
                 await ctx.send(embed=embed)
 
     @r6.command()
-    async def operators(self, ctx, profile, platform, statistic):
+    async def operators(self, ctx, profile, platform: PlatformConverter, statistic):
         """Statistics for all operators.
 
         If you do not have any stats for an operator then it is ommited.
@@ -378,17 +352,13 @@ class R6(commands.Cog):
             "meele_kills",
             "playtime",
         ]
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
         if statistic not in stats:
             return await ctx.send(
                 "Invalid Statistic. Please use one of the following:\n```{}```".format(
                     ", ".join(stats)
                 )
             )
-        data = await self.request_data(
-            ctx, "operator", player=profile, platform=self.platforms[platform]
-        )
+        data = await self.request_data(ctx, "operator", player=profile, platform=platform)
         if data is None:
             return
         ops = []
@@ -457,15 +427,12 @@ class R6(commands.Cog):
             await ctx.send(embed=em1)
 
     @r6.command()
-    async def general(self, ctx, profile, platform="uplay"):
+    async def general(self, ctx, profile, platform: PlatformConverter = None):
         """General R6 Stats.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "generic", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "generic", player=profile, platform=platform)
         if data is None:
             return
         async with ctx.typing():
@@ -485,15 +452,12 @@ class R6(commands.Cog):
         await ctx.send(embed=embed)
 
     @r6.command(aliases=["weapontypes"])
-    async def weaponcategories(self, ctx, profile, platform="uplay"):
+    async def weaponcategories(self, ctx, profile, platform: PlatformConverter = None):
         """R6 Weapon type statistics.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "weaponcategories", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "weaponcategories", player=profile, platform=platform)
         if data is None:
             return
         embed = discord.Embed(
@@ -518,17 +482,14 @@ class R6(commands.Cog):
         await ctx.send(embed=embed)
 
     @r6.command()
-    async def weapon(self, ctx, profile, weapon: str, platform="uplay"):
+    async def weapon(self, ctx, profile, weapon: str, platform: PlatformConverter = None):
         """R6 Weapon Statistics.
 
         If the weapon name has a space, please surround it with quotes.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "weapon", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "weapon", player=profile, platform=platform)
         if data is None:
             return
         weapons = []
@@ -555,24 +516,19 @@ class R6(commands.Cog):
         await ctx.send(embed=embed)
 
     @r6.command()
-    async def leaderboard(self, ctx, platform, region: str = "all", page: int = 1):
+    async def leaderboard(
+        self, ctx, platform: PlatformConverter, region: RegionConverter = None, page: int = 1
+    ):
         """R6 Leaderboard Statistics.
 
         Regions: all, eu, na, asia
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        if region != "all" and region not in self.regions:
-            return await ctx.send("Not a valid region.")
+        region = region or r6statsapi.Regions.all
         if page < 1 or page > 50:
             return await ctx.send("Invalid page number, must be between 1 and 50.")
-        if region == "all":
-            pass
-        else:
-            region = self.regions[region]
         data = await self.request_data(
-            ctx, "leaderboard", platform=self.platforms[platform], region=region, page=page
+            ctx, "leaderboard", platform=platform, region=region, page=page
         )
         if data is None:
             return
@@ -580,7 +536,7 @@ class R6(commands.Cog):
         for i in range(0, 100, 25):
             embed = discord.Embed(
                 colour=ctx.author.colour,
-                title=f"R6 Leaderboard Statistics for {platform.upper()} - Region: {region.upper()}",
+                title=f"R6 Leaderboard Statistics for {str(platform).upper()} - Region: {str(region).upper()}",
             )
             for player in data.leaderboard[i : i + 25]:
                 embed.add_field(
@@ -591,15 +547,12 @@ class R6(commands.Cog):
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @r6.command()
-    async def gamemodes(self, ctx, profile: str, platform: str = "uplay"):
+    async def gamemodes(self, ctx, profile: str, platform: PlatformConverter = None):
         """R6 Gamemode Statistics.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "gamemodes", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "gamemodes", player=profile, platform=platform)
         if data is None:
             return
         embeds = []
@@ -624,15 +577,12 @@ class R6(commands.Cog):
         await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @r6.command()
-    async def queue(self, ctx, profile: str, platform: str = "uplay"):
+    async def queue(self, ctx, profile: str, platform: PlatformConverter = None):
         """R6 stats from casual, ranked & other together.
         
         Valid platforms are psn, xbl and uplay."""
-        if platform not in self.platforms:
-            return await ctx.send("Not a valid platform.")
-        data = await self.request_data(
-            ctx, "queue", player=profile, platform=self.platforms[platform]
-        )
+        platform = platform or r6statsapi.Platform.uplay
+        data = await self.request_data(ctx, "queue", player=profile, platform=platform)
         if data is None:
             return
         if data.queue_stats is None:
