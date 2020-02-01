@@ -18,7 +18,7 @@ async def tokencheck(ctx):
 class R6(commands.Cog):
     """Rainbow6 Related Commands"""
 
-    __version__ = "1.5.4"
+    __version__ = "1.5.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -31,6 +31,7 @@ class R6(commands.Cog):
         self.config.register_member(**default_member)
         self.bot = bot
         self.stats = Stats(bot)
+        self.regions = {"Europe": "emea", "North America": "ncsa", "Asia": "apac"}
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
         self.client = None
 
@@ -282,7 +283,7 @@ class R6(commands.Cog):
             season = len(data[0]) - 1
         if season > len(data[0]) - 1 or season < 6:
             return await ctx.send("Invalid season.")
-        seasondata = data[1][data[0][season]]["regions"][str(region)][0]
+        seasondata = data[1][data[0][season]]["regions"][self.regions[str(region)]][0]
         if season >= 14:
             ranks = self.stats.ranksember
         else:
