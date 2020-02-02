@@ -95,7 +95,9 @@ class Snipe(commands.Cog):
 
     @snipeset.command()
     async def enable(self, ctx, state: bool):
-        """Enable or disable sniping."""
+        """Enable or disable sniping.
+        
+        State must be a bool or one of the following: True/False, On/Off, Y/N"""
         if state:
             await self.config.guild(ctx.guild).toggle.set(True)
             await ctx.send(f"Sniping has been enabled in {ctx.guild}.")
