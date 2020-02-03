@@ -7,7 +7,7 @@ from typing import Union
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.2"
+    __version__ = "1.2.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -112,12 +112,12 @@ class Forward(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @checks.guildowner()
-    async def pm(self, ctx, user: Union[discord.Member, int], *, message: str):
+    async def pm(self, ctx, user: discord.Member, *, message: str):
         """
         PMs a person.
         Separate version of [p]dm but allows for guild owners.
+        This only works for users in the guild.
         """
-        destination = ctx.guild.get_member(user.id if isinstance(user, discord.Member) else user)
         em = discord.Embed(colour=discord.Colour.red(), description=message)
 
         if ctx.bot.user.avatar_url:
@@ -128,8 +128,8 @@ class Forward(commands.Cog):
         else:
             em.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
 
-        if destination:
-            await destination.send(embed=em)
-            await ctx.send("Message delivered to {}".format(user))
-        else:
-            await ctx.send("Sorry, I couldn't deliver your message to {}".format(user))
+        try:
+            await user.send(embed=em)
+        except discord.Forbidden:
+            await ctx.send("Oops. I couldn't deliver your message to {}. They most likely have me blocked or DMs closed!")
+        await ctx.send("Message delivered to {}".format(user))
