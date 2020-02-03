@@ -131,5 +131,7 @@ class Forward(commands.Cog):
         try:
             await user.send(embed=em)
         except discord.Forbidden:
-            await ctx.send("Oops. I couldn't deliver your message to {}. They most likely have me blocked or DMs closed!")
+            await ctx.send(
+                "Oops. I couldn't deliver your message to {}. They most likely have me blocked or DMs closed!"
+            )
         await ctx.send("Message delivered to {}".format(user))
