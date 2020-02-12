@@ -196,6 +196,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="set-cooldown")
     async def cooldown_set(
         self,
@@ -235,6 +236,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="set-payout", usage="<work | crime> <min | max> <amount>")
     async def payout_set(self, ctx, job: str, min_or_max: str, amount: int):
         """Set the min or max payout for working or crimes"""
@@ -263,6 +265,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="set-fine-rate", usage="<min | max> <amount>")
     async def fine_set(self, ctx, min_or_max: str, amount: int):
         """Set the min or max fine rate for crimes"""
@@ -275,6 +278,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="set-interest-rate", usage="<amount>")
     async def interest_set(self, ctx, amount: int):
         """Set the interest rate if unable to pay a fine from wallet."""
@@ -285,6 +289,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(aliases=["addcashrole"])
     async def addmoneyrole(
         self, ctx, amount: int, role: discord.Role, destination: Optional[str] = "wallet"
@@ -309,6 +314,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(aliases=["removecashrole"])
     async def removemoneyrole(
         self, ctx, amount: int, role: discord.Role, destination: Optional[str] = "wallet"
@@ -332,6 +338,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.tick()
 
     @commands.command()
+    @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def work(self, ctx):
         """Work for some cash."""
@@ -365,6 +372,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def crime(self, ctx):
         """Commit a crime, more risk but higher payout."""
@@ -402,6 +410,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
@@ -444,6 +453,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.admin()
+    @commands.guild_only()
     @check_global_setting_admin()
     @commands.command(name="add-reply")
     async def add_reply(self, ctx, job, *, reply: str):
@@ -462,6 +472,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send("Your reply has been added and is reply ID #{}".format(ind))
 
     @checks.admin()
+    @commands.guild_only()
     @check_global_setting_admin()
     @commands.command(name="del-reply")
     async def del_reply(self, ctx, job, *, id: int):
@@ -480,6 +491,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="list-replies")
     async def list_reply(self, ctx, job):
         """List custom replies."""
@@ -505,6 +517,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @commands.command(name="default-replies", usage="<enable | disable>")
     async def default_replies(self, ctx, enable: bool):
         """Whether to use the default replies to work and crime."""
@@ -517,6 +530,7 @@ class Unbelievaboat(commands.Cog):
             await conf.defaultreplies.set(enable)
 
     @commands.command()
+    @commands.guild_only()
     async def cooldowns(self, ctx):
         """List your remaining cooldowns.."""
         conf = await self.configglobalcheck(ctx)
@@ -555,6 +569,7 @@ class Unbelievaboat(commands.Cog):
     @commands.command()
     @check_global_setting_admin()
     @checks.admin()
+    @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def settings(self, ctx):
         """Current unbelievaboat settings."""
@@ -591,11 +606,13 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group()
+    @commands.guild_only()
     async def wallet(self, ctx):
         """Wallet commands."""
         pass
 
     @wallet.command()
+    @commands.guild_only()
     async def balance(self, ctx, user=None):
         """Show the user's wallet balance.
 
@@ -607,6 +624,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(f"{user.display_name}'s wallet balance is {balance} {currency}")
 
     @wallet.command()
+    @commands.guild_only()
     async def leaderboard(self, ctx, top: int = 10):
         """Print the wallet leaderboard."""
         if top < 1:
@@ -666,6 +684,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @wallet.command(name="set")
     async def _walletset(self, ctx, user: discord.Member, amount: int):
         """Set a users wallet balance."""
@@ -675,11 +694,13 @@ class Unbelievaboat(commands.Cog):
         )
 
     @commands.command()
+    @commands.guild_only()
     async def deposit(self, ctx, amount: int):
         """Deposit cash from your wallet to your bank."""
         await self.bankdeposit(ctx, ctx.author, amount)
 
     @commands.command()
+    @commands.guild_only()
     async def withdraw(self, ctx, amount: int):
         """Withdraw cash from your bank to your wallet."""
         await self.bankwithdraw(ctx, ctx.author, amount)
