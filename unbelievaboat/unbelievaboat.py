@@ -41,7 +41,7 @@ def check_global_setting_admin():
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.1.2"
+    __version__ = "0.1.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -58,6 +58,7 @@ class Unbelievaboat(commands.Cog):
             "payouts": {"crime": {"max": 300, "min": 10}, "work": {"max": 250, "min": 10}},
             "failrates": {"crime": 50, "rob": 70},
             "fines": {"max": 250, "min": 10},
+            "interest": 5,
         }
         defaults_member = {
             "cooldowns": {"workcd": None, "crimecd": None, "robcd": None},
@@ -115,12 +116,13 @@ class Unbelievaboat(commands.Cog):
     async def bankdeposit(self, ctx, user, amount):
         conf = await self.configglobalcheckuser(user)
         wallet = await conf.wallet()
-        if abs(amount) > wallet:
+        deposit = abs(amount)
+        if deposit > wallet:
             return await ctx.send("You have insufficent funds to complete this deposit.")
-        await bank.deposit_credits(user, abs(amount))
-        await self.walletset(user, wallet - abs(amount))
+        await bank.deposit_credits(user, deposit)
+        await self.walletset(user, wallet - deposit)
         return await ctx.send(
-            f"You have succesfully deposited {abs(amount)} {await bank.get_currency_name(ctx.guild)} into your bank account."
+            f"You have succesfully deposited {deposit} {await bank.get_currency_name(ctx.guild)} into your bank account."
         )
 
     async def walletbalance(self, user):
@@ -173,11 +175,15 @@ class Unbelievaboat(commands.Cog):
                 description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
             )
         else:
-            if await bank.can_spend(ctx.author, int(randint * 1.05)):
-                await bank.withdraw_credits(ctx.author, int(randint * 1.05))
+            interestfee = await self.config.guild(ctx.guild).interest()
+            fee = int(
+                randint * float(f"1.{interestfee if interestfee >= 10 else f'0{interestfee}'}")
+            )
+            if await bank.can_spend(ctx.author, fee):
+                await bank.withdraw_credits(ctx.author, fee)
                 embed = discord.Embed(
                     colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a 5% interest fee ({int(randint * 1.05)} {await bank.get_currency_name(ctx.guild)}).",
+                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a {interestfee}% interest fee ({fee} {await bank.get_currency_name(ctx.guild)}).",
                 )
             else:
                 await bank.set_balance(ctx.author, 0)
@@ -265,6 +271,16 @@ class Unbelievaboat(commands.Cog):
         conf = await self.configglobalcheck(ctx)
         async with conf.fines() as fines:
             fines[min_or_max] = amount
+        await ctx.tick()
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.command(name="set-interest-rate", usage="<amount>")
+    async def interest_set(self, ctx, amount: int):
+        """Set the interest rate if unable to pay a fine from wallet."""
+        if amount < 1 or amount > 99:
+            return await ctx.send("Amount must be higher than 1 or less than 99")
+        await self.config.guild(ctx.guild).interest.set(amount)
         await ctx.tick()
 
     @checks.admin()
@@ -564,7 +580,7 @@ class Unbelievaboat(commands.Cog):
         failrates = await conf.failrates()
         embed.add_field(
             name="Fail Rates",
-            value=f"**Crime**: {failrates['crime']}%\n**Rob**: {failrates['rob']}%",
+            value=f"**Crime**: {failrates['crime']}%\n**Rob**: {failrates['rob']}%\n**Interest Fee**: {await self.config.guild(ctx.guild).interest()}%",
             inline=True,
         )
         fines = await conf.fines()
