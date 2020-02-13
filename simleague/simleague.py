@@ -13,7 +13,6 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from .core import SimHelper
 
 
-
 log = logging.getLogger("red.flarecogs.SimLeague")
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER

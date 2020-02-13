@@ -9,6 +9,7 @@ from redbot.core import Config, checks, commands, modlog
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import humanize_list, humanize_timedelta
 from redbot.core.utils.predicates import MessagePredicate
+from redbot.core.utils.mod import is_allowed_by_hierarchy
 
 log = logging.getLogger("red.mod")
 
@@ -16,7 +17,7 @@ log = logging.getLogger("red.mod")
 class Mod(ModClass):
     """Mod with ehancements."""
 
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -141,7 +142,14 @@ class Mod(ModClass):
         async with self.config.muted() as muted:
             if str(ctx.guild.id) not in muted:
                 muted[str(ctx.guild.id)] = {}
+            failed = 0
             for user in users:
+                if not await is_allowed_by_hierarchy(
+                    self.bot, self.config, guild, ctx.author, user
+                ):
+                    failed += 1
+                if guild.me.top_role <= user.top_role or user == guild.owner:
+                    failed += 1
                 await user.add_roles(
                     mutedrole,
                     reason="Muted by {} for {}{}".format(
@@ -167,8 +175,11 @@ class Mod(ModClass):
                 )
                 log.info(f"{user} muted by {ctx.author} in {ctx.guild}")
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
+        failedmsg = (
+            "{} user{} failed to be muted".format(failed, "s" if failed else "") if failed else ""
+        )
         await ctx.send(
-            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
+            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}\n{failed}"
         )
 
     @checks.admin()
