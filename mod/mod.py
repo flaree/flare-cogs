@@ -15,9 +15,9 @@ log = logging.getLogger("red.mod")
 
 
 class Mod(ModClass):
-    """Mod with ehancements."""
+    """Mod with timed mute."""
 
-    __version__ = "1.1.1"
+    __version__ = "1.1.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -28,7 +28,7 @@ class Mod(ModClass):
         super().__init__(bot)
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        defaultsguild = {"muterole": None}
+        defaultsguild = {"muterole": None, "respect_hierarchy": True}
         defaults = {"muted": {}}
         self.config.register_guild(**defaultsguild)
         self.config.register_global(**defaults)
@@ -117,7 +117,7 @@ class Mod(ModClass):
         roleid = await self.config.guild(guild).muterole()
         if roleid is None:
             await ctx.send(
-                "There is currently no mute role set for this server. If you would like one to be automatically setup then type yes, otherwise one can be set via {}mute setrole <role>".format(
+                "There is currently no mute role set for this server. If you would like one to be automatically setup then type yes, otherwise type no then one can be set via {}mute roleset <role>".format(
                     ctx.prefix
                 )
             )
@@ -139,17 +139,27 @@ class Mod(ModClass):
             return await ctx.send(
                 f"The mute role for this server is invalid. Please set one up using {ctx.prefix}mute roleset <role>."
             )
+        completed = []
+        failed = []
         async with self.config.muted() as muted:
             if str(ctx.guild.id) not in muted:
                 muted[str(ctx.guild.id)] = {}
-            failed = 0
             for user in users:
+                if user == ctx.author:
+                    failed.append(f"{user} - Self harm is bad.")
+                    continue
                 if not await is_allowed_by_hierarchy(
                     self.bot, self.config, guild, ctx.author, user
                 ):
-                    failed += 1
+                    failed.append(
+                        f"{user} - You are not higher than this user in the role hierarchy"
+                    )
+                    continue
                 if guild.me.top_role <= user.top_role or user == guild.owner:
-                    failed += 1
+                    failed.append(
+                        f"{user} - Discord hierarcy rules prevent you from muting this user."
+                    )
+                    continue
                 await user.add_roles(
                     mutedrole,
                     reason="Muted by {} for {}{}".format(
@@ -174,13 +184,17 @@ class Mod(ModClass):
                     expiry,
                 )
                 log.info(f"{user} muted by {ctx.author} in {ctx.guild}")
+                completed.append(user)
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
-        failedmsg = (
-            "{} user{} failed to be muted".format(failed, "s" if failed else "") if failed else ""
-        )
-        await ctx.send(
-            f"`{humanize_list([str(x) for x in users])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}\n{failed}"
-        )
+        if completed:
+            await ctx.send(
+                f"`{humanize_list([str(x) for x in completed])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
+            )
+        if failed:
+            failemsg = "\n{}".format("\n".join(failed))
+            await ctx.send(
+                f"{len(failed)} user{'s' if len(failed) > 1 else ''} failed to be muted for the following reasons.{failemsg}"
+            )
 
     @checks.admin()
     @mute.command()
