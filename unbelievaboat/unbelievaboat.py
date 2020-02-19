@@ -38,10 +38,19 @@ def check_global_setting_admin():
     return commands.check(predicate)
 
 
+def wallet_disabled_check():
+    async def predicate(ctx):
+        if await bank.is_global():
+            return not await ctx.bot.get_cog("Unbelievaboat").config.disable_wallet()
+        return not await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).disable_wallet()
+
+    return commands.check(predicate)
+
+
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.1.3"
+    __version__ = "0.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -59,6 +68,7 @@ class Unbelievaboat(commands.Cog):
             "failrates": {"crime": 50, "rob": 70},
             "fines": {"max": 250, "min": 10},
             "interest": 5,
+            "disable_wallet": False,
         }
         defaults_member = {
             "cooldowns": {"workcd": None, "crimecd": None, "robcd": None},
@@ -74,6 +84,11 @@ class Unbelievaboat(commands.Cog):
         if await bank.is_global():
             return self.config
         return self.config.guild(ctx.guild)
+
+    async def walletdisabledcheck(self, ctx):
+        if await bank.is_global():
+            return await self.config.disable_wallet()
+        return await self.config.guild(ctx.guild).disable_wallet()
 
     def roll(self):
         roll = random.randint(1, 20)
@@ -251,6 +266,20 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
+    @commands.command(name="set-wallet", usage="<on_or_off")
+    async def wallet_set(self, ctx, on_or_off):
+        """Toggle the wallet on or off."""
+        conf = await self.configglobalcheck(ctx)
+        if on_or_off:
+            await ctx.send("The wallet and rob system has been enabled.")
+        else:
+            await ctx.send("The wallet and rob system has been disabled.")
+        await conf.disable_wallet.set(on_or_off)
+        await ctx.tick()
+
+    @checks.admin()
+    @check_global_setting_admin()
     @commands.command(name="set-failure-rate", usage="<rob | crime> <amount>")
     async def failure_set(self, ctx, job: str, amount: int):
         """Set the failure rate for crimes and robbing"""
@@ -368,7 +397,10 @@ class Unbelievaboat(commands.Cog):
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
-        await self.walletdeposit(ctx.author, wage)
+        if not self.walletdisabledcheck(ctx):
+            await self.walletdeposit(ctx.author, wage)
+        else:
+            await bank.deposit_credits(ctx.author, wage)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -406,11 +438,15 @@ class Unbelievaboat(commands.Cog):
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
-        await self.walletdeposit(ctx.author, wage)
+        if not self.walletdisabledcheck(ctx):
+            await self.walletdeposit(ctx.author, wage)
+        else:
+            await bank.deposit_credits(ctx.author, wage)
         await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
+    @wallet_disabled_check()
     @commands.bot_has_permissions(embed_links=True)
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
@@ -553,14 +589,17 @@ class Unbelievaboat(commands.Cog):
                 crimecd = humanize_timedelta(seconds=jobcd["crimecd"] - time)
             else:
                 crimecd = "Ready to use."
-        if cd["robcd"] is None:
-            robcd = "Ready to use."
-        else:
-            time = int(datetime.datetime.utcnow().timestamp()) - cd["robcd"]
-            if time < jobcd["robcd"]:
-                robcd = humanize_timedelta(seconds=jobcd["robcd"] - time)
-            else:
+        if not self.walletdisabledcheck(ctx):
+            if cd["robcd"] is None:
                 robcd = "Ready to use."
+            else:
+                time = int(datetime.datetime.utcnow().timestamp()) - cd["robcd"]
+                if time < jobcd["robcd"]:
+                    robcd = humanize_timedelta(seconds=jobcd["robcd"] - time)
+                else:
+                    robcd = "Ready to use."
+        else:
+            robcd = "Disabled."
         msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
             workcd, crimecd, robcd
         )
@@ -603,9 +642,14 @@ class Unbelievaboat(commands.Cog):
             name="Fines", value=f"**Max**: {fines['max']}\n**Min**: {fines['min']}", inline=True
         )
         embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
+        walletsettings = await conf.disable_wallet()
+        embed.add_field(
+            name="Wallet Settings", value="Disabled." if walletsettings else "Enabled", inline=True
+        )
         await ctx.send(embed=embed)
 
     @commands.group()
+    @wallet_disabled_check()
     @commands.guild_only()
     async def wallet(self, ctx):
         """Wallet commands."""
@@ -683,6 +727,7 @@ class Unbelievaboat(commands.Cog):
             await menu(ctx, highscores, DEFAULT_CONTROLS)
 
     @checks.admin()
+    @wallet_disabled_check()
     @check_global_setting_admin()
     @commands.guild_only()
     @wallet.command(name="set")
@@ -694,12 +739,14 @@ class Unbelievaboat(commands.Cog):
         )
 
     @commands.command()
+    @wallet_disabled_check()
     @commands.guild_only()
     async def deposit(self, ctx, amount: int):
         """Deposit cash from your wallet to your bank."""
         await self.bankdeposit(ctx, ctx.author, amount)
 
     @commands.command()
+    @wallet_disabled_check()
     @commands.guild_only()
     async def withdraw(self, ctx, amount: int):
         """Withdraw cash from your bank to your wallet."""
