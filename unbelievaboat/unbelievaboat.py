@@ -397,7 +397,7 @@ class Unbelievaboat(commands.Cog):
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
-        if not self.walletdisabledcheck(ctx):
+        if not await self.walletdisabledcheck(ctx):
             await self.walletdeposit(ctx.author, wage)
         else:
             await bank.deposit_credits(ctx.author, wage)
@@ -438,7 +438,7 @@ class Unbelievaboat(commands.Cog):
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
-        if not self.walletdisabledcheck(ctx):
+        if not await self.walletdisabledcheck(ctx):
             await self.walletdeposit(ctx.author, wage)
         else:
             await bank.deposit_credits(ctx.author, wage)
@@ -589,7 +589,7 @@ class Unbelievaboat(commands.Cog):
                 crimecd = humanize_timedelta(seconds=jobcd["crimecd"] - time)
             else:
                 crimecd = "Ready to use."
-        if not self.walletdisabledcheck(ctx):
+        if not await self.walletdisabledcheck(ctx):
             if cd["robcd"] is None:
                 robcd = "Ready to use."
             else:
@@ -644,7 +644,9 @@ class Unbelievaboat(commands.Cog):
         embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
         walletsettings = await conf.disable_wallet()
         embed.add_field(
-            name="Wallet Settings", value="Disabled." if not walletsettings else "Enabled", inline=True
+            name="Wallet Settings",
+            value="Disabled." if not walletsettings else "Enabled",
+            inline=True,
         )
         await ctx.send(embed=embed)
 
