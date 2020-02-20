@@ -267,8 +267,8 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-wallet", usage="<on_or_off")
-    async def wallet_set(self, ctx, on_or_off):
+    @commands.command(name="set-wallet", usage="<on_or_off>")
+    async def wallet_set(self, ctx, on_or_off: bool):
         """Toggle the wallet on or off."""
         conf = await self.configglobalcheck(ctx)
         if on_or_off:
@@ -644,7 +644,7 @@ class Unbelievaboat(commands.Cog):
         embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
         walletsettings = await conf.disable_wallet()
         embed.add_field(
-            name="Wallet Settings", value="Disabled." if walletsettings else "Enabled", inline=True
+            name="Wallet Settings", value="Disabled." if not walletsettings else "Enabled", inline=True
         )
         await ctx.send(embed=embed)
 
