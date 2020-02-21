@@ -41,8 +41,8 @@ def check_global_setting_admin():
 def wallet_disabled_check():
     async def predicate(ctx):
         if await bank.is_global():
-            return not await ctx.bot.get_cog("Unbelievaboat").config.disable_wallet()
-        return not await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).disable_wallet()
+            return await ctx.bot.get_cog("Unbelievaboat").config.disable_wallet()
+        return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).disable_wallet()
 
     return commands.check(predicate)
 
@@ -50,7 +50,7 @@ def wallet_disabled_check():
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -87,8 +87,8 @@ class Unbelievaboat(commands.Cog):
 
     async def walletdisabledcheck(self, ctx):
         if await bank.is_global():
-            return await self.config.disable_wallet()
-        return await self.config.guild(ctx.guild).disable_wallet()
+            return not await self.config.disable_wallet()
+        return not await self.config.guild(ctx.guild).disable_wallet()
 
     def roll(self):
         roll = random.randint(1, 20)
