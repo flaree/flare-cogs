@@ -183,22 +183,36 @@ class Unbelievaboat(commands.Cog):
         randint = random.randint(fines["min"], fines["max"])
         amount = str(randint) + " " + await bank.get_currency_name(ctx.guild)
         userconf = await self.configglobalcheckuser(ctx.author)
-        if randint < await userconf.wallet():
-            await self.walletremove(ctx.author, randint)
-            embed = discord.Embed(
-                colour=discord.Color.red(),
-                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
-            )
-        else:
-            interestfee = await self.config.guild(ctx.guild).interest()
-            fee = int(
-                randint * float(f"1.{interestfee if interestfee >= 10 else f'0{interestfee}'}")
-            )
-            if await bank.can_spend(ctx.author, fee):
-                await bank.withdraw_credits(ctx.author, fee)
+        if not await self.walletdisabledcheck(ctx):
+            if randint < await userconf.wallet():
+                await self.walletremove(ctx.author, randint)
                 embed = discord.Embed(
                     colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a {interestfee}% interest fee ({fee} {await bank.get_currency_name(ctx.guild)}).",
+                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
+                )
+            else:
+                interestfee = await self.config.guild(ctx.guild).interest()
+                fee = int(
+                    randint * float(f"1.{interestfee if interestfee >= 10 else f'0{interestfee}'}")
+                )
+                if await bank.can_spend(ctx.author, fee):
+                    await bank.withdraw_credits(ctx.author, fee)
+                    embed = discord.Embed(
+                        colour=discord.Color.red(),
+                        description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash in your wallet and thus it was taken from your bank with a {interestfee}% interest fee ({fee} {await bank.get_currency_name(ctx.guild)}).",
+                    )
+                else:
+                    await bank.set_balance(ctx.author, 0)
+                    embed = discord.Embed(
+                        colour=discord.Color.red(),
+                        description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
+                    )
+        else:
+            if await bank.can_spend(ctx.author, randint):
+                await bank.withdraw_credits(ctx.author, randint)
+                embed = discord.Embed(
+                    colour=discord.Color.red(),
+                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {randint}.",
                 )
             else:
                 await bank.set_balance(ctx.author, 0)
