@@ -72,6 +72,9 @@ class Stats:
             rank = await response.read()
             return rank
 
+    def cog_unload(self):
+        self.bot.loop.create_task(self.session.close())
+
     async def profilecreate(self, data):
         font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
         bold_file = f"{bundled_data_path(self)}/fonts/RobotoBold.ttf"
@@ -912,9 +915,6 @@ class Stats:
         file.seek(0)
         image = discord.File(file)
         return image
-
-    def cog_unload(self):
-        self.bot.loop.create_task(self.session.detach())
 
     def round_corner(self, radius):
         """Draw a round corner"""
