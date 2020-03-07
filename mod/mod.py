@@ -80,7 +80,8 @@ class Mod(ModClass):
         else:
             log.info("{} is no longer in {}, removing from muted list.".format(user, guild))
         async with self.config.muted() as muted:
-            del muted[guildid][user]
+            if user in muted[guildid]:
+                del muted[guildid][user]
 
     async def create_muted_role(self, guild):
         muted_role = await guild.create_role(
@@ -212,9 +213,6 @@ class Mod(ModClass):
         for user in users:
             if str(ctx.guild.id) not in muted:
                 return await ctx.send("There is nobody currently muted in this server.")
-            if str(user.id) not in muted[str(ctx.guild.id)]:
-                await ctx.send("{} is currently not muted.".format(user))
-                continue
             await self.unmute(str(user.id), str(ctx.guild.id), moderator=ctx.author)
             await ctx.tick()
 
