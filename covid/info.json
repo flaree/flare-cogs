@@ -1,7 +1,7 @@
 {
     "author": ["flare(flare#0001)"],
     "install_msg": "Covid-19 Information",
-    "name": "R6",
+    "name": "Covid",
     "disabled": false,
     "short": "Show Covid-19(Novel Coronavirus) Statistics.",
     "description": "List stats of Covid-19, global or countrywise!",
