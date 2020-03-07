@@ -97,7 +97,7 @@ class Mod(ModClass):
                     reason="Ensures that Muted users won't be able to talk here.",
                 )
 
-    @checks.mod()
+    @checks.mod_or_permissions(manage_roles=True)
     @checks.bot_has_permissions(manage_roles=True)
     @commands.group(invoke_without_command=True)
     async def mute(
@@ -196,14 +196,14 @@ class Mod(ModClass):
                 f"{len(failed)} user{'s' if len(failed) > 1 else ''} failed to be muted for the following reasons.{failemsg}"
             )
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_roles=True)
     @mute.command()
     async def roleset(self, ctx, role: discord.Role):
         """Set a mute role."""
         await self.config.guild(ctx.guild).muterole.set(role.id)
         await ctx.send("The muted role has been set to {}".format(role.name))
 
-    @checks.mod()
+    @checks.mod_or_permissions(manage_roles=True)
     @checks.bot_has_permissions(manage_roles=True)
     @commands.group(invoke_without_command=True, name="unmute")
     async def _unmute(self, ctx, users: commands.Greedy[discord.Member]):
@@ -218,7 +218,7 @@ class Mod(ModClass):
             await self.unmute(str(user.id), str(ctx.guild.id), moderator=ctx.author)
             await ctx.tick()
 
-    @checks.mod()
+    @checks.mod_or_permissions(manage_roles=True)
     @mute.command()
     async def list(self, ctx):
         """List those who are muted."""
