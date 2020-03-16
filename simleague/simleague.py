@@ -21,7 +21,7 @@ log = logging.getLogger("red.flarecogs.SimLeague")
 class SimLeague(commands.Cog):
     """SimLeague"""
 
-    __version__ = "3.0.1"
+    __version__ = "3.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -816,10 +816,44 @@ class SimLeague(commands.Cog):
         await self.config.guild(ctx.guild).stats.set({})
         await ctx.tick()
 
-    @commands.group(autohelp=True)
-    async def stats(self, ctx):
+    @commands.group(invoke_without_command=True)
+    async def stats(self, ctx, user: discord.Member = None):
         """Sim League Statistics."""
-        if ctx.invoked_subcommand is None:
+        if user is not None:
+            stats = await self.config.guild(ctx.guild).stats()
+            userid = str(user.id)
+            pens = stats["penalties"].get(userid)
+            statistics = [
+                stats["goals"].get(userid),
+                stats["assists"].get(userid),
+                stats["yellows"].get(userid),
+                stats["reds"].get(userid),
+                stats["motm"].get(userid),
+                pens.get("missed") if pens else None,
+                pens.get("scored") if pens else None,
+            ]
+            headers = [
+                "goals",
+                "assists",
+                "yellows",
+                "reds",
+                "motms",
+                "penalties missed",
+                "penalties scored",
+            ]
+            embed = discord.Embed(
+                color=ctx.author.color, title="Statistics for {}".format(user.display_name)
+            )
+            print(statistics)
+            for i, stat in enumerate(statistics):
+                if stat is not None:
+                    embed.add_field(name=headers[i].title(), value=stat)
+                else:
+                    embed.add_field(name=headers[i].title(), value="0")
+            await ctx.send(embed=embed)
+
+        else:
+            await ctx.send_help()
             stats = await self.config.guild(ctx.guild).stats()
             goalscorer = sorted(stats["goals"], key=stats["goals"].get, reverse=True)
             assists = sorted(stats["assists"], key=stats["assists"].get, reverse=True)
