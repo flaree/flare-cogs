@@ -8,7 +8,7 @@ import typing
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -283,4 +283,36 @@ class Covid(commands.Cog):
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
                 embed.add_field(name=data[i]["country"], value=msg)
+            await ctx.send(embed=embed)
+
+    @covid.command()
+    async def state(self, ctx, *, state: str):
+        """Show stats for a specific state."""
+        async with ctx.typing():
+            data = await self.get("https://corona.lmao.ninja/states")
+            if isinstance(data, dict):
+                error = data.get("failed")
+                if isinstance(error, str):
+                    return await ctx.send(
+                        "That country was not found. Please try refining your search or that country is not infecte."
+                    )
+                elif error:
+                    return await ctx.send("There's an issue with the API. Please try again later.")
+            if not data:
+                return await ctx.send("No data available.")
+            statedata = None
+            for i in range(len(data)):
+                if data[i]["state"].lower() == state.lower():
+                    statedata = i
+            if statedata is None:
+                return await ctx.send("No statistics/State not found.")
+            embed = discord.Embed(
+                color=ctx.author.color, title="Covid-19 | USA | {} Statistics".format(data[statedata]["state"]),
+            )
+            embed.add_field(name="Cases", value=humanize_number(data[statedata]["cases"]))
+            embed.add_field(name="Deaths", value=humanize_number(data[statedata]["deaths"]))
+            embed.add_field(name="Recovered", value=humanize_number(data[statedata]["recovered"]))
+            embed.add_field(name="Cases Today", value=humanize_number(data[statedata]["todayCases"]))
+            embed.add_field(name="Deaths Today", value=humanize_number(data[statedata]["todayDeaths"]))
+            embed.add_field(name="Active Cases", value=humanize_number(data[statedata]["active"]))
             await ctx.send(embed=embed)
