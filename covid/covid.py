@@ -307,12 +307,17 @@ class Covid(commands.Cog):
             if statedata is None:
                 return await ctx.send("No statistics/State not found.")
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | USA | {} Statistics".format(data[statedata]["state"]),
+                color=ctx.author.color,
+                title="Covid-19 | USA | {} Statistics".format(data[statedata]["state"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[statedata]["cases"]))
             embed.add_field(name="Deaths", value=humanize_number(data[statedata]["deaths"]))
             embed.add_field(name="Recovered", value=humanize_number(data[statedata]["recovered"]))
-            embed.add_field(name="Cases Today", value=humanize_number(data[statedata]["todayCases"]))
-            embed.add_field(name="Deaths Today", value=humanize_number(data[statedata]["todayDeaths"]))
+            embed.add_field(
+                name="Cases Today", value=humanize_number(data[statedata]["todayCases"])
+            )
+            embed.add_field(
+                name="Deaths Today", value=humanize_number(data[statedata]["todayDeaths"])
+            )
             embed.add_field(name="Active Cases", value=humanize_number(data[statedata]["active"]))
             await ctx.send(embed=embed)
