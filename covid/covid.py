@@ -313,11 +313,11 @@ class Covid(commands.Cog):
             )
             embed.add_field(name="Cases", value=humanize_number(data[statedata]["cases"]))
             embed.add_field(name="Deaths", value=humanize_number(data[statedata]["deaths"]))
-            embed.add_field(name="Recovered", value=humanize_number(data[statedata]["recovered"]))
             embed.add_field(
                 name="Cases Today", value=humanize_number(data[statedata]["todayCases"])
             )
             embed.add_field(
                 name="Deaths Today", value=humanize_number(data[statedata]["todayDeaths"])
             )
+            embed.add_field(name="Active Cases", value=humanize_number(data[statedata]["active"]))
             await ctx.send(embed=embed)
