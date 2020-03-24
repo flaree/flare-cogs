@@ -320,5 +320,4 @@ class Covid(commands.Cog):
             embed.add_field(
                 name="Deaths Today", value=humanize_number(data[statedata]["todayDeaths"])
             )
-            embed.add_field(name="Active Cases", value=humanize_number(data[statedata]["active"]))
             await ctx.send(embed=embed)
