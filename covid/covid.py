@@ -25,7 +25,10 @@ class Covid(commands.Cog):
 
     async def get(self, url):
         async with self.session.get(url) as response:
-            data = await response.json()
+            try:
+                data = await response.json()
+            except aiohttp.ContentTypeError:
+                return {"failed": "Their appears to be an issue with the API. Please try again later."}
             if response.status == 200:
                 try:
                     return data
