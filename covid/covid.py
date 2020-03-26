@@ -8,7 +8,7 @@ import typing
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -25,13 +25,14 @@ class Covid(commands.Cog):
 
     async def get(self, url):
         async with self.session.get(url) as response:
-            try:
-                return await response.json()
-            except aiohttp.ContentTypeError:
-                if response.status == 200:
-                    if await response.text() == "Country not found":
-                        return {"failed": "Country not found"}
-                return {"failed": True}
+            data = await response.json()
+            if response.status == 200:
+                try:
+                    return data
+                except aiohttp.ServerTimeoutError:
+                    return {"failed": "Their appears to be an issue with the API. Please try again later."}
+            else:
+                return {"failed": data["message"]}
 
     @commands.group(invoke_without_command=True)
     async def covid(self, ctx, *, country: typing.Optional[str]):
@@ -40,8 +41,8 @@ class Covid(commands.Cog):
             async with ctx.typing():
                 data = await self.get(self.api + "/all")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send("Country could not be found.")
+                if data.get("failed") is not None:
+                    return await ctx.send(data.get("failed"))
             if not data:
                 return await ctx.send("No data available.")
             embed = discord.Embed(color=ctx.author.color, title="Covid-19 Global Statistics")
@@ -53,12 +54,8 @@ class Covid(commands.Cog):
             async with ctx.typing():
                 data = await self.get(self.api + "/countries/{}".format(country))
             error = data.get("failed")
-            if isinstance(error, str):
-                return await ctx.send(
-                    "That country was not found. Please try refining your search or that country is not infected."
-                )
-            elif error:
-                return await ctx.send("There's an issue with the API. Please try again later.")
+            if error is not None:
+                return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             embed = discord.Embed(
@@ -78,10 +75,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayCases"], reverse=True)
@@ -103,10 +99,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             todayDeaths = 0
@@ -125,10 +120,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayDeaths"], reverse=True)
@@ -150,10 +144,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["cases"], reverse=True)
@@ -175,10 +168,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries?sort=deaths")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["deaths"], reverse=True)
@@ -202,10 +194,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["cases"], reverse=True)
@@ -225,10 +216,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayCases"], reverse=True)
@@ -248,10 +238,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["deaths"], reverse=True)
@@ -271,10 +260,9 @@ class Covid(commands.Cog):
         async with ctx.typing():
             data = await self.get(self.api + "/countries")
             if isinstance(data, dict):
-                if data.get("failed") is True:
-                    return await ctx.send(
-                        "Oops, something went wrong. The API may be having issues."
-                    )
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayDeaths"], reverse=True)
@@ -293,12 +281,8 @@ class Covid(commands.Cog):
             data = await self.get(self.api + "/states")
             if isinstance(data, dict):
                 error = data.get("failed")
-                if isinstance(error, str):
-                    return await ctx.send(
-                        "That country was not found. Please try refining your search or that country is not infecte."
-                    )
-                elif error:
-                    return await ctx.send("There's an issue with the API. Please try again later.")
+                if error is not None:
+                    return await ctx.send(error)
             if not data:
                 return await ctx.send("No data available.")
             statedata = None
