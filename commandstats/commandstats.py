@@ -4,8 +4,10 @@ from copy import deepcopy
 from typing import Counter
 
 import discord
+import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from redbot.core.utils.chat_formatting import box
 
 
 def chunks(l, n):
@@ -17,7 +19,7 @@ def chunks(l, n):
 class CommandStats(commands.Cog):
     """Command Statistics"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -69,7 +71,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
+                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -77,7 +79,7 @@ class CommandStats(commands.Cog):
                 for item in items:
                     stats.append(item)
                 embed = discord.Embed(
-                    title="Commands used", colour=ctx.author.color, description="\n".join(stats)
+                    title="Commands used", colour=ctx.author.color, description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog")
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
@@ -103,7 +105,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
+                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -113,7 +115,7 @@ class CommandStats(commands.Cog):
                 embed = discord.Embed(
                     title="Commands used in this guild",
                     colour=ctx.author.color,
-                    description="\n".join(stats),
+                    description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"),
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
@@ -143,7 +145,7 @@ class CommandStats(commands.Cog):
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
             for cmd, amount in data.items():
-                stats.append(f"**{cmd}**: {amount} time{'s' if amount > 1 else ''}!")
+                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
             a = chunks(stats, 15)
             embeds = []
             for items in a:
@@ -153,7 +155,7 @@ class CommandStats(commands.Cog):
                 embed = discord.Embed(
                     title="Commands used in this session",
                     colour=ctx.author.color,
-                    description="\n".join(stats),
+                    description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"),
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
