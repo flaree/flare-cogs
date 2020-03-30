@@ -1,5 +1,7 @@
 from .covid import Covid
 
 
-def setup(bot):
-    bot.add_cog(Covid(bot))
+async def setup(bot):
+    n = Covid(bot)
+    bot.add_cog(n)
+    await n.initalize()

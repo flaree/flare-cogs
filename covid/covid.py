@@ -1,14 +1,16 @@
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_number
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 import discord
 import aiohttp
 import typing
+import datetime
 
 
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -18,7 +20,18 @@ class Covid(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.api = "https://corona.lmao.ninja"
+        self.newsapi = "https://newsapi.org/v2/top-headlines?q=COVID&sortBy=publishedAt&pageSize=100&country={}&apiKey={}&page=1"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.newsapikey = None
+
+    async def initalize(self):
+        token = await self.bot.get_shared_api_tokens("newsapi")
+        self.newsapikey = token.get("key", None)
+
+    @commands.Cog.listener()
+    async def on_red_api_tokens_update(self, service_name, api_tokens):
+        if service_name == "newsapi":
+            self.newsapikey = api_tokens.get("key", None)
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
@@ -30,9 +43,66 @@ class Covid(commands.Cog):
                 try:
                     return data
                 except aiohttp.ServerTimeoutError:
-                    return {"failed": "Their appears to be an issue with the API. Please try again later."}
+                    return {
+                        "failed": "Their appears to be an issue with the API. Please try again later."
+                    }
             else:
                 return {"failed": data["message"]}
+
+    async def getnews(self, country, apikey):
+        async with self.session.get(self.newsapi.format(country, apikey)) as response:
+            data = await response.json()
+            if response.status == 200:
+                try:
+                    return data
+                except aiohttp.ServerTimeoutError:
+                    return {
+                        "failed": "Their appears to be an issue with the API. Please try again later."
+                    }
+            else:
+                return {"failed": data["message"]}
+
+    @commands.command(hidden=True)
+    async def covidcountries(self, ctx):
+        """Countries supported by covidnews"""
+        await ctx.send(
+            "Valid country codes are:\nae ar at au be bg br ca ch cn co cu cz de eg fr gb gr hk hu id ie il in it jp kr lt lv ma mx my ng nl no nz ph pl pt ro rs ru sa se sg si sk th tr tw ua us ve za"
+        )
+
+    @commands.command()
+    async def covidnews(self, ctx, countrycode: str):
+        """Covid News from a Country - County must be 2-letter ISO 3166-1 code.
+        
+        Check [p]covidcountries for a list of all possible country codes supported."""
+        async with ctx.typing():
+            data = await self.getnews(countrycode, self.newsapikey)
+        if data.get("failed") is not None:
+            return await ctx.send(data.get("failed"))
+        if data["totalResults"] == 0:
+            return await ctx.send(
+                "No results found, ensure you're looking up the correct country code. Check [p]covidcountries for a list."
+            )
+        embeds = []
+        for article in data["articles"]:
+            embed = discord.Embed(
+                title=article["title"],
+                color=ctx.author.color,
+                description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
+                timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
+            )
+            embed.set_image(url=article["urlToImage"])
+            embed.set_author(name=f"{article['author']} - {article['source']['name']}")
+            embeds.append(embed)
+        if len(embeds) == 1:
+            await ctx.send(embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
+
+    @commands.command()
+    async def covidsetup(self, ctx):
+        """Instructions on how to setup covid related APIs."""
+        msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately."
+        await ctx.maybe_send_embed(msg)
 
     @commands.group(invoke_without_command=True)
     async def covid(self, ctx, *, country: typing.Optional[str]):
