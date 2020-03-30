@@ -81,7 +81,7 @@ class Covid(commands.Cog):
             embed.set_author(name=f"{article['author']} - {article['source']['name']}")
             embeds.append(embed)
         if len(embeds) == 1:
-            await ctx.send(embeds[0])
+            await ctx.send(embed=embeds[0])
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
 
