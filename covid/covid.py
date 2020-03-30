@@ -49,19 +49,6 @@ class Covid(commands.Cog):
             else:
                 return {"failed": data["message"]}
 
-    async def getnews(self, country, apikey):
-        async with self.session.get(self.newsapi.format(country, apikey)) as response:
-            data = await response.json()
-            if response.status == 200:
-                try:
-                    return data
-                except aiohttp.ServerTimeoutError:
-                    return {
-                        "failed": "Their appears to be an issue with the API. Please try again later."
-                    }
-            else:
-                return {"failed": data["message"]}
-
     @commands.command(hidden=True)
     async def covidcountries(self, ctx):
         """Countries supported by covidnews"""
@@ -75,7 +62,7 @@ class Covid(commands.Cog):
         
         Check [p]covidcountries for a list of all possible country codes supported."""
         async with ctx.typing():
-            data = await self.getnews(countrycode, self.newsapikey)
+            data = await self.get(self.newsapi.format(countrycode, self.newsapikey))
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:

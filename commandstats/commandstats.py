@@ -79,7 +79,11 @@ class CommandStats(commands.Cog):
                 for item in items:
                     stats.append(item)
                 embed = discord.Embed(
-                    title="Commands used", colour=ctx.author.color, description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog")
+                    title="Commands used",
+                    colour=ctx.author.color,
+                    description=box(
+                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
+                    ),
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
@@ -115,7 +119,9 @@ class CommandStats(commands.Cog):
                 embed = discord.Embed(
                     title="Commands used in this guild",
                     colour=ctx.author.color,
-                    description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"),
+                    description=box(
+                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
+                    ),
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
@@ -155,7 +161,9 @@ class CommandStats(commands.Cog):
                 embed = discord.Embed(
                     title="Commands used in this session",
                     colour=ctx.author.color,
-                    description=box(tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"),
+                    description=box(
+                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
+                    ),
                 )
                 embeds.append(embed)
             if len(embeds) == 1:
