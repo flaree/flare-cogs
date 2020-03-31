@@ -67,10 +67,12 @@ class Covid(commands.Cog):
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send(
-                "No results found, ensure you're looking up the correct country code. Check [p]covidcountries for a list."
+                "No results found, ensure you're looking up the correct country code. Check {}covidcountries for a list.".format(
+                    ctx.prefix
+                )
             )
         embeds = []
-        for article in data["articles"]:
+        for i, article in enumerate(data["articles"], 1):
             embed = discord.Embed(
                 title=article["title"],
                 color=ctx.author.color,
@@ -79,6 +81,7 @@ class Covid(commands.Cog):
             )
             embed.set_image(url=article["urlToImage"])
             embed.set_author(name=f"{article['author']} - {article['source']['name']}")
+            embed.set_footer(text=f"Article {i}/{data['totalResults']}")
             embeds.append(embed)
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
