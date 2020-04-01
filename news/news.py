@@ -67,7 +67,6 @@ class News(commands.Cog):
         
         Check [p]countrycodes for a list of all possible country codes supported."""
         async with ctx.typing():
-            print(self.api.format("top-headlines", "q={}".format(query) if query is not None else "", "&country={}".format(countrycode), self.newsapikey, ""))
             data = await self.get(self.api.format("top-headlines", "q={}".format(query) if query is not None else "", "&country={}".format(countrycode), self.newsapikey, ""))
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
