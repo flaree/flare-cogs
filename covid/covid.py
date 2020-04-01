@@ -91,7 +91,7 @@ class Covid(commands.Cog):
     @commands.command()
     async def covidsetup(self, ctx):
         """Instructions on how to setup covid related APIs."""
-        msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately."
+        msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately.".format(ctx.prefix)
         await ctx.maybe_send_embed(msg)
 
     @commands.group(invoke_without_command=True)
