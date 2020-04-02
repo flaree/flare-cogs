@@ -20,7 +20,9 @@ class News(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = "https://newsapi.org/v2/{}?{}&sortBy=publishedAt&pageSize=100{}&apiKey={}&page=1{}"
+        self.api = (
+            "https://newsapi.org/v2/{}?{}&sortBy=publishedAt&pageSize=100{}&apiKey={}&page=1{}"
+        )
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
 
@@ -67,7 +69,15 @@ class News(commands.Cog):
         
         Check [p]countrycodes for a list of all possible country codes supported."""
         async with ctx.typing():
-            data = await self.get(self.api.format("top-headlines", "q={}".format(query) if query is not None else "", "&country={}".format(countrycode), self.newsapikey, ""))
+            data = await self.get(
+                self.api.format(
+                    "top-headlines",
+                    "q={}".format(query) if query is not None else "",
+                    "&country={}".format(countrycode),
+                    self.newsapikey,
+                    "",
+                )
+            )
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
@@ -123,7 +133,7 @@ class News(commands.Cog):
     #         await ctx.send(embed=embeds[0])
     #     else:
     #         await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
-    
+
     # @news.command()
     # async def topglobal(self, ctx, *, query: str = None):
     #     """News from the World."""
@@ -152,4 +162,3 @@ class News(commands.Cog):
     #         await ctx.send(embed=embeds[0])
     #     else:
     #         await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
-

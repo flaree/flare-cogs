@@ -41,7 +41,9 @@ class Covid(commands.Cog):
             try:
                 data = await response.json()
             except aiohttp.ContentTypeError:
-                return {"failed": "Their appears to be an issue with the API. Please try again later."}
+                return {
+                    "failed": "Their appears to be an issue with the API. Please try again later."
+                }
             if response.status == 200:
                 try:
                     return data
@@ -94,7 +96,9 @@ class Covid(commands.Cog):
     @commands.command()
     async def covidsetup(self, ctx):
         """Instructions on how to setup covid related APIs."""
-        msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately.".format(ctx.prefix)
+        msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately.".format(
+            ctx.prefix
+        )
         await ctx.maybe_send_embed(msg)
 
     @commands.group(invoke_without_command=True)
@@ -122,7 +126,7 @@ class Covid(commands.Cog):
             if not data:
                 return await ctx.send("No data available.")
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | {} Statistics".format(data["country"]),
+                color=ctx.author.color, title="Covid-19 | {} Statistics".format(data["country"])
             )
             embed.add_field(name="Cases", value=humanize_number(data["cases"]))
             embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
@@ -264,7 +268,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["cases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Cases ".format(amount),
+                color=ctx.author.color, title="Covid-19 | Top {} Cases ".format(amount)
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -286,7 +290,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayCases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Cases Today ".format(amount),
+                color=ctx.author.color, title="Covid-19 | Top {} Cases Today ".format(amount)
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -308,7 +312,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["deaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Deaths ".format(amount),
+                color=ctx.author.color, title="Covid-19 | Top {} Deaths ".format(amount)
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -330,7 +334,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayDeaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Deaths Today ".format(amount),
+                color=ctx.author.color, title="Covid-19 | Top {} Deaths Today ".format(amount)
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
