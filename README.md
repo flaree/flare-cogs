@@ -29,7 +29,7 @@
 | Snipe | Snipe the last deleted message from a channel. |
 | Covid | Show various covid-19 related statistics or covid-19 related news. |
 | News (Incomplete) | Get the latest headlines from around the globe. |
-| serverlock | Lockdown a server. |
+| Serverlock | Lockdown a server. |
 
 
 

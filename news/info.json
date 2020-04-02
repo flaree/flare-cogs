@@ -7,5 +7,6 @@
     "short": "Grab the latest headlines, nationally or global..",
     "description": "Grab breaking headline around the world!",
     "tags": ["news", "information"],
+    "requirements": ["validators"],
     "min_bot_version": "3.2.0"
 }
