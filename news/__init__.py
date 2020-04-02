@@ -1,7 +1,7 @@
-from .covid import Covid
+from .news import News
 
 
 async def setup(bot):
-    n = Covid(bot)
+    n = News(bot)
     bot.add_cog(n)
     await n.initalize()

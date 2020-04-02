@@ -27,5 +27,7 @@
 | Highlight | Highlight key words said in a channel and be DM'ed when they're said. |
 | CommandStats | Stats for command usages per guild, session or globally. |
 | Snipe | Snipe the last deleted message from a channel. |
+| Covid | Show various covid-19 related statistics or covid-19 related news. |
+| News (Incomplete) | Get the latest headlines from around the globe. |
 
 
