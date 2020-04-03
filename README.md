@@ -30,6 +30,7 @@
 | Covid | Show various covid-19 related statistics or covid-19 related news. |
 | News (Incomplete) | Get the latest headlines from around the globe. |
 | Serverlock | Lockdown a server. |
+| DmInvites | Respond with the bots invite URL when DMd a server link. |
 
 
 
