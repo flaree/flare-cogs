@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.snipe")
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -59,7 +59,7 @@ class Snipe(commands.Cog):
         channel = channel or ctx.channel
         if not await self.config.guild(ctx.guild).toggle():
             await ctx.send(
-                f"Sniping is not allowed in this server! An admin may turn it on by typing {ctx.clean_prefix}snipeset enable command."
+                f"Sniping is not allowed in this server! An admin may turn it on by typing the `{ctx.clean_prefix}snipeset enable` command."
             )
             return
         guildcache = self.cache.get(ctx.guild.id, None)
@@ -76,17 +76,24 @@ class Snipe(commands.Cog):
             await ctx.send("There's nothing to snipe!")
             return
         author = ctx.guild.get_member(channelsnipe["author"])
-        embed = discord.Embed(
-            description=channelsnipe["content"],
-            timestamp=channelsnipe["timestamp"],
-            color=ctx.author.color,
-        )
+        if not channelsnipe["content"]:
+            embed = discord.Embed(
+                description="No message content.\nThe deleted message may have been an image or an embed.",
+                timestamp=channelsnipe["timestamp"],
+                color=ctx.author.color,
+            )
+        else:
+            embed = discord.Embed(
+                description=channelsnipe["content"],
+                timestamp=channelsnipe["timestamp"],
+                color=ctx.author.color,
+            )
+        embed.set_footer(text=f"Sniped by: {str(ctx.author)}")
         if author is None:
             embed.set_author(name="Removed Member")
         else:
-            embed.set_author(name=author, icon_url=author.avatar_url)
+            embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         await ctx.send(embed=embed)
-
     @checks.admin()
     @commands.group()
     async def snipeset(self, ctx):
@@ -103,7 +110,7 @@ class Snipe(commands.Cog):
             await ctx.send(f"Sniping has been enabled in {ctx.guild}.")
             return
         else:
-            await self.config.guild(ctx.guild).toggle.set(True)
+            await self.config.guild(ctx.guild).toggle.set(False)
             await ctx.send(f"Sniping has been disabled in {ctx.guild}.")
             return
 
@@ -119,7 +126,12 @@ class Snipe(commands.Cog):
             allowed_units=["seconds", "minutes"],
         ),
     ):
-        """Set the time before snipes expire"""
+        """ 
+        Set the time before snipes expire.  
+        
+        Takes seconds or minutes, use the whole unit name with the amount.  
+        Defaults to seconds if no unit name used.   
+        """
         duration = time.total_seconds()
         await self.config.guild(ctx.guild).timeout.set(duration)
         await ctx.tick()
