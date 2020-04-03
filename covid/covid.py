@@ -46,6 +46,8 @@ class Covid(commands.Cog):
                 }
             if response.status == 200:
                 try:
+                    if data.get("message") is not None:
+                        return {"failed": data["message"]}
                     return data
                 except aiohttp.ServerTimeoutError:
                     return {
