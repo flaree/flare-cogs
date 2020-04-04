@@ -7,7 +7,7 @@ import re
 class DmInvite(commands.Cog):
     """Respond to invites send in DMs"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -20,6 +20,7 @@ class DmInvite(commands.Cog):
         self.config.register_global(
             toggle=True,
             message="I've detected a discord server invite. If you'd like to invite me please click the link below.\n{link}",
+            embed=False,
         )
 
     async def invite_url(self):
@@ -29,9 +30,24 @@ class DmInvite(commands.Cog):
         return discord.utils.oauth_url(app_info.id, permissions)
 
     @commands.group()
+    @commands.is_owner()
     async def dminvite(self, ctx):
         """Group Commands for DM Invites"""
         pass
+
+    @dminvite.command()
+    @commands.is_owner()
+    async def settings(self, ctx):
+        """DM Invite Settings"""
+        embed = discord.Embed(title="DM Invite Settings", color=discord.Color.red())
+        embed.add_field(
+            name="Tracking Invites", value="Yes" if await self.config.toggle() else "No"
+        )
+        embed.add_field(name="Embeds", value="Yes" if await self.config.embed() else "No")
+        embed.add_field(name="Message", value=await self.config.message())
+        embed.add_field(name="Permissions Value", value=await self.bot._config.invite_perm())
+        embed.add_field(name="Link", value=f"[Click Here]({await self.invite_url()})")
+        await ctx.send(embed=embed)
 
     @dminvite.command()
     @commands.is_owner()
@@ -46,6 +62,20 @@ class DmInvite(commands.Cog):
         else:
             await self.config.toggle.set(True)
             await ctx.send("{} will auto-respond to invites sent in DMs.".format(ctx.me.name))
+
+    @dminvite.command()
+    @commands.is_owner()
+    async def embeds(self, ctx):
+        """Toggle whether the message is an embed or not."""
+        toggle = await self.config.embed()
+        if toggle:
+            await self.config.embed.set(False)
+            await ctx.send("Responses will no longer be sent as an embed.")
+        else:
+            await self.config.embed.set(True)
+            await ctx.send(
+                "Responses will now be sent as an embeed. You can now use other markdown such as link masking etc."
+            )
 
     @dminvite.command()
     @commands.is_owner()
@@ -66,4 +96,11 @@ class DmInvite(commands.Cog):
             link_res = INVITE_URL_RE.findall(message.content)
             if link_res:
                 msg = await self.config.message()
+                if await self.config.embed():
+                    embed = discord.Embed(
+                        color=discord.Color.red(),
+                        description=msg.format(link=await self.invite_url()),
+                    )
+                    await message.author.send(embed=embed)
+                    return
                 await message.author.send(msg.format(link=await self.invite_url()))
