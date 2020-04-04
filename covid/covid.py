@@ -10,7 +10,7 @@ import datetime
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -46,8 +46,9 @@ class Covid(commands.Cog):
                 }
             if response.status == 200:
                 try:
-                    if data.get("message") is not None:
-                        return {"failed": data["message"]}
+                    if isinstance(data, dict):
+                        if data.get("message") is not None:
+                            return {"failed": data["message"]}
                     return data
                 except aiohttp.ServerTimeoutError:
                     return {
