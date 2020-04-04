@@ -74,7 +74,7 @@ class DmInvite(commands.Cog):
         else:
             await self.config.embed.set(True)
             await ctx.send(
-                "Responses will now be sent as an embeed. You can now use other markdown such as link masking etc."
+                "Responses will now be sent as an embed. You can now use other markdown such as link masking etc."
             )
 
     @dminvite.command()

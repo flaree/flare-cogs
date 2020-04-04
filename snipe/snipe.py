@@ -94,6 +94,7 @@ class Snipe(commands.Cog):
         else:
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         await ctx.send(embed=embed)
+
     @checks.admin()
     @commands.group()
     async def snipeset(self, ctx):
