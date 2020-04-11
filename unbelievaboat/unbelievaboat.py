@@ -1,6 +1,6 @@
 import datetime
 import random
-from typing import Optional
+from typing import Optional, Union
 
 import discord
 from redbot.core import Config, bank, checks, commands
@@ -50,7 +50,7 @@ def wallet_disabled_check():
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -757,8 +757,12 @@ class Unbelievaboat(commands.Cog):
     @commands.command()
     @wallet_disabled_check()
     @commands.guild_only()
-    async def deposit(self, ctx, amount: int):
+    async def deposit(self, ctx, amount: Union[int, str]):
         """Deposit cash from your wallet to your bank."""
+        if isinstance(amount, str):
+            if amount != "all":
+                return await ctx.send("You must provide a valid number or the string `all`.")
+            amount = await self.config.member(ctx.author).wallet()
         await self.bankdeposit(ctx, ctx.author, amount)
 
     @commands.command()
