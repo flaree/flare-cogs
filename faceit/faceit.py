@@ -15,7 +15,7 @@ async def tokencheck(ctx):
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -99,8 +99,14 @@ class Faceit(commands.Cog):
         """Faceit Profile Stats"""
         if user is None:
             name = await self.config.user(ctx.author).name()
+            if name is None:
+                return await ctx.send(
+                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
+                )
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
+            if name is None:
+                name = await self.get_userid(user)
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
@@ -139,8 +145,14 @@ class Faceit(commands.Cog):
         """Faceit Match Stats"""
         if user is None:
             name = await self.config.user(ctx.author).name()
+            if name is None:
+                return await ctx.send(
+                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
+                )
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
+            if name is None:
+                name = await self.get_userid(user)
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
@@ -226,8 +238,14 @@ class Faceit(commands.Cog):
         """In-depth stats for any faceit supported game."""
         if user is None:
             name = await self.config.user(ctx.author).name()
+            if name is None:
+                return await ctx.send(
+                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
+                )
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
+            if name is None:
+                name = await self.get_userid(user)
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
