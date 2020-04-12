@@ -5,7 +5,7 @@ import typing
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from datetime import datetime
-import contextlib
+from .funcs import match_info, account_matches, account_stats
 
 
 async def tokencheck(ctx):
@@ -13,36 +13,19 @@ async def tokencheck(ctx):
     return bool(token.get("authorization"))
 
 
-async def match_info(
-    ctx: commands.Context,
-    pages: list,
-    controls: dict,
-    message: discord.Message,
-    page: int,
-    timeout: float,
-    emoji: str,
-):
-    perms = message.channel.permissions_for(ctx.me)
-    if perms.manage_messages:  # Can manage messages, so remove react
-        with contextlib.suppress(discord.NotFound):
-            await message.remove_reaction(emoji, ctx.author)
-    command = ctx.bot.get_command("faceit match")
-    await ctx.send(
-        "Click the X on the in-depth game statistics to return to the menu before.",
-        delete_after=20,
-    )
-    await ctx.invoke(command, match_id=message.embeds[0].to_dict()["fields"][0]["value"])
-    return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
-
-
 controls = DEFAULT_CONTROLS
 controls["\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}"] = match_info
+
+profile_controls = {
+    "\N{SPORTS MEDAL}": account_stats,
+    "\N{CROSSED SWORDS}\N{VARIATION SELECTOR-16}": account_matches,
+}
 
 
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics"""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -147,7 +130,7 @@ class Faceit(commands.Cog):
         embed = discord.Embed(
             color=ctx.author.color,
             title="Faceit Profile for {}".format(profilestats["nickname"]),
-            description="[Profile Link - Click Here]({})".format(
+            description="[Profile Link - Click Here]({})\n\nPress the \N{SPORTS MEDAL} button for your first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for your most recent matches.".format(
                 profilestats["faceit_url"].format(lang=profilestats["settings"]["language"])
             ),
         )
@@ -165,7 +148,7 @@ class Faceit(commands.Cog):
                 name=game.title(),
                 value=f"**Region**: {profilestats['games'][game]['region']}\n**Skill Level**: {profilestats['games'][game]['skill_level']}\n**ELO**: {profilestats['games'][game]['faceit_elo']}",
             )
-        await ctx.send(embed=embed)
+        await menu(ctx, [embed], profile_controls, timeout=30)
 
     @faceit.command()
     async def matches(self, ctx, *, user: typing.Union[discord.User, str] = None):
@@ -214,7 +197,7 @@ class Faceit(commands.Cog):
                 embed.add_field(name=f"{teams[team]} Players", value="\n".join(players))
 
             embeds.append(embed)
-        await menu(ctx, embeds, controls, timeout=90)
+        await menu(ctx, embeds, controls, timeout=30)
 
     @faceit.command()
     async def match(self, ctx, match_id):
@@ -259,7 +242,7 @@ class Faceit(commands.Cog):
             embed.add_field(name="\u200b", value="\u200b")
             embed.set_footer(text=f"Page {i}/3")
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=120)
+        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=60)
 
     @faceit.command()
     async def stats(self, ctx, game, *, user: typing.Union[discord.User, str] = None):
@@ -309,4 +292,4 @@ class Faceit(commands.Cog):
             embed.set_thumbnail(url=segment["img_regular"])
             embed.set_footer(text=f"Page {i}/{len(stats['segments']) + 1}")
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
+        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=30)
