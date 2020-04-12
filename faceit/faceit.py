@@ -5,6 +5,7 @@ import typing
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from datetime import datetime
+import contextlib
 
 
 async def tokencheck(ctx):
@@ -12,10 +13,36 @@ async def tokencheck(ctx):
     return bool(token.get("authorization"))
 
 
+async def match_info(
+    ctx: commands.Context,
+    pages: list,
+    controls: dict,
+    message: discord.Message,
+    page: int,
+    timeout: float,
+    emoji: str,
+):
+    perms = message.channel.permissions_for(ctx.me)
+    if perms.manage_messages:  # Can manage messages, so remove react
+        with contextlib.suppress(discord.NotFound):
+            await message.remove_reaction(emoji, ctx.author)
+    command = ctx.bot.get_command("faceit match")
+    await ctx.send(
+        "Click the X on the in-depth game statistics to return to the menu before.",
+        delete_after=20,
+    )
+    await ctx.invoke(command, match_id=message.embeds[0].to_dict()["fields"][0]["value"])
+    return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
+
+
+controls = DEFAULT_CONTROLS
+controls["\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}"] = match_info
+
+
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics"""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -171,9 +198,10 @@ class Faceit(commands.Cog):
             }
             embed = discord.Embed(
                 title=f"{game['competition_name']} - {teams['faction1']} vs {teams['faction2']}",
-                description=f"Winner: **{teams[game['results']['winner']]}**\n[Match Room - Click Here]({game['faceit_url']})\n\n\n{ctx.prefix}faceit match {game['match_id']} for more in-depth information.",
+                description=f"Winner: **{teams[game['results']['winner']]}**\n[Match Room - Click Here]({game['faceit_url']})\n\nClick on the \N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16} button below for more detailed statistics.",
                 timestamp=datetime.fromtimestamp(game["started_at"]),
             )
+            embed.add_field(name="Match ID", value=game["match_id"], inline=False)
             embed.set_footer(
                 text=f"Game {i}/20 - Duration: {humanize_timedelta(seconds=game['finished_at'] - game['started_at'])}"
             )
@@ -186,7 +214,7 @@ class Faceit(commands.Cog):
                 embed.add_field(name=f"{teams[team]} Players", value="\n".join(players))
 
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
+        await menu(ctx, embeds, controls, timeout=90)
 
     @faceit.command()
     async def match(self, ctx, match_id):
