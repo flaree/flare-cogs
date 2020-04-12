@@ -1,16 +1,18 @@
+import datetime
+import typing
+
+import aiohttp
+import discord
+import validators
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_number
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-import discord
-import aiohttp
-import typing
-import datetime
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -87,7 +89,8 @@ class Covid(commands.Cog):
                 description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
                 timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
             )
-            embed.set_image(url=article["urlToImage"])
+            if validators.url(article["urlToImage"]):
+                embed.set_image(url=article["urlToImage"])
             embed.set_author(name=f"{article['author']} - {article['source']['name']}")
             embed.set_footer(text=f"Article {i}/{data['totalResults']}")
             embeds.append(embed)

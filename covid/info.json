@@ -6,5 +6,6 @@
     "short": "Show Covid-19 (Novel Coronavirus) Statistics.",
     "description": "List stats of Covid-19, global or countrywise!",
     "tags": ["covid", "coronavirus"],
+    "requirements": ["validators"],
     "min_bot_version": "3.2.0"
 }
