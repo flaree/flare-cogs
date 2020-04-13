@@ -1,11 +1,15 @@
-from redbot.core import commands, Config
-import discord
-import aiohttp
 import typing
-from redbot.core.utils.chat_formatting import humanize_timedelta
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from copy import deepcopy
 from datetime import datetime
-from .funcs import match_info, account_matches, account_stats
+
+import aiohttp
+import discord
+from redbot.core import Config, commands
+from redbot.core.utils.chat_formatting import humanize_timedelta
+from redbot.core.utils.menus import (DEFAULT_CONTROLS, close_menu, menu,
+                                     next_page, prev_page)
+
+from .funcs import account_matches, account_stats, match_info
 
 
 async def tokencheck(ctx):
@@ -13,8 +17,7 @@ async def tokencheck(ctx):
     return bool(token.get("authorization"))
 
 
-controls = DEFAULT_CONTROLS
-controls["\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}"] = match_info
+controls = {"⬅": prev_page, "❌": close_menu, "➡": next_page, "\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}": match_info}
 
 profile_controls = {
     "\N{SPORTS MEDAL}": account_stats,
@@ -25,7 +28,7 @@ profile_controls = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics"""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
