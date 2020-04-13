@@ -1,13 +1,11 @@
 import typing
-from copy import deepcopy
 from datetime import datetime
 
 import aiohttp
 import discord
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
-from redbot.core.utils.menus import (DEFAULT_CONTROLS, close_menu, menu,
-                                     next_page, prev_page)
+from redbot.core.utils.menus import DEFAULT_CONTROLS, close_menu, menu, next_page, prev_page
 
 from .funcs import account_matches, account_stats, match_info
 
@@ -17,7 +15,12 @@ async def tokencheck(ctx):
     return bool(token.get("authorization"))
 
 
-controls = {"⬅": prev_page, "❌": close_menu, "➡": next_page, "\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}": match_info}
+controls = {
+    "⬅": prev_page,
+    "❌": close_menu,
+    "➡": next_page,
+    "\N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16}": match_info,
+}
 
 profile_controls = {
     "\N{SPORTS MEDAL}": account_stats,

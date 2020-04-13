@@ -18,9 +18,7 @@ async def match_info(
         with contextlib.suppress(discord.NotFound):
             await message.remove_reaction(emoji, ctx.author)
     command = ctx.bot.get_command("faceit match")
-    await ctx.send(
-        "Click the X on the match menu to return to the menu before.", delete_after=20,
-    )
+    await ctx.send("Click the X on the match menu to return to the menu before.", delete_after=20)
     await ctx.invoke(command, match_id=message.embeds[0].to_dict()["fields"][0]["value"])
     return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
 
@@ -40,7 +38,7 @@ async def account_stats(
             await message.remove_reaction(emoji, ctx.author)
     command = ctx.bot.get_command("faceit stats")
     await ctx.send(
-        "Click the X on the in-depth statistics to return to the menu before.", delete_after=20,
+        "Click the X on the in-depth statistics to return to the menu before.", delete_after=20
     )
     await ctx.invoke(command, game=message.embeds[0].to_dict()["fields"][4]["name"].lower())
     return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
