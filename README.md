@@ -31,6 +31,7 @@
 | News (Incomplete) | Get the latest headlines from around the globe. |
 | Serverlock | Lockdown a server. |
 | DmInvites | Respond with the bots invite URL when DMd a server link. |
+| Faceit | Return faceit statistics for various game, matches and profiles. |
 
 
 
