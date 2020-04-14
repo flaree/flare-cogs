@@ -19,7 +19,7 @@ def chunks(l, n):
 class CommandStats(commands.Cog):
     """Command Statistics"""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -67,6 +67,8 @@ class CommandStats(commands.Cog):
         This command does not log the issuing command."""
         await self.update_global()
         data = await self.config.globaldata()
+        if not data:
+            return await ctx.send("No commands have been used yet.")
         if command is None:
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
@@ -104,7 +106,7 @@ class CommandStats(commands.Cog):
         data = await self.config.guilddata()
         data = data[str(ctx.guild.id)]
         if not data:
-            return await ctx.send("No commands have been used in this session")
+            return await ctx.send("No commands have been used in this guild yet.")
         if command is None:
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
