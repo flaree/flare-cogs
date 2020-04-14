@@ -82,7 +82,7 @@ class CommandStats(commands.Cog):
                     stats.append(item)
                 embed = discord.Embed(
                     title="Commands used",
-                    colour=ctx.author.color,
+                    colour=await self.bot.get_embed_color(ctx.channel),
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
                     ),
@@ -120,7 +120,7 @@ class CommandStats(commands.Cog):
                     stats.append(item)
                 embed = discord.Embed(
                     title="Commands used in this guild",
-                    colour=ctx.author.color,
+                    colour=await self.bot.get_embed_color(ctx.channel),
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
                     ),
@@ -162,7 +162,7 @@ class CommandStats(commands.Cog):
                     stats.append(item)
                 embed = discord.Embed(
                     title="Commands used in this session",
-                    colour=ctx.author.color,
+                    colour=await self.bot.get_embed_color(ctx.channel),
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
                     ),
