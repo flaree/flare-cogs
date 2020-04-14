@@ -91,7 +91,7 @@ class News(commands.Cog):
         for i, article in enumerate(data["articles"][:15], 1):
             embed = discord.Embed(
                 title=article["title"],
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
                 timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
             )
@@ -121,7 +121,7 @@ class News(commands.Cog):
     #     for i, article in enumerate(data["articles"][:15], 1):
     #         embed = discord.Embed(
     #             title=article["title"],
-    #             color=ctx.author.color,
+    #             color=await self.bot.get_embed_color(ctx.channel),
     #             description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
     #             timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
     #         )
@@ -150,7 +150,7 @@ class News(commands.Cog):
     #     for i, article in enumerate(data["articles"][:15], 1):
     #         embed = discord.Embed(
     #             title=article["title"],
-    #             color=ctx.author.color,
+    #             color=await self.bot.get_embed_color(ctx.channel),
     #             description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
     #             timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
     #         )

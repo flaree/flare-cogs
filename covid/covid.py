@@ -85,7 +85,7 @@ class Covid(commands.Cog):
         for i, article in enumerate(data["articles"], 1):
             embed = discord.Embed(
                 title=article["title"],
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
                 timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
             )
@@ -118,7 +118,10 @@ class Covid(commands.Cog):
                     return await ctx.send(data.get("failed"))
             if not data:
                 return await ctx.send("No data available.")
-            embed = discord.Embed(color=ctx.author.color, title="Covid-19 Global Statistics")
+            embed = discord.Embed(
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 Global Statistics",
+            )
             embed.add_field(name="Cases", value=humanize_number(data["cases"]))
             embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
             embed.add_field(name="Recovered", value=humanize_number(data["recovered"]))
@@ -132,7 +135,8 @@ class Covid(commands.Cog):
             if not data:
                 return await ctx.send("No data available.")
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | {} Statistics".format(data["country"])
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 | {} Statistics".format(data["country"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data["cases"]))
             embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
@@ -155,7 +159,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayCases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 | Highest Cases Today | {}".format(data[0]["country"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[0]["cases"]))
@@ -182,7 +186,10 @@ class Covid(commands.Cog):
             for i in range(len(data)):
                 todayDeaths += int(data[i]["todayDeaths"])
                 todayCases += int(data[i]["todayCases"])
-            embed = discord.Embed(title="Covid-19 Statistics for Today", color=ctx.author.color)
+            embed = discord.Embed(
+                title="Covid-19 Statistics for Today",
+                color=await self.bot.get_embed_color(ctx.channel),
+            )
             embed.add_field(name="Cases Today", value=humanize_number(todayCases))
             embed.add_field(name="Deaths Today", value=humanize_number(todayDeaths))
             await ctx.send(embed=embed)
@@ -200,7 +207,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayDeaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 | Highest Deaths Today | {}".format(data[0]["country"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[0]["cases"]))
@@ -224,7 +231,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["cases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 | Highest Cases Overall | {}".format(data[0]["country"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[0]["cases"]))
@@ -248,7 +255,7 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["deaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 | Highest Deaths Overall | {}".format(data[0]["country"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[0]["cases"]))
@@ -274,7 +281,8 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["cases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Cases ".format(amount)
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 | Top {} Cases ".format(amount),
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -296,7 +304,8 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayCases"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Cases Today ".format(amount)
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 | Top {} Cases Today ".format(amount),
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -318,7 +327,8 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["deaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Deaths ".format(amount)
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 | Top {} Deaths ".format(amount),
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -340,7 +350,8 @@ class Covid(commands.Cog):
                 return await ctx.send("No data available.")
             data = sorted(data, key=lambda x: x["todayDeaths"], reverse=True)
             embed = discord.Embed(
-                color=ctx.author.color, title="Covid-19 | Top {} Deaths Today ".format(amount)
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 | Top {} Deaths Today ".format(amount),
             )
             for i in range(amount):
                 msg = f'**Cases**: {humanize_number(data[i]["cases"])}\n**Deaths**: {humanize_number(data[i]["deaths"])}\n**Recovered**: {humanize_number(data[i]["recovered"])}\n**Cases Today**: {humanize_number(data[i]["todayCases"])}\n**Deaths**: {humanize_number(data[i]["todayDeaths"])}\n**Critical**: {humanize_number(data[i]["critical"])}'
@@ -365,7 +376,7 @@ class Covid(commands.Cog):
             if statedata is None:
                 return await ctx.send("No statistics/State not found.")
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 | USA | {} Statistics".format(data[statedata]["state"]),
             )
             embed.add_field(name="Cases", value=humanize_number(data[statedata]["cases"]))
