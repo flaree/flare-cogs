@@ -12,7 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -112,7 +112,7 @@ class Covid(commands.Cog):
         """Stats about Covid-19."""
         if not country:
             async with ctx.typing():
-                data = await self.get(self.api + "/all")
+                data = await self.get(self.api + "v2/all")
             if isinstance(data, dict):
                 if data.get("failed") is not None:
                     return await ctx.send(data.get("failed"))
@@ -128,7 +128,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
         else:
             async with ctx.typing():
-                data = await self.get(self.api + "/countries/{}".format(country))
+                data = await self.get(self.api + "v2/countries/{}".format(country))
             error = data.get("failed")
             if error is not None:
                 return await ctx.send(error)
@@ -150,7 +150,7 @@ class Covid(commands.Cog):
     async def todaycases(self, ctx):
         """Show the highest cases from countrys today"""
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -174,7 +174,7 @@ class Covid(commands.Cog):
     async def today(self, ctx):
         """Statistics for today."""
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -198,7 +198,7 @@ class Covid(commands.Cog):
     async def todaydeaths(self, ctx):
         """Show the highest deaths from countrys today"""
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -222,7 +222,7 @@ class Covid(commands.Cog):
     async def highestcases(self, ctx):
         """Show the highest cases from countrys overall"""
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -246,7 +246,7 @@ class Covid(commands.Cog):
     async def highestdeaths(self, ctx):
         """Show the highest deaths from countrys overall"""
         async with ctx.typing():
-            data = await self.get(self.api + "/countries?sort=deaths")
+            data = await self.get(self.api + "v2/countries?sort=deaths")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -272,7 +272,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -295,7 +295,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -318,7 +318,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -341,7 +341,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "/countries")
+            data = await self.get(self.api + "v2/countries")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -362,7 +362,7 @@ class Covid(commands.Cog):
     async def state(self, ctx, *, state: str):
         """Show stats for a specific state."""
         async with ctx.typing():
-            data = await self.get(self.api + "/states")
+            data = await self.get(self.api + "v2/states")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
