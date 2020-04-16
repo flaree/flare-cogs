@@ -12,7 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.8dev1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -21,7 +21,7 @@ class Covid(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = "https://corona.lmao.ninja"
+        self.api = "https://corona.lmao.ninja/"
         self.newsapi = "https://newsapi.org/v2/top-headlines?q=COVID&sortBy=publishedAt&pageSize=100&country={}&apiKey={}&page=1"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
