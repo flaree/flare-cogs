@@ -12,7 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.4"
+    __version__ = "1.1.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -48,10 +48,8 @@ class Highlight(commands.Cog):
                     ):
                         msglist.append(messages)
                     msglist.reverse()
-                    highlighted = self.bot.get_user(int(user))
+                    highlighted = message.guild.get_member(int(user))
                     if highlighted is None:
-                        highlighted = await self.bot.fetch_user(int(user))
-                    if highlighted not in message.guild.members:
                         continue
                     context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
                     if len(context) > 2000:
