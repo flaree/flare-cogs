@@ -7,7 +7,7 @@ from typing import Union
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.3"
+    __version__ = "1.2.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -82,12 +82,13 @@ class Forward(commands.Cog):
         pass
 
     @forwardset.command(aliases=["botmessage"])
-    async def botmsg(self, ctx, type: bool):
+    async def botmsg(self, ctx, type: bool = None):
         """
         Set whether to send notifications when the bot sends a message.
         Type must be a valid bool.
         """
         async with self.config.toggles() as toggles:
+            type = not toggles.get("botmessages")
             if type:
                 toggles["botmessages"] = True
                 await ctx.send("Bot message notifications have been enabled.")
