@@ -12,7 +12,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.5"
+    __version__ = "1.1.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -116,11 +116,13 @@ class Highlight(commands.Cog):
                 await ctx.send("You do not have any highlighted words in that channel.")
 
     @highlight.command()
-    async def toggle(self, ctx, state: bool):
+    async def toggle(self, ctx, state: bool = None):
         """Toggle highlighting.
         
         Must be a valid bool."""
         async with self.config.channel(ctx.channel).toggle() as toggle:
+            if state is None:
+                state = not toggle.get(f"{ctx.author.id}", True)
             if state:
                 toggle[f"{ctx.author.id}"] = state
                 await ctx.send(
@@ -133,11 +135,13 @@ class Highlight(commands.Cog):
                 )
 
     @highlight.command()
-    async def bots(self, ctx, state: bool):
+    async def bots(self, ctx, state: bool = None):
         """Enable highlighting of bot messages.
         
         Expects a valid bool."""
         async with self.config.channel(ctx.channel).bots() as bots:
+            if state is None:
+                state = not bots.get(f"{ctx.author.id}", True)
             if state:
                 bots[f"{ctx.author.id}"] = state
                 await ctx.send(
