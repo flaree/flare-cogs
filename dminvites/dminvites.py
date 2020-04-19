@@ -7,7 +7,7 @@ import re
 class DmInvite(commands.Cog):
     """Respond to invites send in DMs"""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -51,9 +51,9 @@ class DmInvite(commands.Cog):
 
     @dminvite.command()
     @commands.is_owner()
-    async def toggle(self, ctx):
+    async def toggle(self, ctx, toggle: bool = None):
         """Turn DM responding on/off"""
-        toggle = await self.config.toggle()
+        toggle = toggle or await self.config.toggle()
         if toggle:
             await self.config.toggle.set(False)
             await ctx.send(
@@ -65,9 +65,9 @@ class DmInvite(commands.Cog):
 
     @dminvite.command()
     @commands.is_owner()
-    async def embeds(self, ctx):
+    async def embeds(self, ctx, toggle: bool = None):
         """Toggle whether the message is an embed or not."""
-        toggle = await self.config.embed()
+        toggle = toggle or await self.config.embed()
         if toggle:
             await self.config.embed.set(False)
             await ctx.send("Responses will no longer be sent as an embed.")
