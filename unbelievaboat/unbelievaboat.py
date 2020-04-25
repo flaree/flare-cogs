@@ -50,7 +50,7 @@ def wallet_disabled_check():
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.2.2"
+    __version__ = "0.2.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -673,7 +673,7 @@ class Unbelievaboat(commands.Cog):
 
     @wallet.command()
     @commands.guild_only()
-    async def balance(self, ctx, user=None):
+    async def balance(self, ctx, user: discord.Member = None):
         """Show the user's wallet balance.
 
         Defaults to yours."""
