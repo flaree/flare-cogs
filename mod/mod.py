@@ -17,7 +17,7 @@ log = logging.getLogger("red.mod")
 class Mod(ModClass):
     """Mod with timed mute."""
 
-    __version__ = "1.1.2"
+    __version__ = "1.1.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -27,11 +27,11 @@ class Mod(ModClass):
     def __init__(self, bot):
         super().__init__(bot)
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
+        self.__config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         defaultsguild = {"muterole": None, "respect_hierarchy": True}
         defaults = {"muted": {}}
-        self.config.register_guild(**defaultsguild)
-        self.config.register_global(**defaults)
+        self.__config.register_guild(**defaultsguild)
+        self.__config.register_global(**defaults)
         self.loop = bot.loop.create_task(self.unmute_loop())
 
     voice_mute = None
@@ -47,7 +47,7 @@ class Mod(ModClass):
 
     async def unmute_loop(self):
         while True:
-            muted = await self.config.muted()
+            muted = await self.__config.muted()
             for guild in muted:
                 for user in muted[guild]:
                     if datetime.utcfromtimestamp(muted[guild][user]["expiry"]) < datetime.utcnow():
@@ -58,7 +58,7 @@ class Mod(ModClass):
         guild = self.bot.get_guild(int(guildid))
         if guild is None:
             return
-        mutedroleid = await self.config.guild(guild).muterole()
+        mutedroleid = await self.__config.guild(guild).muterole()
         muterole = guild.get_role(mutedroleid)
         member = guild.get_member(int(user))
         if member is not None:
@@ -79,7 +79,7 @@ class Mod(ModClass):
             )
         else:
             log.info("{} is no longer in {}, removing from muted list.".format(user, guild))
-        async with self.config.muted() as muted:
+        async with self.__config.muted() as muted:
             if user in muted[guildid]:
                 del muted[guildid][user]
 
@@ -87,7 +87,7 @@ class Mod(ModClass):
         muted_role = await guild.create_role(
             name="Muted", reason="Muted role created by Pikachu for timed mutes."
         )
-        await self.config.guild(guild).muterole.set(muted_role.id)
+        await self.__config.guild(guild).muterole.set(muted_role.id)
         o = discord.PermissionOverwrite(send_messages=False, add_reactions=False, connect=False)
         for channel in guild.channels:
             mr_overwrite = channel.overwrites.get(muted_role)
@@ -115,7 +115,7 @@ class Mod(ModClass):
         if duration is None:
             duration = timedelta(minutes=10)
         guild = ctx.guild
-        roleid = await self.config.guild(guild).muterole()
+        roleid = await self.__config.guild(guild).muterole()
         if roleid is None:
             await ctx.send(
                 "There is currently no mute role set for this server. If you would like one to be automatically setup then type yes, otherwise type no then one can be set via {}mute roleset <role>".format(
@@ -131,7 +131,7 @@ class Mod(ModClass):
             if pred.result:
                 await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
                 await self.create_muted_role(guild)
-                roleid = await self.config.guild(guild).muterole()
+                roleid = await self.__config.guild(guild).muterole()
             else:
                 await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
                 return
@@ -142,7 +142,7 @@ class Mod(ModClass):
             )
         completed = []
         failed = []
-        async with self.config.muted() as muted:
+        async with self.__config.muted() as muted:
             if str(ctx.guild.id) not in muted:
                 muted[str(ctx.guild.id)] = {}
             for user in users:
@@ -150,7 +150,7 @@ class Mod(ModClass):
                     failed.append(f"{user} - Self harm is bad.")
                     continue
                 if not await is_allowed_by_hierarchy(
-                    self.bot, self.config, guild, ctx.author, user
+                    self.bot, self.__config, guild, ctx.author, user
                 ):
                     failed.append(
                         f"{user} - You are not higher than this user in the role hierarchy"
@@ -201,7 +201,7 @@ class Mod(ModClass):
     @mute.command()
     async def roleset(self, ctx, role: discord.Role):
         """Set a mute role."""
-        await self.config.guild(ctx.guild).muterole.set(role.id)
+        await self.__config.guild(ctx.guild).muterole.set(role.id)
         await ctx.send("The muted role has been set to {}".format(role.name))
 
     @checks.mod_or_permissions(manage_roles=True)
@@ -209,7 +209,7 @@ class Mod(ModClass):
     @commands.group(invoke_without_command=True, name="unmute")
     async def _unmute(self, ctx, users: commands.Greedy[discord.Member]):
         """Unmute users."""
-        muted = await self.config.muted()
+        muted = await self.__config.muted()
         for user in users:
             if str(ctx.guild.id) not in muted:
                 return await ctx.send("There is nobody currently muted in this server.")
@@ -220,7 +220,7 @@ class Mod(ModClass):
     @mute.command()
     async def list(self, ctx):
         """List those who are muted."""
-        muted = await self.config.muted()
+        muted = await self.__config.muted()
         guildmuted = muted.get(str(ctx.guild.id))
         if guildmuted is None:
             return await ctx.send("There is currently nobody muted in {}".format(ctx.guild))
