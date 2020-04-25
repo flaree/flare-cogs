@@ -7,7 +7,7 @@ import re
 class DmInvite(commands.Cog):
     """Respond to invites send in DMs"""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -44,9 +44,11 @@ class DmInvite(commands.Cog):
             name="Tracking Invites", value="Yes" if await self.config.toggle() else "No"
         )
         embed.add_field(name="Embeds", value="Yes" if await self.config.embed() else "No")
-        embed.add_field(name="Message", value=await self.config.message())
+        msg = await self.config.message()
+        embed.add_field(name="Message", value=msg)
         embed.add_field(name="Permissions Value", value=await self.bot._config.invite_perm())
-        embed.add_field(name="Link", value=f"[Click Here]({await self.invite_url()})")
+        if "{link}" in msg:
+            embed.add_field(name="Link", value=f"[Click Here]({await self.invite_url()})")
         await ctx.send(embed=embed)
 
     @dminvite.command()
@@ -80,9 +82,10 @@ class DmInvite(commands.Cog):
     @dminvite.command()
     @commands.is_owner()
     async def message(self, ctx, *, message: str):
-        """Set the message that the bot will respond with. The message must contain {link}."""
-        if "{link}" not in message:
-            return await ctx.send("The message must contain `{link}`.")
+        """Set the message that the bot will respond with. 
+        
+        **Available Parameters**:
+        {link} - return the bots oauth url with the permissions you've set with the core inviteset."""
         await self.config.message.set(message)
         await ctx.tick()
 
@@ -96,11 +99,10 @@ class DmInvite(commands.Cog):
             link_res = INVITE_URL_RE.findall(message.content)
             if link_res:
                 msg = await self.config.message()
+                if "{link}" in msg:
+                    msg = msg.format(link=await self.invite_url())
                 if await self.config.embed():
-                    embed = discord.Embed(
-                        color=discord.Color.red(),
-                        description=msg.format(link=await self.invite_url()),
-                    )
+                    embed = discord.Embed(color=discord.Color.red(), description=msg)
                     await message.author.send(embed=embed)
                     return
-                await message.author.send(msg.format(link=await self.invite_url()))
+                await message.author.send(msg)
