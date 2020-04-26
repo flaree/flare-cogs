@@ -1,13 +1,16 @@
+import asyncio
 import datetime
 import random
 from typing import Optional, Union
 
 import discord
+import tabulate
 from redbot.core import Config, bank, checks, commands
-from redbot.core.utils.chat_formatting import humanize_timedelta, box
+from redbot.core.utils.chat_formatting import box, humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-from .defaultreplies import work, crimes
+from .defaultreplies import crimes, work
+from .roulette import COLUMNS, EMOJIS, NUMBERS
 
 
 def chunks(l, n):
@@ -47,10 +50,19 @@ def wallet_disabled_check():
     return commands.check(predicate)
 
 
+def roulette_disabled_check():
+    async def predicate(ctx):
+        if await bank.is_global():
+            return await ctx.bot.get_cog("Unbelievaboat").config.roulette_toggle()
+        return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).roulette_toggle()
+
+    return commands.check(predicate)
+
+
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.2.3"
+    __version__ = "0.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -69,11 +81,27 @@ class Unbelievaboat(commands.Cog):
             "fines": {"max": 250, "min": 10},
             "interest": 5,
             "disable_wallet": False,
+            "roulette_toggle": True,
+            "roulette_time": 60,
+            "roulette_payouts": {
+                "zero": 36,
+                "single": 17,
+                "color": 1,
+                "dozen": 2,
+                "odd_or_even": 1,
+                "halfs": 1,
+                "column": 2,
+            },
+            "bet_min": 100,
+            "bet_max": 10000,
         }
         defaults_member = {
             "cooldowns": {"workcd": None, "crimecd": None, "robcd": None},
             "wallet": 0,
+            "winnings": 0,
+            "losses": 0,
         }
+        self.roulettegames = {}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_global(**defaults)
         self.config.register_guild(**defaults)
@@ -123,6 +151,14 @@ class Unbelievaboat(commands.Cog):
             await conf.wallet.set(wallet - amount)
         else:
             await conf.wallet.set(0)
+
+    async def walletwithdraw(self, user, amount):
+        conf = await self.configglobalcheckuser(user)
+        wallet = await conf.wallet()
+        if amount < wallet:
+            await conf.wallet.set(wallet - amount)
+        else:
+            raise ValueError
 
     async def walletset(self, user, amount):
         conf = await self.configglobalcheckuser(user)
@@ -223,10 +259,15 @@ class Unbelievaboat(commands.Cog):
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
+    @commands.group(name="unbset", aliases=["unb-se;"])
+    async def unb_set(self, ctx):
+        """Manage various settings for Unbelievaboat"""
+        pass
+
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-cooldown")
+    @unb_set.command(name="cooldown")
     async def cooldown_set(
         self,
         ctx,
@@ -266,7 +307,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-payout", usage="<work | crime> <min | max> <amount>")
+    @unb_set.command(name="payout", usage="<work | crime> <min | max> <amount>")
     async def payout_set(self, ctx, job: str, min_or_max: str, amount: int):
         """Set the min or max payout for working or crimes"""
         if job not in ["work", "crime"]:
@@ -281,7 +322,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-wallet", usage="<on_or_off>")
+    @unb_set.command(name="wallet", usage="<on_or_off>")
     async def wallet_set(self, ctx, on_or_off: bool):
         """Toggle the wallet on or off."""
         conf = await self.configglobalcheck(ctx)
@@ -294,7 +335,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
-    @commands.command(name="set-failure-rate", usage="<rob | crime> <amount>")
+    @unb_set.command(name="failure-rate", usage="<rob | crime> <amount>", aliases=["failurerate"])
     async def failure_set(self, ctx, job: str, amount: int):
         """Set the failure rate for crimes and robbing"""
         if job not in ["rob", "crime"]:
@@ -309,7 +350,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-fine-rate", usage="<min | max> <amount>")
+    @unb_set.command(name="fine-rate", usage="<min | max> <amount>", aliases=["finerate"])
     async def fine_set(self, ctx, min_or_max: str, amount: int):
         """Set the min or max fine rate for crimes"""
         if min_or_max not in ["max", "min"]:
@@ -322,7 +363,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="set-interest-rate", usage="<amount>")
+    @unb_set.command(name="interest-rate", usage="<amount>", aliases=["interestrate"])
     async def interest_set(self, ctx, amount: int):
         """Set the interest rate if unable to pay a fine from wallet."""
         if amount < 1 or amount > 99:
@@ -505,7 +546,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @commands.guild_only()
     @check_global_setting_admin()
-    @commands.command(name="add-reply")
+    @unb_set.command(name="add-reply")
     async def add_reply(self, ctx, job, *, reply: str):
         """Add a custom reply for working or crime. Put {amount} in place of where you want the amount earned to be."""
         if job not in ["work", "crime"]:
@@ -524,7 +565,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @commands.guild_only()
     @check_global_setting_admin()
-    @commands.command(name="del-reply")
+    @unb_set.command(name="del-reply")
     async def del_reply(self, ctx, job, *, id: int):
         """Delete a custom reply."""
         if job not in ["work", "crime"]:
@@ -542,7 +583,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="list-replies")
+    @unb_set.command(name="list-replies")
     async def list_reply(self, ctx, job):
         """List custom replies."""
         if job not in ["work", "crime"]:
@@ -568,7 +609,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @commands.command(name="default-replies", usage="<enable | disable>")
+    @unb_set.command(name="default-replies", usage="<enable | disable>")
     async def default_replies(self, ctx, enable: bool):
         """Whether to use the default replies to work and crime."""
         conf = await self.configglobalcheck(ctx)
@@ -619,7 +660,7 @@ class Unbelievaboat(commands.Cog):
         )
         await ctx.maybe_send_embed(msg)
 
-    @commands.command()
+    @unb_set.command()
     @check_global_setting_admin()
     @checks.admin()
     @commands.guild_only()
@@ -627,7 +668,8 @@ class Unbelievaboat(commands.Cog):
     async def settings(self, ctx):
         """Current unbelievaboat settings."""
         conf = await self.configglobalcheck(ctx)
-        cooldowns = await conf.cooldowns()
+        data = await conf.all()
+        cooldowns = data["cooldowns"]
         workcd = humanize_timedelta(seconds=cooldowns["workcd"])
         robcd = humanize_timedelta(seconds=cooldowns["robcd"])
         crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
@@ -637,31 +679,38 @@ class Unbelievaboat(commands.Cog):
         embed = discord.Embed(colour=ctx.author.colour, title="Unbelievaboat Settings")
         embed.add_field(
             name="Using Default Replies?",
-            value="Yes" if await conf.defaultreplies() else "No",
+            value="Yes" if data["defaultreplies"] else "No",
             inline=True,
         )
-        payouts = await conf.payouts()
+        payouts = data["payouts"]
         crimepayout = f"**Max**: {payouts['crime']['max']}\n**Min**: {payouts['crime']['min']}"
         workpayout = f"**Max**: {payouts['work']['max']}\n**Min**: {payouts['work']['min']}"
         embed.add_field(name="Work Payouts", value=workpayout, inline=True)
         embed.add_field(name="Crime Payouts", value=crimepayout, inline=True)
-        failrates = await conf.failrates()
+        failrates = data["failrates"]
         embed.add_field(
             name="Fail Rates",
-            value=f"**Crime**: {failrates['crime']}%\n**Rob**: {failrates['rob']}%\n**Interest Fee**: {await self.config.guild(ctx.guild).interest()}%",
+            value=f"**Crime**: {failrates['crime']}%\n**Rob**: {failrates['rob']}%\n**Interest Fee**: {data['interest']}%",
             inline=True,
         )
-        fines = await conf.fines()
+        fines = data["fines"]
         embed.add_field(
             name="Fines", value=f"**Max**: {fines['max']}\n**Min**: {fines['min']}", inline=True
         )
         embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
-        walletsettings = await conf.disable_wallet()
+        walletsettings = data["disable_wallet"]
         embed.add_field(
             name="Wallet Settings",
             value="Disabled." if not walletsettings else "Enabled",
             inline=True,
         )
+        minbet = data["bet_min"]
+        maxbet = data["bet_max"]
+        betstats = f"**Max**: {maxbet}\n**Min**: {minbet}"
+        embed.add_field(name="Betting Information", value=betstats)
+        roulette = data["roulette_toggle"]
+        game_stats = f"**Roulette**: {'Enabled' if roulette else 'Disabled'}"
+        embed.add_field(name="Games", value=game_stats)
         await ctx.send(embed=embed)
 
     @commands.group()
@@ -771,3 +820,330 @@ class Unbelievaboat(commands.Cog):
     async def withdraw(self, ctx, amount: int):
         """Withdraw cash from your bank to your wallet."""
         await self.bankwithdraw(ctx, ctx.author, amount)
+
+    async def betting(self, ctx, bet, _type):
+        try:
+            _type = int(_type)
+        except ValueError:
+            pass
+        if isinstance(_type, int):
+            if _type < 0 or _type > 36:
+                return {"failed": "Bet must be between 0 and 36."}
+            if _type == 0:
+                self.roulettegames[ctx.guild.id]["zero"].append(
+                    {_type: {"user": ctx.author.id, "amount": bet}}
+                )
+                return {"sucess": 200}
+            self.roulettegames[ctx.guild.id]["number"].append(
+                {_type: {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+        if _type.lower() in ["red", "black"]:
+            self.roulettegames[ctx.guild.id]["color"].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+        if _type.lower() in ["1st dozen", "2nd dozen", "3rd dozen"]:
+            self.roulettegames[ctx.guild.id]["dozen"].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+        if _type.lower() in ["odd", "even"]:
+            self.roulettegames[ctx.guild.id]["oddoreven"].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+        if _type.lower() in ["1st half", "2nd half"]:
+            self.roulettegames[ctx.guild.id]["half"].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+        if _type.lower() in ["1st column", "2nd column", "3rd column"]:
+            self.roulettegames[ctx.guild.id]["column"].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
+            return {"sucess": 200}
+
+        return {"failed": "Not a valid option"}
+
+    async def payout(self, ctx, winningnum, bets):
+        msg = []
+        conf = await self.configglobalcheck(ctx)
+        payouts = await conf.roulette_payouts()
+        color = NUMBERS[winningnum]
+        odd_even = "odd" if winningnum % 2 != 0 else "even"
+        half = "1st half" if winningnum <= 18 else "2nd half"
+        if bets["dozen"]:
+            if winningnum == 0:
+                dozen = "No dozen winning bet."
+            elif winningnum <= 12:
+                dozen = "1st dozen"
+            elif winningnum <= 24:
+                dozen = "2nd dozen"
+            else:
+                dozen = "3rd dozen"
+        if bets["column"]:
+            if winningnum == 0:
+                colum = "no column winning bet"
+            elif winningnum in COLUMNS[0]:
+                column = "1st column"
+            elif winningnum in COLUMNS[1]:
+                column = "2nd column"
+            else:
+                column = "3rd column"
+        for bet in bets["zero"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == winningnum:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["zero"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["color"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == color:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["color"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["number"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == winningnum:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["single"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["oddoreven"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == odd_even:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["odd_or_even"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["half"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == half:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["halfs"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["dozen"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == dozen:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["dozen"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        for bet in bets["column"]:
+            bet_type = list(bet.keys())[0]
+            if bet_type == column:
+                betinfo = list(bet.values())[0]
+                user = ctx.guild.get_member(betinfo["user"])
+                payout = betinfo["amount"] + (betinfo["amount"] * payouts["column"])
+                if not await self.walletdisabledcheck(ctx):
+                    await self.walletdeposit(user, payout)
+                else:
+                    await bank.deposit_credits(user, payout)
+                msg.append([bet_type, payout, user.display_name])
+        return msg
+
+    @commands.group(invoke_without_command=True)
+    @roulette_disabled_check()
+    async def roulette(self, ctx, amount: int, *, bet):
+        """Bet on the roulette wheel.
+        
+        **Current supported bets**:
+        Single   - Any single number.
+        Colors   - Red/Black
+        Halfs    - 1st/2nd half
+        Even Odd - Even or Odd
+        Dozens   - 1st/2nd/3rd Dozen (Groups of 12)
+        Colums   - 1st/2nd/3rd Column.
+        - This is based on the English version of the roulette wheel."""
+        if ctx.guild.id not in self.roulettegames:
+            return await ctx.send(
+                "Start a roulette game using {}roulette start".format(ctx.prefix)
+            )
+        if self.roulettegames[ctx.guild.id]["started"]:
+            return await ctx.send("The wheel is already spinning.")
+        conf = await self.configglobalcheck(ctx)
+        minbet, maxbet = await conf.bet_min(), await conf.bet_max()
+        if amount < minbet:
+            return await ctx.send(f"Your bet must be greater than {minbet}.")
+        if amount > maxbet:
+            return await ctx.send(f"Your bet must be less than {maxbet}.")
+        try:
+            if not await self.walletdisabledcheck(ctx):
+                await self.walletwithdraw(ctx.author, amount)
+            else:
+                await bank.withdraw_credits(ctx.author, amount)
+        except ValueError:
+            return await ctx.send("You do not have enough funds to complete this bet.")
+        betret = await self.betting(ctx, amount, bet)
+        if betret.get("failed") is not None:
+            return await ctx.send(betret["failed"])
+        await ctx.send(
+            f"You've placed a {amount} {await bank.get_currency_name(ctx.guild)} bet on {bet}."
+        )
+
+    @roulette_disabled_check()
+    @roulette.command(name="start")
+    async def roulette_start(self, ctx):
+        """Start a game of roulette."""
+        if ctx.guild.id not in self.roulettegames:
+            self.roulettegames[ctx.guild.id] = {
+                "zero": [],
+                "color": [],
+                "number": [],
+                "dozen": [],
+                "oddoreven": [],
+                "half": [],
+                "column": [],
+                "started": False,
+            }
+        else:
+            return await ctx.send("There is already a roulette game on.")
+        conf = await self.configglobalcheck(ctx)
+        time = await conf.roulette_time()
+        await ctx.send(
+            "The roulette wheel will be spun in {} seconds.".format(time), delete_after=time
+        )
+        async with ctx.typing():
+            await asyncio.sleep(time)
+        self.roulettegames[ctx.guild.id]["started"] = True
+        emb = discord.Embed(
+            color=discord.Color.red(),
+            title="Roulette Wheel",
+            description="The wheel begins to spin.",
+        )
+        msg = await ctx.send(embed=emb)
+        await asyncio.sleep(random.randint(3, 8))
+        number = random.randint(0, 36)
+        payouts = await self.payout(ctx, number, self.roulettegames[ctx.guild.id])
+        emoji = EMOJIS[NUMBERS[number]]
+        emb = discord.Embed(
+            color=discord.Color.red(),
+            title="Roulette Wheel",
+            description="The wheel lands on {} {} {}\n\n**Winnings**\n{}".format(
+                NUMBERS[number],
+                number,
+                emoji,
+                box(
+                    tabulate.tabulate(payouts, headers=["Bet", "Amount Won", "User"]),
+                    lang="prolog",
+                )
+                if payouts
+                else "None.",
+            ),
+        )
+        await msg.edit(embed=emb)
+        del self.roulettegames[ctx.guild.id]
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @commands.group()
+    async def rouletteset(self, ctx):
+        """Manage settings for roulette"""
+        pass
+
+    @roulette_disabled_check()
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @rouletteset.command()
+    async def time(
+        self,
+        ctx,
+        time: commands.TimedeltaConverter(
+            minimum=datetime.timedelta(seconds=30),
+            maximum=datetime.timedelta(minutes=5),
+            default_unit="seconds",
+        ),
+    ):
+        """Set the time for roulette wheel to start spinning."""
+        seconds = time.total_seconds()
+        conf = await self.configglobalcheck(ctx)
+        await conf.roulette_time.set(seconds)
+        await ctx.tick()
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @rouletteset.command()
+    async def toggle(self, ctx):
+        """Toggle roulette on and off."""
+        conf = await self.configglobalcheck(ctx)
+        toggle = await conf.roulette_toggle()
+        if toggle:
+            await conf.roulette_toggle.set(False)
+            await ctx.send("Roulette has been disabled.")
+        else:
+            await conf.roulette_toggle.set(True)
+            await ctx.send("Roulette has been enabled.")
+
+    @roulette_disabled_check()
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @rouletteset.command()
+    async def payouts(self, ctx, type, payout: int):
+        """Set payouts for roulette winnings
+        
+        Note: payout is what your prize is multiplied by.
+        Valid types:
+        zero
+        single
+        color
+        dozen
+        odd_or_even
+        halfs
+        column"""
+        types = ["zero", "single", "color", "dozen", "odd_or_even", "halfs", "column"]
+        if type not in types:
+            return await ctx.send(
+                f"That's not a valid payout type. The available types are `{', '.join(types)}`"
+            )
+        conf = await self.configglobalcheck(ctx)
+        async with conf.roulette_payouts() as payouts:
+            payouts[type] = payout
+        await ctx.tick()
+
+    @rouletteset.command(name="settings")
+    async def _settings(self, ctx):
+        """Roulette Settings"""
+        conf = await self.configglobalcheck(ctx)
+        enabled = await conf.roulette_toggle()
+        payouts = await conf.roulette_payouts()
+        time = await conf.roulette_time()
+        embed = discord.Embed(color=ctx.author.color, title="Roulette Settings")
+        embed.add_field(name="Status", value="Enabled" if enabled else "Disabled")
+        embed.add_field(name="Time to Spin", value=humanize_timedelta(seconds=time))
+        payoutsmsg = ""
+        for payout in sorted(payouts, key=lambda x: payouts[x], reverse=True):
+            payoutsmsg += f"**{payout.replace('_', ' ').title()}**: {payouts[payout]}\n"
+        embed.add_field(name="Payout Settings", value=payoutsmsg)
+        await ctx.send(embed=embed)
