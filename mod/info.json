@@ -1,0 +1,16 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "This cog subclasses core Mod and removed the core mute functionality and replaces it with a timed mute which uses roles..",
+  "name": "Mod",
+  "disabled": false,
+  "short": "Mod with timed role mutes.",
+  "description": "Core mod with the inclusion of timed role mutes.",
+  "tags": [
+    "mute",
+    "temp mute",
+    "rolemute"
+  ],
+  "hidden": false
+}
