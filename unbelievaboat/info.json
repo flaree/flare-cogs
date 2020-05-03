@@ -13,5 +13,6 @@
     "rob",
     "work"
   ],
+  "requirements": ["tabulate"],
   "hidden": false
 }
