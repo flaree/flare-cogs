@@ -21,6 +21,8 @@
 ---
 | Name | Description 
 | --- | --- |
+| Mod | Core mod with the inclusion of timed mutes |
+| LastFM | LastFM stats - port of Miso Bot - found @ [flaree/lastfm-red](https://github.com/flaree/lastfm-red) |
 | R6 | R6Stats API Integration. Check ranked, weapon, operator and seasonal stats. |
 | Unbelievaboat | Unbelievaboat economy commands converted to use for Red. |
 | Forward | Forward all non-command messages to the bot owner. Including attachments.|
