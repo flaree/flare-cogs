@@ -74,12 +74,14 @@ class DankMemer(commands.Cog):
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
         if service_name == "imgen":
-            self.headers = {"Authorization": token.get("authorization")}
+            self.headers = {"Authorization": api_tokens.get("authorization")}
 
     async def send_error(self, ctx, data):
         await ctx.send(f"Oops, an error occured. `{data['error']}`")
 
     async def get(self, ctx, url):
+        if self.headers["authorization"] is None:
+            return
         async with ctx.typing():
             async with self.session.get(self.api + url, headers=self.headers) as resp:
                 if resp.status == 200:
