@@ -364,7 +364,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def deepfry(self, ctx, user: discord.Member = None):
+    async def deepfried(self, ctx, user: discord.Member = None):
         """Deepfry an image."""
         user = user or ctx.author
         data = await self.get(ctx, f"/deepfry?avatar1={user.avatar_url_as(static_format='png')}")
@@ -592,8 +592,8 @@ class DankMemer(commands.Cog):
         await ctx.send(file=discord.File(data))
 
     @commands.check(tokencheck)
-    @commands.command()
-    async def invert(self, ctx, user: discord.Member = None):
+    @commands.command(aliases=["invertcolor", "invertcolors", "invercolours"])
+    async def invertcolour(self, ctx, user: discord.Member = None):
         """Invert the colour of an image."""
         user = user or ctx.author
         data = await self.get(ctx, f"/invert?avatar1={user.avatar_url_as(static_format='png')}")
