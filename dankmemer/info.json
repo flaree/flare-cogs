@@ -1,0 +1,15 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "This cog uses a self hosted version of the DankMemer imgen site, gaining an API key will be hard.. If you wish to host your own instance, you can use the inbuilt command to change IP.",
+  "name": "DankMemer",
+  "disabled": false,
+  "short": "DankMemer image generator.",
+  "description": "DankMemer's image generation commands.",
+  "tags": [
+    "memes",
+    "image gen"
+  ],
+  "hidden": false
+}
