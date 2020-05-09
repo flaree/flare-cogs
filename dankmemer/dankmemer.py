@@ -14,7 +14,7 @@ async def tokencheck(ctx):
 
 class DankMemer(commands.Cog):
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -32,7 +32,6 @@ class DankMemer(commands.Cog):
         self.bot.loop.create_task(self.session.close())
 
     async def initalize(self):
-        await self.bot.wait_until_ready()
         self.api = await self.config.url()
         token = await self.bot.get_shared_api_tokens("imgen")
         self.headers = {"Authorization": token.get("authorization")}
@@ -84,7 +83,9 @@ class DankMemer(commands.Cog):
             async with self.session.get(self.api + url, headers=self.headers) as resp:
                 if resp.status == 200:
                     file = await resp.read()
-                    return BytesIO(file)
+                    file = BytesIO(file)
+                    file.seek(0)
+                    return file
                 try:
                     return await resp.json()
                 except aiohttp.ContentTypeError:
@@ -668,7 +669,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/kowalski?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "kowalski.mp4"
+        data.name = "kowalski.gif"
         await ctx.send(file=discord.File(data))
 
     @commands.check(tokencheck)
@@ -685,9 +686,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()  # TODO: MP4s
     async def letmein(self, ctx, *, text: str):
-        """Change my mind.
-        
-        Text must be 2 comma seperated values."""
+        """LET ME IN."""
         data = await self.get(ctx, f"/letmein?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
