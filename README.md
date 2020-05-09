@@ -25,6 +25,7 @@
 | LastFM | LastFM stats - port of Miso Bot - found @ [flaree/lastfm-red](https://github.com/flaree/lastfm-red) |
 | R6 | R6Stats API Integration. Check ranked, weapon, operator and seasonal stats. |
 | Unbelievaboat | Unbelievaboat economy commands converted to use for Red. |
+| DankMemer | DankMemers imgen commands. |
 | Forward | Forward all non-command messages to the bot owner. Including attachments.|
 | Highlight | Highlight key words said in a channel and be DM'ed when they're said. |
 | CommandStats | Stats for command usages per guild, session or globally. |
