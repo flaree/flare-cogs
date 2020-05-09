@@ -80,8 +80,6 @@ class DankMemer(commands.Cog):
         await ctx.send(f"Oops, an error occured. `{data['error']}`")
 
     async def get(self, ctx, url):
-        if self.headers["authorization"] is None:
-            return
         async with ctx.typing():
             async with self.session.get(self.api + url, headers=self.headers) as resp:
                 if resp.status == 200:
