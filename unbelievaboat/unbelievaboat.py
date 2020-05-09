@@ -45,6 +45,8 @@ def wallet_disabled_check():
     async def predicate(ctx):
         if await bank.is_global():
             return await ctx.bot.get_cog("Unbelievaboat").config.disable_wallet()
+        if ctx.guild is None:
+            return False
         return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).disable_wallet()
 
     return commands.check(predicate)
@@ -54,6 +56,8 @@ def roulette_disabled_check():
     async def predicate(ctx):
         if await bank.is_global():
             return await ctx.bot.get_cog("Unbelievaboat").config.roulette_toggle()
+        if ctx.guild is None:
+            return False
         return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).roulette_toggle()
 
     return commands.check(predicate)
@@ -62,7 +66,7 @@ def roulette_disabled_check():
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -260,6 +264,7 @@ class Unbelievaboat(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.group(name="unbset", aliases=["unb-se;"])
+    @commands.guild_only()
     async def unb_set(self, ctx):
         """Manage various settings for Unbelievaboat"""
         pass
@@ -335,6 +340,7 @@ class Unbelievaboat(commands.Cog):
 
     @checks.admin()
     @check_global_setting_admin()
+    @commands.guild_only()
     @unb_set.command(name="failure-rate", usage="<rob | crime> <amount>", aliases=["failurerate"])
     async def failure_set(self, ctx, job: str, amount: int):
         """Set the failure rate for crimes and robbing"""
@@ -971,6 +977,7 @@ class Unbelievaboat(commands.Cog):
         return msg
 
     @commands.group(invoke_without_command=True)
+    @commands.guild_only()
     @roulette_disabled_check()
     async def roulette(self, ctx, amount: int, *, bet):
         """Bet on the roulette wheel.
