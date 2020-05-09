@@ -877,8 +877,8 @@ class DankMemer(commands.Cog):
         await ctx.send(file=discord.File(data))
 
     @commands.check(tokencheck)
-    @commands.command()
-    async def rip(self, ctx, user: discord.Member = None):
+    @commands.command(aliases=["restinpeace"])
+    async def tombstone(self, ctx, user: discord.Member = None):
         """Give a lucky person a tombstone."""
         user = user or ctx.author
         data = await self.get(ctx, f"/rip?avatar1={user.avatar_url_as(static_format='png')}")
