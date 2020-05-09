@@ -727,7 +727,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()  # Support other urls soon
-    async def magik(self, ctx, user: discord.Member = None):
+    async def magickify(self, ctx, user: discord.Member = None):
         """Peform magik."""
         user = user or ctx.author
         data = await self.get(ctx, f"/magik?avatar1={user.avatar_url_as(static_format='png')}")
