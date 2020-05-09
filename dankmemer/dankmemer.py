@@ -516,7 +516,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def fuck(self, ctx, *, text: str):
-        """F\*\*k.
+        """Feck.
         
         Text must be 2 comma seperated values."""
         data = await self.get(ctx, f"/fuck?text={text}")
