@@ -1,0 +1,10 @@
+{
+    "author": ["flare(flare#0001)"],
+    "install_msg": "Userinfo with badges.",
+    "name": "Userinfo",
+    "hidden": true,
+    "short": "Userinfo with user badges.",
+    "description": "Show a users normal userinfo + their badges.",
+    "tags": ["userinfo"],
+    "min_bot_version": "3.2.0"
+}
