@@ -438,7 +438,7 @@ class Covid(commands.Cog):
         """Show stats for yesterday for specific states.
         
         Supports multiple countries seperated by a comma.
-        Example: [p]covid state New York, California"""
+        Example: [p]covid state yesterday New York, California"""
         async with ctx.typing():
             states = ",".join(states.split(", "))
             data = await self.get(self.api + "v2/states/{}?yesterday=1".format(states))
