@@ -1235,7 +1235,6 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def yomomma(self, ctx):
         """Yo momma!."""
-        user = user or ctx.author
         data = await self.get(ctx, f"/yomomma")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
