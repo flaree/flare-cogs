@@ -12,7 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -21,7 +21,7 @@ class Covid(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = "https://corona.lmao.ninja/"
+        self.api = "https://disease.sh/"
         self.newsapi = "https://newsapi.org/v2/top-headlines?q=COVID&sortBy=publishedAt&pageSize=100&country={}&apiKey={}&page=1"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
@@ -109,7 +109,10 @@ class Covid(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def covid(self, ctx, *, country: typing.Optional[str]):
-        """Stats about Covid-19."""
+        """Stats about Covid-19 or countries if provided.
+        
+        Supports multiple countries seperated by a comma.
+        Example: [p]covid Ireland, England"""
         if not country:
             async with ctx.typing():
                 data = await self.get(self.api + "v2/all")
@@ -138,55 +141,73 @@ class Covid(commands.Cog):
         else:
             async with ctx.typing():
                 data = await self.get(self.api + "v2/countries/{}".format(country))
-            error = data.get("failed")
-            if error is not None:
-                return await ctx.send(error)
+            if isinstance(data, dict):
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
+                data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embed = discord.Embed(
-                color=await self.bot.get_embed_color(ctx.channel),
-                title="Covid-19 | {} Statistics".format(data["country"]),
-                timestamp=datetime.datetime.utcfromtimestamp(data["updated"] / 1000),
-            )
-            embed.set_thumbnail(url=data["countryInfo"]["flag"])
-            embed.add_field(name="Cases", value=humanize_number(data["cases"]))
-            embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
-            embed.add_field(name="Recovered", value=humanize_number(data["recovered"]))
-            embed.add_field(name="Cases Today", value=humanize_number(data["todayCases"]))
-            embed.add_field(name="Deaths Today", value=humanize_number(data["todayDeaths"]))
-            embed.add_field(name="Critical", value=humanize_number(data["critical"]))
-            embed.add_field(name="Active", value=humanize_number(data["active"]))
-            embed.add_field(name="Total Tests", value=humanize_number(data["tests"]))
-            embed.add_field(name="\u200b", value="\u200b")
-            await ctx.send(embed=embed)
+            embeds = []
+            for country in data:
+                embed = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title="Covid-19 | {} Statistics".format(country["country"]),
+                    timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
+                )
+                embed.set_thumbnail(url=country["countryInfo"]["flag"])
+                embed.add_field(name="Cases", value=humanize_number(country["cases"]))
+                embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
+                embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
+                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
+                embed.add_field(name="Critical", value=humanize_number(country["critical"]))
+                embed.add_field(name="Active", value=humanize_number(country["active"]))
+                embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
+                embed.add_field(name="\u200b", value="\u200b")
+                embeds.append(embed)
+            if len(embeds) == 1:
+                await ctx.send(embed=embeds[0])
+            else:
+                await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @covid.command()
     async def yesterday(self, ctx, *, country: str):
-        """Show the statistics from yesterday for a country"""
+        """Show the statistics from yesterday for countries
+
+        Supports multiple countries seperated by a comma.
+        Example: [p]covid yesterday Ireland, England"""
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries/{}?yesterday=1".format(country))
-            error = data.get("failed")
-            if error is not None:
-                return await ctx.send(error)
+            if isinstance(data, dict):
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
+                data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embed = discord.Embed(
-                color=await self.bot.get_embed_color(ctx.channel),
-                title="Covid-19 | Yesterday | {} Statistics".format(data["country"]),
-                timestamp=datetime.datetime.utcfromtimestamp(data["updated"] / 1000),
-                description="Stats are from **YESTERDAY**.",
-            )
-            embed.set_thumbnail(url=data["countryInfo"]["flag"])
-            embed.add_field(name="Cases", value=humanize_number(data["cases"]))
-            embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
-            embed.add_field(name="Recovered", value=humanize_number(data["recovered"]))
-            embed.add_field(name="Cases Yesterday", value=humanize_number(data["todayCases"]))
-            embed.add_field(name="Deaths Yesterday", value=humanize_number(data["todayDeaths"]))
-            embed.add_field(name="Critical", value=humanize_number(data["critical"]))
-            embed.add_field(name="Active", value=humanize_number(data["active"]))
-            embed.add_field(name="Total Tests", value=humanize_number(data["tests"]))
-            embed.add_field(name="\u200b", value="\u200b")
-            await ctx.send(embed=embed)
+            embeds = []
+            for country in data:
+                embed = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title="Covid-19 | {} Statistics".format(country["country"]),
+                    timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
+                )
+                embed.set_thumbnail(url=country["countryInfo"]["flag"])
+                embed.add_field(name="Cases", value=humanize_number(country["cases"]))
+                embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
+                embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
+                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
+                embed.add_field(name="Critical", value=humanize_number(country["critical"]))
+                embed.add_field(name="Active", value=humanize_number(country["active"]))
+                embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
+                embed.add_field(name="\u200b", value="\u200b")
+                embeds.append(embed)
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @covid.command()
     async def todaycases(self, ctx):
@@ -376,25 +397,72 @@ class Covid(commands.Cog):
                 embed.add_field(name=data[i]["country"], value=msg)
             await ctx.send(embed=embed)
 
-    @covid.command()
-    async def state(self, ctx, *, state: str):
-        """Show stats for a specific state."""
+    @covid.group(invoke_without_command=True)
+    async def state(self, ctx, *, states: str):
+        """Show stats for specific states.
+        
+        Supports multiple countries seperated by a comma.
+        Example: [p]covid state New York, California"""
+        if not states:
+            return await ctx.send_help()
         async with ctx.typing():
-            data = await self.get(self.api + "v2/states/{}".format(state))
+            states = ",".join(states.split(", "))
+            data = await self.get(self.api + "v2/states/{}".format(states))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
                     return await ctx.send(error)
+                data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embed = discord.Embed(
-                color=await self.bot.get_embed_color(ctx.channel),
-                title="Covid-19 | USA | {} Statistics".format(data["state"]),
-            )
-            embed.add_field(name="Cases", value=humanize_number(data["cases"]))
-            embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
-            embed.add_field(name="Cases Today", value=humanize_number(data["todayCases"]))
-            embed.add_field(name="Deaths Today", value=humanize_number(data["todayDeaths"]))
-            embed.add_field(name="Active Cases", value=humanize_number(data["active"]))
-            embed.add_field(name="Total Tests", value=humanize_number(data["tests"]))
-            await ctx.send(embed=embed)
+            embeds = []
+            for state in data:
+                embed = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title="Covid-19 | USA | {} Statistics".format(state["state"]),
+                )
+                embed.add_field(name="Cases", value=humanize_number(state["cases"]))
+                embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
+                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
+                embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
+                embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
+                embeds.append(embed)
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @state.command(name="yesterday")
+    async def _yesterday(self, ctx, *, states: str):
+        """Show stats for yesterday for specific states.
+        
+        Supports multiple countries seperated by a comma.
+        Example: [p]covid state New York, California"""
+        async with ctx.typing():
+            states = ",".join(states.split(", "))
+            data = await self.get(self.api + "v2/states/{}?yesterday=1".format(states))
+            if isinstance(data, dict):
+                error = data.get("failed")
+                if error is not None:
+                    return await ctx.send(error)
+                data = [data]
+            if not data:
+                return await ctx.send("No data available.")
+            embeds = []
+            for state in data:
+                embed = discord.Embed(
+                    color=await self.bot.get_embed_color(ctx.channel),
+                    title="Covid-19 | USA | {} Statistics".format(state["state"]),
+                )
+                embed.add_field(name="Cases", value=humanize_number(state["cases"]))
+                embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
+                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
+                embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
+                embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
+                embeds.append(embed)
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
