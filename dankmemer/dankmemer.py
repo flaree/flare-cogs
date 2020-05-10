@@ -14,7 +14,7 @@ async def tokencheck(ctx):
 
 class DankMemer(commands.Cog):
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -24,7 +24,7 @@ class DankMemer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        self.config.register_global(url="https://flaree.xyz/api")
+        self.config.register_global(url="https://imgen.flaree.xyz/api")
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.headers = {}
 
