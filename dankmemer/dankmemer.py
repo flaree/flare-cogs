@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import typing
 from io import BytesIO
 
@@ -13,6 +14,7 @@ async def tokencheck(ctx):
 
 
 class DankMemer(commands.Cog):
+    """Dank Memer Commands."""
 
     __version__ = "0.0.3"
 
@@ -38,7 +40,7 @@ class DankMemer(commands.Cog):
 
     @commands.command()
     async def dankmemersetup(self, ctx):
-        """Instructions on how to setup DankMemer"""
+        """Instructions on how to setup DankMemer."""
         msg = (
             "This DankMemer cog relies on flare#0001s self hosted version of DankMemers imgen site.\n"
             "Gaining an API key will be difficult as they won't be handed out to everyone.\n"
@@ -50,9 +52,11 @@ class DankMemer(commands.Cog):
     @commands.is_owner()
     @commands.command()
     async def dmurl(self, ctx, *, url: str):
-        """Set the DankMemer API Url
-        
-        Only use this if you have an instance already."""
+        """Set the DankMemer API Url.
+
+        Ensure the url ends in API without the backslash - Example: https://imgen.flaree.xyz/api
+        Only use this if you have an instance already.
+        """
         await ctx.send(
             "This has the ability to make every command error if not setup properly. Only use this if you're experienced enough to understand. Type yes to continue, otherwise type no."
         )
@@ -159,9 +163,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def balloon(self, ctx, *, text: str):
         """Pop a balloon.
-        
-        
-        Texts must be comma seperated."""
+
+        Texts must be comma seperated.
+        """
         data = await self.get(ctx, f"/balloon?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -202,10 +206,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def boo(self, ctx, *, text: str):
         """Scary.
-        
-        
-        
-        Texts must be comma seperated."""
+
+        Texts must be comma seperated.
+        """
         data = await self.get(ctx, f"/boo?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -216,8 +219,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def brain(self, ctx, *, text: str):
         """Big brain meme.
-        
-        Texts must be 4 comma seperated items."""
+
+        Texts must be 4 comma seperated items.
+        """
         data = await self.get(ctx, f"/brain?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -275,8 +279,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def cheating(self, ctx, *, text: str):
         """Cheating?.
-        
-        Text must be comma seperated."""
+
+        Text must be comma seperated.
+        """
         data = await self.get(ctx, f"/cheating?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -287,8 +292,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def citation(self, ctx, *, text: str):
         """Papers Please Citation.
-        
-        Text must be 3 comma seperated values."""
+
+        Text must be 3 comma seperated values.
+        """
         data = await self.get(ctx, f"/citation?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -310,8 +316,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def confusedcat(self, ctx, *, text: str):
         """Confused cat meme.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/confusedcat?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -333,8 +340,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def cry(self, ctx, *, text: str):
         """Drink my tears meme.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/cry?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -402,8 +410,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def doglemon(self, ctx, *, text: str):
         """Dog and Lemon Meme.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/doglemon?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -436,8 +445,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def excuseme(self, ctx, *, text: str):
         """Excuse me, what the...
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/excuseme?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -448,8 +458,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def expanddong(self, ctx, *, text: str):
         """Expanding?
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/expanddong?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -460,8 +471,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def facts(self, ctx, *, text: str):
         """Facts book.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/facts?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -518,8 +530,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def fuck(self, ctx, *, text: str):
         """Feck.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/fuck?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -628,9 +641,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def justpretending(self, ctx, *, text: str):
-        """Playing dead
-        
-        Text must be 2 comma seperated values."""
+        """Playing dead.
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/justpretending?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -652,8 +666,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def knowyourlocation(self, ctx, *, text: str):
         """Google wants to know your location.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/knowyourlocation?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -664,8 +679,9 @@ class DankMemer(commands.Cog):
     @commands.command()  # TODO: MP4s
     async def kowalski(self, ctx, *, text: str):
         """Kowlalski tapping.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/kowalski?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -697,8 +713,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def lick(self, ctx, *, text: str):
         """Lick lick.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/lick?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -739,8 +756,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def master(self, ctx, *, text: str):
         """Yes master!
-        
-        Text must be 3 comma seperated values."""
+
+        Text must be 3 comma seperated values.
+        """
         data = await self.get(ctx, f"/master?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -760,13 +778,13 @@ class DankMemer(commands.Cog):
     ):
         """Make your own meme.
 
-        For text longer then one word for each variable, enclose them in ""
-        This endpoint works a bit differently from the other endpoints.
-        This endpoint takes in top_text and bottom_text parameters instead of text.
-        It also supports color and font parameters.
-        Fonts supported are: arial, arimobold, impact, robotomedium, robotoregular, sans, segoeuireg, tahoma and verdana.
-        Colors can be defined with HEX codes or web colors, e.g. black, white, orange etc. Try your luck ;)
-        The default is Impact in white."""
+        For text longer then one word for each variable, enclose them in "" This endpoint works a
+        bit differently from the other endpoints. This endpoint takes in top_text and bottom_text
+        parameters instead of text. It also supports color and font parameters. Fonts supported
+        are: arial, arimobold, impact, robotomedium, robotoregular, sans, segoeuireg, tahoma and
+        verdana. Colors can be defined with HEX codes or web colors, e.g. black, white, orange etc.
+        Try your luck ;) The default is Impact in white.
+        """
         user = user or ctx.author
         if font:
             fnt = f"&font={font}"
@@ -798,7 +816,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def nothing(self, ctx, *, text: str):
-        """Woah! nothing."""
+        """Woah!
+
+        nothing.
+        """
         data = await self.get(ctx, f"/nothing?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -828,9 +849,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def plan(self, ctx, *, text: str):
-        """Gru makes a plan
-        
-        Text must be 3 comma seperated values."""
+        """Gru makes a plan.
+
+        Text must be 3 comma seperated values.
+        """
         data = await self.get(ctx, f"/plan?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -921,7 +943,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def screams(self, ctx, user: discord.Member, user2: discord.Member = None):
-        """Why can't you just be normal? **Screams**"""
+        """Why can't you just be normal?
+
+        **Screams**
+        """
         user2 = user2 or ctx.author
         data = await self.get(
             ctx,
@@ -991,8 +1016,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def sneakyfox(self, ctx, *, text: str):
         """That sneaky fox.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/sneakyfox?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1031,9 +1057,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def surprised(self, ctx, *, text: str):
-        """Pikasuprised
-        
-        Text must be 2 comma seperated values."""
+        """Pikasuprised.
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/surprised?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1104,7 +1131,8 @@ class DankMemer(commands.Cog):
         username1: String. Username for the first user.
         text: String. Text to show on the generated image.
         username2: String. Username for the second user.
-        altstyle: Endpoint specific parameter"""
+        altstyle: Endpoint specific parameter
+        """
         user = user or ctx.author
         data = await self.get(
             ctx,
@@ -1155,8 +1183,9 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def violentsparks(self, ctx, *, text: str):
         """Some violent sparks.
-        
-        Text must be 2 comma seperated values."""
+
+        Text must be 2 comma seperated values.
+        """
         data = await self.get(ctx, f"/violentsparks?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1176,7 +1205,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def walking(self, ctx, *, text: str):
-        """Walking Meme"""
+        """Walking Meme."""
         data = await self.get(ctx, f"/walking?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1238,7 +1267,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/yomomma")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "yomomma.png"
+        data.name = "yomomma.gif"
         await ctx.send(file=discord.File(data))
 
     @commands.check(tokencheck)
