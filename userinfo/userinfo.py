@@ -3,7 +3,10 @@ import logging
 import discord
 from redbot.core import commands
 from redbot.core.utils.common_filters import (
-    escape_spoilers_and_mass_mentions, filter_invites, filter_various_mentions)
+    escape_spoilers_and_mass_mentions,
+    filter_invites,
+    filter_various_mentions,
+)
 
 from .flags import discord_py, EMOJIS
 
@@ -13,15 +16,15 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0"
+    __version__ = "0.0.1"
+
+    def format_help_for_context(self, ctx):
+        """Thanks Sinbad."""
+        pre_processed = super().format_help_for_context(ctx)
+        return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
         self.bot = bot
-
-    def format_help_for_context(self, ctx: commands.Context) -> str:
-        """Thanks Sinbad!"""
-        pre_processed = super().format_help_for_context(ctx)
-        return f"{pre_processed}\n\nCog Version: {self.__version__}"
 
     def cog_unload(self):
         # Remove command logic are from: https://github.com/mikeshardmind/SinbadCogs/tree/v3/messagebox
@@ -92,8 +95,10 @@ class Userinfo(commands.Cog):
                 # to every single check running on users than the occasional user info invoke
                 # We don't start by building this way, since the number of times we hit this should be
                 # infintesimally small compared to when we don't across all uses of Red.
-                continuation_string =  "and {numeric_number} more roles not displayed due to embed limits."
-                
+                continuation_string = (
+                    "and {numeric_number} more roles not displayed due to embed limits."
+                )
+
                 available_length = 1024 - len(continuation_string)  # do not attempt to tweak, i18n
 
                 role_chunks = []
@@ -146,8 +151,6 @@ class Userinfo(commands.Cog):
         data.set_author(name=f"{statusemoji} {name}", url=avatar)
         data.set_thumbnail(url=avatar)
 
-        
-
         flags = await discord_py(user)
         badges = ""
         for badge in flags:
@@ -157,8 +160,10 @@ class Userinfo(commands.Cog):
             data.add_field(name="Badges", value=badges)
         await ctx.send(embed=data)
 
+
 def cog_unload(self):
     self.bot.add_command("serverinfo")
+
 
 def setup(bot):
     uinfo = Userinfo(bot)
