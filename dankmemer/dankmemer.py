@@ -16,7 +16,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -37,6 +37,29 @@ class DankMemer(commands.Cog):
         self.api = await self.config.url()
         token = await self.bot.get_shared_api_tokens("imgen")
         self.headers = {"Authorization": token.get("authorization")}
+
+    @commands.Cog.listener()
+    async def on_red_api_tokens_update(self, service_name, api_tokens):
+        if service_name == "imgen":
+            self.headers = {"Authorization": api_tokens.get("authorization")}
+
+    async def send_error(self, ctx, data):
+        await ctx.send(f"Oops, an error occured. `{data['error']}`")
+
+    async def get(self, ctx, url, json=False):
+        async with ctx.typing():
+            async with self.session.get(self.api + url, headers=self.headers) as resp:
+                if resp.status == 200:
+                    if json:
+                        return await resp.json()
+                    file = await resp.read()
+                    file = BytesIO(file)
+                    file.seek(0)
+                    return file
+                try:
+                    return await resp.json()
+                except aiohttp.ContentTypeError:
+                    return {"error": "Server may be down, please try again later."}
 
     @commands.command()
     async def dankmemersetup(self, ctx):
@@ -73,27 +96,6 @@ class DankMemer(commands.Cog):
             await self.initalize()
         else:
             await ctx.send("Operation cancelled.")
-
-    @commands.Cog.listener()
-    async def on_red_api_tokens_update(self, service_name, api_tokens):
-        if service_name == "imgen":
-            self.headers = {"Authorization": api_tokens.get("authorization")}
-
-    async def send_error(self, ctx, data):
-        await ctx.send(f"Oops, an error occured. `{data['error']}`")
-
-    async def get(self, ctx, url):
-        async with ctx.typing():
-            async with self.session.get(self.api + url, headers=self.headers) as resp:
-                if resp.status == 200:
-                    file = await resp.read()
-                    file = BytesIO(file)
-                    file.seek(0)
-                    return file
-                try:
-                    return await resp.json()
-                except aiohttp.ContentTypeError:
-                    return {"error": "Server may be down, better errors soon ok i promise."}
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1264,11 +1266,10 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def yomomma(self, ctx):
         """Yo momma!."""
-        data = await self.get(ctx, f"/yomomma")
-        if isinstance(data, dict):
+        data = await self.get(ctx, f"/yomomma", True)
+        if data.get("error"):
             return await self.send_error(ctx, data)
-        data.name = "yomomma.gif"
-        await ctx.send(file=discord.File(data))
+        await ctx.send(data["text"])
 
     @commands.check(tokencheck)
     @commands.command()
