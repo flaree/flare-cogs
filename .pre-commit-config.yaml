@@ -19,11 +19,6 @@ repos:
     -   id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
 
--   repo: https://github.com/PyCQA/bandit
-    rev: 1.6.2
-    hooks:
-    - id: bandit
-
 -   repo: https://github.com/humitos/mirrors-autoflake.git
     rev: v1.1
     hooks:

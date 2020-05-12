@@ -6,67 +6,19 @@ from typing import Optional, Union
 import discord
 import tabulate
 from redbot.core import Config, bank, checks, commands
-from redbot.core.utils.chat_formatting import box, humanize_timedelta
+from redbot.core.utils.chat_formatting import box, humanize_timedelta, humanize_number, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .defaultreplies import crimes, work
 from .roulette import COLUMNS, EMOJIS, NUMBERS
-
-
-def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i : i + n]
-
-
-def check_global_setting_admin():
-    async def predicate(ctx):
-        author = ctx.author
-        if not await bank.is_global():
-            if not isinstance(ctx.channel, discord.abc.GuildChannel):
-                return False
-            if await ctx.bot.is_owner(author):
-                return True
-            if author == ctx.guild.owner:
-                return True
-            if ctx.channel.permissions_for(author).manage_guild:
-                return True
-            admin_roles = set(await ctx.bot.get_admin_role_ids(ctx.guild.id))
-            for role in author.roles:
-                if role.id in admin_roles:
-                    return True
-        else:
-            return await ctx.bot.is_owner(author)
-
-    return commands.check(predicate)
-
-
-def wallet_disabled_check():
-    async def predicate(ctx):
-        if await bank.is_global():
-            return await ctx.bot.get_cog("Unbelievaboat").config.disable_wallet()
-        if ctx.guild is None:
-            return False
-        return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).disable_wallet()
-
-    return commands.check(predicate)
-
-
-def roulette_disabled_check():
-    async def predicate(ctx):
-        if await bank.is_global():
-            return await ctx.bot.get_cog("Unbelievaboat").config.roulette_toggle()
-        if ctx.guild is None:
-            return False
-        return await ctx.bot.get_cog("Unbelievaboat").config.guild(ctx.guild).roulette_toggle()
-
-    return commands.check(predicate)
+from .checks import check_global_setting_admin, roulette_disabled_check, wallet_disabled_check
+from .functions import roll, chunks
 
 
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.3.1"
+    __version__ = "0.4.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -96,8 +48,8 @@ class Unbelievaboat(commands.Cog):
                 "halfs": 1,
                 "column": 2,
             },
-            "bet_min": 100,
-            "bet_max": 10000,
+            "betting": {"max": 10000, "min": 100},
+            "wallet_max": 50000,
         }
         defaults_member = {
             "cooldowns": {"workcd": None, "crimecd": None, "robcd": None},
@@ -122,31 +74,17 @@ class Unbelievaboat(commands.Cog):
             return not await self.config.disable_wallet()
         return not await self.config.guild(ctx.guild).disable_wallet()
 
-    def roll(self):
-        roll = random.randint(1, 20)
-        if roll == 1:
-            return 0.005
-        if roll > 1 and roll <= 6:
-            return 0.03
-        if roll > 6 and roll <= 8:
-            return 0.10
-        if roll > 8 and roll <= 10:
-            return 0.20
-        if roll > 10 and roll <= 13:
-            return 0.25
-        if roll > 13 and roll <= 16:
-            return 0.4
-        if roll > 16 and roll <= 17:
-            return 0.655
-        if roll > 17 and roll <= 19:
-            return 0.8
-        if roll == 20:
-            return 0.85
-
-    async def walletdeposit(self, user, amount):
+    async def walletdeposit(self, ctx, user, amount):
         conf = await self.configglobalcheckuser(user)
+        main_conf = await self.configglobalcheck(ctx)
         wallet = await conf.wallet()
-        await conf.wallet.set(wallet + amount)
+        max_bal = await main_conf.wallet_max()
+        amount = wallet + amount
+        if amount <= max_bal:
+            await conf.wallet.set(amount)
+        else:
+            await conf.wallet.set(max_bal)
+            raise ValueError
 
     async def walletremove(self, user, amount):
         conf = await self.configglobalcheckuser(user)
@@ -186,12 +124,18 @@ class Unbelievaboat(commands.Cog):
 
     async def bankwithdraw(self, ctx, user, amount):
         conf = await self.configglobalcheckuser(user)
+        mainconf = await self.configglobalcheck(ctx)
+        max_bal = await mainconf.wallet_max()
         wallet = await conf.wallet()
         try:
+            if wallet + amount > max_bal:
+                return await ctx.send(
+                    f"You have attempted to withdraw more cash the the maximum balance allows. The maximum balance is {humanize_number(max_bal)} {await bank.get_currency_name(ctx.guild)}."
+                )
             await bank.withdraw_credits(user, amount)
             await self.walletset(user, wallet + amount)
             return await ctx.send(
-                f"You have succesfully withdrawn {amount} {await bank.get_currency_name(ctx.guild)} from your bank account."
+                f"You have succesfully withdrawn {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)} from your bank account."
             )
         except ValueError:
             return await ctx.send("You have insufficent funds to complete this withdrawl.")
@@ -221,7 +165,7 @@ class Unbelievaboat(commands.Cog):
         conf = await self.configglobalcheck(ctx)
         fines = await conf.fines()
         randint = random.randint(fines["min"], fines["max"])
-        amount = str(randint) + " " + await bank.get_currency_name(ctx.guild)
+        amount = str(humanize_number(randint)) + " " + await bank.get_currency_name(ctx.guild)
         userconf = await self.configglobalcheckuser(ctx.author)
         if not await self.walletdisabledcheck(ctx):
             if randint < await userconf.wallet():
@@ -252,7 +196,7 @@ class Unbelievaboat(commands.Cog):
                 await bank.withdraw_credits(ctx.author, randint)
                 embed = discord.Embed(
                     colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {randint}.",
+                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
                 )
             else:
                 await bank.set_balance(ctx.author, 0)
@@ -266,8 +210,7 @@ class Unbelievaboat(commands.Cog):
     @commands.group(name="unbset", aliases=["unb-se;"])
     @commands.guild_only()
     async def unb_set(self, ctx):
-        """Manage various settings for Unbelievaboat"""
-        pass
+        """Manage various settings for Unbelievaboat."""
 
     @checks.admin()
     @check_global_setting_admin()
@@ -285,9 +228,9 @@ class Unbelievaboat(commands.Cog):
         ),
     ):
         """Set the cooldown for the work, crime or rob commands. Minimum cooldown is 30 seconds.
-        
-        The time can be formatted as so `1h30m` etc.
-        Valid times are hours, minutes and seconds."""
+
+        The time can be formatted as so `1h30m` etc. Valid times are hours, minutes and seconds.
+        """
         if job not in ["work", "crime", "rob"]:
             return await ctx.send("Invalid job.")
         seconds = time.total_seconds()
@@ -314,7 +257,7 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     @unb_set.command(name="payout", usage="<work | crime> <min | max> <amount>")
     async def payout_set(self, ctx, job: str, min_or_max: str, amount: int):
-        """Set the min or max payout for working or crimes"""
+        """Set the min or max payout for working or crimes."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
         if min_or_max not in ["max", "min"]:
@@ -327,9 +270,29 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @unb_set.command(name="wallet", usage="<on_or_off>")
-    async def wallet_set(self, ctx, on_or_off: bool):
-        """Toggle the wallet on or off."""
+    @unb_set.command(name="betting", usage="<min | max> <amount>")
+    async def betting_set(self, ctx, min_or_max: str, amount: int):
+        """Set the min or max betting amounts."""
+        if min_or_max not in ["max", "min"]:
+            return await ctx.send("You must choose between min or max.")
+        conf = await self.configglobalcheck(ctx)
+        async with conf.betting() as betting:
+            betting[min_or_max] = amount
+        await ctx.tick()
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @unb_set.group(name="wallet")
+    async def wallet_set(self, ctx):
+        """Wallet Settings."""
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
+    @wallet_set.group(name="toggle", usage="<on_or_off>")
+    async def wallet_toggle(self, ctx, on_or_off: bool):
+        """Toggle the wallet system."""
         conf = await self.configglobalcheck(ctx)
         if on_or_off:
             await ctx.send("The wallet and rob system has been enabled.")
@@ -341,9 +304,19 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
+    @wallet_set.group(name="max", usage="<on_or_off>")
+    async def wallet_max(self, ctx, amount: int):
+        """Set the max a wallet can have."""
+        conf = await self.configglobalcheck(ctx)
+        await conf.wallet_max.set(amount)
+        await ctx.tick()
+
+    @checks.admin()
+    @check_global_setting_admin()
+    @commands.guild_only()
     @unb_set.command(name="failure-rate", usage="<rob | crime> <amount>", aliases=["failurerate"])
     async def failure_set(self, ctx, job: str, amount: int):
-        """Set the failure rate for crimes and robbing"""
+        """Set the failure rate for crimes and robbing."""
         if job not in ["rob", "crime"]:
             return await ctx.send("Invalid job.")
         if amount < 50 or amount > 100:
@@ -358,7 +331,7 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     @unb_set.command(name="fine-rate", usage="<min | max> <amount>", aliases=["finerate"])
     async def fine_set(self, ctx, min_or_max: str, amount: int):
-        """Set the min or max fine rate for crimes"""
+        """Set the min or max fine rate for crimes."""
         if min_or_max not in ["max", "min"]:
             return await ctx.send("You must choose between min or max.")
         conf = await self.configglobalcheck(ctx)
@@ -386,7 +359,8 @@ class Unbelievaboat(commands.Cog):
     ):
         """Add money to the balance of all users within a role.
 
-        Valid arguements are 'banks' or 'wallet'."""
+        Valid arguements are 'banks' or 'wallet'.
+        """
         if destination.lower() not in ["bank", "wallet"]:
             return await ctx.send(
                 "You've supplied an invalid destination, you can choose to add it to a bank or their wallet.\nIf no destination is supplied it will default to their wallet."
@@ -398,8 +372,18 @@ class Unbelievaboat(commands.Cog):
                 except (ValueError, TypeError):
                     pass
         else:
+            failed = []
             for user in role.members:
-                await self.walletdeposit(user, amount)
+                try:
+                    await self.walletdeposit(ctx, user, amount)
+                except ValueError:
+                    failed.append(
+                        f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance."
+                    )
+        if failed:
+            failed_msg = "\n".join(failed)
+            for page in failed:
+                await ctx.send(page)
         await ctx.tick()
 
     @checks.admin()
@@ -411,7 +395,8 @@ class Unbelievaboat(commands.Cog):
     ):
         """Remove money from the bank balance of all users within a role.
 
-        Valid arguements are 'banks' or 'wallet'."""
+        Valid arguements are 'banks' or 'wallet'.
+        """
         if destination.lower() not in ["bank", "wallet"]:
             return await ctx.send(
                 "You've supplied an invalid destination, you can choose to add it to a bank or their wallet.\nIf no destination is supplied it will default to their wallet."
@@ -439,7 +424,7 @@ class Unbelievaboat(commands.Cog):
         conf = await self.configglobalcheck(ctx)
         payouts = await conf.payouts()
         wage = random.randint(payouts["work"]["min"], payouts["work"]["max"])
-        wagesentence = str(wage) + " " + await bank.get_currency_name(ctx.guild)
+        wagesentence = str(humanize_number(wage)) + " " + await bank.get_currency_name(ctx.guild)
         if await conf.defaultreplies():
             job = random.choice(work)
             line = job.format(amount=wagesentence)
@@ -459,7 +444,11 @@ class Unbelievaboat(commands.Cog):
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
-            await self.walletdeposit(ctx.author, wage)
+            try:
+                await self.walletdeposit(ctx, ctx.author, wage)
+            except ValueError:
+                embed.description += f"\nYou've reached the maximum amount of {await bank.get_currency_name(ctx.guild)}s in your wallet!"
+                return await ctx.send(embed=embed)
         else:
             await bank.deposit_credits(ctx.author, wage)
         await ctx.send(embed=embed)
@@ -480,7 +469,7 @@ class Unbelievaboat(commands.Cog):
             return await self.fine(ctx, "crime")
         payouts = await conf.payouts()
         wage = random.randint(payouts["crime"]["min"], payouts["crime"]["max"])
-        wagesentence = str(wage) + " " + await bank.get_currency_name(ctx.guild)
+        wagesentence = str(humanize_number(wage)) + " " + await bank.get_currency_name(ctx.guild)
         if await conf.defaultreplies():
             job = random.choice(crimes)
             line = job.format(amount=wagesentence)
@@ -500,7 +489,10 @@ class Unbelievaboat(commands.Cog):
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
-            await self.walletdeposit(ctx.author, wage)
+            try:
+                await self.walletdeposit(ctx, ctx.author, wage)
+            except ValueError:
+                embed.description += f"\nYou've reached the maximum amount of {await bank.get_currency_name(ctx.guild)}s in your wallet!"
         else:
             await bank.deposit_credits(ctx.author, wage)
         await ctx.send(embed=embed)
@@ -537,16 +529,21 @@ class Unbelievaboat(commands.Cog):
                 return await ctx.send(embed=embed)
             else:
                 return await self.fine(ctx, "rob")
-        modifier = self.roll()
+        modifier = roll()
         stolen = random.randint(1, int(userbalance * modifier))
-        await self.walletremove(user, stolen)
-        await self.walletdeposit(ctx.author, stolen)
         embed = discord.Embed(
             colour=discord.Color.green(),
-            description="You steal {}'s wallet and find {} inside.".format(user.name, stolen),
+            description="You steal {}'s wallet and find {} inside.".format(
+                user.name, humanize_number(stolen)
+            ),
             timestamp=ctx.message.created_at,
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        try:
+            await self.walletdeposit(ctx, ctx.author, stolen)
+            await self.walletremove(user, stolen)
+        except ValueError:
+            embed.description += f"\nAfter stealing the cash, you notice your wallet is now full!"
         await ctx.send(embed=embed)
 
     @checks.admin()
@@ -554,7 +551,10 @@ class Unbelievaboat(commands.Cog):
     @check_global_setting_admin()
     @unb_set.command(name="add-reply")
     async def add_reply(self, ctx, job, *, reply: str):
-        """Add a custom reply for working or crime. Put {amount} in place of where you want the amount earned to be."""
+        """Add a custom reply for working or crime.
+
+        Put {amount} in place of where you want the amount earned to be.
+        """
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
         if "{amount}" not in reply:
@@ -689,8 +689,8 @@ class Unbelievaboat(commands.Cog):
             inline=True,
         )
         payouts = data["payouts"]
-        crimepayout = f"**Max**: {payouts['crime']['max']}\n**Min**: {payouts['crime']['min']}"
-        workpayout = f"**Max**: {payouts['work']['max']}\n**Min**: {payouts['work']['min']}"
+        crimepayout = f"**Max**: {humanize_number(payouts['crime']['max'])}\n**Min**: {humanize_number(payouts['crime']['min'])}"
+        workpayout = f"**Max**: {humanize_number(payouts['work']['max'])}\n**Min**: {humanize_number(payouts['work']['min'])}"
         embed.add_field(name="Work Payouts", value=workpayout, inline=True)
         embed.add_field(name="Crime Payouts", value=crimepayout, inline=True)
         failrates = data["failrates"]
@@ -701,17 +701,21 @@ class Unbelievaboat(commands.Cog):
         )
         fines = data["fines"]
         embed.add_field(
-            name="Fines", value=f"**Max**: {fines['max']}\n**Min**: {fines['min']}", inline=True
+            name="Fines",
+            value=f"**Max**: {humanize_number(fines['max'])}\n**Min**: {humanize_number(fines['min'])}",
+            inline=True,
         )
         embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
         walletsettings = data["disable_wallet"]
         embed.add_field(
             name="Wallet Settings",
-            value="Disabled." if not walletsettings else "Enabled",
+            value="Disabled."
+            if not walletsettings
+            else f"**Max Balance**: {humanize_number(data['wallet_max'])}",
             inline=True,
         )
-        minbet = data["bet_min"]
-        maxbet = data["bet_max"]
+        minbet = humanize_number(data["betting"]["min"])
+        maxbet = humanize_number(data["betting"]["max"])
         betstats = f"**Max**: {maxbet}\n**Min**: {minbet}"
         embed.add_field(name="Betting Information", value=betstats)
         roulette = data["roulette_toggle"]
@@ -724,19 +728,21 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     async def wallet(self, ctx):
         """Wallet commands."""
-        pass
 
     @wallet.command()
     @commands.guild_only()
     async def balance(self, ctx, user: discord.Member = None):
         """Show the user's wallet balance.
 
-        Defaults to yours."""
+        Defaults to yours.
+        """
         if user is None:
             user = ctx.author
         balance = await self.walletbalance(user)
         currency = await bank.get_currency_name(ctx.guild)
-        await ctx.send(f"{user.display_name}'s wallet balance is {balance} {currency}")
+        await ctx.send(
+            f"{user.display_name}'s wallet balance is {humanize_number(balance)} {currency}"
+        )
 
     @wallet.command()
     @commands.guild_only()
@@ -804,9 +810,15 @@ class Unbelievaboat(commands.Cog):
     @wallet.command(name="set")
     async def _walletset(self, ctx, user: discord.Member, amount: int):
         """Set a users wallet balance."""
+        conf = await self.configglobalcheck(ctx)
+        maxw = await conf.wallet_max()
+        if amount > maxw:
+            return await ctx.send(
+                f"{user.display_name}'s wallet balance cannot rise above {humanize_number(maxw)} {await bank.get_currency_name(ctx.guild)}."
+            )
         await self.walletset(user, amount)
         await ctx.send(
-            f"{ctx.author.display_name} has set {user.display_name}'s wallet balance to {amount} {await bank.get_currency_name(ctx.guild)}"
+            f"{ctx.author.display_name} has set {user.display_name}'s wallet balance to {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)}."
         )
 
     @commands.command()
@@ -890,7 +902,7 @@ class Unbelievaboat(commands.Cog):
                 dozen = "3rd dozen"
         if bets["column"]:
             if winningnum == 0:
-                colum = "no column winning bet"
+                pass
             elif winningnum in COLUMNS[0]:
                 column = "1st column"
             elif winningnum in COLUMNS[1]:
@@ -904,10 +916,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["zero"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["color"]:
             bet_type = list(bet.keys())[0]
             if bet_type == color:
@@ -915,10 +933,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["color"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["number"]:
             bet_type = list(bet.keys())[0]
             if bet_type == winningnum:
@@ -926,10 +950,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["single"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["oddoreven"]:
             bet_type = list(bet.keys())[0]
             if bet_type == odd_even:
@@ -937,10 +967,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["odd_or_even"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["half"]:
             bet_type = list(bet.keys())[0]
             if bet_type == half:
@@ -948,10 +984,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["halfs"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["dozen"]:
             bet_type = list(bet.keys())[0]
             if bet_type == dozen:
@@ -959,10 +1001,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["dozen"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         for bet in bets["column"]:
             bet_type = list(bet.keys())[0]
             if bet_type == column:
@@ -970,10 +1018,16 @@ class Unbelievaboat(commands.Cog):
                 user = ctx.guild.get_member(betinfo["user"])
                 payout = betinfo["amount"] + (betinfo["amount"] * payouts["column"])
                 if not await self.walletdisabledcheck(ctx):
-                    await self.walletdeposit(user, payout)
+                    user_conf = await self.configglobalcheckuser(user)
+                    wallet = await user_conf.wallet()
+                    try:
+                        await self.walletdeposit(ctx, user, payout)
+                    except ValueError:
+                        max_bal = await conf.wallet_max()
+                        payout = max_bal - wallet
                 else:
                     await bank.deposit_credits(user, payout)
-                msg.append([bet_type, payout, user.display_name])
+                msg.append([bet_type, humanize_number(payout), user.display_name])
         return msg
 
     @commands.group(invoke_without_command=True)
@@ -981,7 +1035,7 @@ class Unbelievaboat(commands.Cog):
     @roulette_disabled_check()
     async def roulette(self, ctx, amount: int, *, bet):
         """Bet on the roulette wheel.
-        
+
         **Current supported bets**:
         Single   - Any single number.
         Colors   - Red/Black
@@ -989,7 +1043,8 @@ class Unbelievaboat(commands.Cog):
         Even Odd - Even or Odd
         Dozens   - 1st/2nd/3rd Dozen (Groups of 12)
         Colums   - 1st/2nd/3rd Column.
-        - This is based on the English version of the roulette wheel."""
+        - This is based on the English version of the roulette wheel.
+        """
         if ctx.guild.id not in self.roulettegames:
             return await ctx.send(
                 "Start a roulette game using {}roulette start".format(ctx.prefix)
@@ -997,11 +1052,12 @@ class Unbelievaboat(commands.Cog):
         if self.roulettegames[ctx.guild.id]["started"]:
             return await ctx.send("The wheel is already spinning.")
         conf = await self.configglobalcheck(ctx)
-        minbet, maxbet = await conf.bet_min(), await conf.bet_max()
+        betting = await conf.betting()
+        minbet, maxbet = betting["min"], betting["max"]
         if amount < minbet:
-            return await ctx.send(f"Your bet must be greater than {minbet}.")
+            return await ctx.send(f"Your bet must be greater than {humanize_number(minbet)}.")
         if amount > maxbet:
-            return await ctx.send(f"Your bet must be less than {maxbet}.")
+            return await ctx.send(f"Your bet must be less than {humanize_number(maxbet)}.")
         try:
             if not await self.walletdisabledcheck(ctx):
                 await self.walletwithdraw(ctx.author, amount)
@@ -1074,8 +1130,7 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     @commands.group()
     async def rouletteset(self, ctx):
-        """Manage settings for roulette"""
-        pass
+        """Manage settings for roulette."""
 
     @roulette_disabled_check()
     @checks.admin()
@@ -1118,8 +1173,8 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     @rouletteset.command()
     async def payouts(self, ctx, type, payout: int):
-        """Set payouts for roulette winnings
-        
+        """Set payouts for roulette winnings.
+
         Note: payout is what your prize is multiplied by.
         Valid types:
         zero
@@ -1128,7 +1183,8 @@ class Unbelievaboat(commands.Cog):
         dozen
         odd_or_even
         halfs
-        column"""
+        column
+        """
         types = ["zero", "single", "color", "dozen", "odd_or_even", "halfs", "column"]
         if type not in types:
             return await ctx.send(
@@ -1141,7 +1197,7 @@ class Unbelievaboat(commands.Cog):
 
     @rouletteset.command(name="settings")
     async def _settings(self, ctx):
-        """Roulette Settings"""
+        """Roulette Settings."""
         conf = await self.configglobalcheck(ctx)
         enabled = await conf.roulette_toggle()
         payouts = await conf.roulette_payouts()
