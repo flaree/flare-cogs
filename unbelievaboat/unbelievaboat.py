@@ -290,7 +290,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @wallet_set.group(name="toggle", usage="<on_or_off>")
+    @wallet_set.command(name="toggle", usage="<on_or_off>")
     async def wallet_toggle(self, ctx, on_or_off: bool):
         """Toggle the wallet system."""
         conf = await self.configglobalcheck(ctx)
@@ -304,7 +304,7 @@ class Unbelievaboat(commands.Cog):
     @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
-    @wallet_set.group(name="max")
+    @wallet_set.command(name="max")
     async def wallet_max(self, ctx, amount: int):
         """Set the max a wallet can have."""
         conf = await self.configglobalcheck(ctx)
