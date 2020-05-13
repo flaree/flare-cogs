@@ -29,7 +29,7 @@ profile_controls = {
 
 
 class Faceit(commands.Cog):
-    """CS:GO Faceit Statistics"""
+    """CS:GO Faceit Statistics."""
 
     __version__ = "0.0.5"
 
@@ -95,12 +95,11 @@ class Faceit(commands.Cog):
     @commands.group()
     @commands.check(tokencheck)
     async def faceit(self, ctx):
-        """Faceit Commands"""
-        pass
+        """Faceit Commands."""
 
     @faceit.command(name="set")
     async def _set(self, ctx, *, name: str):
-        """Set your faceit username"""
+        """Set your faceit username."""
         uname = await self.get_userid(name)
         if isinstance(uname, dict):
             await ctx.send(uname["failed"])
@@ -112,7 +111,7 @@ class Faceit(commands.Cog):
 
     @faceit.command()
     async def profile(self, ctx, *, user: typing.Union[discord.User, str] = None):
-        """Faceit Profile Stats"""
+        """Faceit Profile Stats."""
         if user is None:
             name = await self.config.user(ctx.author).name()
             if name is None:
@@ -158,7 +157,7 @@ class Faceit(commands.Cog):
 
     @faceit.command()
     async def matches(self, ctx, *, user: typing.Union[discord.User, str] = None):
-        """Faceit Match Stats"""
+        """Faceit Match Stats."""
         if user is None:
             name = await self.config.user(ctx.author).name()
             if name is None:
@@ -207,7 +206,7 @@ class Faceit(commands.Cog):
 
     @faceit.command()
     async def match(self, ctx, match_id):
-        """In-depth stats for a match"""
+        """In-depth stats for a match."""
         match = await self.get("/matches/{}/stats".format(match_id))
         if match.get("error"):
             return await ctx.send(match.get("error"))
