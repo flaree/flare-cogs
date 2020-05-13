@@ -1,8 +1,6 @@
 from redbot.core import commands, checks, Config
 import discord
 
-from typing import Union
-
 
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
@@ -79,12 +77,11 @@ class Forward(commands.Cog):
     @commands.group()
     async def forwardset(self, ctx):
         """Forwarding commands."""
-        pass
 
     @forwardset.command(aliases=["botmessage"])
     async def botmsg(self, ctx, type: bool = None):
-        """
-        Set whether to send notifications when the bot sends a message.
+        """Set whether to send notifications when the bot sends a message.
+
         Type must be a valid bool.
         """
         async with self.config.toggles() as toggles:
@@ -98,8 +95,8 @@ class Forward(commands.Cog):
 
     @forwardset.command()
     async def channel(self, ctx, channel: discord.TextChannel = None):
-        """
-        Set if you want to receive notifications in a channel instead of your DMs.
+        """Set if you want to receive notifications in a channel instead of your DMs.
+
         Leave blank if you want to set back to your DMs.
         """
         data = (
@@ -114,10 +111,10 @@ class Forward(commands.Cog):
     @commands.guild_only()
     @checks.guildowner()
     async def pm(self, ctx, user: discord.Member, *, message: str):
-        """
-        PMs a person.
-        Separate version of [p]dm but allows for guild owners.
-        This only works for users in the guild.
+        """PMs a person.
+
+        Separate version of [p]dm but allows for guild owners. This only works for users in the
+        guild.
         """
         em = discord.Embed(colour=discord.Colour.red(), description=message)
 
