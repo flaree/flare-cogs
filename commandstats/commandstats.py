@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from collections import OrderedDict
 from copy import deepcopy
 from typing import Counter
@@ -6,8 +7,8 @@ from typing import Counter
 import discord
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 
 def chunks(l, n):
@@ -17,9 +18,9 @@ def chunks(l, n):
 
 
 class CommandStats(commands.Cog):
-    """Command Statistics"""
+    """Command Statistics."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -33,6 +34,7 @@ class CommandStats(commands.Cog):
         self.config.register_global(**default_global)
         self.cache = {"guild": {}, "session": Counter({})}
         self.session = Counter()
+        self.session_time = datetime.datetime.utcnow()
 
     def cog_unload(self):
         asyncio.create_task(self.update_data())
@@ -63,8 +65,9 @@ class CommandStats(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def cmd(self, ctx, *, command: str = None):
         """Group command for command stats.
-        
-        This command does not log the issuing command."""
+
+        This command does not log the issuing command.
+        """
         await self.update_global()
         data = await self.config.globaldata()
         if not data:
@@ -101,7 +104,7 @@ class CommandStats(commands.Cog):
 
     @cmd.command(aliases=["server"])
     async def guild(self, ctx, *, command: str = None):
-        """Guild Command Stats"""
+        """Guild Command Stats."""
         await self.update_data()
         data = await self.config.guilddata()
         data = data[str(ctx.guild.id)]
@@ -141,7 +144,7 @@ class CommandStats(commands.Cog):
 
     @cmd.command()
     async def session(self, ctx, *, command: str = None):
-        """Session command stats"""
+        """Session command stats."""
         data = deepcopy(self.session)
         if str(ctx.command) in data:
             data[str(ctx.command)] += 1
@@ -166,7 +169,9 @@ class CommandStats(commands.Cog):
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
                     ),
+                    timestamp=self.session_time,
                 )
+                embed.set_footer(text="Recording sessions commands since")
                 embeds.append(embed)
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
