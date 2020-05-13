@@ -7,6 +7,7 @@ from redbot.core.utils.common_filters import (
     filter_invites,
     filter_various_mentions,
 )
+from redbot.core.utils import AsyncIter
 
 from .flags import discord_py, EMOJIS
 
@@ -49,7 +50,9 @@ class Userinfo(commands.Cog):
 
         if not user:
             user = author
-
+        sharedguilds = {
+            guild async for guild in AsyncIter(self.bot.guilds) if user in guild.members
+        }
         roles = user.roles[-1:0:-1]
         names, nicks = await mod.get_names_and_nicks(user)
 
@@ -121,7 +124,10 @@ class Userinfo(commands.Cog):
         else:
             role_str = None
 
-        data = discord.Embed(description=status_string or activity, colour=user.colour)
+        data = discord.Embed(
+            description=(status_string or activity) + f"\n\n{len(sharedguilds)} shared servers.",
+            colour=user.colour,
+        )
 
         data.add_field(name="Joined Discord on", value=created_on)
         data.add_field(name="Joined this server on", value=joined_on)
