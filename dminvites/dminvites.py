@@ -1,11 +1,10 @@
 import discord
 from redbot.core import commands, Config
 from redbot.core.utils.common_filters import INVITE_URL_RE
-import re
 
 
 class DmInvite(commands.Cog):
-    """Respond to invites send in DMs"""
+    """Respond to invites send in DMs."""
 
     __version__ = "0.0.4"
 
@@ -32,13 +31,12 @@ class DmInvite(commands.Cog):
     @commands.group()
     @commands.is_owner()
     async def dminvite(self, ctx):
-        """Group Commands for DM Invites"""
-        pass
+        """Group Commands for DM Invites."""
 
     @dminvite.command()
     @commands.is_owner()
     async def settings(self, ctx):
-        """DM Invite Settings"""
+        """DM Invite Settings."""
         embed = discord.Embed(title="DM Invite Settings", color=discord.Color.red())
         embed.add_field(
             name="Tracking Invites", value="Yes" if await self.config.toggle() else "No"
@@ -54,7 +52,7 @@ class DmInvite(commands.Cog):
     @dminvite.command()
     @commands.is_owner()
     async def toggle(self, ctx, toggle: bool = None):
-        """Turn DM responding on/off"""
+        """Turn DM responding on/off."""
         toggle = toggle or await self.config.toggle()
         if toggle:
             await self.config.toggle.set(False)
@@ -82,10 +80,11 @@ class DmInvite(commands.Cog):
     @dminvite.command()
     @commands.is_owner()
     async def message(self, ctx, *, message: str):
-        """Set the message that the bot will respond with. 
-        
+        """Set the message that the bot will respond with.
+
         **Available Parameters**:
-        {link} - return the bots oauth url with the permissions you've set with the core inviteset."""
+        {link} - return the bots oauth url with the permissions you've set with the core inviteset.
+        """
         await self.config.message.set(message)
         await ctx.tick()
 
