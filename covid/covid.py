@@ -61,7 +61,7 @@ class Covid(commands.Cog):
 
     @commands.command(hidden=True)
     async def covidcountries(self, ctx):
-        """Countries supported by covidnews"""
+        """Countries supported by covidnews."""
         await ctx.send(
             "Valid country codes are:\nae ar at au be bg br ca ch cn co cu cz de eg fr gb gr hk hu id ie il in it jp kr lt lv ma mx my ng nl no nz ph pl pt ro rs ru sa se sg si sk th tr tw ua us ve za"
         )
@@ -69,7 +69,7 @@ class Covid(commands.Cog):
     @commands.command()
     async def covidnews(self, ctx, countrycode: str):
         """Covid News from a Country - County must be 2-letter ISO 3166-1 code.
-        
+
         Check [p]covidcountries for a list of all possible country codes supported."""
         async with ctx.typing():
             data = await self.get(self.newsapi.format(countrycode, self.newsapikey))
@@ -110,9 +110,10 @@ class Covid(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def covid(self, ctx, *, country: typing.Optional[str]):
         """Stats about Covid-19 or countries if provided.
-        
+
         Supports multiple countries seperated by a comma.
-        Example: [p]covid Ireland, England"""
+        Example: [p]covid Ireland, England
+        """
         if not country:
             async with ctx.typing():
                 data = await self.get(self.api + "v2/all")
@@ -173,10 +174,11 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def yesterday(self, ctx, *, country: str):
-        """Show the statistics from yesterday for countries
+        """Show the statistics from yesterday for countries.
 
         Supports multiple countries seperated by a comma.
-        Example: [p]covid yesterday Ireland, England"""
+        Example: [p]covid yesterday Ireland, England
+        """
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries/{}?yesterday=1".format(country))
             if isinstance(data, dict):
@@ -211,7 +213,7 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def todaycases(self, ctx):
-        """Show the highest cases from countrys today"""
+        """Show the highest cases from countrys today."""
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries?sort=todayCases")
             if isinstance(data, dict):
@@ -235,7 +237,7 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def todaydeaths(self, ctx):
-        """Show the highest deaths from countrys today"""
+        """Show the highest deaths from countrys today."""
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries?sort=todayDeaths")
             if isinstance(data, dict):
@@ -259,7 +261,7 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def highestcases(self, ctx):
-        """Show the highest cases from countrys overall"""
+        """Show the highest cases from countrys overall."""
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries?sort=cases")
             if isinstance(data, dict):
@@ -283,7 +285,7 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def highestdeaths(self, ctx):
-        """Show the highest deaths from countrys overall"""
+        """Show the highest deaths from countrys overall."""
         async with ctx.typing():
             data = await self.get(self.api + "v2/countries?sort=deaths")
             if isinstance(data, dict):
@@ -307,7 +309,10 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def topcases(self, ctx, amount: int = 6):
-        """Show X countries with top amount of cases. Defaults to 6."""
+        """Show X countries with top amount of cases.
+
+        Defaults to 6.
+        """
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
@@ -330,7 +335,10 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def topcasestoday(self, ctx, amount: int = 6):
-        """Show X countries with top amount of cases today. Defaults to 6."""
+        """Show X countries with top amount of cases today.
+
+        Defaults to 6.
+        """
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
@@ -353,7 +361,10 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def topdeaths(self, ctx, amount: int = 6):
-        """Show X countries with top amount of deaths. Defaults to 6."""
+        """Show X countries with top amount of deaths.
+
+        Defaults to 6.
+        """
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
@@ -376,7 +387,10 @@ class Covid(commands.Cog):
 
     @covid.command()
     async def topdeathstoday(self, ctx, amount: int = 6):
-        """Show X countries with top amount of deaths today. Defaults to 6."""
+        """Show X countries with top amount of deaths today.
+
+        Defaults to 6.
+        """
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
@@ -400,9 +414,10 @@ class Covid(commands.Cog):
     @covid.group(invoke_without_command=True)
     async def state(self, ctx, *, states: str):
         """Show stats for specific states.
-        
+
         Supports multiple countries seperated by a comma.
-        Example: [p]covid state New York, California"""
+        Example: [p]covid state New York, California
+        """
         if not states:
             return await ctx.send_help()
         async with ctx.typing():
@@ -436,9 +451,10 @@ class Covid(commands.Cog):
     @state.command(name="yesterday")
     async def _yesterday(self, ctx, *, states: str):
         """Show stats for yesterday for specific states.
-        
+
         Supports multiple countries seperated by a comma.
-        Example: [p]covid state yesterday New York, California"""
+        Example: [p]covid state yesterday New York, California.
+        """
         async with ctx.typing():
             states = ",".join(states.split(", "))
             data = await self.get(self.api + "v2/states/{}?yesterday=1".format(states))
