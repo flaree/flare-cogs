@@ -34,7 +34,7 @@ class Userinfo(commands.Cog):
             try:
                 self.bot.remove_command("userinfo")
             except Exception as error:
-                log.log(error)
+                log.info(error)
             self.bot.add_command(_old_userinfo)
 
     @commands.command()

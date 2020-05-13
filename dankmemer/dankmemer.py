@@ -67,7 +67,9 @@ class DankMemer(commands.Cog):
         msg = (
             "This DankMemer cog relies on flare#0001s self hosted version of DankMemers imgen site.\n"
             "Gaining an API key will be difficult as they won't be handed out to everyone.\n"
-            "If you're lucky enough to get an API key then enter it using the following commands:\n"
+            "If you're lucky enough to get an API key then enter it using the following commands:\n\n\n"
+            "Another way is to self host the Dank Memer imgen located on their repo.\n"
+            f"You can then set the url endpoints using the {ctx.clean_prefix}dmurl <url>\n"
             f"{ctx.clean_prefix}set api imgen authorization <key>"
         )
         await ctx.maybe_send_embed(msg)
