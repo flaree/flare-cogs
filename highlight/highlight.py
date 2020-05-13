@@ -1,6 +1,6 @@
 from redbot.core import commands, Config, checks
 import discord
-from typing import Optional, Union
+from typing import Optional
 
 
 class Highlight(commands.Cog):
@@ -70,14 +70,14 @@ class Highlight(commands.Cog):
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
         """Highlighting Commands."""
-        pass
 
     @highlight.command()
     async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *, text: str):
         """Add a word to be highlighted on.
 
-        Text will be converted to lowercase.
-        Can also provide an optional channel arguement for the highlight to be applied to that channel."""
+        Text will be converted to lowercase.\nCan also provide an optional channel arguement for
+        the highlight to be applied to that channel.
+        """
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
@@ -97,8 +97,9 @@ class Highlight(commands.Cog):
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
         """Remove highlighting in a channel.
-        
-        An optional channel can be provided to remove a highlight from that channel."""
+
+        An optional channel can be provided to remove a highlight from that channel.
+        """
         word = word.lower()
         if channel is None:
             channel = ctx.channel
@@ -118,8 +119,9 @@ class Highlight(commands.Cog):
     @highlight.command()
     async def toggle(self, ctx, state: bool = None):
         """Toggle highlighting.
-        
-        Must be a valid bool."""
+
+        Must be a valid bool.
+        """
         async with self.config.channel(ctx.channel).toggle() as toggle:
             if state is None:
                 state = not toggle.get(f"{ctx.author.id}", True)
@@ -137,8 +139,9 @@ class Highlight(commands.Cog):
     @highlight.command()
     async def bots(self, ctx, state: bool = None):
         """Enable highlighting of bot messages.
-        
-        Expects a valid bool."""
+
+        Expects a valid bool.
+        """
         async with self.config.channel(ctx.channel).bots() as bots:
             if state is None:
                 state = not bots.get(f"{ctx.author.id}", True)
@@ -160,8 +163,9 @@ class Highlight(commands.Cog):
     @highlight.command(name="list")
     async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for a channel.
-        
-        A channel arguement can be supplied to view settings for said channel."""
+
+        A channel arguement can be supplied to view settings for said channel.
+        """
         channel = channel or ctx.channel
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
