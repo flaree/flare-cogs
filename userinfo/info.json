@@ -1,10 +1,10 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "Userinfo with badges. For the badge emojis to work, you must be in the special server for friends of Red :)",
+    "install_msg": "Userinfo with badges. If you wish for the badge emojis to work, you must have you bot added to the friends of Martine server. You can request it to be added here: https://discord.gg/svnKwnf",
     "name": "Userinfo",
-    "hidden": true,
+    "hidden": false,
     "short": "Userinfo with user badges.",
-    "description": "Show a users normal userinfo + their badges.",
+    "description": "Show a users normal userinfo + their badges and shared servers.",
     "tags": ["userinfo"],
     "min_bot_version": "3.2.0"
 }
