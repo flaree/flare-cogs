@@ -159,7 +159,7 @@ class Userinfo(commands.Cog):
 
         flags = await discord_py(user)
         badges = ""
-        for badge in flags:
+        for badge in sorted(flags):
             try:
                 emoji = discord.utils.get(self.bot.emojis, id=EMOJIS[badge])
             except KeyError:
