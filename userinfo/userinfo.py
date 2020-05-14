@@ -160,10 +160,15 @@ class Userinfo(commands.Cog):
         flags = await discord_py(user)
         badges = ""
         for badge in sorted(flags):
-            try:
+            if badge == "verified_bot":
+                emoji1 = discord.utils.get(self.bot.emojis, id=EMOJIS["verified_bot"])
+                emoji2 = discord.utils.get(self.bot.emojis, id=EMOJIS["verified_bot2"])
+                if emoji1:
+                    emoji = f"{emoji1}{emoji2}"
+                else:
+                    emoji = None
+            else:
                 emoji = discord.utils.get(self.bot.emojis, id=EMOJIS[badge])
-            except KeyError:
-                emoji = None
             if emoji:
                 badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
             else:
