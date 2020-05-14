@@ -23,7 +23,7 @@ EMOJIS = {
     "early_supporter": 706198530837970998,
     "hypesquad_balance": 706198531538550886,
     "hypesquad_bravery": 706198532998299779,
-    "hypesquad_briliance": 706198535846101092,
+    "hypesquad_brilliance": 706198535846101092,
     "hypesquad_events": 706198537049866261,
     "verified_developer": 706198727953612901,
     "bug_hunter": 706199712402898985,
@@ -126,25 +126,25 @@ class Flags:
         """Early supporter."""
         return (self.flags & EARLY_SUPPORTER) == EARLY_SUPPORTER
 
-    # @property
-    # def team_user(self) -> bool:
-    #     """Team user."""
-    #     return (self.flags & TEAM_USER) == TEAM_USER
+    @property
+    def team_user(self) -> bool:
+        """Team user."""
+        return (self.flags & TEAM_USER) == TEAM_USER
 
-    # @property
-    # def system(self) -> bool:
-    #     """System user."""
-    #     return (self.flags & SYSTEM) == SYSTEM
+    @property
+    def system(self) -> bool:
+        """System user."""
+        return (self.flags & SYSTEM) == SYSTEM
 
     @property
     def bug_hunter_2(self) -> bool:
         """Bug Hunter (Level 2)."""
         return (self.flags & BUG_HUNTER_2) == BUG_HUNTER_2
 
-    # @property
-    # def verified_bot(self) -> bool:
-    #     """Verified Bot."""  # noqa: D401
-    #     return (self.flags & VERIFIED_BOT) == VERIFIED_BOT
+    @property
+    def verified_bot(self) -> bool:
+        """Verified Bot."""  # noqa: D401
+        return (self.flags & VERIFIED_BOT) == VERIFIED_BOT
 
     @property
     def verified_developer(self) -> bool:

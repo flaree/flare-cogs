@@ -17,7 +17,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -160,8 +160,14 @@ class Userinfo(commands.Cog):
         flags = await discord_py(user)
         badges = ""
         for badge in flags:
-            emoji = discord.utils.get(self.bot.emojis, id=EMOJIS[badge])
-            badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
+            try:
+                emoji = discord.utils.get(self.bot.emojis, id=EMOJIS[badge])
+            except KeyError:
+                emoji = None
+            if emoji:
+                badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
+            else:
+                badges += f"\N{BLACK QUESTION MARK ORNAMENT}\N{VARIATION SELECTOR-16} {badge.replace('_', ' ').title()}\n"
         if badges:
             data.add_field(name="Badges", value=badges)
         await ctx.send(embed=data)

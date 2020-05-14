@@ -1,6 +1,6 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "Userinfo with badges.",
+    "install_msg": "Userinfo with badges. For the badge emojis to work, you must be in the special server for friends of Red :)",
     "name": "Userinfo",
     "hidden": true,
     "short": "Userinfo with user badges.",
