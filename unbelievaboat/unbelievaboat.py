@@ -18,7 +18,7 @@ from .functions import roll, chunks
 class Unbelievaboat(commands.Cog):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -28,7 +28,13 @@ class Unbelievaboat(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         defaults = {
-            "cooldowns": {"workcd": 14400, "crimecd": 14400, "robcd": 86400},
+            "cooldowns": {
+                "workcd": 14400,
+                "crimecd": 14400,
+                "robcd": 86400,
+                "withdrawcd": 1,
+                "depositcd": 1,
+            },
             "defaultreplies": True,
             "replies": {"crimereplies": [], "workreplies": []},
             "rob": [],
@@ -52,7 +58,13 @@ class Unbelievaboat(commands.Cog):
             "wallet_max": 50000,
         }
         defaults_member = {
-            "cooldowns": {"workcd": None, "crimecd": None, "robcd": None},
+            "cooldowns": {
+                "workcd": None,
+                "crimecd": None,
+                "robcd": None,
+                "depositcd": None,
+                "withdrawcd": None,
+            },
             "wallet": 0,
             "winnings": 0,
             "losses": 0,
@@ -231,12 +243,19 @@ class Unbelievaboat(commands.Cog):
 
         The time can be formatted as so `1h30m` etc. Valid times are hours, minutes and seconds.
         """
-        if job not in ["work", "crime", "rob"]:
+        job = job.lower()
+        if job not in ["work", "crime", "rob", "deposit", "withdraw"]:
             return await ctx.send("Invalid job.")
         seconds = time.total_seconds()
         if seconds < 30:
             return await ctx.send("The miniumum interval is 30 seconds.")
-        jobcd = {"work": "workcd", "crime": "crimecd", "rob": "robcd"}
+        jobcd = {
+            "work": "workcd",
+            "crime": "crimecd",
+            "rob": "robcd",
+            "deposit": "depositcd",
+            "withdraw": "withdrawcd",
+        }
         conf = await self.configglobalcheck(ctx)
         async with conf.cooldowns() as cooldowns:
             cooldowns[jobcd[job]] = int(seconds)
@@ -247,6 +266,8 @@ class Unbelievaboat(commands.Cog):
             "work": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot work for another {cooldown}.",
             "crime": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot commit a crime for another {cooldown}.",
             "rob": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot rob a person for another {cooldown}.",
+            "withdraw": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot withdraw any more cash for another {cooldown}.",
+            "deposit": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot deposit any more cash for another {cooldown}.",
         }
         embed = discord.Embed(colour=discord.Color.red(), description=response[job])
         embed.set_author(name=user, icon_url=user.avatar_url)
@@ -382,7 +403,7 @@ class Unbelievaboat(commands.Cog):
                     )
         if failed:
             failed_msg = "\n".join(failed)
-            for page in failed:
+            for page in failed_msg:
                 await ctx.send(page)
         await ctx.tick()
 
@@ -679,7 +700,7 @@ class Unbelievaboat(commands.Cog):
         workcd = humanize_timedelta(seconds=cooldowns["workcd"])
         robcd = humanize_timedelta(seconds=cooldowns["robcd"])
         crimecd = humanize_timedelta(seconds=cooldowns["crimecd"])
-        cooldowns = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
+        cooldownmsg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
             workcd, crimecd, robcd
         )
         embed = discord.Embed(colour=ctx.author.colour, title="Unbelievaboat Settings")
@@ -705,13 +726,13 @@ class Unbelievaboat(commands.Cog):
             value=f"**Max**: {humanize_number(fines['max'])}\n**Min**: {humanize_number(fines['min'])}",
             inline=True,
         )
-        embed.add_field(name="Cooldown Settings", value=cooldowns, inline=True)
+        embed.add_field(name="Cooldown Settings", value=cooldownmsg, inline=True)
         walletsettings = data["disable_wallet"]
         embed.add_field(
             name="Wallet Settings",
             value="Disabled."
             if not walletsettings
-            else f"**Max Balance**: {humanize_number(data['wallet_max'])}",
+            else f"**Max Balance**: {humanize_number(data['wallet_max'])}\n**Withdraw Cooldown**: {humanize_timedelta(seconds=cooldowns['withdrawcd'])}\n**Deposit Cooldown**: {humanize_timedelta(seconds=cooldowns['depositcd'])}",
             inline=True,
         )
         minbet = humanize_number(data["betting"]["min"])
@@ -826,6 +847,10 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     async def deposit(self, ctx, amount: Union[int, str]):
         """Deposit cash from your wallet to your bank."""
+        cdcheck = await self.cdcheck(ctx, "depositcd")
+        if isinstance(cdcheck, tuple):
+            embed = await self.cdnotice(ctx.author, cdcheck[1], "deposit")
+            return await ctx.send(embed=embed)
         if isinstance(amount, str):
             if amount != "all":
                 return await ctx.send("You must provide a valid number or the string `all`.")
@@ -837,6 +862,10 @@ class Unbelievaboat(commands.Cog):
     @commands.guild_only()
     async def withdraw(self, ctx, amount: int):
         """Withdraw cash from your bank to your wallet."""
+        cdcheck = await self.cdcheck(ctx, "withdrawcd")
+        if isinstance(cdcheck, tuple):
+            embed = await self.cdnotice(ctx.author, cdcheck[1], "withdraw")
+            return await ctx.send(embed=embed)
         await self.bankwithdraw(ctx, ctx.author, amount)
 
     async def betting(self, ctx, bet, _type):
