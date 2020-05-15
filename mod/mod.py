@@ -17,7 +17,7 @@ log = logging.getLogger("red.flarecogs.mod")
 class Mod(ModClass):
     """Mod with timed mute."""
 
-    __version__ = "1.1.3"
+    __version__ = "1.1.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -53,7 +53,7 @@ class Mod(ModClass):
             muted = await self.__config.muted()
             for guild in muted:
                 for user in muted[guild]:
-                    if datetime.utcfromtimestamp(muted[guild][user]["expiry"]) < datetime.utcnow():
+                    if datetime.fromtimestamp(muted[guild][user]["expiry"]) < datetime.now():
                         await self.unmute(user, guild)
             await asyncio.sleep(15)
 
@@ -117,6 +117,7 @@ class Mod(ModClass):
             return await ctx.send_help()
         if duration is None:
             duration = timedelta(minutes=10)
+        duration_seconds = duration.total_seconds()
         guild = ctx.guild
         roleid = await self.__config.guild(guild).muterole()
         if roleid is None:
@@ -172,10 +173,10 @@ class Mod(ModClass):
                         f" | Reason: {reason}" if reason is not None else "",
                     ),
                 )
-                expiry = datetime.utcnow() + timedelta(seconds=duration.total_seconds())
+                expiry = datetime.now() + timedelta(seconds=duration_seconds)
                 muted[str(ctx.guild.id)][str(user.id)] = {
-                    "time": datetime.utcnow().timestamp(),
-                    "expiry": int(expiry.timestamp()),
+                    "time": datetime.now().timestamp(),
+                    "expiry": expiry.timestamp(),
                 }
                 await modlog.create_case(
                     ctx.bot,
@@ -187,7 +188,7 @@ class Mod(ModClass):
                     reason,
                     expiry,
                 )
-                log.info(f"{user} muted by {ctx.author} in {ctx.guild}")
+                log.info(f"{user} muted by {ctx.author} in {ctx.guild} for {humanize_timedelta(timedelta=duration)}")
                 completed.append(user)
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
         if completed:
@@ -229,6 +230,6 @@ class Mod(ModClass):
             return await ctx.send("There is currently nobody muted in {}".format(ctx.guild))
         msg = ""
         for user in guildmuted:
-            expiry = datetime.utcfromtimestamp(guildmuted[user]["expiry"]) - datetime.utcnow()
+            expiry = datetime.fromtimestamp(guildmuted[user]["expiry"]) - datetime.now()
             msg += f"{self.bot.get_user(int(user)).mention} is muted for {humanize_timedelta(timedelta=expiry)}\n"
         await ctx.maybe_send_embed(msg if msg else "Nobody is currently muted.")
