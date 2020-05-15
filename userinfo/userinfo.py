@@ -17,7 +17,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -179,11 +179,19 @@ class Userinfo(commands.Cog):
 
 
 def cog_unload(self):
-    self.bot.add_command("serverinfo")
+    self.bot.add_command("userinfo")
+
+
+try:
+    from redbot.core.errors import CogLoadError
+except ImportError:
+    CogLoadError = RuntimeError
 
 
 def setup(bot):
     uinfo = Userinfo(bot)
+    if "Mod" not in bot.cogs:
+        raise CogLoadError("This cog requires the Mod cog to be loaded.")
     global _old_userinfo
     _old_userinfo = bot.get_command("userinfo")
     if _old_userinfo:
