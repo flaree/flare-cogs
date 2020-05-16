@@ -19,7 +19,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -59,6 +59,10 @@ class DankMemer(commands.Cog):
                     file = BytesIO(file)
                     file.seek(0)
                     return file
+                if resp.status == 404:
+                    return {
+                        "error": "Server not found, ensure the correct URL is setup and is reachable. "
+                    }
                 try:
                     return await resp.json()
                 except aiohttp.ContentTypeError:
