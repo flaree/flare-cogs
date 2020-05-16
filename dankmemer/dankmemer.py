@@ -70,7 +70,7 @@ class DankMemer(commands.Cog):
         msg = (
             "This DankMemer cog relies on flare#0001's self hosted version of DankMemers imgen site.\n"
             "Gaining an API key will be difficult as they won't be handed out to everyone.\n"
-            "If you're lucky enough to get an API key then enter it using the command located at the bottom.\n\n"
+            "To try request an api key, visit https://imgen.flaree.xyz/ and click 'Dashboard' and fill out an application.\n\n"
             "Alternatively, another way is to self host the Dank Memer imgen located on their repo.\n"
             f"You can then set the url endpoints using the {ctx.clean_prefix}dmurl <url> command. (Support will be limited if using your own instance.)\n\n"
             f"{ctx.clean_prefix}set api imgen authorization <key>"
