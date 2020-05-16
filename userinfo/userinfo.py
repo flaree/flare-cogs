@@ -178,10 +178,6 @@ class Userinfo(commands.Cog):
         await ctx.send(embed=data)
 
 
-def cog_unload(self):
-    self.bot.add_command("userinfo")
-
-
 try:
     from redbot.core.errors import CogLoadError
 except ImportError:
