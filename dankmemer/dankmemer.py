@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import typing
 from io import BytesIO
 
@@ -6,6 +7,8 @@ import aiohttp
 import discord
 from redbot.core import Config, commands
 from redbot.core.utils.predicates import MessagePredicate
+
+import validators
 
 
 async def tokencheck(ctx):
@@ -16,7 +19,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -65,11 +68,11 @@ class DankMemer(commands.Cog):
     async def dankmemersetup(self, ctx):
         """Instructions on how to setup DankMemer."""
         msg = (
-            "This DankMemer cog relies on flare#0001s self hosted version of DankMemers imgen site.\n"
+            "This DankMemer cog relies on flare#0001's self hosted version of DankMemers imgen site.\n"
             "Gaining an API key will be difficult as they won't be handed out to everyone.\n"
-            "If you're lucky enough to get an API key then enter it using the following commands:\n\n\n"
-            "Another way is to self host the Dank Memer imgen located on their repo.\n"
-            f"You can then set the url endpoints using the {ctx.clean_prefix}dmurl <url>\n"
+            "If you're lucky enough to get an API key then enter it using the command located at the bottom.\n\n"
+            "Alternatively, another way is to self host the Dank Memer imgen located on their repo.\n"
+            f"You can then set the url endpoints using the {ctx.clean_prefix}dmurl <url> command. (Support will be limited if using your own instance.)\n\n"
             f"{ctx.clean_prefix}set api imgen authorization <key>"
         )
         await ctx.maybe_send_embed(msg)
@@ -82,8 +85,10 @@ class DankMemer(commands.Cog):
         Ensure the url ends in API without the backslash - Example: https://imgen.flaree.xyz/api
         Only use this if you have an instance already.
         """
+        if not validators.url(url):
+            return await ctx.send(f"{url} doesn't seem to be a valid URL. Please try again.")
         await ctx.send(
-            "This has the ability to make every command error if not setup properly. Only use this if you're experienced enough to understand. Type yes to continue, otherwise type no."
+            "This has the ability to make every command fail if the URL is not reachable and/or not working. Only use this if you're experienced enough to understand. Type yes to continue, otherwise type no."
         )
         try:
             pred = MessagePredicate.yes_or_no(ctx, user=ctx.author)
