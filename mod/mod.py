@@ -188,7 +188,9 @@ class Mod(ModClass):
                     reason,
                     expiry,
                 )
-                log.info(f"{user} muted by {ctx.author} in {ctx.guild} for {humanize_timedelta(timedelta=duration)}")
+                log.info(
+                    f"{user} muted by {ctx.author} in {ctx.guild} for {humanize_timedelta(timedelta=duration)}"
+                )
                 completed.append(user)
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
         if completed:
