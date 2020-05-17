@@ -13,8 +13,8 @@ repos:
     -   id: check-docstring-first
     -   id: check-json
     -   id: detect-private-key
-    -   id: pretty-format-json
-        args: [--autofix, --indent 4]
+    # -   id: pretty-format-json
+    #     args: [--autofix, --indent 4]
     -   id: requirements-txt-fixer
     -   id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]

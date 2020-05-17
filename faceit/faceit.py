@@ -202,7 +202,10 @@ class Faceit(commands.Cog):
                 embed.add_field(name=f"{teams[team]} Players", value="\n".join(players))
 
             embeds.append(embed)
-        await menu(ctx, embeds, controls, timeout=30)
+        if embeds:
+            await menu(ctx, embeds, controls, timeout=30)
+        else:
+            await ctx.send("No information for previous matches found.")
 
     @faceit.command()
     async def match(self, ctx, match_id):
@@ -247,7 +250,10 @@ class Faceit(commands.Cog):
             embed.add_field(name="\u200b", value="\u200b")
             embed.set_footer(text=f"Page {i}/3")
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=60)
+        if embeds:
+            await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=60)
+        else:
+            await ctx.send("No information for match found.")
 
     @faceit.command()
     async def stats(self, ctx, game, *, user: typing.Union[discord.User, str] = None):
@@ -297,4 +303,7 @@ class Faceit(commands.Cog):
             embed.set_thumbnail(url=segment["img_regular"])
             embed.set_footer(text=f"Page {i}/{len(stats['segments']) + 1}")
             embeds.append(embed)
-        await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=30)
+        if embeds:
+            await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=30)
+        else:
+            await ctx.send("No information found.")

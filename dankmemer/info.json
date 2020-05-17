@@ -11,5 +11,6 @@
     "memes",
     "image gen"
   ],
+  "requirements": ["validators"],
   "hidden": false
 }
