@@ -315,7 +315,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def citation(self, ctx, *, text: str):
+    async def paperplease(self, ctx, *, text: str):
         """Papers Please Citation.
 
         Text must be 3 comma seperated values.
