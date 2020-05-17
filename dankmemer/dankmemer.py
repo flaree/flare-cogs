@@ -70,6 +70,12 @@ class DankMemer(commands.Cog):
                 except aiohttp.ContentTypeError:
                     return {"error": "Server may be down, please try again later."}
 
+    async def send_img(self, ctx, image):
+        try:
+            await ctx.send(file=image)
+        except aiohttp.ClientOSError:
+            await ctx.send("An error occured sending the picture.")
+
     @commands.command()
     async def dankmemersetup(self, ctx):
         """Instructions on how to setup DankMemer."""
@@ -118,7 +124,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "abandon.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command(aliases=["aborted"])
@@ -130,7 +136,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "abort.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -142,7 +148,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "affect.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -154,7 +160,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "airpods.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -166,7 +172,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "america.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -176,7 +182,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "armor.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -189,7 +195,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "balloon.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -208,7 +214,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "bed.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -220,7 +226,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "bongocat.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -233,7 +239,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "boo.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -246,7 +252,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "brain.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -258,7 +264,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "brazzers.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -276,7 +282,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "byemom.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()  # TODO: Maybe remove?
@@ -288,7 +294,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "cancer.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -298,7 +304,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "changemymind.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -311,7 +317,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "cheating.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -324,7 +330,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "citation.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -336,7 +342,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "communism.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -349,7 +355,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "confusedcat.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -361,7 +367,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "corporate.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -374,7 +380,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "cry.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -386,7 +392,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "dab.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -398,7 +404,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "dank.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -410,7 +416,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "deepfry.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -422,7 +428,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "delete.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -434,7 +440,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "disability.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -447,7 +453,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "doglemon.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -459,7 +465,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "door.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -471,7 +477,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "egg.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -484,7 +490,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "excuseme.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -497,7 +503,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "expanddong.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -510,7 +516,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "facts.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -522,7 +528,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "failure.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -534,7 +540,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "fakenews.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -546,7 +552,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "fedora.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -562,7 +568,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "fedora.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -575,7 +581,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "fuck.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -590,7 +596,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "garfield.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -602,7 +608,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "gay.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -614,7 +620,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "goggles.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -626,7 +632,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "hitler.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -636,7 +642,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "humansgood.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -646,7 +652,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "inator.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command(aliases=["invertcolor", "invertcolors", "invercolours"])
@@ -658,7 +664,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "invert.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -670,7 +676,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "ipad.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -682,7 +688,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "jail.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -695,7 +701,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "justpretending.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -707,7 +713,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "kimborder.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -720,7 +726,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "knowyourlocation.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()  # TODO: MP4s
@@ -733,7 +739,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "kowalski.gif"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -745,7 +751,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "laid.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()  # TODO: MP4s
@@ -755,7 +761,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "letmein.mp4"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -768,7 +774,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "lick.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -787,7 +793,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "madethis.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()  # Support other urls soon
@@ -799,7 +805,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "magik.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -812,7 +818,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "master.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -850,7 +856,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "meme.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -860,7 +866,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "note.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -873,7 +879,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "nothing.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -883,7 +889,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "ohno.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -893,7 +899,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "piccolo.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -906,7 +912,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "plan.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -916,7 +922,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "presentation.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -931,7 +937,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "quote.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -943,7 +949,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "radialblur.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command(aliases=["restinpeace"])
@@ -955,7 +961,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "rip.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -967,7 +973,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "roblox.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -979,7 +985,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "salty.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -989,7 +995,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "savehumanity.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1011,7 +1017,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "screams.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1021,7 +1027,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "shit.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1033,7 +1039,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "sickban.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1052,7 +1058,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "slap.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1062,7 +1068,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "slapsroof.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1075,7 +1081,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "sneakyfox.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1094,7 +1100,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "spank.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1104,7 +1110,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "stroke.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1117,7 +1123,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "surprised.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1132,7 +1138,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "sword.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1142,7 +1148,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "thesearch.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1154,7 +1160,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "trash.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1166,7 +1172,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "trigger.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1184,7 +1190,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "tweet.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1196,7 +1202,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "ugly.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1211,7 +1217,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "unpopular.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1221,7 +1227,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "violence.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1234,7 +1240,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "violentsparks.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1244,7 +1250,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "vr.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1254,7 +1260,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "walking.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1266,7 +1272,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "wanted.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1278,7 +1284,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "warp.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1290,7 +1296,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "whodidthis.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1303,7 +1309,7 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "whothisis.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
     @commands.command()
@@ -1327,4 +1333,4 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "youtube.png"
-        await ctx.send(file=discord.File(data))
+        await self.send_img(ctx, discord.File(data))
