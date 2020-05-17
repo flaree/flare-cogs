@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import typing
+import urllib
 from io import BytesIO
 
 import aiohttp
 import discord
+import validators
 from redbot.core import Config, commands
 from redbot.core.utils.predicates import MessagePredicate
 
-import validators
 from .converters import ImageFinder
 
 
@@ -840,7 +841,7 @@ class DankMemer(commands.Cog):
         else:
             fnt = ""
         if color:
-            clr = f"&color={color}"
+            clr = f"&color={urllib.parse.quote(color)}"
         else:
             clr = ""
         data = await self.get(
