@@ -40,26 +40,36 @@ class CommandStats(commands.Cog):
         asyncio.create_task(self.update_data())
         asyncio.create_task(self.update_global())
 
-    @commands.Cog.listener()
-    async def on_command(self, ctx):
-        command = str(ctx.command)
+    def record(self, ctx, name):
         guild = ctx.message.guild
         if not ctx.message.author.bot:
             if guild is not None:
                 if str(guild.id) not in self.cache["guild"]:
                     self.cache["guild"][str(guild.id)] = Counter({})
-                if command not in self.cache["guild"][str(guild.id)]:
-                    self.cache["guild"][str(guild.id)][command] = 1
+                if name not in self.cache["guild"][str(guild.id)]:
+                    self.cache["guild"][str(guild.id)][name] = 1
                 else:
-                    self.cache["guild"][str(guild.id)][command] += 1
-            if command not in self.cache["session"]:
-                self.cache["session"][command] = 1
+                    self.cache["guild"][str(guild.id)][name] += 1
+            if name not in self.cache["session"]:
+                self.cache["session"][name] = 1
             else:
-                self.cache["session"][command] += 1
-            if command not in self.session:
-                self.session[command] = 1
+                self.cache["session"][name] += 1
+            if name not in self.session:
+                self.session[name] = 1
             else:
-                self.session[command] += 1
+                self.session[name] += 1
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx):
+        """Record standard command events."""
+        name = str(ctx.command)
+        self.record(ctx, name)
+
+    @commands.Cog.listener()
+    async def on_commandstats_action(self, ctx):
+        """Record action events (i.e. other cog emits 'commandstats_action')."""
+        name = str(ctx.command)
+        self.record(ctx, name)
 
     @commands.is_owner()
     @commands.group(invoke_without_command=True)
