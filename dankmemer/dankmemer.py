@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.8a"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -625,7 +625,7 @@ class DankMemer(commands.Cog):
         """Rainbow-fy your picture."""
         if image is None:
             image = ctx.author.avatar_url_as(static_format="png")
-        data = await self.get(ctx, f"/gay?avatar1={ImageFinder}")
+        data = await self.get(ctx, f"/gay?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "gay.png"
