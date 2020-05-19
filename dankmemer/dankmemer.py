@@ -74,6 +74,11 @@ class DankMemer(commands.Cog):
                     return {"error": "Server may be down, please try again later."}
 
     async def send_img(self, ctx, image):
+        if not ctx.channel.permissions_for(ctx.me).send_messages:
+            return
+        if not ctx.channel.permissions_for(ctx.me).attach_files:
+            await ctx.send("I don't have permission to attach files.")
+            return
         try:
             await ctx.send(file=image)
         except aiohttp.ClientOSError:
