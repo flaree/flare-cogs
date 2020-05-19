@@ -6,8 +6,11 @@ from io import BytesIO
 
 import aiohttp
 import discord
+import tabulate
 import validators
 from redbot.core import Config, commands
+from redbot.core.utils.chat_formatting import humanize_number, box
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import ImageFinder
@@ -21,7 +24,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.0.10"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -1363,7 +1366,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def whothisis(self, ctx, user: typing.Optional[discord.Member], username: str):
-        """replace help msg."""
+        """who this is."""
         user = user or ctx.author
         data = await self.get(
             ctx, f"/whothisis?avatar1={user.avatar_url_as(static_format='png')}&text={username}"
@@ -1396,3 +1399,31 @@ class DankMemer(commands.Cog):
             return await self.send_error(ctx, data)
         data.name = "youtube.png"
         await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def dmusagestats(self, ctx):
+        """Usage stats for Dank Memer commands."""
+        data = await self.get(ctx, f"/usagestats", True)
+        if data.get("error"):
+            return await self.send_error(ctx, data)
+        data = {k: v for k, v in sorted(data.items(), key=lambda item: item[1], reverse=True)}
+        embeds = []
+        items = [[k.lower(), humanize_number(data[k])] for k in data]
+        a = chunks(items, 20)
+        for lst in a:
+            embed = discord.Embed(
+                title="Commands used",
+                colour=await self.bot.get_embed_color(ctx.channel),
+                description=box(
+                    tabulate.tabulate(lst, headers=["Endpoint", "Times Used"]), lang="prolog"
+                ),
+            )
+            embeds.append(embed)
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i : i + n]
