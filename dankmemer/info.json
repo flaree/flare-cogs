@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "This cog uses a self hosted version of the DankMemer imgen site, gaining an API key will be hard.. If you wish to host your own instance, you can use the inbuilt command to change IP.",
+  "install_msg": "This cog uses a self hosted version of the DankMemer imgen site. Check [p]dankmemersetup for information. If you wish to host your own instance, you can use the inbuilt command to change url.\nThis cog features over 95 commands, some may conflict.",
   "name": "DankMemer",
   "disabled": false,
   "short": "DankMemer image generator.",
