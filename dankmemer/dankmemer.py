@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.8a"
+    __version__ = "0.0.9"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -1022,6 +1022,18 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "salty.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def satan(self, ctx, image: ImageFinder = None):
+        """Place your picture over Satan."""
+        if image is None:
+            image = ctx.author.avatar_url_as(static_format="png")
+        data = await self.get(ctx, f"/satan?avatar1={image}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "satan.png"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
