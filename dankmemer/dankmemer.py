@@ -24,7 +24,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.11"
+    __version__ = "0.0.12"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -337,6 +337,20 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "cheating.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def crab(self, ctx, *, text: str):
+        """Crab rave.
+
+        Text must be comma seperated.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/crab?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "crabrave.mp4"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
