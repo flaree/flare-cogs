@@ -216,7 +216,7 @@ class DankMemer(commands.Cog):
     async def bed(self, ctx, user: discord.Member, user2: discord.Member = None):
         """There's a monster under my bed."""
         user2 = user2 or ctx.author
-        user1, user2 = user2, user1
+        user, user2 = user2, user
         data = await self.get(
             ctx,
             "/bed?avatar1={}{}".format(
@@ -818,7 +818,7 @@ class DankMemer(commands.Cog):
     async def madethis(self, ctx, user: discord.Member, user2: discord.Member = None):
         """I made this!"""
         user2 = user2 or ctx.author
-        user1, user2 = user2, user1
+        user, user2 = user2, user
         data = await self.get(
             ctx,
             "/madethis?avatar1={}{}".format(
@@ -1065,7 +1065,7 @@ class DankMemer(commands.Cog):
         **Screams**
         """
         user2 = user2 or ctx.author
-        user1, user2 = user2, user1
+        user, user2 = user2, user
         data = await self.get(
             ctx,
             "/screams?avatar1={}{}".format(
@@ -1108,7 +1108,7 @@ class DankMemer(commands.Cog):
     async def slap(self, ctx, user: discord.Member, user2: discord.Member = None):
         """*SLAPS*"""
         user2 = user2 or ctx.author
-        user1, user2 = user2, user1
+        user, user2 = user2, user
         data = await self.get(
             ctx,
             "/slap?avatar1={}{}".format(
@@ -1153,7 +1153,7 @@ class DankMemer(commands.Cog):
     async def spank(self, ctx, user: discord.Member, user2: discord.Member = None):
         """*spanks*"""
         user2 = user2 or ctx.author
-        user1, user2 = user2, user1
+        user, user2 = user2, user
         data = await self.get(
             ctx,
             "/spank?avatar1={}{}".format(
