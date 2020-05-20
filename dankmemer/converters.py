@@ -26,12 +26,13 @@ class ImageFinder(Converter):
         if mentions:
             for mention in mentions:
                 user = ctx.guild.get_member(int(mention.group(1)))
-                if user.is_avatar_animated():
-                    url = IMAGE_LINKS.search(str(user.avatar_url_as(format="gif")))
-                    urls.append(url.group(1))
-                else:
-                    url = IMAGE_LINKS.search(str(user.avatar_url_as(format="png")))
-                    urls.append(url.group(1))
+                if user is not None:
+                    if user.is_avatar_animated():
+                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="gif")))
+                        urls.append(url.group(1))
+                    else:
+                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="png")))
+                        urls.append(url.group(1))
         if not urls and ids:
             for possible_id in ids:
                 user = ctx.guild.get_member(int(possible_id.group(0)))
@@ -47,5 +48,14 @@ class ImageFinder(Converter):
                 urls.append(attachment.url)
 
         if not urls:
-            raise BadArgument("No images provided.")
+            user = ctx.guild.get_member_named(argument)
+            if user:
+                if user.is_avatar_animated():
+                    url = user.avatar_url_as(format="gif")
+                    urls.append(url)
+                else:
+                    url = user.avatar_url_as(format="png")
+                    urls.append(url)
+            else:
+                raise BadArgument("No images provided.")
         return urls[0]
