@@ -24,7 +24,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.10"
+    __version__ = "0.0.10a"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -216,6 +216,7 @@ class DankMemer(commands.Cog):
     async def bed(self, ctx, user: discord.Member, user2: discord.Member = None):
         """There's a monster under my bed."""
         user2 = user2 or ctx.author
+        user1, user2 = user2, user1
         data = await self.get(
             ctx,
             "/bed?avatar1={}{}".format(
@@ -817,6 +818,7 @@ class DankMemer(commands.Cog):
     async def madethis(self, ctx, user: discord.Member, user2: discord.Member = None):
         """I made this!"""
         user2 = user2 or ctx.author
+        user1, user2 = user2, user1
         data = await self.get(
             ctx,
             "/madethis?avatar1={}{}".format(
@@ -1063,6 +1065,7 @@ class DankMemer(commands.Cog):
         **Screams**
         """
         user2 = user2 or ctx.author
+        user1, user2 = user2, user1
         data = await self.get(
             ctx,
             "/screams?avatar1={}{}".format(
@@ -1105,6 +1108,7 @@ class DankMemer(commands.Cog):
     async def slap(self, ctx, user: discord.Member, user2: discord.Member = None):
         """*SLAPS*"""
         user2 = user2 or ctx.author
+        user1, user2 = user2, user1
         data = await self.get(
             ctx,
             "/slap?avatar1={}{}".format(
@@ -1149,6 +1153,7 @@ class DankMemer(commands.Cog):
     async def spank(self, ctx, user: discord.Member, user2: discord.Member = None):
         """*spanks*"""
         user2 = user2 or ctx.author
+        user1, user2 = user2, user1
         data = await self.get(
             ctx,
             "/spank?avatar1={}{}".format(
@@ -1191,7 +1196,10 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def sword(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
-        """Swordknife."""
+        """Swordknife.
+
+        Text must be split on commas.
+        """
         text = self.parse_text(text)
         user = user or ctx.author
 
@@ -1236,7 +1244,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/trigger?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "trigger.png"
+        data.name = "trigger.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
