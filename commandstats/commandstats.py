@@ -121,7 +121,7 @@ class CommandStats(commands.Cog):
         data = await self.config.guilddata()
         data = data[str(server.id)]
         if not data:
-            return await ctx.send("No commands have been used in this guild yet.")
+            return await ctx.send(f"No commands have been used in {server.name} yet.")
         if command is None:
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
@@ -134,7 +134,7 @@ class CommandStats(commands.Cog):
                 for item in items:
                     stats.append(item)
                 embed = discord.Embed(
-                    title="Commands used in this guild",
+                    title=f"Commands used in {server.name}",
                     colour=await self.bot.get_embed_color(ctx.channel),
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
@@ -152,7 +152,7 @@ class CommandStats(commands.Cog):
                     f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!"
                 )
             else:
-                await ctx.send(f"`{command}` hasn't been used in {ctx.guild}!")
+                await ctx.send(f"`{command}` hasn't been used in {server.name}!")
 
     @cmd.command()
     async def session(self, ctx, *, command: str = None):
