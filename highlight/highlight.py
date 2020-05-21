@@ -13,7 +13,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.7"
+    __version__ = "1.1.7a"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -44,30 +44,31 @@ class Highlight(commands.Cog):
                     if not toggle[user]:
                         continue
                     highlited_words.append(word)
-            msglist = []
-            msglist.append(message)
-            async for messages in message.channel.history(
-                limit=5, before=message, oldest_first=False
-            ):
-                msglist.append(messages)
-            msglist.reverse()
-            highlighted = message.guild.get_member(int(user))
-            if highlighted is None:
-                continue
-            context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
-            if len(context) > 2000:
-                context = "**Context omitted due to message size limits.\n**"
-            embed = discord.Embed(
-                title="Context:",
-                colour=0xFF0000,
-                timestamp=message.created_at,
-                description="{}".format(context),
-            )
-            embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-            await highlighted.send(
-                f"Your highlighted word(s) `{humanize_list(highlited_words)}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
-                embed=embed,
-            )
+            if highlited_words:
+                msglist = []
+                msglist.append(message)
+                async for messages in message.channel.history(
+                    limit=5, before=message, oldest_first=False
+                ):
+                    msglist.append(messages)
+                msglist.reverse()
+                highlighted = message.guild.get_member(int(user))
+                if highlighted is None:
+                    continue
+                context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
+                if len(context) > 2000:
+                    context = "**Context omitted due to message size limits.\n**"
+                embed = discord.Embed(
+                    title="Context:",
+                    colour=0xFF0000,
+                    timestamp=message.created_at,
+                    description="{}".format(context),
+                )
+                embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
+                await highlighted.send(
+                    f"Your highlighted word(s) `{humanize_list(highlited_words)}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
+                    embed=embed,
+                )
 
     @commands.guild_only()
     @commands.group(autohelp=True)
