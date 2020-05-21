@@ -2,7 +2,7 @@ import asyncio
 import datetime
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Counter
+from typing import Counter, Optional
 
 import discord
 import tabulate
@@ -113,13 +113,15 @@ class CommandStats(commands.Cog):
                 await ctx.send(f"`{command}` hasn't been used yet!")
 
     @cmd.command(aliases=["server"])
-    async def guild(self, ctx, *, command: str = None):
+    async def guild(self, ctx, server: Optional[commands.converter.GuildConverter] = None, *, command: str = None):
         """Guild Command Stats."""
+        if not server:
+            server = ctx.guild
         await self.update_data()
         data = await self.config.guilddata()
-        data = data[str(ctx.guild.id)]
+        data = data[str(server.id)]
         if not data:
-            return await ctx.send("No commands have been used in this guild yet.")
+            return await ctx.send(f"No commands have been used in {server.name} yet.")
         if command is None:
             data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
             stats = []
@@ -132,7 +134,7 @@ class CommandStats(commands.Cog):
                 for item in items:
                     stats.append(item)
                 embed = discord.Embed(
-                    title="Commands used in this guild",
+                    title=f"Commands used in {server.name}",
                     colour=await self.bot.get_embed_color(ctx.channel),
                     description=box(
                         tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
@@ -150,7 +152,7 @@ class CommandStats(commands.Cog):
                     f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!"
                 )
             else:
-                await ctx.send(f"`{command}` hasn't been used in {ctx.guild}!")
+                await ctx.send(f"`{command}` hasn't been used in {server.name}!")
 
     @cmd.command()
     async def session(self, ctx, *, command: str = None):
