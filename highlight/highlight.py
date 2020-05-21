@@ -1,6 +1,7 @@
 from redbot.core import commands, Config, checks
 import discord
 from typing import Optional
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 class Highlight(commands.Cog):
@@ -12,7 +13,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.6"
+    __version__ = "1.1.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -27,6 +28,7 @@ class Highlight(commands.Cog):
         for user in highlight:
             if int(user) == message.author.id:
                 continue
+            highlited_words = []
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
                     bots = await self.config.channel(message.channel).bots()
@@ -41,30 +43,31 @@ class Highlight(commands.Cog):
                     toggle = await self.config.channel(message.channel).toggle()
                     if not toggle[user]:
                         continue
-                    msglist = []
-                    msglist.append(message)
-                    async for messages in message.channel.history(
-                        limit=5, before=message, oldest_first=False
-                    ):
-                        msglist.append(messages)
-                    msglist.reverse()
-                    highlighted = message.guild.get_member(int(user))
-                    if highlighted is None:
-                        continue
-                    context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
-                    if len(context) > 2000:
-                        context = "**Context omitted due to message size limits.\n**"
-                    embed = discord.Embed(
-                        title="Context:",
-                        colour=0xFF0000,
-                        timestamp=message.created_at,
-                        description="{}".format(context),
-                    )
-                    embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-                    await highlighted.send(
-                        f"Your highlighted word `{word}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
-                        embed=embed,
-                    )
+                    highlited_words.append(word)
+            msglist = []
+            msglist.append(message)
+            async for messages in message.channel.history(
+                limit=5, before=message, oldest_first=False
+            ):
+                msglist.append(messages)
+            msglist.reverse()
+            highlighted = message.guild.get_member(int(user))
+            if highlighted is None:
+                continue
+            context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
+            if len(context) > 2000:
+                context = "**Context omitted due to message size limits.\n**"
+            embed = discord.Embed(
+                title="Context:",
+                colour=0xFF0000,
+                timestamp=message.created_at,
+                description="{}".format(context),
+            )
+            embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
+            await highlighted.send(
+                f"Your highlighted word(s) `{humanize_list(highlited_words)}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
+                embed=embed,
+            )
 
     @commands.guild_only()
     @commands.group(autohelp=True)
