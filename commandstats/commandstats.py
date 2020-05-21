@@ -2,7 +2,7 @@ import asyncio
 import datetime
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Counter
+from typing import Counter, Optional
 
 import discord
 import tabulate
@@ -113,11 +113,13 @@ class CommandStats(commands.Cog):
                 await ctx.send(f"`{command}` hasn't been used yet!")
 
     @cmd.command(aliases=["server"])
-    async def guild(self, ctx, *, command: str = None):
+    async def guild(self, ctx, server: Optional[commands.converter.GuildConverter] = None, *, command: str = None):
         """Guild Command Stats."""
+        if not server:
+            server = ctx.guild
         await self.update_data()
         data = await self.config.guilddata()
-        data = data[str(ctx.guild.id)]
+        data = data[str(server.id)]
         if not data:
             return await ctx.send("No commands have been used in this guild yet.")
         if command is None:
