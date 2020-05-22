@@ -113,7 +113,13 @@ class CommandStats(commands.Cog):
                 await ctx.send(f"`{command}` hasn't been used yet!")
 
     @cmd.command(aliases=["server"])
-    async def guild(self, ctx, server: Optional[commands.converter.GuildConverter] = None, *, command: str = None):
+    async def guild(
+        self,
+        ctx,
+        server: Optional[commands.converter.GuildConverter] = None,
+        *,
+        command: str = None,
+    ):
         """Guild Command Stats."""
         if not server:
             server = ctx.guild
