@@ -1,7 +1,13 @@
 from redbot.core import commands, Config, checks
 import discord
 from typing import Optional
-from redbot.core.utils.chat_formatting import humanize_list
+from redbot.core.utils.chat_formatting import humanize_list, box
+import tabulate
+import asyncio
+from redbot.core.utils.predicates import MessagePredicate
+import logging
+
+logger = logging.getLogger("red.flare.highlight")
 
 
 class Highlight(commands.Cog):
@@ -10,15 +16,36 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
+        self.config.register_global(migrated=False)
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.1.7a"
+    __version__ = "1.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
+
+    async def migrate_config(self):
+        if not await self.config.migrated():
+            a = {}
+            conf = await self.config.all_channels()
+            for channel in conf:
+                a[channel] = {}
+                for user in conf[channel]["highlight"]:
+                    a[channel][user] = {}
+                    for highlight in conf[channel]["highlight"][user]:
+                        a[channel][user][highlight] = {
+                            "toggle": conf[channel]["toggle"][user],
+                            "bots": False,
+                        }
+            group = self.config._get_base_group(self.config.CHANNEL)
+            async with group.all() as new_data:
+                for channel in a:
+                    new_data[channel] = {"highlight": a[channel]}
+            await self.config.migrated.set(True)
+            logger.info("Migration complete.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -31,17 +58,11 @@ class Highlight(commands.Cog):
             highlited_words = []
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
-                    bots = await self.config.channel(message.channel).bots()
-                    if user in bots:  # ensure the user is in the dict - stops breakages.
-                        if not bots[user]:
-                            if message.author.bot:
-                                continue
-                    else:
-                        if message.author.bot:
+                    if message.author.bot:
+                        if not highlight[user][word]["bots"]:
                             continue
 
-                    toggle = await self.config.channel(message.channel).toggle()
-                    if not toggle[user]:
+                    if not highlight[user][word]["toggle"]:
                         continue
                     highlited_words.append(word)
             if highlited_words:
@@ -88,15 +109,12 @@ class Highlight(commands.Cog):
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
             if text.lower() not in highlight[f"{ctx.author.id}"]:
-                highlight[f"{ctx.author.id}"][text.lower()] = None
+                highlight[f"{ctx.author.id}"][text.lower()] = {"toggle": False, "bots": False}
                 await ctx.send(
                     f"The word `{text}` has been added to your highlight list for {channel}."
                 )
             else:
                 await ctx.send(f"The word {text} is already in your highlight list for {channel}.")
-        async with self.config.channel(channel).toggle() as toggle:
-            if str(ctx.author.id) not in toggle:
-                toggle[f"{ctx.author.id}"] = False
 
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
@@ -108,61 +126,117 @@ class Highlight(commands.Cog):
         if channel is None:
             channel = ctx.channel
         async with self.config.channel(channel).highlight() as highlight:
-            try:
-                if word in highlight[f"{ctx.author.id}"]:
-                    await ctx.send(
-                        f"Highlighted word `{word}` has been removed from {channel} successfully."
-                    )
-                    del highlight[f"{ctx.author.id}"][word]
+            highlights = highlight.get(str(ctx.author.id))
+            if not highlights:
+                return await ctx.send(f"You don't have any highlights setup in {channel}")
+            if word in highlight[f"{ctx.author.id}"]:
+                await ctx.send(
+                    f"Highlighted word `{word}` has been removed from {channel} successfully."
+                )
+                del highlight[f"{ctx.author.id}"][word]
 
-                else:
-                    await ctx.send("Your word is not currently setup in that channel..")
-            except KeyError:
-                await ctx.send("You do not have any highlighted words in that channel.")
+            else:
+                await ctx.send("Your word is not currently setup in that channel..")
 
     @highlight.command()
-    async def toggle(self, ctx, state: bool = None):
+    async def toggle(self, ctx, state: bool, *, word: str = None):
         """Toggle highlighting.
 
         Must be a valid bool.
         """
-        async with self.config.channel(ctx.channel).toggle() as toggle:
-            if state is None:
-                state = not toggle.get(f"{ctx.author.id}", True)
-            if state:
-                toggle[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "{} has enabled their highlighting in this channel.".format(ctx.author.name)
-                )
+        if word is None:
+            msg = "enable" if state else "disable"
+            await ctx.send(
+                f"Are you sure you wish to {msg} highlighting for all your highlights? Type yes to confirm otherwise type no."
+            )
+            try:
+                pred = MessagePredicate.yes_or_no(ctx, user=ctx.author)
+                await ctx.bot.wait_for("message", check=pred, timeout=20)
+            except asyncio.TimeoutError:
+                await ctx.send("Exiting operation.")
+                return
+
+            if pred.result:
+                async with self.config.channel(ctx.channel).highlight() as highlight:
+                    highlights = highlight.get(str(ctx.author.id))
+                    if not highlights:
+                        return await ctx.send("You do not have any highlights setup.")
+                    for word in highlights:
+                        highlight[str(ctx.author.id)][word]["toggle"] = state
+                if state:
+                    await ctx.send("All your highlights have been enabled.")
+                    return
+                await ctx.send("All your highlights have been disabled.")
+                return
+
             else:
-                toggle[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "{} has disabled their highlighting in this channel.".format(ctx.author.name)
+                await ctx.send("Cancelling.")
+                return
+        word = word.lower()
+        async with self.config.channel(ctx.channel).highlight() as highlight:
+            highlights = highlight.get(str(ctx.author.id))
+            if not highlights:
+                return await ctx.send("You do not have any highlights setup.")
+            if word not in highlight[str(ctx.author.id)]:
+                return await ctx.send(
+                    f"You do not have a highlight for `{word}` setup in {ctx.channel}"
                 )
+            highlight[str(ctx.author.id)][word]["toggle"] = state
+            if state:
+                return await ctx.send(f"The highlight `{word}` has been enabled in {ctx.channel}.")
+            await ctx.send(f"The highlight `{word}` has been disabled in {ctx.channel}.")
 
     @highlight.command()
-    async def bots(self, ctx, state: bool = None):
+    async def bots(self, ctx, state: bool, *, word: str = None):
         """Enable highlighting of bot messages.
 
         Expects a valid bool.
         """
-        async with self.config.channel(ctx.channel).bots() as bots:
-            if state is None:
-                state = not bots.get(f"{ctx.author.id}", True)
-            if state:
-                bots[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "{} has enabled their highlighting of bot messages in this channel.".format(
-                        ctx.author.name
-                    )
-                )
+        if word is None:
+            msg = "enable" if state else "disable"
+            await ctx.send(
+                f"Are you sure you wish to {msg} the highlighting of bot messages for all your highlights? Type yes to confirm otherwise type no."
+            )
+            try:
+                pred = MessagePredicate.yes_or_no(ctx, user=ctx.author)
+                await ctx.bot.wait_for("message", check=pred, timeout=20)
+            except asyncio.TimeoutError:
+                await ctx.send("Exiting operation.")
+                return
+
+            if pred.result:
+                async with self.config.channel(ctx.channel).highlight() as highlight:
+                    highlights = highlight.get(str(ctx.author.id))
+                    if not highlights:
+                        return await ctx.send("You do not have any highlights setup.")
+                    for word in highlights:
+                        highlight[str(ctx.author.id)][word]["bots"] = state
+                if state:
+                    await ctx.send("Bots will now trigger all of your highlights.")
+                    return
+                await ctx.send("Bots will no longer trigger on any of your highlights.")
+                return
+
             else:
-                bots[f"{ctx.author.id}"] = state
-                await ctx.send(
-                    "{} has disabled their highlighting of bot messages in this channel.".format(
-                        ctx.author.name
-                    )
+                await ctx.send("Cancelling.")
+                return
+        word = word.lower()
+        async with self.config.channel(ctx.channel).highlight() as highlight:
+            highlights = highlight.get(str(ctx.author.id))
+            if not highlights:
+                return await ctx.send("You do not have any highlights setup.")
+            if word not in highlight[str(ctx.author.id)]:
+                return await ctx.send(
+                    f"You do not have a highlight for `{word}` setup in {ctx.channel}"
                 )
+            highlight[str(ctx.author.id)][word]["bots"] = state
+            if state:
+                return await ctx.send(
+                    f"The highlight `{word}` will now be triggered by bots in {ctx.channel}."
+                )
+            await ctx.send(
+                f"The highlight `{word}` will no longer be trigged by bots in {ctx.channel}."
+            )
 
     @highlight.command(name="list")
     async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
@@ -173,25 +247,38 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
-            toggle = await self.config.channel(channel).toggle()
-            bots = await self.config.channel(channel).bots()
-            words = [word for word in highlight[f"{ctx.author.id}"]]
-            words = "\n".join(words)
+            words = [
+                [
+                    word,
+                    on_or_off(highlight[f"{ctx.author.id}"][word]["toggle"]),
+                    yes_or_no(not highlight[f"{ctx.author.id}"][word]["bots"]),
+                ]
+                for word in highlight[f"{ctx.author.id}"]
+            ]
             embed = discord.Embed(
                 title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
                 colour=ctx.author.colour,
+                description=box(
+                    tabulate.tabulate(
+                        sorted(words, key=lambda x: x[1], reverse=True),
+                        headers=["Word", "Toggle", "Ignoring Bots"],
+                    ),
+                    lang="prolog",
+                ),
             )
-            embed.add_field(name="Words:", value=words)
-            embed.add_field(name="Toggled:", value="Yes" if toggle[f"{ctx.author.id}"] else "No")
-            if str(ctx.author.id) in bots:
-                if bots[str(ctx.author.id)]:
-                    val = False
-                else:
-                    val = True
-            else:
-                val = True
-            embed.add_field(name="Ignoring Bots:", value="Yes" if val else "No")
 
             await ctx.send(embed=embed)
         else:
             await ctx.send(f"You currently do not have any highlighted words set up in {channel}.")
+
+
+def yes_or_no(boolean):
+    if boolean:
+        return "Yes"
+    return "No"
+
+
+def on_or_off(boolean):
+    if boolean:
+        return "On"
+    return "Off"

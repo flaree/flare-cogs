@@ -1,5 +1,7 @@
 from .highlight import Highlight
 
 
-def setup(bot):
-    bot.add_cog(Highlight(bot))
+async def setup(bot):
+    cog = Highlight(bot)
+    await cog.migrate_config()
+    bot.add_cog(cog)
