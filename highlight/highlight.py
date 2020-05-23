@@ -20,7 +20,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.2.0"
+    __version__ = "1.2.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -91,6 +91,12 @@ class Highlight(commands.Cog):
                     embed=embed,
                 )
 
+    def channel_check(self, ctx, channel):
+        return (
+            channel.permissions_for(ctx.author).read_messages
+            and channel.permissions_for(ctx.me).read_message_history
+        )
+
     @commands.guild_only()
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
@@ -103,8 +109,11 @@ class Highlight(commands.Cog):
         Text will be converted to lowercase.\nCan also provide an optional channel arguement for
         the highlight to be applied to that channel.
         """
-        if channel is None:
-            channel = ctx.channel
+        channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
@@ -123,8 +132,11 @@ class Highlight(commands.Cog):
         An optional channel can be provided to remove a highlight from that channel.
         """
         word = word.lower()
-        if channel is None:
-            channel = ctx.channel
+        channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
         async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
@@ -139,13 +151,21 @@ class Highlight(commands.Cog):
                 await ctx.send("Your word is not currently setup in that channel..")
 
     @highlight.command()
-    async def toggle(self, ctx, state: bool, *, word: str = None):
+    async def toggle(
+        self, ctx, state: bool, channel: Optional[discord.TextChannel] = None, *, word: str = None
+    ):
         """Toggle highlighting.
 
-        Must be a valid bool.
+        Must be a valid bool. Not passing a word will enable/disable highlighting for all
+        highlights.
         """
+        channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
         if word is None:
-            async with self.config.channel(ctx.channel).highlight() as highlight:
+            async with self.config.channel(channel).highlight() as highlight:
                 highlights = highlight.get(str(ctx.author.id))
                 if not highlights:
                     return await ctx.send("You do not have any highlights setup.")
@@ -157,25 +177,33 @@ class Highlight(commands.Cog):
             await ctx.send("All your highlights have been disabled.")
             return
         word = word.lower()
-        async with self.config.channel(ctx.channel).highlight() as highlight:
+        async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
                 return await ctx.send("You do not have any highlights setup.")
             if word not in highlight[str(ctx.author.id)]:
                 return await ctx.send(
-                    f"You do not have a highlight for `{word}` setup in {ctx.channel}"
+                    f"You do not have a highlight for `{word}` setup in {channel}"
                 )
             highlight[str(ctx.author.id)][word]["toggle"] = state
             if state:
-                return await ctx.send(f"The highlight `{word}` has been enabled in {ctx.channel}.")
-            await ctx.send(f"The highlight `{word}` has been disabled in {ctx.channel}.")
+                return await ctx.send(f"The highlight `{word}` has been enabled in {channel}.")
+            await ctx.send(f"The highlight `{word}` has been disabled in {channel}.")
 
     @highlight.command()
-    async def bots(self, ctx, state: bool, *, word: str = None):
+    async def bots(
+        self, ctx, state: bool, channel: Optional[discord.TextChannel] = None, *, word: str = None
+    ):
         """Enable highlighting of bot messages.
 
-        Expects a valid bool.
+        Expects a valid bool. Not passing a word will enable/disable bot highlighting for all
+        highlights.
         """
+        channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
         if word is None:
             msg = "enable" if state else "disable"
             await ctx.send(
@@ -189,7 +217,7 @@ class Highlight(commands.Cog):
                 return
 
             if pred.result:
-                async with self.config.channel(ctx.channel).highlight() as highlight:
+                async with self.config.channel(channel).highlight() as highlight:
                     highlights = highlight.get(str(ctx.author.id))
                     if not highlights:
                         return await ctx.send("You do not have any highlights setup.")
@@ -205,21 +233,21 @@ class Highlight(commands.Cog):
                 await ctx.send("Cancelling.")
                 return
         word = word.lower()
-        async with self.config.channel(ctx.channel).highlight() as highlight:
+        async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
                 return await ctx.send("You do not have any highlights setup.")
             if word not in highlight[str(ctx.author.id)]:
                 return await ctx.send(
-                    f"You do not have a highlight for `{word}` setup in {ctx.channel}"
+                    f"You do not have a highlight for `{word}` setup in {channel}"
                 )
             highlight[str(ctx.author.id)][word]["bots"] = state
             if state:
                 return await ctx.send(
-                    f"The highlight `{word}` will now be triggered by bots in {ctx.channel}."
+                    f"The highlight `{word}` will now be triggered by bots in {channel}."
                 )
             await ctx.send(
-                f"The highlight `{word}` will no longer be trigged by bots in {ctx.channel}."
+                f"The highlight `{word}` will no longer be trigged by bots in {channel}."
             )
 
     @highlight.command(name="list")
@@ -229,6 +257,10 @@ class Highlight(commands.Cog):
         A channel arguement can be supplied to view settings for said channel.
         """
         channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
             words = [
