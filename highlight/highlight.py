@@ -145,33 +145,17 @@ class Highlight(commands.Cog):
         Must be a valid bool.
         """
         if word is None:
-            msg = "enable" if state else "disable"
-            await ctx.send(
-                f"Are you sure you wish to {msg} highlighting for all your highlights? Type yes to confirm otherwise type no."
-            )
-            try:
-                pred = MessagePredicate.yes_or_no(ctx, user=ctx.author)
-                await ctx.bot.wait_for("message", check=pred, timeout=20)
-            except asyncio.TimeoutError:
-                await ctx.send("Exiting operation.")
+            async with self.config.channel(ctx.channel).highlight() as highlight:
+                highlights = highlight.get(str(ctx.author.id))
+                if not highlights:
+                    return await ctx.send("You do not have any highlights setup.")
+                for word in highlights:
+                    highlight[str(ctx.author.id)][word]["toggle"] = state
+            if state:
+                await ctx.send("All your highlights have been enabled.")
                 return
-
-            if pred.result:
-                async with self.config.channel(ctx.channel).highlight() as highlight:
-                    highlights = highlight.get(str(ctx.author.id))
-                    if not highlights:
-                        return await ctx.send("You do not have any highlights setup.")
-                    for word in highlights:
-                        highlight[str(ctx.author.id)][word]["toggle"] = state
-                if state:
-                    await ctx.send("All your highlights have been enabled.")
-                    return
-                await ctx.send("All your highlights have been disabled.")
-                return
-
-            else:
-                await ctx.send("Cancelling.")
-                return
+            await ctx.send("All your highlights have been disabled.")
+            return
         word = word.lower()
         async with self.config.channel(ctx.channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
