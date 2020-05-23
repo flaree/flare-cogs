@@ -18,16 +18,18 @@ class Csgo(commands.Cog):
         self.bot = bot
         self.emoji = "\N{WHITE HEAVY CHECK MARK}"
         self.games = {}
-    
+
     @commands.max_concurrency(1, commands.BucketType.guild)
     @commands.command()
     async def csgo(self, ctx):
         """Gather up 4 others"""
         role = discord.utils.get(ctx.guild.roles, name="CSGO")
-        #await role.edit(mentionable=True)
-        msg = await ctx.send(f"React to the \N{WHITE HEAVY CHECK MARK} below to join the 5-man.\n{role.mention}")
+        # await role.edit(mentionable=True)
+        msg = await ctx.send(
+            f"React to the \N{WHITE HEAVY CHECK MARK} below to join the 5-man.\n{role.mention}"
+        )
         await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        #await role.edit(mentionable=False)
+        # await role.edit(mentionable=False)
         self.games[msg.id] = []
 
     @commands.Cog.listener()
@@ -46,7 +48,7 @@ class Csgo(commands.Cog):
                 await self.confirmgame(channel, payload.message_id)
 
     async def confirmgame(self, channel, messageid):
-        await channel.send("**CSGO Team**:\n{}".format("\n".join([x.mention for x in self.games[messageid]])))
+        await channel.send(
+            "**CSGO Team**:\n{}".format("\n".join([x.mention for x in self.games[messageid]]))
+        )
         del self.games[messageid]
-
-        
