@@ -10,7 +10,7 @@ class Verify(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_global(username=None, password=None, verified_emails=[])
-        self.config.register_user(code=None, verified=False, email=None)
+        self.config.register_user(code=None, verified=False, email=None, verified_by=None)
 
     @commands.command()
     @commands.admin()
@@ -36,9 +36,9 @@ class Verify(commands.Cog):
     @commands.dm_only()
     async def verify_email(self, ctx, email: str):
         """Verify your DCU email"""
-        if not email.endswith("@mail.dcu.ie"):
+        if not email.lower().endswith("@mail.dcu.ie"):
             return await ctx.send("This doesn't seem to be a valid DCU email.")
-        if await self.config.user(user).verified():
+        if await self.config.user(ctx.author).verified():
             await ctx.send("You have already been verified.")
             return
         emails = await self.config.verified_emails()
@@ -69,6 +69,7 @@ class Verify(commands.Cog):
             return
         if code == usercode:
             verified = await self.config.user(ctx.author).verified.set(True)
+            await self.config.user(ctx.author).verified_by.set("System")
             async with self.config.verified_emails() as emails:
                 emails.append(await self.config.user(ctx.author).email())
             guild = self.bot.get_guild(713522800081764392)
@@ -78,7 +79,7 @@ class Verify(commands.Cog):
                 role,
                 reason=f"Automatically verified - Email: {await self.config.user(ctx.author).email()}",
             )
-            await ctx.send("Your account has been verified!")
+            await ctx.send("Your account has been verified! Head over to <#713791953589764156> to set your course/year!")
         else:
             await ctx.send(
                 "That code doesn't match the one sent via the email. Try again or request a new code."
@@ -101,12 +102,22 @@ class Verify(commands.Cog):
 
     @verify.command()
     @commands.admin()
-    async def user(self, ctx, user: discord.Member):
-        """Verify an external user"""
+    async def user(self, ctx, type: str, *, user: discord.Member):
+        """Verify a user"""
         if ctx.guild.id != 713522800081764392:
             await ctx.send("This must be used in the CASE++ server.")
-        roles = [ctx.guild.get_role(713538609017258025), ctx.guild.get_role(713538570824187968)]
+        if type.lower() == "external":
+            roles = [ctx.guild.get_role(713538609017258025), ctx.guild.get_role(713538570824187968)]
+        elif type.lower() == "internal":
+            roles = [ctx.guild.get_role(713538570824187968)]
+        else:
+            await ctx.send("Type must be internal or external.")
+            return
         await user.add_roles(*roles, reason=f"Manually verified by: {ctx.author}")
+        await self.config.user(user).verified_by.set(ctx.author.name)
+        await self.config.user(user).verified.set(True)
+        await self.config.user(user).email.set(type.title())
+        await user.send(f"Your account has been verified on CASE++ by {ctx.author}")
         await ctx.tick()
 
     @commands.is_owner()
@@ -133,3 +144,23 @@ class Verify(commands.Cog):
             password=await self.config.password(),
             use_tls=True,
         )
+    
+    @commands.command()
+    @commands.admin()
+    async def profile(self, ctx, user:discord.Member):
+        """Show a users profile information."""
+        embed = discord.Embed(color=user.color, title=f"Profile for {user}")
+        useri = await self.config.user(user).verified_by()
+        verif = await self.config.user(user).verified()
+        email = await self.config.user(user).email()
+        embed.add_field(name="Verified", value=str(verif))
+        if not verif:
+            await ctx.send(embed=embed)
+            return
+        veri_by = useri if useri is not None else "None"
+        emaill = email if email is not None else "None"
+        embed.add_field(name="Verified By", value=veri_by)
+        embed.add_field(name="Email", value=emaill)
+        await ctx.send(embed=embed)
+
+
