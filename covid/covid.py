@@ -12,7 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -89,8 +89,9 @@ class Covid(commands.Cog):
                 description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
                 timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
             )
-            if validators.url(article["urlToImage"]):
-                embed.set_image(url=article["urlToImage"])
+            if article["urlToImage"] is not None:
+                if validators.url(article["urlToImage"]):
+                    embed.set_image(url=article["urlToImage"])
             embed.set_author(name=f"{article['author']} - {article['source']['name']}")
             embed.set_footer(text=f"Article {i}/{data['totalResults']}")
             embeds.append(embed)
