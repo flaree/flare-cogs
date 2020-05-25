@@ -59,11 +59,11 @@ class Wallet(MixinMeta):
         try:
             await bank.deposit_credits(user, deposit)
             msg = f"You have succesfully deposited {deposit} {await bank.get_currency_name(ctx.guild)} into your bank account."
-            amount = wallet - deposit
         except BalanceTooHigh as e:
-            amount = e.max_balance - await bank.get_balance(user)
-            msg = f"Your transaction was limited to {amount} {await bank.get_currency_name(ctx.guild)} as your account has reached the max balance.."
-        await self.walletset(user, wallet - amount)
+            deposit = e.max_balance - await bank.get_balance(user)
+            await bank.deposit_credits(user, deposit)
+            msg = f"Your transaction was limited to {deposit} {e.currency_name} as your bank account has reached the max balance."
+        await self.walletset(user, wallet - deposit)
         return await ctx.send(msg)
 
     async def walletbalance(self, user):
@@ -86,7 +86,7 @@ class Wallet(MixinMeta):
                 f"You have succesfully withdrawn {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)} from your bank account."
             )
         except ValueError:
-            return await ctx.send("You have insufficent funds to complete this withdrawl.")
+            return await ctx.send("You have insufficent funds to complete this withdrawal.")
 
     @commands.group()
     @wallet_disabled_check()
