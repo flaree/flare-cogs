@@ -26,7 +26,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.1"
+    __version__ = "0.5.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -229,7 +229,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         if destination.lower() == "bank":
             for user in role.members:
                 try:
-                    await bank.deposit_credits(user, amount)
+                    await bank.withdraw_credits(user, amount)
                 except ValueError:
                     await bank.set_balance(user, 0)
         else:
