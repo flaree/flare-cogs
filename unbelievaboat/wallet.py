@@ -62,7 +62,7 @@ class Wallet(MixinMeta):
         except BalanceTooHigh as e:
             deposit = e.max_balance - await bank.get_balance(user)
             await bank.deposit_credits(user, deposit)
-            msg = f"Your transaction was limited to {deposit} {await bank.get_currency_name(ctx.guild)} as your account has reached the max balance.."
+            msg = f"Your transaction was limited to {deposit} {e.currency_name} as your bank account has reached the max balance."
         await self.walletset(user, wallet - deposit)
         return await ctx.send(msg)
 
