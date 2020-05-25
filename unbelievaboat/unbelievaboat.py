@@ -26,7 +26,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.0"
+    __version__ = "0.5.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -184,14 +184,20 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             return await ctx.send(
                 "You've supplied an invalid destination, you can choose to add it to a bank or their wallet.\nIf no destination is supplied it will default to their wallet."
             )
+
+        failed = []
         if destination.lower() == "bank":
             for user in role.members:
                 try:
                     await bank.deposit_credits(user, amount)
                 except (ValueError, TypeError):
                     pass
+                except BalanceTooHigh as e:
+                    await bank.set_balance(ctx.author, e.max_balance)
+                    failed.append(
+                        f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance."
+                    )
         else:
-            failed = []
             for user in role.members:
                 try:
                     await self.walletdeposit(ctx, user, amount)
