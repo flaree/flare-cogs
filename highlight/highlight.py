@@ -20,7 +20,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
 
-    __version__ = "1.2.1"
+    __version__ = "1.2.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -58,6 +58,11 @@ class Highlight(commands.Cog):
             highlited_words = []
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
+                    highlighted_usr = message.guild.get_member(int(user))
+                    if highlighted_usr is None:
+                        continue
+                    if not message.channel.permissions_for(highlighted_usr).read_messages:
+                        continue
                     if message.author.bot:
                         if not highlight[user][word]["bots"]:
                             continue
@@ -73,9 +78,6 @@ class Highlight(commands.Cog):
                 ):
                     msglist.append(messages)
                 msglist.reverse()
-                highlighted = message.guild.get_member(int(user))
-                if highlighted is None:
-                    continue
                 context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
                 if len(context) > 2000:
                     context = "**Context omitted due to message size limits.\n**"
@@ -86,7 +88,7 @@ class Highlight(commands.Cog):
                     description="{}".format(context),
                 )
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-                await highlighted.send(
+                await highlighted_usr.send(
                     f"Your highlighted word(s) `{humanize_list(highlited_words)}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
                     embed=embed,
                 )
