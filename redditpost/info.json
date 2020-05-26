@@ -1,0 +1,16 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs.",
+  "name": "RedditPost",
+  "disabled": false,
+  "short": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs",
+  "description": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs.",
+  "tags": [
+    "reddit",
+    "autoposting"
+  ],
+  "requirements": ["validators"],
+  "hidden": false
+}
