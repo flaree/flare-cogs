@@ -1,6 +1,6 @@
 {
   "author": [
-    "flare(flare#0001)"
+    "flare(flare#0001)", "sinbad"
   ],
   "install_msg": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs.",
   "name": "RedditPost",
