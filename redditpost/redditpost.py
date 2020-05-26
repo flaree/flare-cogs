@@ -83,7 +83,10 @@ class RedditPost(commands.Cog):
 
     @redditfeed.command()
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
-        """Add a subreddit to post new content from."""
+        """Add a subreddit to post new content from.
+
+        Feed must not include the /r/
+        """
         channel = channel or ctx.channel
 
         async with self.config.channel(channel).reddits() as feeds:
@@ -125,8 +128,7 @@ class RedditPost(commands.Cog):
     async def remove_feed(
         self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None
     ):
-        """removes a feed from the current channel, or from a provided channel If the feed is
-        currently being fetched, there may still be a final update after this."""
+        """Removes a subreddit from the current channel, or a provided one."""
         channel = channel or ctx.channel
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
@@ -172,7 +174,9 @@ class RedditPost(commands.Cog):
         )
         if len(title) > 2000:
             title = title[:2000] + "..."
-        embed = discord.Embed(title=f"New post on r/{sub}", description=title)
+        embed = discord.Embed(
+            title=f"New post on r/{sub}", description=title, color=await ctx.embed_color()
+        )
         embed.set_footer(text=" ".join(desc.split()[-5:-2]))
         if image[-3:] in ["png", "jpg"]:
             embed.set_image(url=image)
