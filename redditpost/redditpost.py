@@ -16,7 +16,7 @@ log = logging.getLogger("red.flare.redditpost")
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.2a"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -72,7 +72,7 @@ class RedditPost(commands.Cog):
                         feeds[sub] = data
 
     @commands.admin()
-    @commands.group()
+    @commands.group(aliases=["redditpost"])
     async def redditfeed(self, ctx):
         """Reddit auto-feed posting."""
 
@@ -157,6 +157,22 @@ class RedditPost(commands.Cog):
                 return
 
             del feeds[subreddit]
+
+        await ctx.tick()
+
+    @redditfeed.command(name="force")
+    async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
+        """Force the latest post."""
+        channel = channel or ctx.channel
+        feeds = await self.config.channel(channel).reddits()
+        if subreddit not in feeds:
+            await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+            return
+
+        data = await self.fetch_feed(feeds[subreddit]["url"])
+        if data is None:
+            return await ctx.send("No post could be found.")
+        await self.format_send(data, channel, 0, True)
 
         await ctx.tick()
 
