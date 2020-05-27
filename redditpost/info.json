@@ -2,11 +2,11 @@
   "author": [
     "flare(flare#0001)", "sinbad"
   ],
-  "install_msg": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs.",
+  "install_msg": "Reddit Autoposting of new content.",
   "name": "RedditPost",
   "disabled": false,
-  "short": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs",
-  "description": "Reddit Autoposting of new content - This has the ability to post NSFW content if using NSFW subs.",
+  "short": "Reddit Autoposting of new content.",
+  "description": "Reddit Autoposting of new content.",
   "tags": [
     "reddit",
     "autoposting"
