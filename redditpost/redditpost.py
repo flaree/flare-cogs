@@ -14,10 +14,7 @@ log = logging.getLogger("red.flare.redditpost")
 
 
 class RedditPost(commands.Cog):
-    """A reddit auto posting cog.
-
-    Thanks to mikeshardmind(Sinbad) for the RSS cog as reference
-    """
+    """A reddit auto posting cog."""
 
     __version__ = "0.0.2"
 
@@ -119,7 +116,7 @@ class RedditPost(commands.Cog):
             if response is None:
                 return await ctx.send(f"That didn't seem to be a valid rss feed.")
 
-            feeds[subreddit] = {"url": url, "last_post": datetime.timestamp()}
+            feeds[subreddit] = {"url": url, "last_post": datetime.now().timestamp()}
             await ctx.tick()
 
     @redditfeed.command()
