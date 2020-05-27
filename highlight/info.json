@@ -10,5 +10,6 @@
   "tags": [
     "highlight"
   ],
+  "requirements": ["tabulate"],
   "hidden": false
 }
