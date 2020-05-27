@@ -16,7 +16,7 @@ log = logging.getLogger("red.flare.redditpost")
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.2a"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -63,7 +63,9 @@ class RedditPost(commands.Cog):
                 else:
                     response = await self.fetch_feed(url)
                     feeds[url] = response
-                time = await self.format_send(response, channel, feed["last_post"])
+                time = await self.format_send(
+                    response, channel, feed["last_post"], feed.get("latest", True)
+                )
                 if time is not None:
                     data = {"url": url, "last_post": time}
                     async with self.config.channel(channel).reddits() as feeds:
@@ -116,7 +118,11 @@ class RedditPost(commands.Cog):
             if response is None:
                 return await ctx.send(f"That didn't seem to be a valid rss feed.")
 
-            feeds[subreddit] = {"url": url, "last_post": datetime.now().timestamp()}
+            feeds[subreddit] = {
+                "url": url,
+                "last_post": datetime.now().timestamp(),
+                "latest": True,
+            }
             await ctx.tick()
 
     @redditfeed.command()
@@ -130,7 +136,9 @@ class RedditPost(commands.Cog):
             return await ctx.send("No subreddits here.")
         output = "\n".join(
             (
-                "{name}: {url}".format(name=k, url=v.get("url", "broken feed"))
+                "{name}: {url} | Latest Only: {latest}".format(
+                    name=k, url=v.get("url", "broken feed"), latest=v.get("latest", True)
+                )
                 for k, v in data.items()
             )
         )
@@ -149,6 +157,19 @@ class RedditPost(commands.Cog):
                 return
 
             del feeds[subreddit]
+
+        await ctx.tick()
+
+    @redditfeed.command(name="latest")
+    async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
+        """Whether to fetch all posts or just the latest post."""
+        channel = channel or ctx.channel
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            feeds[subreddit]["latest"] = True
 
         await ctx.tick()
 
@@ -172,9 +193,10 @@ class RedditPost(commands.Cog):
             return data["data"]["children"]
         return None
 
-    async def format_send(self, data, channel, last_post):
+    async def format_send(self, data, channel, last_post, latest):
         timestamps = []
         embeds = []
+        data = data[:1] if latest else data
         for feed in data:
             feed = feed["data"]
             timestamp = feed["created_utc"]
