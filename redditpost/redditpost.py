@@ -119,7 +119,7 @@ class RedditPost(commands.Cog):
             if response is None:
                 return await ctx.send(f"That didn't seem to be a valid rss feed.")
 
-            feeds[subreddit] = {"url": url, "last_post": datetime.utcnow().timestamp()}
+            feeds[subreddit] = {"url": url, "last_post": datetime.timestamp()}
             await ctx.tick()
 
     @redditfeed.command()
