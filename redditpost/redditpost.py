@@ -16,7 +16,7 @@ log = logging.getLogger("red.flare.redditpost")
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.3a"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -72,17 +72,17 @@ class RedditPost(commands.Cog):
                         feeds[sub] = data
 
     @commands.admin()
-    @commands.group(aliases=["redditpost"])
-    async def redditfeed(self, ctx):
+    @commands.group(aliases=["redditfeed"])
+    async def redditpost(self, ctx):
         """Reddit auto-feed posting."""
 
-    @redditfeed.command()
+    @redditpost.command()
     @commands.is_owner()
     async def delay(
         self,
         ctx,
         seconds: TimedeltaConverter(
-            minimum=timedelta(), maximum=timedelta(seconds=900), default_unit="seconds"
+            minimum=timedelta(seconds=15), maximum=timedelta(seconds=900), default_unit="seconds"
         ),
     ):
         """Set the delay used to check for new content."""
@@ -91,7 +91,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
         await ctx.send("This delay will come into effect on the next loop.")
 
-    @redditfeed.command()
+    @redditpost.command()
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Add a subreddit to post new content from.
 
@@ -125,7 +125,7 @@ class RedditPost(commands.Cog):
             }
             await ctx.tick()
 
-    @redditfeed.command()
+    @redditpost.command()
     async def list(self, ctx, channel: discord.TextChannel = None):
         """Lists the current subreddits for the current channel, or a provided one."""
 
@@ -145,7 +145,7 @@ class RedditPost(commands.Cog):
         for page in pagify(output):
             await ctx.send(embed=discord.Embed(description=page, color=(await ctx.embed_color())))
 
-    @redditfeed.command(name="remove")
+    @redditpost.command(name="remove")
     async def remove_feed(
         self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None
     ):
@@ -160,7 +160,7 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
-    @redditfeed.command(name="force")
+    @redditpost.command(name="force")
     async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Force the latest post."""
         channel = channel or ctx.channel
@@ -176,7 +176,7 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
-    @redditfeed.command(name="latest")
+    @redditpost.command(name="latest")
     async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
         """Whether to fetch all posts or just the latest post."""
         channel = channel or ctx.channel
