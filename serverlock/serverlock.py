@@ -4,7 +4,7 @@ import jsonpickle
 
 
 class ServerLock(commands.Cog):
-    """Lock a server down"""
+    """Lock a server down."""
 
     __version__ = "0.0.1"
 
@@ -27,14 +27,14 @@ class ServerLock(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.bot_has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True, manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     @commands.max_concurrency(1, commands.BucketType.guild)
     async def lockdown(self, ctx):
         """Lock down an entire server.
-        
-        This command relies on no overwrites allowing to speak. It sets the @everyone role to not able to send, react or connect.
-        Reissuing this command will unlock the server
+
+        This command relies on no overwrites allowing to speak. It sets the @everyone role to not
+        able to send, react or connect. Reissuing this command will unlock the server
         """
         guild = ctx.guild
         locked = await self.config.guild(guild).locked()
