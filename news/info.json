@@ -2,7 +2,7 @@
     "author": ["flare(flare#0001)"],
     "install_msg": "News Cog. Use [p]help news for more information. - Not read for use",
     "name": "Covid",
-    "disabled": false,
+    "disabled": true,
     "hidden": true,
     "short": "Grab the latest headlines, nationally or global..",
     "description": "Grab breaking headline around the world!",
