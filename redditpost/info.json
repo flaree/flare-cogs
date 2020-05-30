@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "Reddit Autoposting of new content.",
+  "install_msg": "Reddit Autoposting of new content. This has the option to use webhooks too if the bot has manage webhook permissions.",
   "name": "RedditPost",
   "disabled": false,
   "short": "Reddit Autoposting of new content.",

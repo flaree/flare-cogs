@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5dev1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -75,9 +75,8 @@ class RedditPost(commands.Cog):
                     feed.get("logo", REDDIT_LOGO),
                 )
                 if time is not None:
-                    data = {"url": url, "last_post": time}
                     async with self.config.channel(channel).reddits() as feeds:
-                        feeds[sub] = data
+                        feeds[sub]["latest_post"] = time
 
     @commands.admin()
     @commands.group(aliases=["redditfeed"])
@@ -207,7 +206,7 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
-    @redditpost.command(name="webhook")
+    @redditpost.command(name="webhook", aliases=["webhooks"])
     async def webhook(
         self, ctx, subreddit: str, webhook: bool, channel: discord.TextChannel = None
     ):
