@@ -5,7 +5,7 @@ import discord
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.4"
+    __version__ = "1.2.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -16,16 +16,17 @@ class Forward(commands.Cog):
         self.bot = bot
 
         self.config = Config.get_conf(self, 1398467138476, force_registration=True)
-        default_global = {"toggles": {"botmessages": True}, "destination": None}
+        default_global = {"toggles": {"botmessages": False}, "destination": None}
         self.config.register_global(**default_global)
 
     async def _destination(self, msg: str = None, embed: discord.Embed = None):
         await self.bot.wait_until_ready()
         channel = await self.config.destination()
-        destination = (
-            self.bot.get_channel(channel) if channel else self.bot.get_user(self.bot.owner_id)
-        )
-        await destination.send(msg, embed=embed)
+        channel = self.bot.get_channel(channel)
+        if channel is None:
+            await self.bot.send_to_owners(msg, embed=embed)
+        else:
+            await channel.send(msg, embed=embed)
 
     @staticmethod
     def _append_attachements(message: discord.Message, embeds: list):
@@ -48,7 +49,7 @@ class Forward(commands.Cog):
     async def on_message_without_command(self, message):
         if message.guild is not None:
             return
-        if message.channel.recipient.id == self.bot.owner_id:
+        if message.channel.recipient.id in self.bot.owner_ids:
             return
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
