@@ -11,6 +11,6 @@
     "reddit",
     "autoposting"
   ],
-  "requirements": ["validators"],
+  "requirements": ["validators", "tabulate"],
   "hidden": false
 }

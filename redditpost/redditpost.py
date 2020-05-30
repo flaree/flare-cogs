@@ -5,18 +5,21 @@ from typing import Optional
 
 import aiohttp
 import discord
+import tabulate
 import validators
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import pagify
 from redbot.core.commands.converter import TimedeltaConverter
+from redbot.core.utils.chat_formatting import pagify, box
 
 log = logging.getLogger("red.flare.redditpost")
+
+REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 
 
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.3a"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -64,7 +67,12 @@ class RedditPost(commands.Cog):
                     response = await self.fetch_feed(url)
                     feeds[url] = response
                 time = await self.format_send(
-                    response, channel, feed["last_post"], feed.get("latest", True)
+                    response,
+                    channel,
+                    feed["last_post"],
+                    feed.get("latest", True),
+                    feed.get("webhook", False),
+                    feed.get("logo", REDDIT_LOGO),
                 )
                 if time is not None:
                     data = {"url": url, "last_post": time}
@@ -106,6 +114,7 @@ class RedditPost(commands.Cog):
                 return await ctx.send(
                     "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
                 )
+            logo = REDDIT_LOGO if not data["data"]["icon_img"] else data["data"]["icon_img"]
 
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit in feeds:
@@ -122,8 +131,10 @@ class RedditPost(commands.Cog):
                 "url": url,
                 "last_post": datetime.now().timestamp(),
                 "latest": True,
+                "logo": logo,
+                "webhooks": False,
             }
-            await ctx.tick()
+        await ctx.tick()
 
     @redditpost.command()
     async def list(self, ctx, channel: discord.TextChannel = None):
@@ -134,16 +145,17 @@ class RedditPost(commands.Cog):
         data = await self.config.channel(channel).reddits()
         if not data:
             return await ctx.send("No subreddits here.")
-        output = "\n".join(
-            (
-                "{name}: {url} | Latest Only: {latest}".format(
-                    name=k, url=v.get("url", "broken feed"), latest=v.get("latest", True)
+        output = [[k, v.get("webhook", "False"), v.get("latest", True)] for k, v in data.items()]
+
+        out = tabulate.tabulate(output, headers=["Subreddit", "Webhooks", "Latest Posts"])
+        for page in pagify(str(out)):
+            await ctx.send(
+                embed=discord.Embed(
+                    title=f"Subreddits for {channel}.",
+                    description=box(page, lang="prolog"),
+                    color=(await ctx.embed_color()),
                 )
-                for k, v in data.items()
             )
-        )
-        for page in pagify(output):
-            await ctx.send(embed=discord.Embed(description=page, color=(await ctx.embed_color())))
 
     @redditpost.command(name="remove")
     async def remove_feed(
@@ -172,8 +184,14 @@ class RedditPost(commands.Cog):
         data = await self.fetch_feed(feeds[subreddit]["url"])
         if data is None:
             return await ctx.send("No post could be found.")
-        await self.format_send(data, channel, 0, True)
-
+        await self.format_send(
+            data,
+            channel,
+            0,
+            True,
+            feeds[subreddit].get("webhook", False),
+            feeds[subreddit].get("logo", REDDIT_LOGO),
+        )
         await ctx.tick()
 
     @redditpost.command(name="latest")
@@ -185,7 +203,27 @@ class RedditPost(commands.Cog):
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
                 return
 
-            feeds[subreddit]["latest"] = True
+            feeds[subreddit]["latest"] = latest
+
+        await ctx.tick()
+
+    @redditpost.command(name="webhook")
+    async def webhook(
+        self, ctx, subreddit: str, webhook: bool, channel: discord.TextChannel = None
+    ):
+        """Whether to send the post as a webhook or message from the bot."""
+        channel = channel or ctx.channel
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            feeds[subreddit]["webhook"] = webhook
+
+        if webhook:
+            await ctx.send(f"New posts from r/{subreddit} will be sent as webhooks.")
+        else:
+            await ctx.send(f"New posts from r/{subreddit} will be sent as bot messages.")
 
         await ctx.tick()
 
@@ -209,10 +247,17 @@ class RedditPost(commands.Cog):
             return data["data"]["children"]
         return None
 
-    async def format_send(self, data, channel, last_post, latest):
+    async def format_send(self, data, channel, last_post, latest, webhook_set, icon):
         timestamps = []
         embeds = []
         data = data[:1] if latest else data
+        webhook = None
+        if webhook_set and channel.permissions_for(channel.guild.me).manage_webhooks:
+            for hook in await channel.webhooks():
+                if hook.name == channel.guild.me.name:
+                    webhook = hook
+            if webhook is None:
+                webhook = await channel.create_webhook(name=channel.guild.me.name)
         for feed in data:
             feed = feed["data"]
             timestamp = feed["created_utc"]
@@ -237,6 +282,7 @@ class RedditPost(commands.Cog):
                 title=f"New post on r/{feed['subreddit']}",
                 description=title,
                 color=channel.guild.me.color,
+                timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
             )
             embed.set_footer(text=f"Submitted by /u/{feed['author']}")
             if image[-3:] in ["png", "jpg"]:
@@ -249,7 +295,11 @@ class RedditPost(commands.Cog):
         if timestamps:
             if embeds:
                 for emb in embeds[::-1]:
-                    await channel.send(embed=emb)
-
+                    if webhook is None:
+                        await channel.send(embed=emb)
+                    else:
+                        await webhook.send(
+                            username=f"r/{feed['subreddit']}", avatar_url=icon, embed=emb
+                        )
             return timestamps[0]
         return None
