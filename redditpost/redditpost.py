@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.5dev1"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -76,7 +76,7 @@ class RedditPost(commands.Cog):
                 )
                 if time is not None:
                     async with self.config.channel(channel).reddits() as feeds:
-                        feeds[sub]["latest_post"] = time
+                        feeds[sub]["last_post"] = time
 
     @commands.admin()
     @commands.group(aliases=["redditfeed"])
