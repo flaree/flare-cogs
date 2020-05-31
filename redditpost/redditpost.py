@@ -45,9 +45,12 @@ class RedditPost(commands.Cog):
     async def bg_loop(self):
         await self.bot.wait_until_ready()
         while True:
-            await self.do_feeds()
-            delay = await self.config.delay()
-            await asyncio.sleep(delay)
+            try:
+                await self.do_feeds()
+                delay = await self.config.delay()
+                await asyncio.sleep(delay)
+            except Exception as exc:
+                log.error("Exception in bg_loop: ", exc_info=exc)
 
     async def do_feeds(self):
         feeds = {}
