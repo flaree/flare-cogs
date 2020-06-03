@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -66,6 +66,8 @@ class RedditPost(commands.Cog):
                 else:
                     response = await self.fetch_feed(url)
                     feeds[url] = response
+                if response is None:
+                    continue
                 time = await self.format_send(
                     response,
                     channel,
