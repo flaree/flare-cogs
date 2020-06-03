@@ -45,9 +45,12 @@ class RedditPost(commands.Cog):
     async def bg_loop(self):
         await self.bot.wait_until_ready()
         while True:
-            await self.do_feeds()
-            delay = await self.config.delay()
-            await asyncio.sleep(delay)
+            try:
+                await self.do_feeds()
+                delay = await self.config.delay()
+                await asyncio.sleep(delay)
+            except Exception as exc:
+                log.error("Exception in bg_loop: ", exc_info=exc)
 
     async def do_feeds(self):
         feeds = {}
@@ -73,7 +76,7 @@ class RedditPost(commands.Cog):
                     channel,
                     feed["last_post"],
                     feed.get("latest", True),
-                    feed.get("webhook", False),
+                    feed.get("webhooks", False),
                     feed.get("logo", REDDIT_LOGO),
                 )
                 if time is not None:
@@ -146,7 +149,7 @@ class RedditPost(commands.Cog):
         data = await self.config.channel(channel).reddits()
         if not data:
             return await ctx.send("No subreddits here.")
-        output = [[k, v.get("webhook", "False"), v.get("latest", True)] for k, v in data.items()]
+        output = [[k, v.get("webhooks", "False"), v.get("latest", True)] for k, v in data.items()]
 
         out = tabulate.tabulate(output, headers=["Subreddit", "Webhooks", "Latest Posts"])
         for page in pagify(str(out)):
@@ -190,7 +193,7 @@ class RedditPost(commands.Cog):
             channel,
             0,
             True,
-            feeds[subreddit].get("webhook", False),
+            feeds[subreddit].get("webhooks", False),
             feeds[subreddit].get("logo", REDDIT_LOGO),
         )
         await ctx.tick()
@@ -219,7 +222,7 @@ class RedditPost(commands.Cog):
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
                 return
 
-            feeds[subreddit]["webhook"] = webhook
+            feeds[subreddit]["webhooks"] = webhook
 
         if webhook:
             await ctx.send(f"New posts from r/{subreddit} will be sent as webhooks.")
