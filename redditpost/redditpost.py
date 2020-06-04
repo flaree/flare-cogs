@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -114,7 +114,13 @@ class RedditPost(commands.Cog):
             f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
         ) as resp:
             data = await resp.json()
-            if data["data"]["over18"] and not channel.is_nsfw():
+            nsfw = data["data"].get("over18")
+            if nsfw is None:
+                await ctx.send(
+                    "I cannot find any information for this subreddit. Please check if it is the corrent name."
+                )
+                return
+            if nsfw and not channel.is_nsfw():
                 return await ctx.send(
                     "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
                 )
