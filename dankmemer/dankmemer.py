@@ -643,8 +643,8 @@ class DankMemer(commands.Cog):
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
-    @commands.command()
-    async def gay(self, ctx, image: ImageFinder = None):
+    @commands.command(aliases=["rainbow", "lgbtq"])
+    async def lgbt(self, ctx, image: ImageFinder = None):
         """Rainbow-fy your picture."""
         if image is None:
             image = ctx.author.avatar_url_as(static_format="png")
