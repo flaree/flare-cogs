@@ -6,7 +6,7 @@ import jsonpickle
 class ServerLock(commands.Cog):
     """Lock a server down."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -64,7 +64,7 @@ class ServerLock(commands.Cog):
             channels = await self.config.guild(guild).channels()
             msg = await ctx.send("Server is being unlocked. Please wait.")
             for channel in guild.channels:
-                channeloverwrite = jsonpickle.decode(channels[str(channel.id)])
+                channeloverwrite = jsonpickle.decode(channels.get(str(channel.id)))
                 if channeloverwrite is not None and channeloverwrite.read_messages is False:
                     await channel.set_permissions(
                         muted_role, overwrite=channeloverwrite, reason="Remove Lockdown."
