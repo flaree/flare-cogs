@@ -64,7 +64,8 @@ class ServerLock(commands.Cog):
             channels = await self.config.guild(guild).channels()
             msg = await ctx.send("Server is being unlocked. Please wait.")
             for channel in guild.channels:
-                channeloverwrite = jsonpickle.decode(channels.get(str(channel.id)))
+                overwrite = channels.get(str(channel.id))
+                channeloverwrite = jsonpickle.decode(overwrite) if overwrite is not None else None
                 if channeloverwrite is not None and channeloverwrite.read_messages is False:
                     await channel.set_permissions(
                         muted_role, overwrite=channeloverwrite, reason="Remove Lockdown."
