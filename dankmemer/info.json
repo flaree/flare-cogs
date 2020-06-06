@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "This cog uses a self hosted version of the DankMemer imgen site. Check [p]dankmemersetup for information. If you wish to host your own instance, you can use the inbuilt command to change url.\nThis cog features over 95 commands, some may conflict.\nThis cog may feature some commands that may be found offensive, they were left included as they're part of the imgen. Disable those commands as you wish.",
+  "install_msg": "This cog requires the use of an imgen instance. Check [p]dankmemersetup for information. If you wish to host your own instance, you can use the inbuilt command to change url.\nThis cog features over 95 commands, some may conflict.\nThis cog may feature some commands that may be found offensive, they were left included as they're part of the imgen. Disable those commands as you wish.",
   "name": "DankMemer",
   "disabled": false,
   "short": "DankMemer image generator.",

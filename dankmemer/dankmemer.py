@@ -91,12 +91,9 @@ class DankMemer(commands.Cog):
     async def dankmemersetup(self, ctx):
         """Instructions on how to setup DankMemer."""
         msg = (
-            "This DankMemer cog relies on flare#0001's self hosted version of DankMemers imgen site.\n"
-            "Gaining an API key will be difficult as they won't be handed out to everyone.\n"
-            "To try request an api key, visit https://imgen.flaree.xyz/ and click 'Dashboard' and fill out an application.\n\n"
-            "Alternatively, another way is to self host the Dank Memer imgen located on their repo.\n"
-            f"You can then set the url endpoints using the {ctx.clean_prefix}dmurl <url> command. (Support will be limited if using your own instance.)\n\n"
-            f"{ctx.clean_prefix}set api imgen authorization <key>"
+            "You must host your own instance of imgen or apply for a publically available instance.\n"
+            f"You can then set the url endpoints using the `{ctx.clean_prefix}dmurl <url>` command. (Support will be limited if using your own instance.)\n\n"
+            f"You can set the token using `{ctx.clean_prefix}set api imgen authorization <key>`"
         )
         await ctx.maybe_send_embed(msg)
 
