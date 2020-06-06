@@ -1,6 +1,6 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "Server lockdown. Lock all channels. Use [p]help lockdown",
+    "install_msg": "Server lockdown. Lock the @everyone role in all channels. Use [p]help lockdown",
     "name": "serverlock",
     "disabled": false,
     "hidden": false,

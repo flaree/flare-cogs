@@ -9,8 +9,15 @@
   <a href="https://github.com/ambv/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg">
     </a>
-  
+
 </p>
+
+# Contact
+You can contact me in the Red server
+
+<br>
+
+---
 
 
 # Installation
@@ -19,7 +26,7 @@
 `[p]cog install flare-cogs <cog_name>`
 
 ---
-| Name | Description 
+| Name | Description
 | --- | --- |
 | Mod | Core mod with the inclusion of timed mutes |
 | LastFM | LastFM stats - port of Miso Bot - found @ [flaree/lastfm-red](https://github.com/flaree/lastfm-red) |
@@ -35,6 +42,3 @@
 | Serverlock | Lockdown a server. |
 | DmInvites | Respond with the bots invite URL when DMd a server link. |
 | Faceit | Return faceit statistics for various game, matches and profiles. |
-
-
-
