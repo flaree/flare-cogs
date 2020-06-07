@@ -28,6 +28,7 @@ You can contact me in the Red server or on my support server @ https://discord.g
 ---
 | Name | Description
 | --- | --- |
+| Pokecord | Pokecord - found @ [flaree/pokecord-red](https://github.com/flaree/pokecord-red) |
 | Mod | Core mod with the inclusion of timed mutes |
 | LastFM | LastFM stats - port of Miso Bot - found @ [flaree/lastfm-red](https://github.com/flaree/lastfm-red) |
 | R6 | R6Stats API Integration. Check ranked, weapon, operator and seasonal stats. |
