@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -51,6 +51,8 @@ class RedditPost(commands.Cog):
                 await asyncio.sleep(delay)
             except Exception as exc:
                 log.error("Exception in bg_loop: ", exc_info=exc)
+                msg = "An exception occured in the background loop for `redditpost`. Check your logs for more details and if possible, report them to the cog creator."
+                await self.bot.send_to_owners(msg)
 
     async def do_feeds(self):
         feeds = {}
