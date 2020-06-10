@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.0.10"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -106,6 +106,7 @@ class RedditPost(commands.Cog):
         await ctx.send("This delay will come into effect on the next loop.")
 
     @redditpost.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Add a subreddit to post new content from.
 
@@ -149,6 +150,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def list(self, ctx, channel: discord.TextChannel = None):
         """Lists the current subreddits for the current channel, or a provided one."""
 
@@ -170,6 +172,7 @@ class RedditPost(commands.Cog):
             )
 
     @redditpost.command(name="remove")
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def remove_feed(
         self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None
     ):
@@ -185,6 +188,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command(name="force")
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Force the latest post."""
         channel = channel or ctx.channel
@@ -207,6 +211,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command(name="latest")
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
         """Whether to fetch all posts or just the latest post."""
         channel = channel or ctx.channel
@@ -220,6 +225,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command(name="webhook", aliases=["webhooks"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_webhooks=True)
     async def webhook(
         self, ctx, subreddit: str, webhook: bool, channel: discord.TextChannel = None
     ):
