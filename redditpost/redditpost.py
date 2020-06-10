@@ -19,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.9"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -286,8 +286,7 @@ class RedditPost(commands.Cog):
 
             link = "https://reddit.com" + feed["permalink"]
 
-            title = f"[{feed['title']}]({link})\n\n" + " ".join(desc.split()[:-5])
-
+            title = f"[{feed['title']}]({link})\n\n" + desc
             if len(title) > 2000:
                 title = title[:2000] + "..."
             embed = discord.Embed(
