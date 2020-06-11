@@ -1,8 +1,8 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from html import unescape
 from typing import Optional
-from urllib.parse import unquote
 
 import aiohttp
 import discord
@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.11"
+    __version__ = "0.1.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -293,7 +293,7 @@ class RedditPost(commands.Cog):
 
             link = "https://reddit.com" + feed["permalink"]
 
-            title = unquote(f"[{feed['title']}]({link})\n\n" + desc)
+            title = unescape(f"[{feed['title']}]({link})\n\n" + desc)
             if len(title) > 2000:
                 title = title[:2000] + "..."
             embed = discord.Embed(
@@ -312,12 +312,15 @@ class RedditPost(commands.Cog):
             embeds.append(embed)
         if timestamps:
             if embeds:
-                for emb in embeds[::-1]:
-                    if webhook is None:
-                        await channel.send(embed=emb)
-                    else:
-                        await webhook.send(
-                            username=f"r/{feed['subreddit']}", avatar_url=icon, embed=emb
-                        )
+                try:
+                    for emb in embeds[::-1]:
+                        if webhook is None:
+                            await channel.send(embed=emb)
+                        else:
+                            await webhook.send(
+                                username=f"r/{feed['subreddit']}", avatar_url=icon, embed=emb
+                            )
+                except discord.HTTPException as exc:
+                    log.error("Exception in bg_loop while sending message: ", exc_info=exc)
             return timestamps[0]
         return None
