@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
+from urllib.parse import unquote
 
 import aiohttp
 import discord
@@ -9,7 +10,7 @@ import tabulate
 import validators
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import pagify, box
+from redbot.core.utils.chat_formatting import box, pagify
 
 log = logging.getLogger("red.flare.redditpost")
 
@@ -19,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.0.10"
+    __version__ = "0.0.11"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -292,7 +293,7 @@ class RedditPost(commands.Cog):
 
             link = "https://reddit.com" + feed["permalink"]
 
-            title = f"[{feed['title']}]({link})\n\n" + desc
+            title = unquote(f"[{feed['title']}]({link})\n\n" + desc)
             if len(title) > 2000:
                 title = title[:2000] + "..."
             embed = discord.Embed(
