@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -296,8 +296,8 @@ class RedditPost(commands.Cog):
             if len(desc) > 2000:
                 desc = desc[:2000] + "..."
             embed = discord.Embed(
-                title=feed["title"],
-                url=link,
+                title=unescape(feed["title"]),
+                url=unescape(link),
                 description=desc,
                 color=channel.guild.me.color,
                 timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
