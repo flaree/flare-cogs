@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from html import unescape
 from typing import Optional
 
 import aiohttp
@@ -20,7 +19,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -293,15 +292,16 @@ class RedditPost(commands.Cog):
 
             link = "https://reddit.com" + feed["permalink"]
 
-            title = unescape(f"[{feed['title']}]({link})\n\n" + desc)
-            if len(title) > 2000:
-                title = title[:2000] + "..."
+            if len(desc) > 2000:
+                desc = desc[:2000] + "..."
             embed = discord.Embed(
-                title=f"New post on r/{feed['subreddit']}",
-                description=title,
+                title=feed["title"],
+                url=link,
+                description=desc,
                 color=channel.guild.me.color,
                 timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
             )
+            embed.set_author(name=f"New post on r/{feed['subreddit']}")
             embed.set_footer(text=f"Submitted by /u/{feed['author']}")
             if image[-3:] in ["png", "jpg"]:
                 embed.set_image(url=image)
