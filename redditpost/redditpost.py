@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from html import unescape
 from typing import Optional
 
 import aiohttp
@@ -286,7 +287,7 @@ class RedditPost(commands.Cog):
                 break
             timestamps.append(timestamp)
 
-            desc = feed["selftext"]
+            desc = unescape(feed["selftext"])
 
             image = feed["url"]
 
