@@ -34,18 +34,6 @@ repos:
       files: \.(json)$
     - id: check-yaml
 
--   repo: https://github.com/myint/docformatter
-    rev: v1.1
-    hooks:
-    - id: docformatter
-      name: docformatter
-      description: 'Formats docstrings to follow PEP 257.'
-      entry: docformatter
-      args: [-i, --wrap-summaries, "99", --wrap-description, "99"]
-      language: python
-      types: [python]
-
-
 -   repo: https://github.com/psf/black
     rev: 19.3b0
     hooks:

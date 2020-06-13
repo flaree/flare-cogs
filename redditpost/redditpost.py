@@ -286,17 +286,16 @@ class RedditPost(commands.Cog):
             if timestamp <= last_post:
                 break
             timestamps.append(timestamp)
-
             desc = unescape(feed["selftext"])
-
             image = feed["url"]
-
             link = "https://reddit.com" + feed["permalink"]
-
+            title = feed["title"]
             if len(desc) > 2000:
                 desc = desc[:2000] + "..."
+            if len(title) > 252:
+                title = title[:252] + "..."
             embed = discord.Embed(
-                title=unescape(feed["title"]),
+                title=unescape(title),
                 url=unescape(link),
                 description=desc,
                 color=channel.guild.me.color,
