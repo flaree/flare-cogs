@@ -25,13 +25,14 @@ controls = {
 profile_controls = {
     "\N{SPORTS MEDAL}": account_stats,
     "\N{CROSSED SWORDS}\N{VARIATION SELECTOR-16}": account_matches,
+    "❌": close_menu,
 }
 
 
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -135,9 +136,8 @@ class Faceit(commands.Cog):
         embed = discord.Embed(
             color=ctx.author.color,
             title="Faceit Profile for {}".format(profilestats["nickname"]),
-            description="[Profile Link - Click Here]({})\n\nPress the \N{SPORTS MEDAL} button for your first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for your most recent matches.".format(
-                profilestats["faceit_url"].format(lang=profilestats["settings"]["language"])
-            ),
+            description="\nPress the \N{SPORTS MEDAL} button for your first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for your most recent matches.",
+            url=profilestats["faceit_url"].format(lang=profilestats["settings"]["language"]),
         )
         embed.set_thumbnail(url=profilestats["avatar"])
         accinfo = f"**Nickname**: {profilestats['nickname']}\n**Membership**: {profilestats['membership_type'].title()}"
@@ -153,6 +153,7 @@ class Faceit(commands.Cog):
                 name=game.title(),
                 value=f"**Region**: {profilestats['games'][game]['region']}\n**Skill Level**: {profilestats['games'][game]['skill_level']}\n**ELO**: {profilestats['games'][game]['faceit_elo']}",
             )
+        embed.set_author(name=profilestats["nickname"], icon_url=profilestats["avatar"])
         await menu(ctx, [embed], profile_controls, timeout=30)
 
     @faceit.command()

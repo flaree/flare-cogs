@@ -40,7 +40,12 @@ async def account_stats(
     await ctx.send(
         "Click the X on the in-depth statistics to return to the menu before.", delete_after=20
     )
-    await ctx.invoke(command, game=message.embeds[0].to_dict()["fields"][4]["name"].lower())
+    embed = message.embeds[0].to_dict()
+    await ctx.invoke(
+        command,
+        game=message.embeds[0].to_dict()["fields"][3]["name"].lower(),
+        user=embed["author"]["name"],
+    )
     return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
 
 
@@ -62,5 +67,6 @@ async def account_matches(
         "Click the X on the in-depth stat statistics to return to the menu before.",
         delete_after=20,
     )
-    await ctx.invoke(command)
+    embed = message.embeds[0].to_dict()
+    await ctx.invoke(command, user=embed["author"]["name"])
     return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
