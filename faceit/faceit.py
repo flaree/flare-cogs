@@ -150,7 +150,7 @@ class Faceit(commands.Cog):
             return await ctx.send(profilestats.get("error"))
         if profilestats.get("errors"):
             return await ctx.send(profilestats.get("errors")[0]["message"])
-        ongoing = await self.is_ongoing(ctx, name)
+        ongoing = await self.is_ongoing(ctx, name, False)
         msg = "\nPress the \N{SPORTS MEDAL} button for the first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for the most recent matches."
         if ongoing:
             msg += "\nPress the \N{VIDEO GAME}\N{VARIATION SELECTOR-16} button for information about the current ongoing match"
@@ -371,16 +371,19 @@ class Faceit(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    async def is_ongoing(self, ctx, name):
+    async def is_ongoing(self, ctx, name, messages=True):
         stats = await self.get_ongoing(name)
         if stats.get("error"):
-            await ctx.send(stats.get("error"))
+            if messages:
+                await ctx.send(stats.get("error"))
             return False
         if stats.get("errors"):
-            await ctx.send(stats.get("errors")[0]["message"])
+            if messages:
+                await ctx.send(stats.get("errors")[0]["message"])
             return False
         ongoing = stats["payload"].get("ONGOING")
         if ongoing is None:
-            await ctx.send("No ongoing game available.")
+            if messages:
+                await ctx.send("No ongoing game available.")
             return False
         return ongoing
