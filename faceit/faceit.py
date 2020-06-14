@@ -139,7 +139,10 @@ class Faceit(commands.Cog):
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
             if name is None:
-                name = await self.get_userid(user)
+                name = await self.get_userid(user.name)
+                if isinstance(name, dict):
+                    await ctx.send(name["failed"])
+                    return
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
@@ -191,7 +194,10 @@ class Faceit(commands.Cog):
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
             if name is None:
-                name = await self.get_userid(user)
+                name = await self.get_userid(user.name)
+                if isinstance(name, dict):
+                    await ctx.send(name["failed"])
+                    return
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
@@ -291,7 +297,10 @@ class Faceit(commands.Cog):
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
             if name is None:
-                name = await self.get_userid(user)
+                name = await self.get_userid(user.name)
+                if isinstance(name, dict):
+                    await ctx.send(name["failed"])
+                    return
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
@@ -344,7 +353,10 @@ class Faceit(commands.Cog):
         elif isinstance(user, discord.User):
             name = await self.config.user(user).name()
             if name is None:
-                name = await self.get_userid(user)
+                name = await self.get_userid(user.name)
+                if isinstance(name, dict):
+                    await ctx.send(name["failed"])
+                    return
         else:
             name = await self.get_userid(user)
             if isinstance(name, dict):
