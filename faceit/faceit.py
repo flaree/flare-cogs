@@ -7,7 +7,7 @@ from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, close_menu, menu, next_page, prev_page
 
-from .funcs import account_matches, account_stats, match_info
+from .funcs import account_matches, account_stats, match_info, account_ongoing
 
 
 async def tokencheck(ctx):
@@ -28,11 +28,18 @@ profile_controls = {
     "❌": close_menu,
 }
 
+profile_controls_ongoing = {
+    "\N{SPORTS MEDAL}": account_stats,
+    "\N{CROSSED SWORDS}\N{VARIATION SELECTOR-16}": account_matches,
+    "\N{VIDEO GAME}": account_ongoing,
+    "❌": close_menu,
+}
+
 
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -57,6 +64,16 @@ class Faceit(commands.Cog):
     async def get(self, url):
         async with self._session.get(
             self.api + url, headers={"authorization": "bearer {}".format(self.token)}
+        ) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            if resp.status == 401:
+                return {"error": "Authorization Failed - API Key may be invalid."}
+            return await resp.json()
+
+    async def get_ongoing(self, _id):
+        async with self._session.get(
+            "https://api.faceit.com/match/v1/matches/groupByState?userId=" + _id
         ) as resp:
             if resp.status == 200:
                 return await resp.json()
@@ -133,10 +150,14 @@ class Faceit(commands.Cog):
             return await ctx.send(profilestats.get("error"))
         if profilestats.get("errors"):
             return await ctx.send(profilestats.get("errors")[0]["message"])
+        ongoing = await self.is_ongoing(ctx, name)
+        msg = "\nPress the \N{SPORTS MEDAL} button for the first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for the most recent matches."
+        if ongoing:
+            msg += "\nPress the \N{VIDEO GAME}\N{VARIATION SELECTOR-16} button for information about the current ongoing match"
         embed = discord.Embed(
             color=ctx.author.color,
             title="Faceit Profile for {}".format(profilestats["nickname"]),
-            description="\nPress the \N{SPORTS MEDAL} button for your first game statistics.\nPress the \N{CROSSED SWORDS}\N{VARIATION SELECTOR-16} button for your most recent matches.",
+            description=msg,
             url=profilestats["faceit_url"].format(lang=profilestats["settings"]["language"]),
         )
         embed.set_thumbnail(url=profilestats["avatar"])
@@ -154,7 +175,9 @@ class Faceit(commands.Cog):
                 value=f"**Region**: {profilestats['games'][game]['region']}\n**Skill Level**: {profilestats['games'][game]['skill_level']}\n**ELO**: {profilestats['games'][game]['faceit_elo']}",
             )
         embed.set_author(name=profilestats["nickname"], icon_url=profilestats["avatar"])
-        await menu(ctx, [embed], profile_controls, timeout=30)
+        await menu(
+            ctx, [embed], profile_controls if not ongoing else profile_controls_ongoing, timeout=30
+        )
 
     @faceit.command()
     async def matches(self, ctx, *, user: typing.Union[discord.User, str] = None):
@@ -308,3 +331,56 @@ class Faceit(commands.Cog):
             await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=30)
         else:
             await ctx.send("No information found.")
+
+    @faceit.command()
+    async def ongoing(self, ctx, *, user: typing.Union[discord.User, str] = None):
+        """Check if a user has an ongoing game."""
+        if user is None:
+            name = await self.config.user(ctx.author).name()
+            if name is None:
+                return await ctx.send(
+                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
+                )
+        elif isinstance(user, discord.User):
+            name = await self.config.user(user).name()
+            if name is None:
+                name = await self.get_userid(user)
+        else:
+            name = await self.get_userid(user)
+            if isinstance(name, dict):
+                await ctx.send(name["failed"])
+                return
+        ongoing = await self.is_ongoing(ctx, name)
+        if ongoing is False:
+            return
+        ongoing = ongoing[0]
+        team1, team2 = ongoing["teams"]["faction1"], ongoing["teams"]["faction2"]
+        embed = discord.Embed(
+            title=f"{team1['name']} vs {team2['name']}",
+            timestamp=datetime.strptime(ongoing["createdAt"], "%Y-%m-%dT%H:%M:%S%z"),
+        )
+        embed.set_author(name=f"Ongoing {ongoing['entity']['name']}")
+        embed.set_footer(text="Started:")
+        embed.add_field(
+            name=f"{team1['name']} Roster",
+            value="\n".join([player["nickname"] for player in team1["roster"]]),
+        )
+        embed.add_field(
+            name=f"{team2['name']} Roster",
+            value="\n".join([player["nickname"] for player in team2["roster"]]),
+        )
+        await ctx.send(embed=embed)
+
+    async def is_ongoing(self, ctx, name):
+        stats = await self.get_ongoing(name)
+        if stats.get("error"):
+            await ctx.send(stats.get("error"))
+            return False
+        if stats.get("errors"):
+            await ctx.send(stats.get("errors")[0]["message"])
+            return False
+        ongoing = stats["payload"].get("ONGOING")
+        if ongoing is None:
+            await ctx.send("No ongoing game available.")
+            return False
+        return ongoing
