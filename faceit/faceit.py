@@ -39,7 +39,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -95,6 +95,28 @@ class Faceit(commands.Cog):
         if service_name == "faceit":
             self.token = api_tokens.get("authorization")
 
+    async def get_user(self, ctx, user):
+        if user is None:
+            name = await self.config.user(ctx.author).name()
+            if name is None:
+                await ctx.send(
+                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
+                )
+                return False
+        elif isinstance(user, discord.User):
+            name = await self.config.user(user).name()
+            if name is None:
+                name = await self.get_userid(user.name)
+                if isinstance(name, dict):
+                    await ctx.send(name["failed"])
+                    return False
+        else:
+            name = await self.get_userid(user)
+            if isinstance(name, dict):
+                await ctx.send(name["failed"])
+                return False
+        return name
+
     @commands.is_owner()
     @commands.command()
     async def faceitset(self, ctx):
@@ -128,26 +150,11 @@ class Faceit(commands.Cog):
         await self.config.user(ctx.author).name.set(uname)
 
     @faceit.command()
-    async def profile(self, ctx, *, user: typing.Union[discord.User, str] = None):
+    async def profile(self, ctx, *, user: typing.Union[str, discord.User] = None):
         """Faceit Profile Stats."""
-        if user is None:
-            name = await self.config.user(ctx.author).name()
-            if name is None:
-                return await ctx.send(
-                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
-                )
-        elif isinstance(user, discord.User):
-            name = await self.config.user(user).name()
-            if name is None:
-                name = await self.get_userid(user.name)
-                if isinstance(name, dict):
-                    await ctx.send(name["failed"])
-                    return
-        else:
-            name = await self.get_userid(user)
-            if isinstance(name, dict):
-                await ctx.send(name["failed"])
-                return
+        name = await self.get_user(ctx, user)
+        if name is False:
+            return
         profilestats = await self.get("/players/{}".format(name))
         if profilestats.get("error"):
             return await ctx.send(profilestats.get("error"))
@@ -183,26 +190,11 @@ class Faceit(commands.Cog):
         )
 
     @faceit.command()
-    async def matches(self, ctx, *, user: typing.Union[discord.User, str] = None):
+    async def matches(self, ctx, *, user: typing.Union[str, discord.User] = None):
         """Faceit Match Stats."""
-        if user is None:
-            name = await self.config.user(ctx.author).name()
-            if name is None:
-                return await ctx.send(
-                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
-                )
-        elif isinstance(user, discord.User):
-            name = await self.config.user(user).name()
-            if name is None:
-                name = await self.get_userid(user.name)
-                if isinstance(name, dict):
-                    await ctx.send(name["failed"])
-                    return
-        else:
-            name = await self.get_userid(user)
-            if isinstance(name, dict):
-                await ctx.send(name["failed"])
-                return
+        name = await self.get_user(ctx, user)
+        if name is False:
+            return
         profilestats = await self.get("/players/{}/history".format(name))
         if profilestats.get("error"):
             return await ctx.send(profilestats.get("error"))
@@ -286,26 +278,11 @@ class Faceit(commands.Cog):
             await ctx.send("No information for match found.")
 
     @faceit.command()
-    async def stats(self, ctx, game, *, user: typing.Union[discord.User, str] = None):
+    async def stats(self, ctx, game, *, user: typing.Union[str, discord.User] = None):
         """In-depth stats for any faceit supported game."""
-        if user is None:
-            name = await self.config.user(ctx.author).name()
-            if name is None:
-                return await ctx.send(
-                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
-                )
-        elif isinstance(user, discord.User):
-            name = await self.config.user(user).name()
-            if name is None:
-                name = await self.get_userid(user.name)
-                if isinstance(name, dict):
-                    await ctx.send(name["failed"])
-                    return
-        else:
-            name = await self.get_userid(user)
-            if isinstance(name, dict):
-                await ctx.send(name["failed"])
-                return
+        name = await self.get_user(ctx, user)
+        if name is False:
+            return
         stats = await self.get("/players/{}/stats/{}".format(name, game))
         if stats.get("error"):
             return await ctx.send(stats.get("error"))
@@ -342,26 +319,11 @@ class Faceit(commands.Cog):
             await ctx.send("No information found.")
 
     @faceit.command()
-    async def ongoing(self, ctx, *, user: typing.Union[discord.User, str] = None):
+    async def ongoing(self, ctx, *, user: typing.Union[str, discord.User] = None):
         """Check if a user has an ongoing game."""
-        if user is None:
-            name = await self.config.user(ctx.author).name()
-            if name is None:
-                return await ctx.send(
-                    "You don't have a valid account linked, check {}faceit set.".format(ctx.prefix)
-                )
-        elif isinstance(user, discord.User):
-            name = await self.config.user(user).name()
-            if name is None:
-                name = await self.get_userid(user.name)
-                if isinstance(name, dict):
-                    await ctx.send(name["failed"])
-                    return
-        else:
-            name = await self.get_userid(user)
-            if isinstance(name, dict):
-                await ctx.send(name["failed"])
-                return
+        name = await self.get_user(ctx, user)
+        if name is False:
+            return
         ongoing = await self.is_ongoing(ctx, name)
         if ongoing is False:
             return
