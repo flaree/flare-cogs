@@ -1,4 +1,3 @@
-import typing
 from datetime import datetime
 
 import aiohttp
@@ -7,7 +6,8 @@ from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, close_menu, menu, next_page, prev_page
 
-from .funcs import account_matches, account_stats, match_info, account_ongoing
+from .converters import StrUser
+from .funcs import account_matches, account_ongoing, account_stats, match_info
 
 
 async def tokencheck(ctx):
@@ -39,7 +39,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.9"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -150,7 +150,7 @@ class Faceit(commands.Cog):
         await self.config.user(ctx.author).name.set(uname)
 
     @faceit.command()
-    async def profile(self, ctx, *, user: typing.Union[str, discord.User] = None):
+    async def profile(self, ctx, *, user: StrUser = None):
         """Faceit Profile Stats."""
         name = await self.get_user(ctx, user)
         if name is False:
@@ -190,7 +190,7 @@ class Faceit(commands.Cog):
         )
 
     @faceit.command()
-    async def matches(self, ctx, *, user: typing.Union[str, discord.User] = None):
+    async def matches(self, ctx, *, user: StrUser = None):
         """Faceit Match Stats."""
         name = await self.get_user(ctx, user)
         if name is False:
@@ -278,7 +278,7 @@ class Faceit(commands.Cog):
             await ctx.send("No information for match found.")
 
     @faceit.command()
-    async def stats(self, ctx, game, *, user: typing.Union[str, discord.User] = None):
+    async def stats(self, ctx, game, *, user: StrUser = None):
         """In-depth stats for any faceit supported game."""
         name = await self.get_user(ctx, user)
         if name is False:
@@ -319,7 +319,7 @@ class Faceit(commands.Cog):
             await ctx.send("No information found.")
 
     @faceit.command()
-    async def ongoing(self, ctx, *, user: typing.Union[str, discord.User] = None):
+    async def ongoing(self, ctx, *, user: StrUser = None):
         """Check if a user has an ongoing game."""
         name = await self.get_user(ctx, user)
         if name is False:
