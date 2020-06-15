@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.2"
+    __version__ = "0.1.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -301,14 +301,14 @@ class RedditPost(commands.Cog):
                 color=channel.guild.me.color,
                 timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
             )
-            embed.set_author(name=f"New post on r/{feed['subreddit']}")
-            embed.set_footer(text=f"Submitted by /u/{feed['author']}")
+            embed.set_author(name=f"New post on r/{unescape(feed['subreddit'])}")
+            embed.set_footer(text=f"Submitted by /u/{unescape(feed['author'])}")
             if image[-3:] in ["png", "jpg"]:
-                embed.set_image(url=image)
+                embed.set_image(url=unescape(image))
             else:
                 if feed["permalink"] not in image:
                     if validators.url(image):
-                        embed.add_field(name="Attachment", value=image)
+                        embed.add_field(name="Attachment", value=unescape(image))
             embeds.append(embed)
         if timestamps:
             if embeds:
