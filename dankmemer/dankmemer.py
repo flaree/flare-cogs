@@ -8,7 +8,6 @@ import aiohttp
 import discord
 import validators
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import humanize_number, boxmenu
 from redbot.core.utils.predicates import MessagePredicate
 
 from .converters import ImageFinder
