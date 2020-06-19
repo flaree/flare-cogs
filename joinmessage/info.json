@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare (flare#0001)"
+  ],
+  "install_msg": "Send a message to a guilds general chat/first available text channel when joining a server.",
+  "name": "JoinMessage",
+  "disabled": false,
+  "short": "Send a message to a guilds general chat/first available text channel when joining a server.",
+  "description": "Send a message to a guilds general chat/first available text channel when joining a server.",
+  "tags": [
+    "Join Message"
+  ],
+  "hidden": false
+}
