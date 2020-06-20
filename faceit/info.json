@@ -3,7 +3,7 @@
     "install_msg": "Faceit Stats - Use [p]help faceitset for information on setting up.",
     "name": "Faceit",
     "disabled": false,
-    "short": "Faciet Statistics.",
+    "short": "Faceitt Statistics.",
     "description": "List stats of faceit users, game history or specific games!",
     "tags": ["faceit", "csgo", "games"],
     "min_bot_version": "3.2.0"
