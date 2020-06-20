@@ -2,11 +2,11 @@
     "author": ["flare(flare#0001)"],
     "install_msg": "News Cog. Use [p]help news for more information. - Not read for use",
     "name": "Covid",
-    "disabled": true,
-    "hidden": true,
-    "short": "Grab the latest headlines, nationally or global..",
+    "disabled": false,
+    "hidden": false,
+    "short": "Grab the latest headlines, nationally or globally.",
     "description": "Grab breaking headline around the world!",
     "tags": ["news", "information"],
-    "requirements": ["validators"],
+    "requirements": ["validators", "iso8601"],
     "min_bot_version": "3.2.0"
 }
