@@ -1,6 +1,6 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "News Cog. Use [p]help news for more information. - Not read for use",
+    "install_msg": "News Cog. Use [p]help news for more information.",
     "name": "Covid",
     "disabled": false,
     "hidden": false,
