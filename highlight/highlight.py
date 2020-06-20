@@ -1,11 +1,12 @@
-from redbot.core import commands, Config, checks
-import discord
-from typing import Optional
-from redbot.core.utils.chat_formatting import humanize_list, box
-import tabulate
 import asyncio
-from redbot.core.utils.predicates import MessagePredicate
 import logging
+from typing import Optional
+
+import discord
+import tabulate
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import box, humanize_list
+from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
 
@@ -19,13 +20,22 @@ class Highlight(commands.Cog):
         self.config.register_global(migrated=False)
         default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
         self.config.register_channel(**default_channel)
+        self.highlightcache = {}
 
-    __version__ = "1.2.2"
+    __version__ = "1.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
+
+    async def initalize(self):
+        await self.bot.wait_until_ready()
+        await self.migrate_config()
+        await self.generate_cache()
+
+    async def generate_cache(self):
+        self.highlightcache = await self.config.all_channels()
 
     async def migrate_config(self):
         if not await self.config.migrated():
@@ -51,7 +61,10 @@ class Highlight(commands.Cog):
     async def on_message(self, message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
-        highlight = await self.config.channel(message.channel).highlight()
+        highlight = self.highlightcache.get(message.channel.id)
+        if highlight is None:
+            return
+        highlight = highlight.get("highlight", [])
         for user in highlight:
             if int(user) == message.author.id:
                 continue
@@ -126,6 +139,7 @@ class Highlight(commands.Cog):
                 )
             else:
                 await ctx.send(f"The word {text} is already in your highlight list for {channel}.")
+        await self.generate_cache()
 
     @highlight.command()
     async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
@@ -151,6 +165,7 @@ class Highlight(commands.Cog):
 
             else:
                 await ctx.send("Your word is not currently setup in that channel..")
+        await self.generate_cache()
 
     @highlight.command()
     async def toggle(
@@ -191,6 +206,7 @@ class Highlight(commands.Cog):
             if state:
                 return await ctx.send(f"The highlight `{word}` has been enabled in {channel}.")
             await ctx.send(f"The highlight `{word}` has been disabled in {channel}.")
+        await self.generate_cache()
 
     @highlight.command()
     async def bots(
@@ -251,6 +267,7 @@ class Highlight(commands.Cog):
             await ctx.send(
                 f"The highlight `{word}` will no longer be trigged by bots in {channel}."
             )
+        await self.generate_cache()
 
     @highlight.command(name="list")
     async def _list(self, ctx, channel: Optional[discord.TextChannel] = None):
