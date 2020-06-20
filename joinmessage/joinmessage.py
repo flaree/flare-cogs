@@ -8,7 +8,7 @@ log = logging.getLogger("red.flare.joinmessage")
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -58,7 +58,18 @@ class JoinMessage(commands.Cog):
         await ctx.send("Server join messages have been disabled.")
 
     @joinmessage.command()
-    async def message(self, ctx, *, message: str):
-        """Set the message to be sent on join."""
+    async def message(self, ctx, *, message: str = None):
+        """Set the message to be sent on join.
+
+        Sending no message will show the current message or help menu if
+        none is set.
+        """
+        if message is None:
+            msg = await self.config.message()
+            if msg is None:
+                await ctx.send_help()
+                return
+            await ctx.send("Your current message being sent is:\n{}".format(msg))
+            return
         await self.config.message.set(message)
         await ctx.send("Your message will be sent as:\n{}".format(message))
