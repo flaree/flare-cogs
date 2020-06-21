@@ -11,7 +11,7 @@ import iso8601
 class News(commands.Cog):
     """News Cog."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -21,7 +21,9 @@ class News(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = "https://newsapi.org/v2/{}?{}&sortBy=publishedAt{}&apiKey={}&page=1{}"
+        self.api = (
+            "https://newsapi.org/v2/{}?{}&sortBy=publishedAt{}&apiKey={}&page=1&pageSize=15{}"
+        )
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
 
@@ -164,7 +166,6 @@ class News(commands.Cog):
         embeds = []
         total = 15 if len(data["articles"]) > 15 else len(data["articles"])
         for i, article in enumerate(data["articles"][:15], 1):
-            print(article["publishedAt"][:-6])
             embed = discord.Embed(
                 title=article["title"],
                 color=await self.bot.get_embed_color(ctx.channel),
