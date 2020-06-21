@@ -30,7 +30,6 @@ class Highlight(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
     async def initalize(self):
-        await self.bot.wait_until_ready()
         await self.migrate_config()
         await self.generate_cache()
 
