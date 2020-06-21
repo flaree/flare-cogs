@@ -1,6 +1,7 @@
-import discord
-from redbot.core import commands, Config
 import logging
+
+import discord
+from redbot.core import Config, commands
 
 log = logging.getLogger("red.flare.joinmessage")
 
@@ -8,7 +9,7 @@ log = logging.getLogger("red.flare.joinmessage")
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -36,7 +37,7 @@ class JoinMessage(commands.Cog):
             channel = (
                 guild.system_channel
                 if guild.system_channel is not None
-                and guild.system_channel.permissionsfor(guild.me).send_messages
+                and guild.system_channel.permissions_for(guild.me).send_messages
                 else next(
                     (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages),
                     None,
