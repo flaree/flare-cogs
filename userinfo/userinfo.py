@@ -28,11 +28,11 @@ class Userinfo(commands.Cog):
         self.bot = bot
         self.status_emojis = {
             "mobile": discord.utils.get(self.bot.emojis, id=724951240089272413),
-            "online": discord.utils.get(self.bot.emojis, id=724951240089272413),
-            "away": discord.utils.get(self.bot.emojis, id=724951240089272413),
-            "dnd": discord.utils.get(self.bot.emojis, id=724951240089272413),
-            "offline": discord.utils.get(self.bot.emojis, id=724951240089272413),
-            "streaming": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "online": discord.utils.get(self.bot.emojis, id=724950463417548890),
+            "away": discord.utils.get(self.bot.emojis, id=724950462729551883),
+            "dnd": discord.utils.get(self.bot.emojis, id=724950462499127338),
+            "offline": discord.utils.get(self.bot.emojis, id=724950462746460271),
+            "streaming": discord.utils.get(self.bot.emojis, id=724950551900717066),
         }
 
     def cog_unload(self):
