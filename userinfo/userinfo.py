@@ -2,14 +2,14 @@ import logging
 
 import discord
 from redbot.core import commands
+from redbot.core.utils import AsyncIter
 from redbot.core.utils.common_filters import (
     escape_spoilers_and_mass_mentions,
     filter_invites,
     filter_various_mentions,
 )
-from redbot.core.utils import AsyncIter
 
-from .flags import discord_py, EMOJIS
+from .flags import EMOJIS, discord_py
 
 log = logging.getLogger("red.flare.userinfo")
 
@@ -17,7 +17,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -26,6 +26,14 @@ class Userinfo(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.status_emojis = {
+            "mobile": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "online": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "away": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "dnd": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "offline": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "streaming": discord.utils.get(self.bot.emojis, id=724951240089272413),
+        }
 
     def cog_unload(self):
         # Remove command logic are from: https://github.com/mikeshardmind/SinbadCogs/tree/v3/messagebox
@@ -73,17 +81,40 @@ class Userinfo(commands.Cog):
 
         created_on = "{}\n({} days ago)".format(user_created, since_created)
         joined_on = "{}\n({} days ago)".format(user_joined, since_joined)
-
-        if any(a.type is discord.ActivityType.streaming for a in user.activities):
-            statusemoji = "<:streaming:724950551900717066>"
+        if user.is_on_mobile():
+            statusemoji = (
+                self.status_emojis["mobile"]
+                if self.status_emojis["mobile"]
+                else "\N{MOBILE PHONE}"
+            )
+        elif any(a.type is discord.ActivityType.streaming for a in user.activities):
+            statusemoji = (
+                self.status_emojis["streaming"]
+                if self.status_emojis["streaming"]
+                else "\N{LARGE PURPLE CIRCLE}"
+            )
         elif user.status.name == "online":
-            statusemoji = "<:online:724950463417548890>"
+            statusemoji = (
+                self.status_emojis["online"]
+                if self.status_emojis["online"]
+                else "\N{LARGE GREEN CIRCLE}"
+            )
         elif user.status.name == "offline":
-            statusemoji = "<:offline:724950462746460271>"
+            statusemoji = (
+                self.status_emojis["offline"]
+                if self.status_emojis["offline"]
+                else "\N{MEDIUM WHITE CIRCLE}"
+            )
         elif user.status.name == "dnd":
-            statusemoji = "<:do_not_disturb:724950462499127338>"
+            statusemoji = (
+                self.status_emojis["dnd"] if self.status_emojis["dnd"] else "\N{LARGE RED CIRCLE}"
+            )
         elif user.status.name == "idle":
-            statusemoji = "<:idle:724950462729551883>"
+            statusemoji = (
+                self.status_emojis["away"]
+                if self.status_emojis["away"]
+                else "\N{LARGE ORANGE CIRCLE}"
+            )
         activity = "Chilling in {} status".format(user.status)
         status_string = mod.get_status_string(user)
 
