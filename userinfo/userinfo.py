@@ -27,7 +27,7 @@ class Userinfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.status_emojis = {
-            "mobile": discord.utils.get(self.bot.emojis, id=724951240089272413),
+            "mobile": discord.utils.get(self.bot.emojis, id=725387684113023057),
             "online": discord.utils.get(self.bot.emojis, id=724950463417548890),
             "away": discord.utils.get(self.bot.emojis, id=724950462729551883),
             "dnd": discord.utils.get(self.bot.emojis, id=724950462499127338),
