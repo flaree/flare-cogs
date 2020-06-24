@@ -75,15 +75,15 @@ class Userinfo(commands.Cog):
         joined_on = "{}\n({} days ago)".format(user_joined, since_joined)
 
         if any(a.type is discord.ActivityType.streaming for a in user.activities):
-            statusemoji = "\N{LARGE PURPLE CIRCLE}"
+            statusemoji = "<:streaming:724950551900717066>"
         elif user.status.name == "online":
-            statusemoji = "\N{LARGE GREEN CIRCLE}"
+            statusemoji = "<:online:724950463417548890>"
         elif user.status.name == "offline":
-            statusemoji = "\N{MEDIUM WHITE CIRCLE}"
+            statusemoji = "<:offline:724950462746460271>"
         elif user.status.name == "dnd":
-            statusemoji = "\N{LARGE RED CIRCLE}"
+            statusemoji = "<:do_not_disturb:724950462499127338>"
         elif user.status.name == "idle":
-            statusemoji = "\N{LARGE ORANGE CIRCLE}"
+            statusemoji = "<:idle:724950462729551883>"
         activity = "Chilling in {} status".format(user.status)
         status_string = mod.get_status_string(user)
 
@@ -154,7 +154,7 @@ class Userinfo(commands.Cog):
         name = filter_invites(name)
 
         avatar = user.avatar_url_as(static_format="png")
-        data.set_author(name=f"{statusemoji} {name}", url=avatar)
+        data.title = f"{statusemoji} {name}"
         data.set_thumbnail(url=avatar)
 
         flags = await discord_py(user)
