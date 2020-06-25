@@ -1,0 +1,29 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: commandstats\commandstats.py:77
+#, docstring
+msgid ""
+"Group command for command stats.\\n\\n        This command does not log the "
+"issuing command.\\n        "
+msgstr ""
+
+#: commandstats\commandstats.py:123
+#, docstring
+msgid "Guild Command Stats."
+msgstr ""
+
+#: commandstats\commandstats.py:165
+#, docstring
+msgid "Session command stats."
+msgstr ""

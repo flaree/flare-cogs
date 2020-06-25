@@ -1,0 +1,39 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: forward\forward.py:80
+#, docstring
+msgid "Forwarding commands."
+msgstr ""
+
+#: forward\forward.py:84
+#, docstring
+msgid ""
+"Set whether to send notifications when the bot sends a message.\\n\\n"
+"        Type must be a valid bool.\\n        "
+msgstr ""
+
+#: forward\forward.py:99
+#, docstring
+msgid ""
+"Set if you want to receive notifications in a channel instead of your "
+"DMs.\\n\\n        Leave blank if you want to set back to your DMs.\\n"
+"        "
+msgstr ""
+
+#: forward\forward.py:115
+#, docstring
+msgid ""
+"PMs a person.\\n\\n        Separate version of [p]dm but allows for guild "
+"owners. This only works for users in the\\n        guild.\\n        "
+msgstr ""

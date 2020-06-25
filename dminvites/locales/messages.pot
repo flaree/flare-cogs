@@ -1,0 +1,40 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: dminvites\dminvites.py:34
+#, docstring
+msgid "Group Commands for DM Invites."
+msgstr ""
+
+#: dminvites\dminvites.py:39
+#, docstring
+msgid "DM Invite Settings."
+msgstr ""
+
+#: dminvites\dminvites.py:55
+#, docstring
+msgid "Turn DM responding on/off."
+msgstr ""
+
+#: dminvites\dminvites.py:69
+#, docstring
+msgid "Toggle whether the message is an embed or not."
+msgstr ""
+
+#: dminvites\dminvites.py:83
+#, docstring
+msgid ""
+"Set the message that the bot will respond with.\\n\\n        **Available "
+"Parameters**:\\n        {link} - return the bots oauth url with the "
+"permissions you've set with the core inviteset.\\n        "
+msgstr ""

@@ -1,0 +1,21 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: serverlock\serverlock.py:37
+#, docstring
+msgid ""
+"Lock down an entire server.\\n\\n        This command relies on no "
+"overwrites allowing to speak. It sets the @everyone role to not\\n        "
+"able to send, react or connect. Reissuing this command will unlock the "
+"server\\n        "
+msgstr ""

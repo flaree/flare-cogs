@@ -1,0 +1,201 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: unbelievaboat\roulette.py:289
+#, docstring
+msgid ""
+"Bet on the roulette wheel.\\n\\n        **Current supported bets**:\\n"
+"        Single   - Any single number.\\n        Colors   - Red/Black\\n"
+"        Halfs    - 1st/2nd half\\n        Even Odd - Even or Odd\\n        "
+"Dozens   - 1st/2nd/3rd Dozen (Groups of 12)\\n        Colums   - 1st/2nd/3rd"
+" Column.\\n        - This is based on the English version of the roulette "
+"wheel.\\n        "
+msgstr ""
+
+#: unbelievaboat\roulette.py:330
+#, docstring
+msgid "Start a game of roulette."
+msgstr ""
+
+#: unbelievaboat\roulette.py:385
+#, docstring
+msgid "Manage settings for roulette."
+msgstr ""
+
+#: unbelievaboat\roulette.py:401
+#, docstring
+msgid "Set the time for roulette wheel to start spinning."
+msgstr ""
+
+#: unbelievaboat\roulette.py:412
+#, docstring
+msgid "Toggle roulette on and off."
+msgstr ""
+
+#: unbelievaboat\roulette.py:428
+#, docstring
+msgid ""
+"Set payouts for roulette winnings.\\n\\n        Note: payout is what your "
+"prize is multiplied by.\\n        Valid types:\\n        zero\\n        "
+"single\\n        color\\n        dozen\\n        odd_or_even\\n        "
+"halfs\\n        column\\n        "
+msgstr ""
+
+#: unbelievaboat\roulette.py:452
+#, docstring
+msgid "Roulette Settings."
+msgstr ""
+
+#: unbelievaboat\settings.py:19
+#, docstring
+msgid "Manage various settings for Unbelievaboat."
+msgstr ""
+
+#: unbelievaboat\settings.py:36
+#, docstring
+msgid ""
+"Set the cooldown for the work, crime or rob commands. Minimum cooldown is 30"
+" seconds.\\n\\n        The time can be formatted as so `1h30m` etc. Valid "
+"times are hours, minutes and seconds.\\n        "
+msgstr ""
+
+#: unbelievaboat\settings.py:63
+#, docstring
+msgid "Set the min or max payout for working or crimes."
+msgstr ""
+
+#: unbelievaboat\settings.py:78
+#, docstring
+msgid "Set the min or max betting amounts."
+msgstr ""
+
+#: unbelievaboat\settings.py:91
+#, docstring
+msgid "Wallet Settings."
+msgstr ""
+
+#: unbelievaboat\settings.py:98
+#, docstring
+msgid "Toggle the wallet system."
+msgstr ""
+
+#: unbelievaboat\settings.py:112
+#, docstring
+msgid "Set the max a wallet can have."
+msgstr ""
+
+#: unbelievaboat\settings.py:122
+#, docstring
+msgid "Set the failure rate for crimes and robbing."
+msgstr ""
+
+#: unbelievaboat\settings.py:137
+#, docstring
+msgid "Set the min or max fine rate for crimes."
+msgstr ""
+
+#: unbelievaboat\settings.py:150
+#, docstring
+msgid "Set the interest rate if unable to pay a fine from wallet."
+msgstr ""
+
+#: unbelievaboat\settings.py:161
+#, docstring
+msgid ""
+"Add a custom reply for working or crime.\\n\\n        Put {amount} in place "
+"of where you want the amount earned to be.\\n        "
+msgstr ""
+
+#: unbelievaboat\settings.py:183
+#, docstring
+msgid "Delete a custom reply."
+msgstr ""
+
+#: unbelievaboat\settings.py:201
+#, docstring
+msgid "List custom replies."
+msgstr ""
+
+#: unbelievaboat\settings.py:227
+#, docstring
+msgid "Whether to use the default replies to work and crime."
+msgstr ""
+
+#: unbelievaboat\settings.py:239
+#, docstring
+msgid "List your remaining cooldowns.."
+msgstr ""
+
+#: unbelievaboat\settings.py:282
+#, docstring
+msgid "Current unbelievaboat settings."
+msgstr ""
+
+#: unbelievaboat\unbelievaboat.py:179
+#, docstring
+msgid ""
+"Add money to the balance of all users within a role.\\n\\n        Valid "
+"arguements are 'banks' or 'wallet'.\\n        "
+msgstr ""
+
+#: unbelievaboat\unbelievaboat.py:221
+#, docstring
+msgid ""
+"Remove money from the bank balance of all users within a role.\\n\\n        "
+"Valid arguements are 'banks' or 'wallet'.\\n        "
+msgstr ""
+
+#: unbelievaboat\unbelievaboat.py:244
+#, docstring
+msgid "Work for some cash."
+msgstr ""
+
+#: unbelievaboat\unbelievaboat.py:289
+#, docstring
+msgid "Commit a crime, more risk but higher payout."
+msgstr ""
+
+#: unbelievaboat\unbelievaboat.py:338
+#, docstring
+msgid "Rob another user."
+msgstr ""
+
+#: unbelievaboat\wallet.py:95
+#, docstring
+msgid "Wallet commands."
+msgstr ""
+
+#: unbelievaboat\wallet.py:100
+#, docstring
+msgid "Show the user's wallet balance.\\n\\n        Defaults to yours.\\n        "
+msgstr ""
+
+#: unbelievaboat\wallet.py:115
+#, docstring
+msgid "Print the wallet leaderboard."
+msgstr ""
+
+#: unbelievaboat\wallet.py:177
+#, docstring
+msgid "Set a users wallet balance."
+msgstr ""
+
+#: unbelievaboat\wallet.py:193
+#, docstring
+msgid "Deposit cash from your wallet to your bank."
+msgstr ""
+
+#: unbelievaboat\wallet.py:208
+#, docstring
+msgid "Withdraw cash from your bank to your wallet."
+msgstr ""

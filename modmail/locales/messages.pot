@@ -1,0 +1,68 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: modmail\modmail.py:70
+#, docstring
+msgid "Modmail Commands."
+msgstr ""
+
+#: modmail\modmail.py:74
+#, docstring
+msgid ""
+"Setup the servers modmail channel..\\n\\n        Not supplying a channel "
+"defaults to current channel.\\n        "
+msgstr ""
+
+#: modmail\modmail.py:85
+#, docstring
+msgid ""
+"Toggle the modmail for the server on or off.\\n\\n        Not supplying a "
+"bool will change the current setting.\\n        "
+msgstr ""
+
+#: modmail\modmail.py:100
+#, docstring
+msgid "Toggle whether to send an automatic reply to modmail requests."
+msgstr ""
+
+#: modmail\modmail.py:112
+#, docstring
+msgid ""
+"Set your response message for modmails.\\n\\n        Not supplying a message"
+" will send the current configured one\\n        "
+msgstr ""
+
+#: modmail\modmail.py:129
+#, docstring
+msgid "Ignore a user from using the modmail."
+msgstr ""
+
+#: modmail\modmail.py:133
+#, docstring
+msgid "Remove user from the ignored list."
+msgstr ""
+
+#: modmail\modmail.py:137
+#, docstring
+msgid "List ignored users."
+msgstr ""
+
+#: modmail\modmail.py:142
+#, docstring
+msgid "Reply to a modmail."
+msgstr ""
+
+#: modmail\modmail.py:164
+#, docstring
+msgid "List all current modmail channels."
+msgstr ""

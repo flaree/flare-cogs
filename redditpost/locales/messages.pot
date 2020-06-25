@@ -1,0 +1,55 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: redditpost\redditpost.py:92
+#, docstring
+msgid "Reddit auto-feed posting."
+msgstr ""
+
+#: redditpost\redditpost.py:103
+#, docstring
+msgid "Set the delay used to check for new content."
+msgstr ""
+
+#: redditpost\redditpost.py:112
+#, docstring
+msgid ""
+"Add a subreddit to post new content from.\\n\\n        Feed must not include"
+" the /r/\\n        "
+msgstr ""
+
+#: redditpost\redditpost.py:156
+#, docstring
+msgid ""
+"Lists the current subreddits for the current channel, or a provided one."
+msgstr ""
+
+#: redditpost\redditpost.py:180
+#, docstring
+msgid "Removes a subreddit from the current channel, or a provided one."
+msgstr ""
+
+#: redditpost\redditpost.py:194
+#, docstring
+msgid "Force the latest post."
+msgstr ""
+
+#: redditpost\redditpost.py:217
+#, docstring
+msgid "Whether to fetch all posts or just the latest post."
+msgstr ""
+
+#: redditpost\redditpost.py:233
+#, docstring
+msgid "Whether to send the post as a webhook or message from the bot."
+msgstr ""

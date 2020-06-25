@@ -1,0 +1,47 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: news\news.py:63
+#, docstring
+msgid "Group Command for News."
+msgstr ""
+
+#: news\news.py:67
+#, docstring
+msgid "Instructions on how to setup news related APIs."
+msgstr ""
+
+#: news\news.py:75
+#, docstring
+msgid "Countries supported by the News Cog."
+msgstr ""
+
+#: news\news.py:82
+#, docstring
+msgid ""
+"\\n        Top News from a Country - County must be 2-letter ISO 3166-1 "
+"code. Supports querys to search news.\\n\\n        Check [p]news "
+"countrycodes for a list of all possible country codes supported.\\n        "
+msgstr ""
+
+#: news\news.py:125
+#, docstring
+msgid ""
+"News from around the World.\\n\\n        Not considered top-headlines. May "
+"be unreliable, unknown etc.\\n        "
+msgstr ""
+
+#: news\news.py:157
+#, docstring
+msgid "Top Headlines from around the world."
+msgstr ""

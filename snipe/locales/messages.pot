@@ -1,0 +1,37 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: snipe\snipe.py:58
+#, docstring
+msgid "Shows the last deleted message from a specified channel."
+msgstr ""
+
+#: snipe\snipe.py:101
+#, docstring
+msgid "Group Command for Snipe Settings."
+msgstr ""
+
+#: snipe\snipe.py:106
+#, docstring
+msgid ""
+"Enable or disable sniping.\\n        \\n        State must be a bool or one "
+"of the following: True/False, On/Off, Y/N"
+msgstr ""
+
+#: snipe\snipe.py:130
+#, docstring
+msgid ""
+" \\n        Set the time before snipes expire.  \\n        \\n        Takes "
+"seconds or minutes, use the whole unit name with the amount.  \\n        "
+"Defaults to seconds if no unit name used.   \\n        "
+msgstr ""

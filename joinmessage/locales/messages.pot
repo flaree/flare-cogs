@@ -1,0 +1,29 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: joinmessage\joinmessage.py:54
+#, docstring
+msgid "Options for sending messages on server join."
+msgstr ""
+
+#: joinmessage\joinmessage.py:58
+#, docstring
+msgid "Toggle server join messages on or off."
+msgstr ""
+
+#: joinmessage\joinmessage.py:69
+#, docstring
+msgid ""
+"Set the message to be sent on join.\\n\\n        Sending no message will "
+"show the current message or help menu if\\n        none is set.\\n        "
+msgstr ""

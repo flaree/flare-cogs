@@ -1,0 +1,110 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-06-25 19:03+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: redgettext 3.1\n"
+
+#: covid\covid.py:64
+#, docstring
+msgid "Countries supported by covidnews."
+msgstr ""
+
+#: covid\covid.py:71
+#, docstring
+msgid ""
+"Covid News from a Country - County must be 2-letter ISO 3166-1 code.\\n\\n"
+"        Check [p]covidcountries for a list of all possible country codes "
+"supported."
+msgstr ""
+
+#: covid\covid.py:105
+#, docstring
+msgid "Instructions on how to setup covid related APIs."
+msgstr ""
+
+#: covid\covid.py:113
+#, docstring
+msgid ""
+"Stats about Covid-19 or countries if provided.\\n\\n        Supports "
+"multiple countries seperated by a comma.\\n        Example: [p]covid "
+"Ireland, England\\n        "
+msgstr ""
+
+#: covid\covid.py:178
+#, docstring
+msgid ""
+"Show the statistics from yesterday for countries.\\n\\n        Supports "
+"multiple countries seperated by a comma.\\n        Example: [p]covid "
+"yesterday Ireland, England\\n        "
+msgstr ""
+
+#: covid\covid.py:217
+#, docstring
+msgid "Show the highest cases from countrys today."
+msgstr ""
+
+#: covid\covid.py:241
+#, docstring
+msgid "Show the highest deaths from countrys today."
+msgstr ""
+
+#: covid\covid.py:265
+#, docstring
+msgid "Show the highest cases from countrys overall."
+msgstr ""
+
+#: covid\covid.py:289
+#, docstring
+msgid "Show the highest deaths from countrys overall."
+msgstr ""
+
+#: covid\covid.py:313
+#, docstring
+msgid ""
+"Show X countries with top amount of cases.\\n\\n        Defaults to 6.\\n"
+"        "
+msgstr ""
+
+#: covid\covid.py:339
+#, docstring
+msgid ""
+"Show X countries with top amount of cases today.\\n\\n        Defaults to "
+"6.\\n        "
+msgstr ""
+
+#: covid\covid.py:365
+#, docstring
+msgid ""
+"Show X countries with top amount of deaths.\\n\\n        Defaults to 6.\\n"
+"        "
+msgstr ""
+
+#: covid\covid.py:391
+#, docstring
+msgid ""
+"Show X countries with top amount of deaths today.\\n\\n        Defaults to "
+"6.\\n        "
+msgstr ""
+
+#: covid\covid.py:417
+#, docstring
+msgid ""
+"Show stats for specific states.\\n\\n        Supports multiple countries "
+"seperated by a comma.\\n        Example: [p]covid state New York, "
+"California\\n        "
+msgstr ""
+
+#: covid\covid.py:454
+#, docstring
+msgid ""
+"Show stats for yesterday for specific states.\\n\\n        Supports multiple"
+" countries seperated by a comma.\\n        Example: [p]covid state yesterday"
+" New York, California.\\n        "
+msgstr ""
