@@ -5,7 +5,7 @@ from typing import Optional
 import discord
 import tabulate
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import box, humanize_list
+from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
@@ -22,7 +22,7 @@ class Highlight(commands.Cog):
         self.config.register_channel(**default_channel)
         self.highlightcache = {}
 
-    __version__ = "1.3.0"
+    __version__ = "1.3.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -67,7 +67,7 @@ class Highlight(commands.Cog):
         for user in highlight:
             if int(user) == message.author.id:
                 continue
-            highlited_words = []
+            highlighted_words = []
             for word in highlight[user]:
                 if word.lower() in message.content.lower():
                     highlighted_usr = message.guild.get_member(int(user))
@@ -81,8 +81,8 @@ class Highlight(commands.Cog):
 
                     if not highlight[user][word]["toggle"]:
                         continue
-                    highlited_words.append(word)
-            if highlited_words:
+                    highlighted_words.append(word)
+            if highlighted_words:
                 msglist = []
                 msglist.append(message)
                 async for messages in message.channel.history(
@@ -101,7 +101,7 @@ class Highlight(commands.Cog):
                 )
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
                 await highlighted_usr.send(
-                    f"Your highlighted word(s) `{humanize_list(highlited_words)}` was mentioned in <#{message.channel.id}> in {message.guild.name} by {message.author.display_name}.\n",
+                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
                     embed=embed,
                 )
 
