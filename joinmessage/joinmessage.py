@@ -5,11 +5,45 @@ from redbot.core import Config, commands
 
 log = logging.getLogger("red.flare.joinmessage")
 
+CHANNELS = [
+    "general",
+    "general-chat",
+    "основной",
+    "основной-чат",
+    "generell",
+    "generell-chatt",
+    "כללי",
+    "צ'אט-כללי",
+    "allgemein",
+    "generale",
+    "général",
+    "općenito",
+    "bendra",
+    "általános",
+    "algemeen",
+    "generelt",
+    "geral",
+    "informații generale",
+    "ogólny",
+    "yleinen",
+    "allmänt",
+    "allmän-chat",
+    "chung",
+    "genel",
+    "obecné",
+    "obično",
+    "Генерален чат",
+    "общи",
+    "загальний",
+    "ทั่วไป",
+    "常规",
+]
+
 
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -30,9 +64,7 @@ class JoinMessage(commands.Cog):
         if msg is None:
             log.info("No message setup, please set one up via the joinmessage message command.")
             return
-        channel = discord.utils.find(
-            lambda x: x.name in ["general", "general-chat"], guild.text_channels
-        )
+        channel = discord.utils.find(lambda x: x.name in CHANNELS, guild.text_channels)
         if channel is None:
             channel = (
                 guild.system_channel
