@@ -127,7 +127,9 @@ class AntiSpam(commands.Cog):
         msg = []
         for user in self.blacklist:
             if self.blacklist[user]["expiry"] > datetime.now():
-                msg += f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
+                msg.append(
+                    f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
+                )
         if not msg:
             return await ctx.send("No users currently blacklisted.")
         for page in pagify("\n".join(msg)):
