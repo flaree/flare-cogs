@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "This cog will blacklist any user who spams X amount of commands in Y seconds and will be muted for Z length. All is configurable using [p]antispamset",
+  "install_msg": "This cog will blacklist any user who spams X amount of commands in Y seconds and will be blacklisted for Z length. All is configurable using [p]antispamset",
   "name": "AntiSpam",
   "disabled": false,
   "short": "Blacklist users who spam commands for a duration.",
