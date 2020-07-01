@@ -69,12 +69,12 @@ class AntiSpam(commands.Cog):
         """Settings for antispam"""
 
     @antispamset.command()
-    async def mute(self, ctx, *, length: TimedeltaConverter):
+    async def length(self, ctx, *, length: TimedeltaConverter):
         """How long to blacklist a user from using commands."""
         duration_seconds = length.total_seconds()
         await self.config.mute_length.set(duration_seconds)
         await ctx.send(
-            f"The spam filter mute timer has been set to {humanize_timedelta(seconds=duration_seconds)}."
+            f"The spam filter blacklist timer has been set to {humanize_timedelta(seconds=duration_seconds)}."
         )
         await self.gen_cache()
 
