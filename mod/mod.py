@@ -7,7 +7,7 @@ import discord
 from redbot.cogs.mod import Mod as ModClass
 from redbot.core import Config, checks, commands, modlog
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import humanize_list, humanize_timedelta
+from redbot.core.utils.chat_formatting import humanize_list, humanize_timedelta, inline
 from redbot.core.utils.mod import is_allowed_by_hierarchy
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -17,7 +17,7 @@ log = logging.getLogger("red.flarecogs.mod")
 class Mod(ModClass):
     """Mod with timed mute."""
 
-    __version__ = "1.1.4"
+    __version__ = "1.1.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -195,7 +195,7 @@ class Mod(ModClass):
         msg = "{}".format("\n**Reason**: {}".format(reason) if reason is not None else "")
         if completed:
             await ctx.send(
-                f"`{humanize_list([str(x) for x in completed])}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
+                f"`{humanize_list(list(map(inline, [str(x) for x in completed])))}` has been muted for {humanize_timedelta(timedelta=duration)}.{msg}"
             )
         if failed:
             failemsg = "\n{}".format("\n".join(failed))
