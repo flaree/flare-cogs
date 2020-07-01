@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -35,7 +35,7 @@ class AntiSpam(commands.Cog):
         user = self.blacklist.get(ctx.author.id)
         if user is None:
             return True
-        if datetime.utcnow() - user["time"] > timedelta(seconds=self.config_cache["mute_length"]):
+        if self.blacklist[ctx.author.id]["expiry"] < datetime.now():
             del self.blacklist[ctx.author.id]
             log.debug(f"{ctx.author}({ctx.author.id}) has been removed from the spam blacklist.")
             return True
@@ -49,12 +49,12 @@ class AntiSpam(commands.Cog):
             return
         author = ctx.author
         ctx.guild
-        now = datetime.utcnow()
+        now = datetime.now()
         if author.id not in self.cache:
-            self.cache[author.id] = {"id": author.id, "time": now, "count": 1}
+            self.cache[author.id] = {"count": 1, "time": now}
         else:
             if now - self.cache[author.id]["time"] > timedelta(seconds=self.config_cache["per"]):
-                self.cache[author.id] = {"id": author.id, "time": now, "count": 1}
+                self.cache[author.id] = {"count": 1, "time": now}
                 return
             self.cache[author.id]["count"] += 1
             if (
@@ -64,9 +64,11 @@ class AntiSpam(commands.Cog):
                 log.debug(
                     f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
                 )
-                self.blacklist[author.id] = {"id": author.id, "time": now}
+                expiry = datetime.now() + timedelta(seconds=self.config_cache["mute_length"])
+                self.blacklist[author.id] = {"id": author.id, "expiry": expiry}
                 await ctx.send(
-                    f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands."
+                    f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands.",
+                    delete_after=self.config_cache["mute_length"],
                 )
 
     @commands.is_owner()
@@ -124,7 +126,7 @@ class AntiSpam(commands.Cog):
             return await ctx.send("No users currently blacklisted.")
         msg = "\n".join(
             [
-                f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=datetime.utcnow() - self.blacklist[user]['time'])}"
+                f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
                 for user in self.blacklist
             ]
         )
