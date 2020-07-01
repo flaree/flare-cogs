@@ -129,5 +129,5 @@ class AntiSpam(commands.Cog):
     async def settings(self, ctx):
         """Show current antispam settings"""
         await self.gen_cache()
-        msg = f"**Mute Length**: {humanize_timedelta(seconds=self.config_cache['mute_length'])}\n**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n**Amount**: {self.config_cache['amount']}\n**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}"
+        msg = f"**Blacklist Length**: {humanize_timedelta(seconds=self.config_cache['mute_length'])}\n**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n**Amount**: {self.config_cache['amount']}\n**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}"
         await ctx.maybe_send_embed(msg)
