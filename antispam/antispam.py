@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -62,6 +62,9 @@ class AntiSpam(commands.Cog):
                     f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
                 )
                 self.blacklist[author.id] = {"id": author.id, "time": now}
+                await ctx.send(
+                    f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands."
+                )
 
     @commands.is_owner()
     @commands.group()
