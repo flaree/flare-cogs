@@ -57,7 +57,10 @@ class AntiSpam(commands.Cog):
                 self.cache[author.id] = {"id": author.id, "time": now, "count": 1}
                 return
             self.cache[author.id]["count"] += 1
-            if self.cache[author.id]["count"] >= self.config_cache["amount"]:
+            if (
+                self.cache[author.id]["count"] >= self.config_cache["amount"]
+                and author.id not in self.blacklist
+            ):
                 log.debug(
                     f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
                 )
