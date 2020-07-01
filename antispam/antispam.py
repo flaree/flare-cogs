@@ -118,7 +118,7 @@ class AntiSpam(commands.Cog):
             return await ctx.send("No users currently blacklisted.")
         msg = "\n".join(
             [
-                f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(datetime.utcnow() - self.blacklist[user]['time'])}"
+                f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=datetime.utcnow() - self.blacklist[user]['time'])}"
                 for user in self.blacklist
             ]
         )
