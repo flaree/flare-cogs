@@ -1,9 +1,10 @@
-import discord
-from redbot.core import commands, Config
-from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import humanize_timedelta
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+
+import discord
+from redbot.core import Config, commands
+from redbot.core.commands.converter import TimedeltaConverter
+from redbot.core.utils.chat_formatting import humanize_timedelta, pagify
 
 log = logging.getLogger("red.flare.antispam")
 
@@ -121,7 +122,8 @@ class AntiSpam(commands.Cog):
                 for user in self.blacklist
             ]
         )
-        await ctx.maybe_send_embed(msg)
+        for page in pagify(msg):
+            await ctx.maybe_send_embed(page)
 
     @antispamset.command()
     async def settings(self, ctx):
