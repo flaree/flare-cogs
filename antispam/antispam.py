@@ -124,13 +124,13 @@ class AntiSpam(commands.Cog):
         """Show those currently blacklisted from using commands."""
         if not self.blacklist:
             return await ctx.send("No users currently blacklisted.")
-        msg = "\n".join(
-            [
-                f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
-                for user in self.blacklist
-            ]
-        )
-        for page in pagify(msg):
+        msg = []
+        for user in self.blacklist:
+            if self.blacklist[user]["expiry"] > datetime.now():
+                msg += f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
+        if not msg:
+            return await ctx.send("No users currently blacklisted.")
+        for page in pagify("\n".join(msg)):
             await ctx.maybe_send_embed(page)
 
     @antispamset.command()
