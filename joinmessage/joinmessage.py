@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -64,19 +64,20 @@ class JoinMessage(commands.Cog):
         if msg is None:
             log.info("No message setup, please set one up via the joinmessage message command.")
             return
-        channel = discord.utils.find(lambda x: x.name in CHANNELS, guild.text_channels)
-        if channel is None:
-            channel = (
-                guild.system_channel
-                if guild.system_channel is not None
-                and guild.system_channel.permissions_for(guild.me).send_messages
-                else next(
-                    (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages),
-                    None,
-                )
+        channel = (
+            discord.utils.find(
+                lambda x: x.name in CHANNELS and x.permissions_for(guild.me).send_messages,
+                guild.text_channels,
             )
-            if channel is None:
-                log.debug("Couldn't find a channel to send join message in {}".format(guild))
+            or guild.system_channel
+            and guild.system_channel.permissions_for(guild.me).send_messages
+            or next(
+                (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages), None
+            )
+        )
+        if channel is None:
+            log.debug("Couldn't find a channel to send join message in {}".format(guild))
+            return
         await channel.send(msg)
         log.debug("Guild welcome message sent in {}".format(guild))
 
