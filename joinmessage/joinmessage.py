@@ -69,8 +69,10 @@ class JoinMessage(commands.Cog):
                 lambda x: x.name in CHANNELS and x.permissions_for(guild.me).send_messages,
                 guild.text_channels,
             )
-            or guild.system_channel
-            and guild.system_channel.permissions_for(guild.me).send_messages
+            or (
+                guild.system_channel
+                and guild.system_channel.permissions_for(guild.me).send_messages
+            )
             or next(
                 (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages), None
             )
