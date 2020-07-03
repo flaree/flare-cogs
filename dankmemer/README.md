@@ -84,4 +84,3 @@ Now do `[p]help DankMemer` to see if your bot lists all the commands this cog ha
 NOTE: If you're hosting your Red bot instance on Amazon AWS, you need to enable traffic from ports 80, 443 and 65535 from your AWS console -> Securit Groups and you also need to enable those ports from your system/VPS firewall otherwise you won't be able to access your Public IP. Google it if you don't know how to do it.
 
 ## Yes, this guide isn't extremely detailed. If you want to host it then I expect you to know what you're doing. What I listed was some information not seen on their repo.
-## If you do not know then you can apply for a key at mine or any public imgen out there.
