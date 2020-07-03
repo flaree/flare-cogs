@@ -65,20 +65,16 @@ class JoinMessage(commands.Cog):
             log.info("No message setup, please set one up via the joinmessage message command.")
             return
         channel = (
-            discord.utils.find(
-                lambda x: x.name in CHANNELS and x.permissions_for(guild.me).send_messages,
-                guild.text_channels,
-            )
-            or (
-                guild.system_channel
-                and guild.system_channel.permissions_for(guild.me).send_messages
-            )
+            discord.utils.find(lambda x: x.name in CHANNELS, guild.text_channels)
+            or guild.system_channel
             or next(
                 (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages), None
             )
         )
         if channel is None:
             log.debug("Couldn't find a channel to send join message in {}".format(guild))
+            return
+        if not channel.permissions_for(guild.me).send_messages:
             return
         await channel.send(msg)
         log.debug("Guild welcome message sent in {}".format(guild))
