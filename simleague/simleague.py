@@ -124,13 +124,11 @@ class SimLeague(commands.Cog):
     @commands.group(autohelp=True)
     async def teamset(self, ctx):
         """Team Settings."""
-        pass
 
     @checks.admin()
     @simset.group(autohelp=True)
     async def bet(self, ctx):
         """Simulation Betting Settings."""
-        pass
 
     @checks.guildowner()
     @simset.command(autohelp=True, hidden=True)
@@ -426,7 +424,6 @@ class SimLeague(commands.Cog):
     @teamset.group(autohelp=True)
     async def kits(self, ctx):
         """Kit Settings."""
-        pass
 
     @checks.admin()
     @kits.command()
@@ -521,7 +518,7 @@ class SimLeague(commands.Cog):
             await self.helper.addrole(ctx, uid, role)
         await ctx.tick()
 
-    @commands.command(name="teams", aliases=["list"])
+    @commands.command(name="teams")
     async def _list(self, ctx, updatecache: bool = False, mobilefriendly: bool = True):
         """List current teams."""
         if updatecache:
@@ -784,7 +781,6 @@ class SimLeague(commands.Cog):
     @simset.group()
     async def clear(self, ctx):
         """SimLeague Clear Settings"""
-        pass
 
     @checks.guildowner()
     @clear.command(name="all")
