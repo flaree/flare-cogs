@@ -41,6 +41,7 @@ You can contact me in the Red server or on my support server @ https://discord.g
 | --- | --- |
 | Mod | Core mod with the inclusion of timed mutes |
 | R6 | R6Stats API Integration. Check ranked, weapon, operator and seasonal stats. |
+| AntiSpam | Blacklist users who spam commands for a defined period of time. |
 | Unbelievaboat | Unbelievaboat economy commands converted to use for Red. |
 | DankMemer | DankMemers imgen commands. |
 | Forward | Forward all non-command messages to the bot owner. Including attachments.|
