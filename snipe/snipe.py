@@ -63,7 +63,10 @@ class Snipe(commands.Cog):
         guild_id = payload.guild_id
         if guild_id is None:
             return
-        if not self.config_cache[guild_id]["toggle"]:
+        config = self.config.get(guild_id)
+        if not config:
+            return
+        if not config["toggle"]:
             return
         message = payload.cached_message
         if message is None:
@@ -108,6 +111,7 @@ class Snipe(commands.Cog):
             del self.cache[ctx.guild.id][channel.id]
             await ctx.send("There's nothing to snipe!")
             return
+        del self.cache[ctx.guild.id][channel.id]
         author = ctx.guild.get_member(channelsnipe["author"])
         if not channelsnipe["content"]:
             embed = discord.Embed(
