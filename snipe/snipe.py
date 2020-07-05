@@ -63,7 +63,7 @@ class Snipe(commands.Cog):
         guild_id = payload.guild_id
         if guild_id is None:
             return
-        config = self.config.get(guild_id)
+        config = self.config_cache.get(guild_id)
         if not config:
             return
         if not config["toggle"]:
