@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+import asyncio
 import logging
+from datetime import datetime, timedelta
 from typing import Optional
 
 import discord
@@ -12,7 +13,7 @@ log = logging.getLogger("red.flare.snipe")
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.1.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -23,15 +24,46 @@ class Snipe(commands.Cog):
         defaults_guild = {"toggle": False, "timeout": 600}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(**defaults_guild)
+        self.config.register_global(timer=60)
         self.bot = bot
         self.cache = {}
+        self.snipe_loop_task: Optional[asyncio.Task] = None
+
+    async def init(self):
+        self.snipe_loop_task = self.bot.loop.create_task(self.snipe_loop())
+        await self.generate_cache()
+
+    def cog_unload(self):
+        if self.snipe_loop_task:
+            self.snipe_loop_task.cancel()
+
+    async def snipe_loop(self):
+        await self.bot.wait_until_ready()
+        while True:
+            try:
+                to_delete = []
+                for guild in self.cache:
+                    for channel in self.cache[guild]:
+                        if datetime.utcnow() - self.cache[guild][channel]["timestamp"] > timedelta(
+                            seconds=self.config_cache[guild]["timeout"]
+                        ):
+                            to_delete.append([guild, channel])
+                for entry in to_delete:
+                    del self.cache[entry[0]][entry[1]]
+                await asyncio.sleep(await self.config.timer())
+            except Exception as exc:
+                log.error("Exception occured in snipe loop: ", exc_info=exc)
+                break
+
+    async def generate_cache(self):
+        self.config_cache = await self.config.all_guilds()
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload):
         guild_id = payload.guild_id
         if guild_id is None:
             return
-        if not await self.config.guild_from_id(guild_id).toggle():
+        if not self.config_cache[guild_id]["toggle"]:
             return
         message = payload.cached_message
         if message is None:
@@ -73,6 +105,7 @@ class Snipe(commands.Cog):
         if datetime.utcnow() - channelsnipe["timestamp"] > timedelta(
             seconds=await self.config.guild(ctx.guild).timeout()
         ):
+            del self.cache[ctx.guild.id][channel.id]
             await ctx.send("There's nothing to snipe!")
             return
         author = ctx.guild.get_member(channelsnipe["author"])
@@ -99,21 +132,19 @@ class Snipe(commands.Cog):
     @commands.group()
     async def snipeset(self, ctx):
         """Group Command for Snipe Settings."""
-        pass
 
     @snipeset.command()
     async def enable(self, ctx, state: bool):
         """Enable or disable sniping.
-        
+
         State must be a bool or one of the following: True/False, On/Off, Y/N"""
         if state:
             await self.config.guild(ctx.guild).toggle.set(True)
             await ctx.send(f"Sniping has been enabled in {ctx.guild}.")
-            return
         else:
             await self.config.guild(ctx.guild).toggle.set(False)
             await ctx.send(f"Sniping has been disabled in {ctx.guild}.")
-            return
+        await self.generate_cache()
 
     @snipeset.command()
     async def time(
@@ -127,12 +158,36 @@ class Snipe(commands.Cog):
             allowed_units=["seconds", "minutes"],
         ),
     ):
-        """ 
-        Set the time before snipes expire.  
-        
-        Takes seconds or minutes, use the whole unit name with the amount.  
-        Defaults to seconds if no unit name used.   
+        """
+        Set the time before snipes expire.
+
+        Takes seconds or minutes, use the whole unit name with the amount.
+        Defaults to seconds if no unit name used.
         """
         duration = time.total_seconds()
         await self.config.guild(ctx.guild).timeout.set(duration)
+        await ctx.tick()
+        await self.generate_cache()
+
+    @snipeset.command()
+    @commands.is_owner()
+    async def deletetime(
+        self,
+        ctx,
+        *,
+        time: TimedeltaConverter(
+            minimum=timedelta(),
+            maximum=timedelta(minutes=60),
+            default_unit="seconds",
+            allowed_units=["seconds", "minutes"],
+        ),
+    ):
+        """
+        Set the time for snipes to be removed automatically.
+
+        Takes seconds or minutes, use the whole unit name with the amount.
+        Defaults to seconds if no unit name used.
+        """
+        duration = time.total_seconds()
+        await self.config.timer.set(duration)
         await ctx.tick()

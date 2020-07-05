@@ -1,6 +1,7 @@
 from .snipe import Snipe
 
 
-def setup(bot):
-    n = Snipe
-    bot.add_cog(n(bot))
+async def setup(bot):
+    n = Snipe(bot)
+    await n.init()
+    bot.add_cog(n)
