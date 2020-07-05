@@ -21,7 +21,7 @@ class Snipe(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
-        defaults_guild = {"toggle": False, "timeout": 600}
+        defaults_guild = {"toggle": False, "timeout": 30}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(**defaults_guild)
         self.config.register_global(timer=60)
