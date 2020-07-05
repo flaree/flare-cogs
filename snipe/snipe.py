@@ -131,7 +131,6 @@ class Snipe(commands.Cog):
         else:
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         await ctx.send(embed=embed)
-        del self.cache[ctx.guild.id][channel.id]
 
     @checks.admin()
     @commands.group()
