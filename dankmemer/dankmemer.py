@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.13"
+    __version__ = "0.0.14"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -165,7 +165,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/airpods?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "airpods.png"
+        data.name = "airpods.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
@@ -177,7 +177,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/america?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "america.png"
+        data.name = "america.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
@@ -370,7 +370,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/communism?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "communism.png"
+        data.name = "communism.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
@@ -1039,7 +1039,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/salty?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "salty.png"
+        data.name = "salty.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
