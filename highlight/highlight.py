@@ -22,7 +22,7 @@ class Highlight(commands.Cog):
         self.config.register_channel(**default_channel)
         self.highlightcache = {}
 
-    __version__ = "1.3.1"
+    __version__ = "1.3.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -203,8 +203,9 @@ class Highlight(commands.Cog):
                 )
             highlight[str(ctx.author.id)][word]["toggle"] = state
             if state:
-                return await ctx.send(f"The highlight `{word}` has been enabled in {channel}.")
-            await ctx.send(f"The highlight `{word}` has been disabled in {channel}.")
+                await ctx.send(f"The highlight `{word}` has been enabled in {channel}.")
+            else:
+                await ctx.send(f"The highlight `{word}` has been disabled in {channel}.")
         await self.generate_cache()
 
     @highlight.command()
@@ -242,8 +243,10 @@ class Highlight(commands.Cog):
                         highlight[str(ctx.author.id)][word]["bots"] = state
                 if state:
                     await ctx.send("Bots will now trigger all of your highlights.")
-                    return
-                await ctx.send("Bots will no longer trigger on any of your highlights.")
+                else:
+                    await ctx.send("Bots will no longer trigger on any of your highlights.")
+
+                await self.generate_cache()
                 return
 
             else:
@@ -260,12 +263,14 @@ class Highlight(commands.Cog):
                 )
             highlight[str(ctx.author.id)][word]["bots"] = state
             if state:
-                return await ctx.send(
+                await ctx.send(
                     f"The highlight `{word}` will now be triggered by bots in {channel}."
                 )
-            await ctx.send(
-                f"The highlight `{word}` will no longer be trigged by bots in {channel}."
-            )
+            else:
+                await ctx.send(
+                    f"The highlight `{word}` will no longer be trigged by bots in {channel}."
+                )
+
         await self.generate_cache()
 
     @highlight.command(name="list")
