@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -23,13 +23,18 @@ class AntiSpam(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
-        self.config.register_global(mute_length=300, amount=5, per=5, mod_bypass=True)
+        self.config.register_global(
+            mute_length=300, amount=5, per=5, mod_bypass=True, logging=None
+        )
         self.cache = {}
         self.blacklist = {}
+        self.logchannel = None
         bot.add_check(self.check)
 
     async def gen_cache(self):
         self.config_cache = await self.config.all()
+        if self.config_cache["logging"]:
+            self.logchannel = self.bot.get_channel(self.config_cache["logging"])
 
     def check(self, ctx):
         user = self.blacklist.get(ctx.author.id)
@@ -70,6 +75,10 @@ class AntiSpam(commands.Cog):
                     f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands.",
                     delete_after=self.config_cache["mute_length"],
                 )
+                if self.logchannel:
+                    await self.logchannel.send(
+                        f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
+                    )
 
     @commands.is_owner()
     @commands.group()
@@ -113,10 +122,20 @@ class AntiSpam(commands.Cog):
         await self.config.mod_bypass.set(on_or_ff)
         if on_or_ff:
             await ctx.send(
-                f"The spam filter will now allow for mods and admins to bypass the filter."
+                "The spam filter will now allow for mods and admins to bypass the filter."
             )
         else:
             await ctx.send("Mods and admins will no longer bypass the filter.")
+        await self.gen_cache()
+
+    @antispamset.command()
+    async def bypass(self, ctx, channel: discord.TextChannel = None):
+        """Set the channel to send antispam logs."""
+        await self.config.mod_bypass.set(channel if channel is None else channel.id)
+        if channel:
+            await ctx.send(f"Logged antispam actions will now be sent to {channel}.")
+        else:
+            await ctx.send("Logging will no longer be posted.")
         await self.gen_cache()
 
     @antispamset.command()
@@ -139,5 +158,11 @@ class AntiSpam(commands.Cog):
     async def settings(self, ctx):
         """Show current antispam settings"""
         await self.gen_cache()
-        msg = f"**Blacklist Length**: {humanize_timedelta(seconds=self.config_cache['mute_length'])}\n**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n**Amount**: {self.config_cache['amount']}\n**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}"
+        msg = (
+            f"**Blacklist Length**: {humanize_timedelta(seconds=self.config_cache['mute_length'])}\n"
+            f"**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n"
+            f"**Amount**: {self.config_cache['amount']}\n"
+            f"**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}\n"
+            f"**Logging**: {'Yes - {}'.format(self.bot.get_channel(self.config_cache['logging']).mention) if self.config_cache['logging'] else 'No'}"
+        )
         await ctx.maybe_send_embed(msg)
