@@ -321,7 +321,7 @@ class Roulette(MixinMeta):
         if betret.get("failed") is not None:
             return await ctx.send(betret["failed"])
         await ctx.send(
-            f"You've placed a {amount} {await bank.get_currency_name(ctx.guild)} bet on {bet}."
+            f"You've placed a {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)} bet on {bet}."
         )
 
     @roulette_disabled_check()

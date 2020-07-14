@@ -7,7 +7,7 @@ import discord
 import tabulate
 from redbot.core import Config, bank, checks, commands
 from redbot.core.errors import BalanceTooHigh
-from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta
+from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .checks import check_global_setting_admin, wallet_disabled_check
@@ -26,7 +26,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.2"
+    __version__ = "0.5.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -185,7 +185,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 "You've supplied an invalid destination, you can choose to add it to a bank or their wallet.\nIf no destination is supplied it will default to their wallet."
             )
 
-        failed = []
+        failedmsg = ""
         if destination.lower() == "bank":
             for user in role.members:
                 try:
@@ -194,20 +194,15 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                     pass
                 except BalanceTooHigh as e:
                     await bank.set_balance(ctx.author, e.max_balance)
-                    failed.append(
-                        f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance."
-                    )
+                    failedmsg += f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance.\n"
         else:
             for user in role.members:
                 try:
                     await self.walletdeposit(ctx, user, amount)
                 except ValueError:
-                    failed.append(
-                        f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance."
-                    )
-        if failed:
-            failed_msg = "\n".join(failed)
-            for page in failed_msg:
+                    failedmsg += f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance.\n"
+        if failedmsg:
+            for page in pagify(failedmsg):
                 await ctx.send(page)
         await ctx.tick()
 
