@@ -28,13 +28,14 @@ class AntiSpam(commands.Cog):
         )
         self.cache = {}
         self.blacklist = {}
-        self.logchannel = None
         bot.add_check(self.check)
 
     async def gen_cache(self):
         self.config_cache = await self.config.all()
         if self.config_cache["logging"]:
             self.logchannel = self.bot.get_channel(self.config_cache["logging"])
+        else:
+            self.logchannel = None
 
     def check(self, ctx):
         user = self.blacklist.get(ctx.author.id)
@@ -117,10 +118,10 @@ class AntiSpam(commands.Cog):
         await self.gen_cache()
 
     @antispamset.command()
-    async def bypass(self, ctx, on_or_ff: int):
+    async def bypass(self, ctx, on_or_off: bool):
         """Toggle whether mods or admins bypass the spam filter."""
-        await self.config.mod_bypass.set(on_or_ff)
-        if on_or_ff:
+        await self.config.mod_bypass.set(on_or_off)
+        if on_or_off:
             await ctx.send(
                 "The spam filter will now allow for mods and admins to bypass the filter."
             )
@@ -131,7 +132,7 @@ class AntiSpam(commands.Cog):
     @antispamset.command()
     async def logging(self, ctx, channel: discord.TextChannel = None):
         """Set the channel to send antispam logs."""
-        await self.config.mod_bypass.set(channel if channel is None else channel.id)
+        await self.config.logging.set(None if channel is None else channel.id)
         if channel:
             await ctx.send(f"Logged antispam actions will now be sent to {channel}.")
         else:
@@ -163,6 +164,6 @@ class AntiSpam(commands.Cog):
             f"**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n"
             f"**Amount**: {self.config_cache['amount']}\n"
             f"**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}\n"
-            f"**Logging**: {'Yes - {}'.format(self.bot.get_channel(self.config_cache['logging']).mention) if self.config_cache['logging'] else 'No'}"
+            f"**Logging**: {'Yes - {}'.format(self.logchannel.mention) if self.logchannel else 'No'}"
         )
         await ctx.maybe_send_embed(msg)
