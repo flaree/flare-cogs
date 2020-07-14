@@ -129,7 +129,7 @@ class AntiSpam(commands.Cog):
         await self.gen_cache()
 
     @antispamset.command()
-    async def bypass(self, ctx, channel: discord.TextChannel = None):
+    async def logging(self, ctx, channel: discord.TextChannel = None):
         """Set the channel to send antispam logs."""
         await self.config.mod_bypass.set(channel if channel is None else channel.id)
         if channel:
