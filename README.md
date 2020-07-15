@@ -55,3 +55,4 @@ You can contact me in the Red server or on my support server @ https://discord.g
 | Faceit | Return faceit statistics for various game, matches and profiles. |
 | RedditPost | Post the latest content from subreddits of your choice. |
 | JoinMessage | Send a welcome message when the bot joins a new server. |
+| BotListsPost | Post server count to some botlists. |
