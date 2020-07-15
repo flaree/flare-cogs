@@ -76,6 +76,7 @@ class BotListsPost(commands.Cog):
                 log.info(f"Successfully posted servercount to {humanize_list(success)}.")
             await asyncio.sleep(1800)
 
+    @commands.is_owner()
     @commands.command()
     async def botlistpost(self, ctx):
         """Setup for botlistposting"""
