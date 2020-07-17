@@ -15,7 +15,7 @@ log = logging.getLogger(("red.flare.botlistpost"))
 class BotListsPost(commands.Cog):
     """Post data to bot lists. For DBL use Predas cog"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -52,6 +52,7 @@ class BotListsPost(commands.Cog):
         await self.init()
         while True:
             success = []
+            failed = []
             serverc = len(self.bot.guilds)
             if self.dbleltoken is not None:
                 async with self._session.post(
@@ -61,6 +62,8 @@ class BotListsPost(commands.Cog):
                 ) as resp:
                     if resp.status == 200:
                         success.append("Discord Extreme List")
+                    else:
+                        failed.append(f"Discord Extreme List ({resp.status}")
 
             if self.bfdtoken is not None:
                 async with self._session.post(
@@ -70,8 +73,10 @@ class BotListsPost(commands.Cog):
                 ) as resp:
                     if resp.status == 200:
                         success.append("Bots for Discord")
-            if not success:
-                log.info("Unable to post data to any botlist.")
+                    else:
+                        failed.append(f"Bots for Discord ({resp.status}")
+            if failed:
+                log.info(f"Unable to post data to {humanize_list(failed)}.")
             else:
                 log.info(f"Successfully posted servercount to {humanize_list(success)}.")
             await asyncio.sleep(1800)
