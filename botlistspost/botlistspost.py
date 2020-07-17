@@ -8,6 +8,7 @@ from redbot.core.utils.chat_formatting import humanize_list
 
 DBLEL = "https://api.discordextremelist.xyz/v2/bot/{BOTID}/stats"
 BFD = "https://botsfordiscord.com/api/bot/{BOTID}"
+DB = "https://discord.bots.gg/api/v1/bots/{BOTID}/stats"
 
 log = logging.getLogger(("red.flare.botlistpost"))
 
@@ -15,7 +16,7 @@ log = logging.getLogger(("red.flare.botlistpost"))
 class BotListsPost(commands.Cog):
     """Post data to bot lists. For DBL use Predas cog"""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -27,6 +28,7 @@ class BotListsPost(commands.Cog):
         self._session = aiohttp.ClientSession(loop=self.bot.loop)
         self.dbleltoken = None
         self.bfdtoken = None
+        self.dbtoken = None
         self.post_stats_task = self.bot.loop.create_task(self.post_stats())
 
     async def init(self):
@@ -34,13 +36,17 @@ class BotListsPost(commands.Cog):
         self.bfdtoken = bfd.get("authorization")
         dblel = await self.bot.get_shared_api_tokens("discordextremelist")
         self.dbleltoken = dblel.get("authorization")
+        db = await self.bot.get_shared_api_tokens("discordbots")
+        self.dbtoken = db.get("authorization")
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
         if service_name == "botsfordiscord":
             self.bfdtoken = {"Authorization": api_tokens.get("authorization")}
-        if service_name == "discordextremelist":
+        elif service_name == "discordextremelist":
             self.dbleltoken = {"Authorization": api_tokens.get("authorization")}
+        elif service_name == "discordbots":
+            self.dbtoken = {"Authorization": api_tokens.get("authorization")}
 
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
@@ -54,20 +60,33 @@ class BotListsPost(commands.Cog):
             success = []
             failed = []
             serverc = len(self.bot.guilds)
+            shardc = self.bot.shard_count
+            botid = self.bot.user.id
             if self.dbleltoken is not None:
                 async with self._session.post(
-                    DBLEL.format(BOTID=self.bot.user.id),
+                    DBLEL.format(BOTID=botid),
                     headers={"Authorization": self.dbleltoken, "Content-Type": "application/json"},
-                    data=json.dumps({"guildCount": serverc, "shardCount": self.bot.shard_count}),
+                    data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
                 ) as resp:
                     if resp.status == 200:
                         success.append("Discord Extreme List")
                     else:
                         failed.append(f"Discord Extreme List ({resp.status}")
 
+            if self.dbtoken is not None:
+                async with self._session.post(
+                    DB.format(BOTID=botid),
+                    headers={"Authorization": self.dbtoken, "Content-Type": "application/json"},
+                    data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
+                ) as resp:
+                    if resp.status == 200:
+                        success.append("Discord Bots")
+                    else:
+                        failed.append(f"Discord Bots ({resp.status}")
+
             if self.bfdtoken is not None:
                 async with self._session.post(
-                    BFD.format(BOTID=self.bot.user.id),
+                    BFD.format(BOTID=botid),
                     headers={"Authorization": self.bfdtoken, "Content-Type": "application/json"},
                     data=json.dumps({"server_count": serverc}),
                 ) as resp:
@@ -86,9 +105,9 @@ class BotListsPost(commands.Cog):
     async def botlistpost(self, ctx):
         """Setup for botlistposting"""
         msg = (
-            "This cog currently supports Bots for Discord and Discord Extreme List.\n"
+            "This cog currently supports Bots for Discord, Discord Extreme List and Discord Bots.\n"
             "To set this cog up, please use the following commands:\n"
-            "`{PREFIX}set api botsfordiscord authorization <botsfordiscord apikey>`\n`{PREFIX}set api discordextremelist authorization <discordextremelist apikey>`".format(
+            "`{PREFIX}set api botsfordiscord authorization <botsfordiscord apikey>`\n`{PREFIX}set api discordextremelist authorization <discordextremelist apikey>`\n`{PREFIX}set api discordbots authorization <discordbots apikey>`".format(
                 PREFIX=ctx.clean_prefix
             )
         )
