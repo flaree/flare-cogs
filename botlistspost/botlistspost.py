@@ -17,7 +17,7 @@ log = logging.getLogger("red.flare.botlistpost")
 class BotListsPost(commands.Cog):
     """Post data to bot lists. For DBL use Predas cog"""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
