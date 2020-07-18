@@ -108,7 +108,7 @@ class BotListsPost(commands.Cog):
                     data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
                 ) as resp:
                     resp = await resp.json()
-                    if resp.get("status")
+                    if resp.get("status"):
                         success.append("Server-Discord bot list")
                     else:
                         failed.append(f"Server-Discord bot list ({resp.get("error")}")
