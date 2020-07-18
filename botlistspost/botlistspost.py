@@ -125,7 +125,7 @@ class BotListsPost(commands.Cog):
         msg = (
             "This cog currently supports Bots for Discord, Discord Extreme List and Discord Bots.\n"
             "To set this cog up, please use the following commands:\n"
-            "`{PREFIX}set api botsfordiscord authorization <botsfordiscord apikey>`\n`{PREFIX}set api discordextremelist authorization <discordextremelist apikey>`\n`{PREFIX}set api discordbots authorization <discordbots apikey>`\n{PREFIX}set api serverdiscord authorization <SDC token>".format(
+            "`{PREFIX}set api botsfordiscord authorization <botsfordiscord apikey>`\n`{PREFIX}set api discordextremelist authorization <discordextremelist apikey>`\n`{PREFIX}set api discordbots authorization <discordbots apikey>`\n`{PREFIX}set api serverdiscord authorization <SDC token>`".format(
                 PREFIX=ctx.clean_prefix
             )
         )
