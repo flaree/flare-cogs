@@ -10,6 +10,7 @@ DBLEL = "https://api.discordextremelist.xyz/v2/bot/{BOTID}/stats"
 BFD = "https://botsfordiscord.com/api/bot/{BOTID}"
 DB = "https://discord.bots.gg/api/v1/bots/{BOTID}/stats"
 BSDC = "https://api.server-discord.com/v2/bots/{BOTID}/stats"
+DBL = "https://discordbotlist.com/api/v1/bots/{BOTID}/stats"
 
 log = logging.getLogger("red.flare.botlistpost")
 
@@ -31,6 +32,7 @@ class BotListsPost(commands.Cog):
         self.bfdtoken = None
         self.dbtoken = None
         self.bsdctoken = None
+        self.dbltoken = None
         self.post_stats_task = self.bot.loop.create_task(self.post_stats())
 
     async def init(self):
@@ -40,8 +42,10 @@ class BotListsPost(commands.Cog):
         self.dbleltoken = dblel.get("authorization")
         db = await self.bot.get_shared_api_tokens("discordbots")
         self.dbtoken = db.get("authorization")
-        db = await self.bot.get_shared_api_tokens("serverdiscord")
-        self.bsdctoken = db.get("authorization")
+        sd = await self.bot.get_shared_api_tokens("serverdiscord")
+        self.bsdctoken = sd.get("authorization")
+        dbl = await self.bot.get_shared_api_tokens("discordbotlist")
+        self.dbltoken = dbl.get("authorization")
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
@@ -53,6 +57,8 @@ class BotListsPost(commands.Cog):
             self.dbtoken = {"Authorization": api_tokens.get("authorization")}
         elif service_name == "serverdiscord":
             self.bsdctoken = {"Authorization": api_tokens.get("authorization")}
+        elif service_name == "discordbotlist":
+            self.dbltoken = {"Authorization": api_tokens.get("authorization")}
 
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
@@ -71,10 +77,7 @@ class BotListsPost(commands.Cog):
             if self.dbleltoken is not None:
                 async with self._session.post(
                     DBLEL.format(BOTID=botid),
-                    headers={
-                        "Authorization": self.dbleltoken,
-                        "Content-Type": "application/json",
-                    },
+                    headers={"Authorization": self.dbleltoken, "Content-Type": "application/json"},
                     data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
                 ) as resp:
                     if resp.status == 200:
@@ -102,7 +105,7 @@ class BotListsPost(commands.Cog):
             if self.bfdtoken is not None:
                 async with self._session.post(
                     BFD.format(BOTID=botid),
-                    headers={"Authorization": self.bfdtoken, "Content-Type": "application/json",},
+                    headers={"Authorization": self.bfdtoken, "Content-Type": "application/json"},
                     data=json.dumps({"server_count": serverc}),
                 ) as resp:
                     if resp.status == 200:
@@ -117,11 +120,21 @@ class BotListsPost(commands.Cog):
                     data={"servers": serverc, "guilds": shardc},
                 ) as resp:
                     resp = await resp.json()
-                    print(resp)
                     if resp.get("status"):
                         success.append("Server-Discord bot list")
                     else:
                         failed.append(f"Server-Discord bot list ({resp.get('error')})")
+
+            if self.dbltoken is not None:
+                async with self._session.post(
+                    DBL.format(BOTID=botid),
+                    headers={"Authorization": self.dbltoken, "Content-Type": "application/json"},
+                    data=json.dumps({"guilds": serverc, "users": len(self.bot.users)}),
+                ) as resp:
+                    if resp.status == 200:
+                        success.append("Discord Bot List")
+                    else:
+                        failed.append(f"Discord Bot List ({resp.status})")
             if failed:
                 log.info(f"Unable to post data to {humanize_list(failed)}.")
             if success:
@@ -133,10 +146,16 @@ class BotListsPost(commands.Cog):
     async def botlistpost(self, ctx):
         """Setup for botlistposting"""
         msg = (
-            "This cog currently supports Bots for Discord, Discord Extreme List and Discord Bots.\n"
+            "This cog currently supports [Bots for Discord](https://botsfordiscord.com), "
+            "[Discord Extreme List](https://discordextremelist.xyz/en-US/), "
+            "[Discord Bots](https://discord.bots.gg), "
+            "[Server-Discord](https://docs.server-discord.com/) and "
+            "[Discord Bot Lists](https://discordbotlist.com).\n"
             "To set this cog up, please use the following commands:\n"
-            "`{PREFIX}set api botsfordiscord authorization <botsfordiscord apikey>`\n`{PREFIX}set api discordextremelist authorization <discordextremelist apikey>`\n`{PREFIX}set api discordbots authorization <discordbots apikey>`\n`{PREFIX}set api serverdiscord authorization <SDC token>`".format(
-                PREFIX=ctx.clean_prefix
-            )
+            f"`{ctx.clean_prefix}set api botsfordiscord authorization <botsfordiscord apikey>`\n"
+            f"`{ctx.clean_prefix}set api discordextremelist authorization <discordextremelist apikey>`\n"
+            f"`{ctx.clean_prefix}set api discordbots authorization <discordbots apikey>`\n"
+            f"`{ctx.clean_prefix}set api serverdiscord authorization <SDC token>`\n"
+            f"`{ctx.clean_prefix}set api discordbotlist authorization <DBL token>`\n"
         )
         await ctx.maybe_send_embed(msg)
