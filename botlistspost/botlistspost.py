@@ -41,7 +41,7 @@ class BotListsPost(commands.Cog):
         db = await self.bot.get_shared_api_tokens("discordbots")
         self.dbtoken = db.get("authorization")
         db = await self.bot.get_shared_api_tokens("serverdiscord")
-        self.dbtoken = db.get("authorization")
+        self.bdsctoken = db.get("authorization")
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
