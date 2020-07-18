@@ -22,7 +22,7 @@ class Highlight(commands.Cog):
         self.config.register_channel(**default_channel)
         self.highlightcache = {}
 
-    __version__ = "1.3.2"
+    __version__ = "1.3.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -189,8 +189,9 @@ class Highlight(commands.Cog):
                     highlight[str(ctx.author.id)][word]["toggle"] = state
             if state:
                 await ctx.send("All your highlights have been enabled.")
-                return
-            await ctx.send("All your highlights have been disabled.")
+            else:
+                await ctx.send("All your highlights have been disabled.")
+            await self.generate_cache()
             return
         word = word.lower()
         async with self.config.channel(channel).highlight() as highlight:
