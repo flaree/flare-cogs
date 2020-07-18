@@ -102,10 +102,7 @@ class BotListsPost(commands.Cog):
             if self.bfdtoken is not None:
                 async with self._session.post(
                     BFD.format(BOTID=botid),
-                    headers={
-                        "Authorization": self.bfdtoken,
-                        "Content-Type": "application/json",
-                    },
+                    headers={"Authorization": self.bfdtoken, "Content-Type": "application/json",},
                     data=json.dumps({"server_count": serverc}),
                 ) as resp:
                     if resp.status == 200:
@@ -128,9 +125,7 @@ class BotListsPost(commands.Cog):
             if failed:
                 log.info(f"Unable to post data to {humanize_list(failed)}.")
             if success:
-                log.info(
-                    f"Successfully posted servercount to {humanize_list(success)}."
-                )
+                log.info(f"Successfully posted servercount to {humanize_list(success)}.")
             await asyncio.sleep(1800)
 
     @commands.is_owner()
