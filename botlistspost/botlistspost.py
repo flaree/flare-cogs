@@ -111,7 +111,7 @@ class BotListsPost(commands.Cog):
                     if resp.get("status"):
                         success.append("Server-Discord bot list")
                     else:
-                        failed.append(f"Server-Discord bot list ({resp.get("error")}")
+                        failed.append(f"Server-Discord bot list ({resp.get('error')}")
             if failed:
                 log.info(f"Unable to post data to {humanize_list(failed)}.")
             if success:
