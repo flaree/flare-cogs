@@ -30,7 +30,7 @@ class BotListsPost(commands.Cog):
         self.dbleltoken = None
         self.bfdtoken = None
         self.dbtoken = None
-        self.bdsctoken = None
+        self.bsdctoken = None
         self.post_stats_task = self.bot.loop.create_task(self.post_stats())
 
     async def init(self):
@@ -41,7 +41,7 @@ class BotListsPost(commands.Cog):
         db = await self.bot.get_shared_api_tokens("discordbots")
         self.dbtoken = db.get("authorization")
         db = await self.bot.get_shared_api_tokens("serverdiscord")
-        self.bdsctoken = db.get("authorization")
+        self.bsdctoken = db.get("authorization")
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
@@ -52,7 +52,7 @@ class BotListsPost(commands.Cog):
         elif service_name == "discordbots":
             self.dbtoken = {"Authorization": api_tokens.get("authorization")}
         elif service_name == "serverdiscord":
-            self.bdsctoken = {"Authorization": api_tokens.get("authorization")}
+            self.bsdctoken = {"Authorization": api_tokens.get("authorization")}
 
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
@@ -71,7 +71,10 @@ class BotListsPost(commands.Cog):
             if self.dbleltoken is not None:
                 async with self._session.post(
                     DBLEL.format(BOTID=botid),
-                    headers={"Authorization": self.dbleltoken, "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": self.dbleltoken,
+                        "Content-Type": "application/json",
+                    },
                     data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
                 ) as resp:
                     if resp.status == 200:
@@ -80,42 +83,54 @@ class BotListsPost(commands.Cog):
                         failed.append(f"Discord Extreme List ({resp.status}")
 
             if self.dbtoken is not None:
-                async with self._session.post(
-                    DB.format(BOTID=botid),
-                    headers={"Authorization": self.dbtoken, "Content-Type": "application/json"},
-                    data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
-                ) as resp:
-                    if resp.status == 200:
-                        success.append("Discord Bots")
-                    else:
-                        failed.append(f"Discord Bots ({resp.status}")
+                try:
+                    async with self._session.post(
+                        DB.format(BOTID=botid),
+                        headers={
+                            "Authorization": self.dbtoken,
+                            "Content-Type": "application/json",
+                        },
+                        data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
+                    ) as resp:
+                        if resp.status == 200:
+                            success.append("Discord Bots")
+                        else:
+                            failed.append(f"Discord Bots ({resp.status}")
+                except Exception as e:
+                    print(e)
 
             if self.bfdtoken is not None:
                 async with self._session.post(
                     BFD.format(BOTID=botid),
-                    headers={"Authorization": self.bfdtoken, "Content-Type": "application/json"},
+                    headers={
+                        "Authorization": self.bfdtoken,
+                        "Content-Type": "application/json",
+                    },
                     data=json.dumps({"server_count": serverc}),
                 ) as resp:
                     if resp.status == 200:
                         success.append("Bots for Discord")
                     else:
                         failed.append(f"Bots for Discord ({resp.status}")
-                        
-            if self.bdsctoken is not None:
+
+            if self.bsdctoken is not None:
                 async with self._session.post(
-                    BDSC.format(BOTID=botid),
-                    headers={"Authorization": f"SDC {self.bdsctoken}", "Content-Type": "application/json"},
-                    data=json.dumps({"servers": serverc, "guilds": shardc}),
+                    BSDC.format(BOTID=botid),
+                    headers={"Authorization": f"SDC {self.bsdctoken}"},
+                    data={"servers": serverc, "guilds": shardc},
                 ) as resp:
                     resp = await resp.json()
-                    if resp.get("status") == 200:
+                    print(resp)
+                    if resp.get("status"):
                         success.append("Server-Discord bot list")
                     else:
-                        failed.append(f"Server-Discord bot list ({resp.get('error')}")
+                        failed.append(f"Server-Discord bot list ({resp.get('error')})")
             if failed:
                 log.info(f"Unable to post data to {humanize_list(failed)}.")
             if success:
-                log.info(f"Successfully posted servercount to {humanize_list(success)}.")
+                log.info(
+                    f"Successfully posted servercount to {humanize_list(success)}."
+                )
             await asyncio.sleep(1800)
 
     @commands.is_owner()
