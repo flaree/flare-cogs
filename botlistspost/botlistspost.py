@@ -52,7 +52,7 @@ class BotListsPost(commands.Cog):
         elif service_name == "discordbots":
             self.dbtoken = {"Authorization": api_tokens.get("authorization")}
         elif service_name == "serverdiscord":
-            self.dbtoken = {"Authorization": api_tokens.get("authorization")}
+            self.bdsctoken = {"Authorization": api_tokens.get("authorization")}
 
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
@@ -105,10 +105,10 @@ class BotListsPost(commands.Cog):
                 async with self._session.post(
                     BDSC.format(BOTID=botid),
                     headers={"Authorization": f"SDC {self.bdsctoken}", "Content-Type": "application/json"},
-                    data=json.dumps({"guildCount": serverc, "shardCount": shardc}),
+                    data=json.dumps({"servers": serverc, "guilds": shardc}),
                 ) as resp:
                     resp = await resp.json()
-                    if resp.get("status"):
+                    if resp.get("status") == 200:
                         success.append("Server-Discord bot list")
                     else:
                         failed.append(f"Server-Discord bot list ({resp.get('error')}")
