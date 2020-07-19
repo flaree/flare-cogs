@@ -5,7 +5,7 @@
   "install_msg": "Highlight certain words to be notified of when said.",
   "name": "Highlight",
   "disabled": false,
-  "short": "Get notified on certain words.",
+  "short": "Highlight certain words to be notified of if said in a certain channel.",
   "description": "Highlight certain words to be notified of if said in a certain channel.",
   "tags": [
     "highlight"

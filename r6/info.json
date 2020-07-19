@@ -1,6 +1,6 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "R6Stats API, comes bundled with a font file.",
+    "install_msg": "Thanks for this installing the R6 cog. This cog comes bundled with a font file and some background images.",
     "name": "R6",
     "disabled": false,
     "short": "Show R6 Statistics.",

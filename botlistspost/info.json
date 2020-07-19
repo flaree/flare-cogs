@@ -2,11 +2,11 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "This cog posts bit data to some bot lists. This does not post to top.gg. Check out [p]botlistpost to set this cog up.",
+  "install_msg": "This cog posts bot data to various bot lists. This does not post to top.gg. Check out [p]botlistpost to set the API keys required for this cog up.",
   "name": "BotListsPost",
   "disabled": false,
-  "short": "Post server count to bot lists.",
-  "description": "Post server count to bot lists.",
+  "short": "Post server count to various discord bot lists.",
+  "description": "Post server count to various discord bot lists.",
   "tags": [
     "botlist"
   ],

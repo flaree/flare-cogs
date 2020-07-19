@@ -3,7 +3,7 @@
     "install_msg": "Respond to server invites sent to the bot. To configure the permissions, use the built in `[p]inviteset perms` command if using the bot supplied URL.",
     "name": "DmInvites",
     "disabled": false,
-    "short": "Respond with the bot invite link when DM'd a server invite link..",
+    "short": "Respond with the bot invite link when DM'd a server invite link.",
     "description": "Respond with the bots invite link if the bot recieves a message containing a server invite.",
     "tags": ["dminvite", "invites"],
     "hidden": false
