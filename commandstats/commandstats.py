@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 from collections import OrderedDict
 from copy import deepcopy
 from typing import Counter, Optional
@@ -17,10 +18,13 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
+log = logging.getLogger("red.flare.commandstats")
+
+
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -35,8 +39,22 @@ class CommandStats(commands.Cog):
         self.cache = {"guild": {}, "session": Counter({})}
         self.session = Counter()
         self.session_time = datetime.datetime.utcnow()
+        self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
+
+    async def bg_loop(self):
+        await self.bot.wait_until_ready()
+        while True:
+            try:
+                await self.update_global()
+                await self.update_data()
+                await asyncio.sleep(300)
+            except Exception as exc:
+                log.error("Exception in bg_loop: ", exc_info=exc)
+                self.bg_loop_task.cancel()
 
     def cog_unload(self):
+        if self.bg_loop_task:
+            self.bg_loop_task.cancel()
         asyncio.create_task(self.update_data())
         asyncio.create_task(self.update_global())
 
