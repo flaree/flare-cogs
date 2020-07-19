@@ -101,6 +101,7 @@ class Covid(commands.Cog):
             await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
 
     @commands.command()
+    @commands.is_owner()
     async def covidsetup(self, ctx):
         """Instructions on how to setup covid related APIs."""
         msg = "**Covid News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately.".format(
