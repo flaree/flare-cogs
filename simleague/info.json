@@ -1,0 +1,15 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "Simulation League based on leveler statistics. This cog **REQUIRES** a mongodb instance and level running.",
+  "name": "SimLeague",
+  "disabled": false,
+  "short": "Football simulation league for discord - utilizing leveler as a way to determine performances.",
+  "description": "Simulation League for discord based on reds leveler level.",
+  "tags": [
+    "sim league"
+  ],
+  "required_cogs": {"leveler": "https://github.com/fixator10/Fixator10-Cogs"},
+  "hidden": false
+}
