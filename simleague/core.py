@@ -1,26 +1,19 @@
-import logging
 import random
 import string
 from io import BytesIO
 
-import aiohttp
 import discord
+from motor.motor_asyncio import AsyncIOMotorClient
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from redbot.core.data_manager import bundled_data_path
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from .abc import MixinMeta
 
 client = AsyncIOMotorClient()
 db = client["leveler"]
 
-log = logging.getLogger("red.flarecogs.SimLeague")
 
-
-class SimHelper:
-    def __init__(self, bot):
-        self.bot = bot
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
-
+class SimHelper(MixinMeta):
     async def simpic(
         self,
         ctx,
@@ -952,7 +945,7 @@ class SimHelper:
                 try:
                     await member.add_roles(role_obj)
                 except discord.Forbidden:
-                    log.info("Failed to remove role from {}".format(member.name))
+                    self.log.info("Failed to remove role from {}".format(member.name))
 
     async def matchnotif(self, ctx, team1, team2):
         cog = self.bot.get_cog("SimLeague")
@@ -981,7 +974,7 @@ class SimHelper:
                                     await member.remove_roles(role_obj)
                                     mem1.append(member.id)
                             except discord.Forbidden:
-                                log.info("Failed to remove role from {}".format(member.name))
+                                self.log.info("Failed to remove role from {}".format(member.name))
         else:
             msg += team1
         msg += " VS "
@@ -1003,7 +996,7 @@ class SimHelper:
                                     await member.remove_roles(role_obj)
                                     mem2.append(member.id)
                             except discord.Forbidden:
-                                log.info("Failed to remove role from {}".format(member.name))
+                                self.log.info("Failed to remove role from {}".format(member.name))
         else:
             msg += team2
         await ctx.send(msg)
@@ -1016,7 +1009,7 @@ class SimHelper:
                         try:
                             await member.add_roles(roleone)
                         except discord.Forbidden:
-                            log.info("Failed to remove role from {}".format(member.name))
+                            self.log.info("Failed to remove role from {}".format(member.name))
         if role2:
             await roletwo.edit(mentionable=False)
             if mem2:
@@ -1026,7 +1019,7 @@ class SimHelper:
                         try:
                             await member.add_roles(roletwo)
                         except discord.Forbidden:
-                            log.info("Failed to remove role from {}".format(member.name))
+                            self.log.info("Failed to remove role from {}".format(member.name))
 
     async def postresults(self, ctx, team1, team2, score1, score2):
         cog = self.bot.get_cog("SimLeague")
@@ -1056,7 +1049,9 @@ class SimHelper:
                                         await member.remove_roles(role_obj)
                                         mem1.append(member.id)
                                 except discord.Forbidden:
-                                    log.info("Failed to remove role from {}".format(member.name))
+                                    self.log.info(
+                                        "Failed to remove role from {}".format(member.name)
+                                    )
             else:
                 result += team1
             result += f" {score1}:{score2} "
@@ -1078,7 +1073,9 @@ class SimHelper:
                                         await member.remove_roles(role_obj)
                                         mem2.append(member.id)
                                 except discord.Forbidden:
-                                    log.info("Failed to remove role from {}".format(member.name))
+                                    self.log.info(
+                                        "Failed to remove role from {}".format(member.name)
+                                    )
             else:
                 result += team2
             for channel in results:
@@ -1096,7 +1093,9 @@ class SimHelper:
                                 try:
                                     await member.add_roles(roleone)
                                 except discord.Forbidden:
-                                    log.info("Failed to remove role from {}".format(member.name))
+                                    self.log.info(
+                                        "Failed to remove role from {}".format(member.name)
+                                    )
 
             if role2:
                 role_obj = ctx.guild.get_role(teams[team2]["role"])
@@ -1109,7 +1108,9 @@ class SimHelper:
                                 try:
                                     await member.add_roles(roletwo)
                                 except discord.Forbidden:
-                                    log.info("Failed to remove role from {}".format(member.name))
+                                    self.log.info(
+                                        "Failed to remove role from {}".format(member.name)
+                                    )
 
     async def yCardChance(self, guild, probability):
         rdmint = random.randint(0, 100)
@@ -1137,7 +1138,7 @@ class SimHelper:
             return True
 
     async def updatecacheall(self, guild):
-        log.info("Updating global cache.")
+        self.log.info("Updating global cache.")
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(guild).teams() as teams:
             for team in teams:
@@ -1156,7 +1157,7 @@ class SimHelper:
                 teams[team]["cachedlevel"] = t1totalxp
 
     async def updatecachegame(self, guild, team1, team2):
-        log.info("Updating game cache.")
+        self.log.info("Updating game cache.")
         t1totalxp = 0
         t2totalxp = 0
         cog = self.bot.get_cog("SimLeague")
@@ -1251,6 +1252,3 @@ class SimHelper:
             async with cog.config.guild(ctx.guild).standings() as standings:
                 del standings[team]
             return await ctx.send("Team successfully removed.")
-
-    def cog_unload(self):
-        self.bot.loop.create_task(self.session.close())
