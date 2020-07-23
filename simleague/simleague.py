@@ -331,7 +331,7 @@ class SimLeague(commands.Cog):
         teams = await self.config.guild(ctx.guild).teams()
         for team in teams:
             if teams[team]["role"] is None:
-                log.info(f"Skipping {team}, no role found.")
+                log.debug(f"Skipping {team}, no role found.")
                 continue
             role = ctx.guild.get_role(teams[team]["role"])
             for user in teams[team]["members"]:
@@ -1144,7 +1144,7 @@ class SimLeague(commands.Cog):
             team2bonus = team2bonus * 15
             t1totalxp = t1totalxp * float(f"1.{team1bonus}")
             t2totalxp = t2totalxp * float(f"1.{team2bonus}")
-            log.info(f"Team 1: {t1totalxp} - Team 2: {t2totalxp}")
+            log.debug(f"Team 1: {t1totalxp} - Team 2: {t2totalxp}")
             redst1 = float(f"0.{reds1 * redcardmodifier}")
             redst2 = float(f"0.{reds2 * redcardmodifier}")
             if redst1 == 0:
