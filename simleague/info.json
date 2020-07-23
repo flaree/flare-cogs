@@ -1,8 +1,8 @@
 {
   "author": [
-    "flare(flare#0001)"
+    "flare(flare#0001)", "Stevy"
   ],
-  "install_msg": "Simulation League based on leveler statistics. This cog **REQUIRES** a mongodb instance and leveler running.",
+  "install_msg": "Simulation League based on leveler statistics. This cog **REQUIRES** a mongodb instance and leveler running. This cog wouldn't function without the help/assistance of leveler.",
   "name": "SimLeague",
   "disabled": false,
   "short": "Football simulation league for discord - utilizing leveler as a way to determine performances.",
