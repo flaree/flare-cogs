@@ -7,12 +7,11 @@ from .abc import MixinMeta
 class TeamsetMixin(MixinMeta):
     """Teamset Settings"""
 
-    @checks.mod()
+    @checks.admin_or_permissions(manage_guild=True)
     @commands.group(autohelp=True)
     async def teamset(self, ctx):
         """Team Settings."""
 
-    @checks.admin()
     @teamset.command()
     async def role(self, ctx, team: str, *, role: discord.Role):
         """Set a teams role."""
@@ -22,7 +21,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["role"] = role.id
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command()
     async def stadium(self, ctx, team: str, *, stadium: str):
         """Set a teams stadium."""
@@ -32,7 +30,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["stadium"] = stadium
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command()
     async def logo(self, ctx, team: str, *, logo: str):
         """Set a teams logo."""
@@ -42,7 +39,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["logo"] = logo
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command(hidden=True)
     async def bonus(self, ctx, team: str, *, amount: int):
         """Set a teams bonus multiplier."""
@@ -52,7 +48,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["bonus"] = amount
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command(usage="<current name> <new name>")
     async def name(self, ctx, team: str, *, newname: str):
         """Set a teams name. Try keep names to one word if possible."""
@@ -69,7 +64,6 @@ class TeamsetMixin(MixinMeta):
             del teams[team]
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command()
     async def fullname(self, ctx, team: str, *, fullname: str):
         """Set a teams full name."""
@@ -79,7 +73,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["fullname"] = fullname
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command()
     async def captain(self, ctx, team: str, captain: discord.Member):
         """Set a teams captain."""
@@ -93,12 +86,10 @@ class TeamsetMixin(MixinMeta):
 
         await ctx.tick()
 
-    @checks.admin()
     @teamset.group(autohelp=True)
     async def kits(self, ctx):
         """Kit Settings."""
 
-    @checks.admin()
     @kits.command()
     async def home(self, ctx, team: str, *, kiturl: str):
         """Set a teams home kit."""
@@ -108,7 +99,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["kits"]["home"] = kiturl
         await ctx.tick()
 
-    @checks.admin()
     @kits.command()
     async def away(self, ctx, team: str, *, kiturl: str):
         """Set a teams away kit."""
@@ -118,7 +108,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["kits"]["away"] = kiturl
         await ctx.tick()
 
-    @checks.admin()
     @kits.command()
     async def third(self, ctx, team: str, *, kiturl: str):
         """Set a teams third kit."""
@@ -128,7 +117,6 @@ class TeamsetMixin(MixinMeta):
             teams[team]["kits"]["third"] = kiturl
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command(name="transfer")
     async def _transfer(self, ctx, team1, player1: discord.Member, team2, player2: discord.Member):
         """Transfer two players."""
@@ -137,7 +125,6 @@ class TeamsetMixin(MixinMeta):
         await self.helper.transfer(ctx, ctx.guild, team1, player1, team2, player2)
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command(name="sign")
     async def _sign(self, ctx, team1, player1: discord.Member, player2: discord.Member):
         """Release a player and sign a free agent."""
@@ -146,7 +133,6 @@ class TeamsetMixin(MixinMeta):
         await self.helper.sign(ctx, ctx.guild, team1, player1, player2)
         await ctx.tick()
 
-    @checks.admin()
     @teamset.command(name="delete")
     async def _delete(self, ctx, *, team):
         """Delete a team."""

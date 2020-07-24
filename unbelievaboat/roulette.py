@@ -377,7 +377,7 @@ class Roulette(MixinMeta):
         await msg.edit(embed=emb)
         del self.roulettegames[ctx.guild.id]
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @check_global_setting_admin()
     @commands.guild_only()
     @commands.group()
@@ -385,7 +385,6 @@ class Roulette(MixinMeta):
         """Manage settings for roulette."""
 
     @roulette_disabled_check()
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @rouletteset.command()
@@ -404,7 +403,6 @@ class Roulette(MixinMeta):
         await conf.roulette_time.set(seconds)
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @rouletteset.command()
@@ -420,7 +418,6 @@ class Roulette(MixinMeta):
             await ctx.send("Roulette has been enabled.")
 
     @roulette_disabled_check()
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @rouletteset.command()

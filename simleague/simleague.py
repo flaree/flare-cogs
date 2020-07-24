@@ -100,7 +100,7 @@ class SimLeague(
             await self.config.user(ctx.author).notify.set(toggle)
             await ctx.send("You will no longer recieve a notification on matches and results.")
 
-    @checks.mod()
+    @checks.admin_or_permissions(manage_guild=True)
     @commands.command()
     async def register(
         self,
@@ -367,7 +367,7 @@ class SimLeague(
             )
             await ctx.send(box(tab))
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
     @commands.command(aliases=["playsim", "simulate"])
     async def sim(self, ctx, team1: str, team2: str):

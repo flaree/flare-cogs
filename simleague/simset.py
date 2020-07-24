@@ -8,7 +8,7 @@ from .abc import MixinMeta
 class SimsetMixin(MixinMeta):
     """Simulation Settings"""
 
-    @checks.mod()
+    @checks.admin_or_permissions(manage_guild=True)
     @commands.group(autohelp=True)
     async def simset(self, ctx):
         """Simulation Settings."""
@@ -42,7 +42,7 @@ class SimsetMixin(MixinMeta):
                 msg += "Min Bet: {}.\n".format(betmin)
             await ctx.send(box(msg))
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @simset.group(autohelp=True)
     async def bet(self, ctx):
         """Simulation Betting Settings."""
@@ -68,7 +68,6 @@ class SimsetMixin(MixinMeta):
                 box("This has the chance to break the game completely, no support is offered.")
             )
 
-    @checks.guildowner()
     @probability.command()
     async def goals(self, ctx, amount: int = 96):
         """Goal probability. Default = 96"""
@@ -78,7 +77,6 @@ class SimsetMixin(MixinMeta):
             probability["goalchance"] = amount
         await ctx.tick()
 
-    @checks.guildowner()
     @probability.command()
     async def yellow(self, ctx, amount: int = 98):
         """Yellow Card probability. Default = 98"""
@@ -97,7 +95,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).maxplayers.set(amount)
         await ctx.tick()
 
-    @checks.guildowner()
     @simset.command()
     async def redcardmodifier(self, ctx, amount: int):
         """Set the max team players."""
@@ -106,7 +103,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).redcardmodifer.set(amount)
         await ctx.tick()
 
-    @checks.guildowner()
     @probability.command()
     async def red(self, ctx, amount: int = 398):
         """Red Card probability. Default = 398"""
@@ -116,7 +112,6 @@ class SimsetMixin(MixinMeta):
             probability["redchance"] = amount
         await ctx.tick()
 
-    @checks.guildowner()
     @probability.command()
     async def penalty(self, ctx, amount: int = 249):
         """Penalty Chance probability. Default = 249"""
@@ -126,7 +121,6 @@ class SimsetMixin(MixinMeta):
             probability["penaltychance"] = amount
         await ctx.tick()
 
-    @checks.guildowner()
     @probability.command()
     async def penaltyblock(self, ctx, amount: float = 0.6):
         """Penalty Block probability. Default = 0.6"""
@@ -136,7 +130,6 @@ class SimsetMixin(MixinMeta):
             probability["penaltyblock"] = amount
         await ctx.tick()
 
-    @checks.admin()
     @bet.command()
     async def time(self, ctx, time: int = 180):
         """Set the time allowed for betting - 600 seconds is the max, 180 is default."""
@@ -145,7 +138,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).bettime.set(time)
         await ctx.tick()
 
-    @checks.admin()
     @bet.command()
     async def max(self, ctx, amount: int):
         """Set the max amount for betting."""
@@ -154,7 +146,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).betmax.set(amount)
         await ctx.tick()
 
-    @checks.admin()
     @bet.command()
     async def min(self, ctx, amount: int):
         """Set the min amount for betting."""
@@ -163,7 +154,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).betmin.set(amount)
         await ctx.tick()
 
-    @checks.admin()
     @bet.command()
     async def toggle(self, ctx, toggle: bool):
         """Set if betting is enabled or not.
@@ -171,7 +161,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).bettoggle.set(toggle)
         await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     async def gametime(self, ctx, time: float = 1):
         """Set the time each minute takes - 5 seconds is the max. 1 is default."""
@@ -180,7 +169,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).gametime.set(time)
         await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     async def halftimebreak(self, ctx, time: int = 1):
         """Set the half time break - 20 seconds is the max. 5 is default."""
@@ -189,7 +177,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).htbreak.set(time)
         await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     async def resultchannel(self, ctx, channel: discord.TextChannel):
         """Add a channel for automatic result posting."""
@@ -197,7 +184,6 @@ class SimsetMixin(MixinMeta):
             result.append(channel.id)
         await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     async def window(self, ctx, status: str):
         """Open or close the transfer window."""
@@ -210,7 +196,6 @@ class SimsetMixin(MixinMeta):
             await self.config.guild(ctx.guild).transferwindow.set(False)
             await ctx.send("Window is now closed.")
 
-    @checks.admin()
     @simset.command()
     async def mentions(self, ctx, bool: bool):
         """Toggle mentions on game start."""
@@ -219,7 +204,6 @@ class SimsetMixin(MixinMeta):
         else:
             await self.config.guild(ctx.guild).mentions.set(False)
 
-    @checks.admin()
     @simset.command(name="updatecache")
     async def levels_updatecache(self, ctx):
         """Update the level cache."""
@@ -227,7 +211,6 @@ class SimsetMixin(MixinMeta):
             await self.helper.updatecacheall(ctx.guild)
         await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     @commands.bot_has_permissions(manage_roles=True)
     async def createroles(self, ctx):
@@ -240,7 +223,6 @@ class SimsetMixin(MixinMeta):
                 teams[team]["role"] = role.id
             await ctx.tick()
 
-    @checks.admin()
     @simset.command()
     @commands.bot_has_permissions(manage_roles=True)
     async def updateroles(self, ctx):
@@ -256,7 +238,6 @@ class SimsetMixin(MixinMeta):
                 await member.add_roles(role)
         await ctx.tick()
 
-    @checks.mod()
     @simset.command()
     async def createfixtures(self, ctx):
         """Create the fixtures for the current teams."""
@@ -292,7 +273,6 @@ class SimsetMixin(MixinMeta):
     async def clear(self, ctx):
         """SimLeague Clear Settings"""
 
-    @checks.guildowner()
     @clear.command(name="all")
     async def clear_all(self, ctx):
         """Clear all teams, stats etc."""
@@ -301,7 +281,6 @@ class SimsetMixin(MixinMeta):
         await self.config.guild(ctx.guild).stats.set({})
         await ctx.tick()
 
-    @checks.guildowner()
     @clear.command(name="stats")
     async def clear_stats(self, ctx):
         """Clear standings and player stats."""

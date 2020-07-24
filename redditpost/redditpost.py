@@ -86,7 +86,7 @@ class RedditPost(commands.Cog):
                     async with self.config.channel(channel).reddits() as feeds:
                         feeds[sub]["last_post"] = time
 
-    @commands.admin()
+    @commands.admin_or_permissions(manage_channel=True)
     @commands.group(aliases=["redditfeed"])
     async def redditpost(self, ctx):
         """Reddit auto-feed posting."""

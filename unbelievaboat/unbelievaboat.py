@@ -169,7 +169,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         embed.set_author(name=user, icon_url=user.avatar_url)
         return embed
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @check_global_setting_admin()
     @commands.guild_only()
     @commands.command(aliases=["addcashrole"])
@@ -206,7 +206,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 await ctx.send(page)
         await ctx.tick()
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @check_global_setting_admin()
     @commands.guild_only()
     @commands.command(aliases=["removecashrole"])

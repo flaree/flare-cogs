@@ -18,7 +18,7 @@ class SettingsMixin(MixinMeta):
     async def unb_set(self, ctx):
         """Manage various settings for Unbelievaboat."""
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="cooldown")
@@ -55,7 +55,6 @@ class SettingsMixin(MixinMeta):
             cooldowns[jobcd[job]] = int(seconds)
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="payout", usage="<work | crime> <min | max> <amount>")
@@ -70,7 +69,6 @@ class SettingsMixin(MixinMeta):
             payouts[job][min_or_max] = amount
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="betting", usage="<min | max> <amount>")
@@ -83,14 +81,12 @@ class SettingsMixin(MixinMeta):
             betting[min_or_max] = amount
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.group(name="wallet")
     async def wallet_set(self, ctx):
         """Wallet Settings."""
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @wallet_set.command(name="toggle", usage="<on_or_off>")
@@ -104,7 +100,6 @@ class SettingsMixin(MixinMeta):
         await conf.disable_wallet.set(on_or_off)
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @wallet_set.command(name="max")
@@ -114,7 +109,6 @@ class SettingsMixin(MixinMeta):
         await conf.wallet_max.set(amount)
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="failure-rate", usage="<rob | crime> <amount>", aliases=["failurerate"])
@@ -129,7 +123,6 @@ class SettingsMixin(MixinMeta):
             failrates[job] = amount
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="fine-rate", usage="<min | max> <amount>", aliases=["finerate"])
@@ -142,7 +135,6 @@ class SettingsMixin(MixinMeta):
             fines[min_or_max] = amount
         await ctx.tick()
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="interest-rate", usage="<amount>", aliases=["interestrate"])
@@ -153,7 +145,6 @@ class SettingsMixin(MixinMeta):
         await self.config.guild(ctx.guild).interest.set(amount)
         await ctx.tick()
 
-    @checks.admin()
     @commands.guild_only()
     @check_global_setting_admin()
     @unb_set.command(name="add-reply")
@@ -175,7 +166,6 @@ class SettingsMixin(MixinMeta):
             ind = replies[jobreplies[job]].index(reply)
         await ctx.send("Your reply has been added and is reply ID #{}".format(ind))
 
-    @checks.admin()
     @commands.guild_only()
     @check_global_setting_admin()
     @unb_set.command(name="del-reply")
@@ -193,7 +183,6 @@ class SettingsMixin(MixinMeta):
             replies[jobreplies[job]].pop(id)
         await ctx.send("Your reply has been removed")
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="list-replies")
@@ -219,7 +208,6 @@ class SettingsMixin(MixinMeta):
             else:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
 
-    @checks.admin()
     @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="default-replies", usage="<enable | disable>")
@@ -275,7 +263,6 @@ class SettingsMixin(MixinMeta):
 
     @unb_set.command()
     @check_global_setting_admin()
-    @checks.admin()
     @commands.guild_only()
     @commands.bot_has_permissions(embed_links=True)
     async def settings(self, ctx):

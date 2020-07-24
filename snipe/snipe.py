@@ -132,7 +132,7 @@ class Snipe(commands.Cog):
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         await ctx.send(embed=embed)
 
-    @checks.admin()
+    @checks.admin_or_permissions(manage_guild=True)
     @commands.group()
     async def snipeset(self, ctx):
         """Group Command for Snipe Settings."""
