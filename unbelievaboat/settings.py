@@ -13,13 +13,12 @@ from .functions import chunks
 class SettingsMixin(MixinMeta):
     """Settings."""
 
-    @commands.group(name="unbset", aliases=["unb-se;"])
+    @commands.group(name="unbset", aliases=["unb-set"])
+    @check_global_setting_admin()
     @commands.guild_only()
     async def unb_set(self, ctx):
         """Manage various settings for Unbelievaboat."""
 
-    @checks.admin_or_permissions(manage_guild=True)
-    @check_global_setting_admin()
     @commands.guild_only()
     @unb_set.command(name="cooldown")
     async def cooldown_set(
