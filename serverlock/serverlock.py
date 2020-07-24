@@ -42,39 +42,44 @@ class ServerLock(commands.Cog):
         guild = ctx.guild
         locked = await self.config.guild(guild).locked()
         muted_role = guild.default_role
-        if not locked:
-            channels = {}
-            msg = await ctx.send("Server is being locked. Please wait")
-            for channel in guild.channels:
-                channeloverwrite = channel.overwrites.get(muted_role)
-                channels[str(channel.id)] = jsonpickle.encode(channeloverwrite)
-                if channeloverwrite is not None and channeloverwrite.read_messages is False:
-                    await channel.set_permissions(
-                        muted_role, overwrite=self.perms2, reason="Lockdown."
+        try:
+            if not locked:
+                channels = {}
+                msg = await ctx.send("Server is being locked. Please wait")
+                for channel in guild.channels:
+                    channeloverwrite = channel.overwrites.get(muted_role)
+                    channels[str(channel.id)] = jsonpickle.encode(channeloverwrite)
+                    if channeloverwrite is not None and channeloverwrite.read_messages is False:
+                        await channel.set_permissions(
+                            muted_role, overwrite=self.perms2, reason="Lockdown."
+                        )
+                    else:
+                        await channel.set_permissions(
+                            muted_role, overwrite=self.perms, reason="Lockdown."
+                        )
+                await self.config.guild(guild).channels.set(channels)
+                await msg.edit(content="Server is locked down.")
+                await ctx.tick()
+                await self.config.guild(guild).locked.set(True)
+            else:
+                channels = await self.config.guild(guild).channels()
+                msg = await ctx.send("Server is being unlocked. Please wait.")
+                for channel in guild.channels:
+                    overwrite = channels.get(str(channel.id))
+                    channeloverwrite = (
+                        jsonpickle.decode(overwrite) if overwrite is not None else None
                     )
-                else:
-                    await channel.set_permissions(
-                        muted_role, overwrite=self.perms, reason="Lockdown."
-                    )
-            await self.config.guild(guild).channels.set(channels)
-            await msg.edit(content="Server is locked down.")
-            await ctx.tick()
-            await self.config.guild(guild).locked.set(True)
-        else:
-            channels = await self.config.guild(guild).channels()
-            msg = await ctx.send("Server is being unlocked. Please wait.")
-            for channel in guild.channels:
-                overwrite = channels.get(str(channel.id))
-                channeloverwrite = jsonpickle.decode(overwrite) if overwrite is not None else None
-                if channeloverwrite is not None and channeloverwrite.read_messages is False:
-                    await channel.set_permissions(
-                        muted_role, overwrite=channeloverwrite, reason="Remove Lockdown."
-                    )
-                else:
-                    await channel.set_permissions(
-                        muted_role, overwrite=self.perms3, reason="Remove Lockdown."
-                    )
-            await self.config.guild(guild).channels.set({})
-            await msg.edit(content="Server is unlocked.")
-            await ctx.tick()
-            await self.config.guild(guild).locked.set(False)
+                    if channeloverwrite is not None and channeloverwrite.read_messages is False:
+                        await channel.set_permissions(
+                            muted_role, overwrite=channeloverwrite, reason="Remove Lockdown."
+                        )
+                    else:
+                        await channel.set_permissions(
+                            muted_role, overwrite=self.perms3, reason="Remove Lockdown."
+                        )
+                await self.config.guild(guild).channels.set({})
+                await msg.edit(content="Server is unlocked.")
+                await ctx.tick()
+                await self.config.guild(guild).locked.set(False)
+        except discord.Forbidden:
+            await ctx.send("Oops, I'm missing access to perform this operation.")
