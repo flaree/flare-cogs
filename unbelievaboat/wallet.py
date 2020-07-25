@@ -168,7 +168,6 @@ class Wallet(MixinMeta):
         if highscores:
             await menu(ctx, highscores, DEFAULT_CONTROLS)
 
-    @checks.admin()
     @wallet_disabled_check()
     @check_global_setting_admin()
     @commands.guild_only()
