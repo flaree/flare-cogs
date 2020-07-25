@@ -1,5 +1,11 @@
 from .simleague import SimLeague
 
+__end_user_data_statement__ = (
+    "This cog stores a discord User id for when a user wishes to be notified on an action.\n"
+    "The user can turn this notification off without the use of a data removal request.\n"
+    "This cog supports data removal requests."
+)
+
 try:
     from redbot.core.errors import CogLoadError
 except ImportError:
