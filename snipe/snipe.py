@@ -70,7 +70,7 @@ class Snipe(commands.Cog):
             return
         message = payload.cached_message
         if message is None:
-            log.info(
+            log.debug(
                 f"Message {payload.message_id} not found in the cache, not adding to snipe cache. Guild ID: {guild_id} | Channel ID: {payload.channel_id}"
             )
             return
