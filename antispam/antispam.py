@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -38,6 +38,8 @@ class AntiSpam(commands.Cog):
             self.logchannel = None
 
     def check(self, ctx):
+        if ctx.invoked_with == "licenceinfo":
+            return True
         user = self.blacklist.get(ctx.author.id)
         if user is None:
             return True
