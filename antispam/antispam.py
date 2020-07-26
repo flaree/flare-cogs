@@ -38,14 +38,14 @@ class AntiSpam(commands.Cog):
             self.logchannel = None
 
     def check(self, ctx):
-        if ctx.invoked_with == "licenseinfo":
-            return True
         user = self.blacklist.get(ctx.author.id)
         if user is None:
             return True
         if self.blacklist[ctx.author.id]["expiry"] < datetime.now():
             del self.blacklist[ctx.author.id]
             log.debug(f"{ctx.author}({ctx.author.id}) has been removed from the spam blacklist.")
+            return True
+        if isinstance(ctx.command, commands.commands._AlwaysAvailableCommand):
             return True
         return False
 
