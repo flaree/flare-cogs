@@ -38,7 +38,7 @@ class AntiSpam(commands.Cog):
             self.logchannel = None
 
     def check(self, ctx):
-        if ctx.invoked_with == "licenceinfo":
+        if ctx.invoked_with == "licenseinfo":
             return True
         user = self.blacklist.get(ctx.author.id)
         if user is None:
