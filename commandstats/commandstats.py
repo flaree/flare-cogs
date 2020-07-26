@@ -24,7 +24,7 @@ log = logging.getLogger("red.flare.commandstats")
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -34,9 +34,9 @@ class CommandStats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 1398467138476, force_registration=True)
-        default_global = {"globaldata": Counter({}), "guilddata": {}}
+        default_global = {"globaldata": Counter({}), "guilddata": {}, "automated": Counter({})}
         self.config.register_global(**default_global)
-        self.cache = {"guild": {}, "session": Counter({})}
+        self.cache = {"guild": {}, "session": Counter({}), "automated": Counter({})}
         self.session = Counter()
         self.session_time = datetime.datetime.utcnow()
         self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
@@ -61,6 +61,12 @@ class CommandStats(commands.Cog):
     def record(self, ctx, name):
         guild = ctx.message.guild
         if not ctx.message.author.bot:
+            if ctx.assume_yes:
+                if name not in self.cache["automated"]:
+                    self.cache["automated"][name] = 1
+                else:
+                    self.cache["automated"][name] += 1
+                return
             if guild is not None:
                 if str(guild.id) not in self.cache["guild"]:
                     self.cache["guild"][str(guild.id)] = Counter({})
@@ -89,6 +95,30 @@ class CommandStats(commands.Cog):
         name = str(ctx.command)
         self.record(ctx, name)
 
+    async def build_embed(self, ctx, data, title, *, timestamp=None):
+        data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
+        stats = []
+        for cmd, amount in data.items():
+            stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
+        a = chunks(stats, 15)
+        embeds = []
+        for items in a:
+            stats = []
+            for item in items:
+                stats.append(item)
+            embed = discord.Embed(
+                title=title,
+                colour=await self.bot.get_embed_color(ctx.channel),
+                description=box(
+                    tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
+                ),
+            )
+            if timestamp is not None:
+                embed.set_footer(text="Recording commands since")
+                embed.timestamp = timestamp
+            embeds.append(embed)
+        return embeds
+
     @commands.is_owner()
     @commands.group(invoke_without_command=True)
     async def cmd(self, ctx, *, command: str = None):
@@ -101,24 +131,7 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send("No commands have been used yet.")
         if command is None:
-            data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
-            stats = []
-            for cmd, amount in data.items():
-                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
-            a = chunks(stats, 15)
-            embeds = []
-            for items in a:
-                stats = []
-                for item in items:
-                    stats.append(item)
-                embed = discord.Embed(
-                    title="Commands used",
-                    colour=await self.bot.get_embed_color(ctx.channel),
-                    description=box(
-                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
-                    ),
-                )
-                embeds.append(embed)
+            embeds = await self.build_embed(ctx, data, "Commands Used")
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
             else:
@@ -129,6 +142,20 @@ class CommandStats(commands.Cog):
                 await ctx.send(f"`{command}` has been used {data[command]} times!")
             else:
                 await ctx.send(f"`{command}` hasn't been used yet!")
+
+    @cmd.command()
+    async def automated(self, ctx):
+        """Automated command stats."""
+        await self.update_global()
+        data = await self.config.automated()
+        if not data:
+            return await ctx.send("No commands have been used yet.")
+        embeds = await self.build_embed(ctx, data, "Automated Commands Used")
+
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @cmd.command(aliases=["server"])
     async def guild(
@@ -147,24 +174,7 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send(f"No commands have been used in {server.name} yet.")
         if command is None:
-            data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
-            stats = []
-            for cmd, amount in data.items():
-                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
-            a = chunks(stats, 15)
-            embeds = []
-            for items in a:
-                stats = []
-                for item in items:
-                    stats.append(item)
-                embed = discord.Embed(
-                    title=f"Commands used in {server.name}",
-                    colour=await self.bot.get_embed_color(ctx.channel),
-                    description=box(
-                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
-                    ),
-                )
-                embeds.append(embed)
+            embeds = await self.build_embed(ctx, data, f"Commands Used in {server.name}")
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
             else:
@@ -189,26 +199,9 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send("No commands have been used in this session")
         if command is None:
-            data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
-            stats = []
-            for cmd, amount in data.items():
-                stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
-            a = chunks(stats, 15)
-            embeds = []
-            for items in a:
-                stats = []
-                for item in items:
-                    stats.append(item)
-                embed = discord.Embed(
-                    title="Commands used in this session",
-                    colour=await self.bot.get_embed_color(ctx.channel),
-                    description=box(
-                        tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
-                    ),
-                    timestamp=self.session_time,
-                )
-                embed.set_footer(text="Recording sessions commands since")
-                embeds.append(embed)
+            embeds = await self.build_embed(
+                ctx, data, "Commands Used during session", timestamp=self.session_time
+            )
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
             else:
@@ -221,6 +214,53 @@ class CommandStats(commands.Cog):
                 )
             else:
                 await ctx.send(f"`{command}` hasn't been used in this session!")
+
+    @cmd.group(invoke_without_command=True)
+    async def cogstats(self, ctx, *, cogname: str):
+        """Show command stats per cog."""
+        cog = self.bot.get_cog(cogname)
+        if cog is None:
+            await ctx.send("No such cog.")
+            return
+        commands = set([x.qualified_name for x in cog.walk_commands()])
+        await self.update_global()
+        data = await self.config.globaldata()
+        a = {}
+        for command in data:
+            if command in commands:
+                a[command] = data[command]
+        if not a:
+            await ctx.send(f"No commands used from {cogname} as of yet.")
+            return
+        embeds = await self.build_embed(ctx, a, f"{cogname} Commands Used")
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @cogstats.command(name="session")
+    async def _session(self, ctx, *, cogname: str):
+        """Cog stats in this session."""
+        cog = self.bot.get_cog(cogname)
+        if cog is None:
+            await ctx.send("No such cog.")
+            return
+        commands = set([x.qualified_name for x in cog.walk_commands()])
+        data = deepcopy(self.session)
+        a = {}
+        for command in data:
+            if command in commands:
+                a[command] = data[command]
+        if not a:
+            await ctx.send(f"No commands used from {cogname} as of yet.")
+            return
+        embeds = await self.build_embed(
+            ctx, a, f"{cogname} Commands Used during session", timestamp=self.session_time
+        )
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
@@ -238,3 +278,8 @@ class CommandStats(commands.Cog):
         data = globaldata + self.cache["session"]
         await self.config.globaldata.set(data)
         self.cache["session"] = Counter({})
+
+        autodata = await self.config.automated()
+        data = autodata + self.cache["automated"]
+        await self.config.automated.set(data)
+        self.cache["automated"] = Counter({})
