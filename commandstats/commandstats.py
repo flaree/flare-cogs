@@ -24,7 +24,7 @@ log = logging.getLogger("red.flare.commandstats")
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -95,11 +95,11 @@ class CommandStats(commands.Cog):
         name = str(ctx.command)
         self.record(ctx, name)
 
-    async def build_embed(self, ctx, data, title, *, timestamp=None):
+    async def build_embed(self, ctx, data, title, *, timestamp=None, _type="Command"):
         data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
         stats = []
         for cmd, amount in data.items():
-            stats.append([f"{cmd}", f"{amount} time{'s' if amount > 1 else ''}!"])
+            stats.append([f"{cmd}", f"{amount} time{'s' if amount != 1 else ''}!"])
         a = chunks(stats, 15)
         embeds = []
         for items in a:
@@ -110,7 +110,7 @@ class CommandStats(commands.Cog):
                 title=title,
                 colour=await self.bot.get_embed_color(ctx.channel),
                 description=box(
-                    tabulate.tabulate(stats, headers=["Command", "Times Used"]), lang="prolog"
+                    tabulate.tabulate(stats, headers=[_type, "Times Used"]), lang="prolog"
                 ),
             )
             if timestamp is not None:
@@ -257,6 +257,28 @@ class CommandStats(commands.Cog):
         embeds = await self.build_embed(
             ctx, a, f"{cogname} Commands Used during session", timestamp=self.session_time
         )
+        if len(embeds) == 1:
+            await ctx.send(embed=embeds[0])
+        else:
+            await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @cogstats.command()
+    async def all(self, ctx):
+        """Cog stats in this session."""
+        await self.update_global()
+        data = await self.config.globaldata()
+        a = {}
+        for cogn in self.bot.cogs:
+            cog = self.bot.get_cog(cogn)
+            commands = set([x.qualified_name for x in cog.walk_commands()])
+            a[cogn] = 0
+            for command in data:
+                if command in commands:
+                    a[cogn] += data[command]
+        if not a:
+            await ctx.send(f"No commands used from any cog as of yet.")
+            return
+        embeds = await self.build_embed(ctx, a, f"Cogs used.", _type="Cog")
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
         else:
