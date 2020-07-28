@@ -36,6 +36,10 @@ class Mod(ModClass):
         self.__config.register_global(**defaults)
         self.loop = bot.loop.create_task(self.unmute_loop())
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
     async def red_delete_data_for_user(
         self,
         *,

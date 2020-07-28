@@ -27,6 +27,14 @@ class News(commands.Cog):
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
+    async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
+        # this cog does not story any data
+        pass
+
     async def initalize(self):
         token = await self.bot.get_shared_api_tokens("newsapi")
         self.newsapikey = token.get("key", None)

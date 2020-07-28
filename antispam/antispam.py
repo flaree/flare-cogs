@@ -30,6 +30,14 @@ class AntiSpam(commands.Cog):
         self.blacklist = {}
         bot.add_check(self.check)
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
+    async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
+        # this cog does not story any data
+        pass
+
     async def gen_cache(self):
         self.config_cache = await self.config.all()
         if self.config_cache["logging"]:

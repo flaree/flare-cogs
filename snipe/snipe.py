@@ -29,6 +29,14 @@ class Snipe(commands.Cog):
         self.cache = {}
         self.snipe_loop_task: Optional[asyncio.Task] = None
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
+    async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
+        # this cog does not story any data
+        pass
+
     async def init(self):
         self.snipe_loop_task = self.bot.loop.create_task(self.snipe_loop())
         await self.generate_cache()

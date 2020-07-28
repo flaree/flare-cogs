@@ -1,4 +1,5 @@
 from datetime import datetime
+from io import BytesIO
 from typing import Literal
 
 import aiohttp
@@ -54,6 +55,13 @@ class Faceit(commands.Cog):
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         self.config.register_user(name=None)
         self.token = None
+
+    async def red_get_data_for_user(self, *, user_id: int):
+        name = await self.config.user_from_id(user_id).name()
+        if name is None:
+            return {}
+        contents = f"Faceit Account for Discord user with ID {user_id}:\n- Name: {name}\n"
+        return {"user_data.txt": BytesIO(contents.encode())}
 
     async def red_delete_data_for_user(
         self,
