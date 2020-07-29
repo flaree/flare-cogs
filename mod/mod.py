@@ -17,7 +17,7 @@ log = logging.getLogger("red.flarecogs.mod")
 class Mod(ModClass):
     """Mod with timed mute."""
 
-    __version__ = "1.1.5"
+    __version__ = "1.1.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -232,6 +232,11 @@ class Mod(ModClass):
             return await ctx.send("There is currently nobody muted in {}".format(ctx.guild))
         msg = ""
         for user in guildmuted:
+            user_obj = self.bot.get_user(int(user))
+            if user_obj is None:
+                usermsg = f"<Unavailable User ({user})>"
+            else:
+                usermsg = user_obj.mention
             expiry = datetime.fromtimestamp(guildmuted[user]["expiry"]) - datetime.now()
-            msg += f"{self.bot.get_user(int(user)).mention} is muted for {humanize_timedelta(timedelta=expiry)}\n"
+            msg += f"{usermsg} is muted for {humanize_timedelta(timedelta=expiry)}\n"
         await ctx.maybe_send_embed(msg if msg else "Nobody is currently muted.")
