@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.3"
+    __version__ = "0.1.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -303,7 +303,7 @@ class RedditPost(commands.Cog):
             )
             embed.set_author(name=f"New post on r/{unescape(feed['subreddit'])}")
             embed.set_footer(text=f"Submitted by /u/{unescape(feed['author'])}")
-            if image[-3:] in ["png", "jpg"]:
+            if image.endswith(("png", "jpg", "jpeg", "gif")):
                 embed.set_image(url=unescape(image))
             else:
                 if feed["permalink"] not in image:
