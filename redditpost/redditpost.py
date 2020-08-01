@@ -10,7 +10,7 @@ import tabulate
 import validators
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import box, pagify
+from redbot.core.utils.chat_formatting import box, pagify, humanize_timedelta
 
 log = logging.getLogger("red.flare.redditpost")
 
@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.4"
+    __version__ = "0.1.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -96,15 +96,17 @@ class RedditPost(commands.Cog):
     async def delay(
         self,
         ctx,
-        seconds: TimedeltaConverter(
-            minimum=timedelta(seconds=15), maximum=timedelta(seconds=900), default_unit="seconds"
+        time: TimedeltaConverter(
+            minimum=timedelta(seconds=15), maximum=timedelta(hours=3), default_unit="seconds"
         ),
     ):
         """Set the delay used to check for new content."""
-        time = seconds.total_seconds()
-        await self.config.delay.set(time)
+        seconds = time.total_seconds()
+        await self.config.delay.set(seconds)
         await ctx.tick()
-        await ctx.send("This delay will come into effect on the next loop.")
+        await ctx.send(
+            f"The {humanize_timedelta(seconds=seconds)} delay will come into effect on the next loop."
+        )
 
     @redditpost.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
