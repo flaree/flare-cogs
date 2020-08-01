@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.14"
+    __version__ = "0.0.15"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -434,7 +434,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/dank?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "dank.png"
+        data.name = "dank.gif"
         await self.send_img(ctx, discord.File(data))
 
     @commands.check(tokencheck)
