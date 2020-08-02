@@ -1,4 +1,6 @@
 from datetime import datetime
+from io import BytesIO
+from typing import Literal
 
 import aiohttp
 import discord
@@ -53,6 +55,22 @@ class Faceit(commands.Cog):
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         self.config.register_user(name=None)
         self.token = None
+
+    async def red_get_data_for_user(self, *, user_id: int):
+        name = await self.config.user_from_id(user_id).name()
+        if name is None:
+            return {}
+        contents = f"Faceit Account for Discord user with ID {user_id}:\n- Name: {name}\n"
+        return {"user_data.txt": BytesIO(contents.encode())}
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+
+        await self.config.user_from_id(user_id).clear()
 
     def cog_unload(self):
         self.bot.loop.create_task(self._session.close())
@@ -138,8 +156,11 @@ class Faceit(commands.Cog):
         """Faceit Commands."""
 
     @faceit.command(name="set")
-    async def _set(self, ctx, *, name: str):
+    async def _set(self, ctx, *, name: str = None):
         """Set your faceit username."""
+        if name is None:
+            await self.config.user(ctx.author).name.set(name)
+            await ctx.send("Your account link has been reset.")
         uname = await self.get_userid(name)
         if isinstance(uname, dict):
             await ctx.send(uname["failed"])

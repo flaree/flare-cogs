@@ -19,6 +19,14 @@ class Forward(commands.Cog):
         default_global = {"toggles": {"botmessages": False}, "destination": None}
         self.config.register_global(**default_global)
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
+    async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
+        # this cog does not story any data
+        pass
+
     async def _destination(self, msg: str = None, embed: discord.Embed = None):
         await self.bot.wait_until_ready()
         channel = await self.config.destination()

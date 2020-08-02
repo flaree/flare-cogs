@@ -1,7 +1,8 @@
 import datetime
 import random
 from abc import ABC
-from typing import Optional
+from io import BytesIO
+from typing import Literal, Optional
 
 import discord
 import tabulate
@@ -84,6 +85,34 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         self.config.register_guild(**defaults)
         self.config.register_member(**defaults_member)
         self.config.register_user(**defaults_member)
+
+    async def red_get_data_for_user(self, *, user_id: int):
+        data = await self.config.user_from_id(user_id).all()
+        all_members = await self.config.all_members()
+        wallets = []
+        for guild_id, member_dict in all_members.items():
+            if user_id in member_dict:
+                usr = await self.config.member_from_ids(guild_id, user_id).all()
+                wallets.append(guild_id, usr["wallet"])
+        contents = f"Unbelievaboat Account for Discord user with ID {user_id}:\n**Global**\n- Wallet: {data['wallet']}\n"
+        if wallets:
+            contents += "**Guilds**"
+            for bal in wallets:
+                contents += f"Guild: {bal[0]} | Wallet: {bal[1]}"
+        return {"user_data.txt": BytesIO(contents.encode())}
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+
+        await self.config.user_from_id(user_id).clear()
+        all_members = await self.config.all_members()
+        for guild_id, member_dict in all_members.items():
+            if user_id in member_dict:
+                await self.config.member_from_ids(guild_id, user_id).clear()
 
     async def configglobalcheck(self, ctx):
         if await bank.is_global():

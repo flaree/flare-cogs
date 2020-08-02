@@ -1,13 +1,15 @@
 import typing
+from io import BytesIO
 
 import discord
 import r6statsapi
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import pagify, humanize_timedelta
+from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import humanize_timedelta, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+from .converters import REGIONS, PlatformConverter, RegionConverter
 from .stats import Stats
-from .converters import PlatformConverter, RegionConverter, REGIONS
 
 
 async def tokencheck(ctx):
@@ -35,6 +37,24 @@ class R6(commands.Cog):
         self.regions = {"Europe": "emea", "North America": "ncsa", "Asia": "apac"}
         self.foreignops = {"jager": "jäger", "nokk": "nøkk", "capitao": "capitão"}
         self.client = None
+
+    async def red_get_data_for_user(self, *, user_id: int):
+        data = await self.config.user_from_id(user_id).all()
+        contents = f"R6 Account for Discord user with ID {user_id}:\n- Name: {data['username']}\n- Platform: {data['platform']}\n- Name: {data['region']}\n"
+        return {"user_data.txt": BytesIO(contents.encode())}
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: typing.Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+
+        await self.config.user_from_id(user_id).clear()
+        all_members = await self.config.all_members()
+        for guild_id, member_dict in all_members.items():
+            if user_id in member_dict:
+                await self.config.member_from_ids(guild_id, user_id).clear()
 
     async def initalize(self):
         token = await self.bot.get_shared_api_tokens("r6stats")

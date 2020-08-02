@@ -12,5 +12,5 @@
   ],
   "requirements": ["tabulate", "motor", "pillow"],
   "required_cogs": {"leveler": "https://github.com/fixator10/Fixator10-Cogs"},
-  "hidden": false
+  "hidden": true
 }

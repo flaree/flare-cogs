@@ -3,7 +3,7 @@ import logging
 import random
 import time
 from abc import ABC
-from typing import Optional
+from typing import Optional, Literal
 
 import aiohttp
 import discord
@@ -86,6 +86,15 @@ class SimLeague(
         self.bets = {}
         self.cache = time.time()
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+
+        await self.config.user_from_id(user_id).clear()
 
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())

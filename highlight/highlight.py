@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import Optional
+from io import BytesIO
+from typing import Literal, Optional
 
 import discord
 import tabulate
@@ -18,9 +19,38 @@ class Highlight(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         self.config.register_global(migrated=False)
-        default_channel = {"highlight": {}, "toggle": {}, "bots": {}}
+        default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.highlightcache = {}
+
+    async def red_get_data_for_user(self, *, user_id: int):
+        data = []
+        config = await self.config.all_channels()
+        for channel in config:
+            if str(user_id) in config[channel]["highlight"]:
+                data.append(channel, config[channel]["highlight"][str(user_id)])
+        if data is None:
+            return {}
+        contents = f"Highlight Data for Discord user with ID {user_id}:\n"
+        for highlight in data:
+            contents += f"- Channel: {highlight[0]} | Highlighted Word: {highlight[1]}\n"
+        return {"user_data.txt": BytesIO(contents.encode())}
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ) -> None:
+        data = []
+        config = await self.config.all_channels()
+        for channel in config:
+            if str(user_id) in config[channel]["highlight"]:
+                data.append(channel)
+        for channel in data:
+            async with self.config.channel_from_id(channel).highlight() as highlight:
+                del highlight[str(user_id)]
+        await self.generate_cache()
 
     __version__ = "1.3.3"
 

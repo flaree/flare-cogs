@@ -35,6 +35,14 @@ class Userinfo(commands.Cog):
             "streaming": discord.utils.get(self.bot.emojis, id=724950551900717066),
         }
 
+    async def red_get_data_for_user(self, *, user_id: int):
+        # this cog does not story any data
+        return {}
+
+    async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
+        # this cog does not story any data
+        pass
+
     def cog_unload(self):
         # Remove command logic are from: https://github.com/mikeshardmind/SinbadCogs/tree/v3/messagebox
         global _old_userinfo
