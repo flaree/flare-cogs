@@ -1,5 +1,5 @@
-from redbot.core import commands, checks, Config
 import discord
+from redbot.core import Config, checks, commands
 
 
 class Forward(commands.Cog):

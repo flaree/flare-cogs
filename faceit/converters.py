@@ -25,5 +25,5 @@ class StrUser(Converter):
                 if user:
                     users.append(user)
         if not users:
-            return argument
+            raise BadArgument("No user provided.")
         return users[0]

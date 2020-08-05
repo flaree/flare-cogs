@@ -1,0 +1,36 @@
+# thanks Zeph
+name: style
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install prerequisites
+        run: python -m pip install -U autoflake isort black
+      - name: Run style
+        run: make reformatblack
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: style
+          title: Style
+          body: |
+            Automated style check
+          assignees: ${{ github.repository_owner }}
+          # reviewers: ${{ github.repository_owner }}
+          labels: Automated, Style
+          branch: automated/style
+      - name: Mark style failure
+        if: env.PULL_REQUEST_NUMBER
+        run: exit 1

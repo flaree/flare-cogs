@@ -1,5 +1,5 @@
-from redbot.core.commands import Context, BadArgument
 import r6statsapi
+from redbot.core.commands import BadArgument, Context
 
 PLATFORMS = {
     "psn": r6statsapi.Platform.psn,

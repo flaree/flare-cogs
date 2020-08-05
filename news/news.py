@@ -1,11 +1,9 @@
 import aiohttp
 import discord
+import iso8601
 import validators
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import humanize_number
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-
-import iso8601
 
 
 class News(commands.Cog):

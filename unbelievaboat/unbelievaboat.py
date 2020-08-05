@@ -9,7 +9,6 @@ import tabulate
 from redbot.core import Config, bank, checks, commands
 from redbot.core.errors import BalanceTooHigh
 from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, pagify
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .checks import check_global_setting_admin, wallet_disabled_check
 from .defaultreplies import crimes, work

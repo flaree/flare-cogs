@@ -1,7 +1,6 @@
 from abc import ABC
 
-import discord
-from redbot.core import Config, commands
+from redbot.core import Config
 from redbot.core.bot import Red
 
 

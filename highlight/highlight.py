@@ -5,7 +5,7 @@ from typing import Literal, Optional
 
 import discord
 import tabulate
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from redbot.core.utils.predicates import MessagePredicate
 

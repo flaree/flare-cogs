@@ -1,7 +1,8 @@
-from redbot.core.utils.menus import menu
-from redbot.core import commands
-import discord
 import contextlib
+
+import discord
+from redbot.core import commands
+from redbot.core.utils.menus import menu
 
 
 async def match_info(

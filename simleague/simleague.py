@@ -3,20 +3,20 @@ import logging
 import random
 import time
 from abc import ABC
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 import aiohttp
 import discord
-from tabulate import tabulate
 from redbot.core import Config, bank, checks, commands
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from tabulate import tabulate
 
 from .core import SimHelper
 from .functions import WEATHER
-from .teamset import TeamsetMixin
 from .simset import SimsetMixin
 from .stats import StatsMixin
+from .teamset import TeamsetMixin
 
 # THANKS TO https://code.sololearn.com/ci42wd5h0UQX/#py FOR THE SIMULATION AND FIXATOR/AIKATERNA/STEVY FOR THE PILLOW HELP/LEVELER
 

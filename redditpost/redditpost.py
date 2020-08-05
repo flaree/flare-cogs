@@ -10,7 +10,7 @@ import tabulate
 import validators
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import box, pagify, humanize_timedelta
+from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify
 
 log = logging.getLogger("red.flare.redditpost")
 

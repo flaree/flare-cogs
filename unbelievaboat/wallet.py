@@ -1,10 +1,10 @@
 from typing import Union
 
 import discord
-from redbot.core import bank, checks, commands
+from redbot.core import bank, commands
+from redbot.core.errors import BalanceTooHigh
 from redbot.core.utils.chat_formatting import box, humanize_number
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
-from redbot.core.errors import BalanceTooHigh
 
 from .abc import MixinMeta
 from .checks import check_global_setting_admin, roulette_disabled_check, wallet_disabled_check

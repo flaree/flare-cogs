@@ -1,5 +1,5 @@
-from redbot.core import commands, bank
 import discord
+from redbot.core import bank, commands
 
 
 def check_global_setting_admin():

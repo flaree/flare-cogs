@@ -4,8 +4,7 @@ from io import BytesIO
 import discord
 import r6statsapi
 from redbot.core import Config, checks, commands
-from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import humanize_timedelta, pagify
+from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .converters import REGIONS, PlatformConverter, RegionConverter
