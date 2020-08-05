@@ -13,7 +13,7 @@
 </p>
 
 # Contact
-You can contact me in the Red server or on my support server @ https://discord.gg/6fKdeUg
+You can contact me in the Red 3rd party server in #support_flare-cogs
 
 <br>
 
