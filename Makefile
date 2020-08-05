@@ -13,10 +13,10 @@ stylecheck:
 	$(PYTHON) -m black --check $(DIFF)
 reformat:
 	$(PYTHON) -m autoflake --in-place --imports=aiohttp,discord,redbot $(DIFF)
-	$(PYTHON) -m isort $(DIFF)
+	$(PYTHON) -m isort --profile=black $(DIFF)
 	$(PYTHON) -m black $(DIFF)
 reformatblack:
-	$(PYTHON) -m black $(DIFF)`
+	$(PYTHON) -m black $(DIFF)
 
 # Translations
 gettext:
