@@ -59,6 +59,8 @@ class Forward(commands.Cog):
             return
         if message.channel.recipient.id in self.bot.owner_ids:
             return
+        if not await self.bot.allowed_by_whitelist_blacklist(message.author):
+            return
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
