@@ -10,7 +10,7 @@
   "tags": [
     "sim league"
   ],
-  "requirements": ["tabulate", "motor", "pillow"],
+  "requirements": ["tabulate", "motor", "pillow", "validators"],
   "required_cogs": {"leveler": "https://github.com/fixator10/Fixator10-Cogs"},
   "hidden": true
 }

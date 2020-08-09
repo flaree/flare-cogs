@@ -1,4 +1,5 @@
 import discord
+import validators
 from redbot.core import checks, commands
 
 from .abc import MixinMeta
@@ -33,6 +34,8 @@ class TeamsetMixin(MixinMeta):
     @teamset.command()
     async def logo(self, ctx, team: str, *, logo: str):
         """Set a teams logo."""
+        if not validators.url(logo):
+            await ctx.send("This doesn't seem to be a valid URL.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -93,6 +96,8 @@ class TeamsetMixin(MixinMeta):
     @kits.command()
     async def home(self, ctx, team: str, *, kiturl: str):
         """Set a teams home kit."""
+        if not validators.url(kiturl):
+            await ctx.send("This doesn't seem to be a valid URL.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -102,6 +107,8 @@ class TeamsetMixin(MixinMeta):
     @kits.command()
     async def away(self, ctx, team: str, *, kiturl: str):
         """Set a teams away kit."""
+        if not validators.url(kiturl):
+            await ctx.send("This doesn't seem to be a valid URL.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -111,6 +118,8 @@ class TeamsetMixin(MixinMeta):
     @kits.command()
     async def third(self, ctx, team: str, *, kiturl: str):
         """Set a teams third kit."""
+        if not validators.url(kiturl):
+            await ctx.send("This doesn't seem to be a valid URL.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
