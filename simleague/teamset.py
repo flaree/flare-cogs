@@ -36,6 +36,8 @@ class TeamsetMixin(MixinMeta):
         """Set a teams logo."""
         if not validators.url(logo):
             await ctx.send("This doesn't seem to be a valid URL.")
+        if not logo.endswith(".png"):
+            await ctx.send("URL must be a png.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -98,6 +100,8 @@ class TeamsetMixin(MixinMeta):
         """Set a teams home kit."""
         if not validators.url(kiturl):
             await ctx.send("This doesn't seem to be a valid URL.")
+        if not kiturl.endswith(".png"):
+            await ctx.send("URL must be a png.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -109,6 +113,9 @@ class TeamsetMixin(MixinMeta):
         """Set a teams away kit."""
         if not validators.url(kiturl):
             await ctx.send("This doesn't seem to be a valid URL.")
+            return
+        if not kiturl.endswith(".png"):
+            await ctx.send("URL must be a png.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -120,6 +127,8 @@ class TeamsetMixin(MixinMeta):
         """Set a teams third kit."""
         if not validators.url(kiturl):
             await ctx.send("This doesn't seem to be a valid URL.")
+        if not kiturl.endswith(".png"):
+            await ctx.send("URL must be a png.")
         async with self.config.guild(ctx.guild).teams() as teams:
             if team not in teams:
                 return await ctx.send("Not a valid team.")
@@ -131,7 +140,7 @@ class TeamsetMixin(MixinMeta):
         """Transfer two players."""
         if not await self.config.guild(ctx.guild).transferwindow():
             return await ctx.send("The transfer window is currently closed.")
-        await self.helper.transfer(ctx, ctx.guild, team1, player1, team2, player2)
+        await self.transfer(ctx, ctx.guild, team1, player1, team2, player2)
         await ctx.tick()
 
     @teamset.command(name="sign")
@@ -139,10 +148,10 @@ class TeamsetMixin(MixinMeta):
         """Release a player and sign a free agent."""
         if not await self.config.guild(ctx.guild).transferwindow():
             return await ctx.send("The transfer window is currently closed.")
-        await self.helper.sign(ctx, ctx.guild, team1, player1, player2)
+        await self.sign(ctx, ctx.guild, team1, player1, player2)
         await ctx.tick()
 
     @teamset.command(name="delete")
     async def _delete(self, ctx, *, team):
         """Delete a team."""
-        await self.helper.team_delete(ctx, team)
+        await self.team_delete(ctx, team)

@@ -208,7 +208,7 @@ class SimsetMixin(MixinMeta):
     async def levels_updatecache(self, ctx):
         """Update the level cache."""
         async with ctx.typing():
-            await self.helper.updatecacheall(ctx.guild)
+            await self.updatecacheall(ctx.guild)
         await ctx.tick()
 
     @simset.command()
