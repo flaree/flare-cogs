@@ -2,6 +2,7 @@ import random
 import string
 from io import BytesIO
 
+import aiohttp
 import discord
 from motor.motor_asyncio import AsyncIOMotorClient
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -11,6 +12,8 @@ from .abc import MixinMeta
 
 client = AsyncIOMotorClient()
 db = client["leveler"]
+
+DEFAULT_URL = "https://i.imgur.com/pQMaU8U.png"
 
 
 class SimHelper(MixinMeta):
@@ -48,9 +51,7 @@ class SimHelper(MixinMeta):
         teams = await cog.config.guild(ctx.guild).teams()
         if event != "yellow" or event != "goal":
             server_icon = await self.getimg(
-                teams[teamevent]["logo"]
-                if teams[teamevent]["logo"] is not None
-                else "https://i.imgur.com/pQMaU8U.png"
+                teams[teamevent]["logo"] if teams[teamevent]["logo"] is not None else DEFAULT_URL
             )
         if event == "yellow":
             server_icon = await self.getimg("https://i.imgur.com/wFS9zdd.png")
@@ -63,7 +64,7 @@ class SimHelper(MixinMeta):
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
+            server_icon = await self.getimg(DEFAULT_URL)
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
@@ -334,15 +335,13 @@ class SimHelper(MixinMeta):
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         server_icon = await self.getimg(
-            teams[teamevent]["logo"]
-            if teams[teamevent]["logo"] is not None
-            else "https://i.imgur.com/pQMaU8U.png"
+            teams[teamevent]["logo"] if teams[teamevent]["logo"] is not None else DEFAULT_URL
         )
 
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
+            server_icon = await self.getimg(DEFAULT_URL)
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
@@ -510,16 +509,14 @@ class SimHelper(MixinMeta):
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         server_icon = await self.getimg(
-            teams[team]["logo"]
-            if teams[team]["logo"] is not None
-            else "https://i.imgur.com/pQMaU8U.png"
+            teams[team]["logo"] if teams[team]["logo"] is not None else DEFAULT_URL
         )
 
         profile_image = Image.open(rank_avatar).convert("RGBA")
         try:
             server_icon_image = Image.open(server_icon).convert("RGBA")
         except:
-            server_icon = await self.getimg("https://i.imgur.com/pQMaU8U.png")
+            server_icon = await self.getimg(DEFAULT_URL)
             server_icon_image = Image.open(server_icon).convert("RGBA")
 
         # set canvas
@@ -813,9 +810,7 @@ class SimHelper(MixinMeta):
         x = 10
         for team in teamlist:
             server_icon = await self.getimg(
-                teams[team]["logo"]
-                if teams[team]["logo"] is not None
-                else "https://i.imgur.com/pQMaU8U.png"
+                teams[team]["logo"] if teams[team]["logo"] is not None else DEFAULT_URL
             )
             try:
                 server_icon_image = Image.open(server_icon).convert("RGBA")
@@ -935,10 +930,14 @@ class SimHelper(MixinMeta):
     async def getimg(self, img):
         async with self.session.get(img) as response:
             if response.status == 200:
-                buffer = BytesIO(await response.read())
+                try:
+                    buffer = BytesIO(await response.read())
+                except aiohttp.ClientPayloadError:
+                    async with self.session.get(DEFAULT_URL) as response:
+                        buffer = BytesIO(await response.read())
                 buffer.name = "picture.png"
                 return buffer
-            async with self.session.get("https://i.imgur.com/pQMaU8U.png") as response:
+            async with self.session.get(DEFAULT_URL) as response:
                 buffer = BytesIO(await response.read())
                 buffer.name = "picture.png"
                 return buffer
