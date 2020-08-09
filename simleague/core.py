@@ -934,9 +934,14 @@ class SimHelper(MixinMeta):
 
     async def getimg(self, img):
         async with self.session.get(img) as response:
-            buffer = BytesIO(await response.read())
-            buffer.name = "picture.png"
-            return buffer
+            if response.status == 200:
+                buffer = BytesIO(await response.read())
+                buffer.name = "picture.png"
+                return buffer
+            async with self.session.get("https://i.imgur.com/pQMaU8U.png") as response:
+                buffer = BytesIO(await response.read())
+                buffer.name = "picture.png"
+                return buffer
 
     async def addrole(self, ctx, user, role_obj):
         if role_obj is not None:
