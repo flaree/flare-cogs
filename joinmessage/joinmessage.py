@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -102,6 +102,17 @@ class JoinMessage(commands.Cog):
             await ctx.send("Server join messages have been enabled.")
             return
         await ctx.send("Server join messages have been disabled.")
+
+    @joinmessage.command(usage="raw")
+    async def raw(self, ctx):
+        """Send the configured message with markdown escaped."""
+        msg = await self.config.message()
+        if msg is None:
+            await ctx.send(
+                f"You do not have a message configured. Configure one using `{ctx.clean_prefix}joinmessage message`."
+            )
+        raw = discord.utils.escape_markdown(msg)
+        await ctx.send(raw)
 
     @joinmessage.command()
     async def message(self, ctx, *, message: str = None):
