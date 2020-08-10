@@ -100,7 +100,7 @@ class SimsetMixin(MixinMeta):
         """Set the max team players."""
         if amount < 1 or amount > 30:
             return await ctx.send("Amount must be between 1 and 3.")
-        await self.config.guild(ctx.guild).redcardmodifer.set(amount)
+        await self.config.guild(ctx.guild).redcardmodifier.set(amount)
         await ctx.tick()
 
     @probability.command()

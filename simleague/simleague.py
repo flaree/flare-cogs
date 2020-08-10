@@ -378,6 +378,7 @@ class SimLeague(
 
     @checks.admin_or_permissions(manage_guild=True)
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
     @commands.command(aliases=["playsim", "simulate"])
     async def sim(self, ctx, team1: str, team2: str):
         """Simulate a game between two teams."""
@@ -1068,7 +1069,7 @@ class SimLeague(
             im = await self.motmpic(
                 ctx,
                 motmwinner,
-                team1 if motmwinner.id in teams[team1]["members"].keys() else team2,
+                team1 if str(motmwinner.id) in teams[team1]["members"].keys() else team2,
                 motmgoals,
                 motmassists,
             )
