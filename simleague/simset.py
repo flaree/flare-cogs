@@ -91,7 +91,7 @@ class SimsetMixin(MixinMeta):
     async def maxplayers(self, ctx, amount: int):
         """Set the max team players."""
         if amount < 3 or amount > 7:
-            return await ctx.send("Amount must be between 3 and 5.")
+            return await ctx.send("Amount must be between 3 and 7.")
         await self.config.guild(ctx.guild).maxplayers.set(amount)
         await ctx.tick()
 
@@ -99,7 +99,7 @@ class SimsetMixin(MixinMeta):
     async def redcardmodifier(self, ctx, amount: int):
         """Set the max team players."""
         if amount < 1 or amount > 30:
-            return await ctx.send("Amount must be between 1 and 3.")
+            return await ctx.send("Amount must be between 1 and 30.")
         await self.config.guild(ctx.guild).redcardmodifier.set(amount)
         await ctx.tick()
 
@@ -107,7 +107,7 @@ class SimsetMixin(MixinMeta):
     async def red(self, ctx, amount: int = 398):
         """Red Card probability. Default = 398"""
         if amount > 400 or amount < 1:
-            return await ctx.send("Amount must be greater than 0 and less than 300.")
+            return await ctx.send("Amount must be greater than 0 and less than 400.")
         async with self.config.guild(ctx.guild).probability() as probability:
             probability["redchance"] = amount
         await ctx.tick()
