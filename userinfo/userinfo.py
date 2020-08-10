@@ -111,7 +111,7 @@ class Userinfo(commands.Cog):
             statusemoji = (
                 self.status_emojis["offline"]
                 if self.status_emojis["offline"]
-                else "\N{MEDIUM WHITE CIRCLE}"
+                else "\N{MEDIUM WHITE CIRCLE}\N{VARIATION SELECTOR-16}"
             )
         elif user.status.name == "dnd":
             statusemoji = (
