@@ -89,7 +89,9 @@ class Userinfo(commands.Cog):
             if not user:
                 user = author
             sharedguilds = {
-                guild async for guild in AsyncIter(self.bot.guilds) if user in guild.members
+                guild
+                async for guild in AsyncIter(self.bot.guilds, steps=100)
+                if user in guild.members
             }
             roles = user.roles[-1:0:-1]
             names, nicks = await mod.get_names_and_nicks(user)
@@ -227,20 +229,21 @@ class Userinfo(commands.Cog):
 
             flags = [f.name for f in user.public_flags.all()]
             badges = ""
-            for badge in sorted(flags):
-                if badge == "verified_bot":
-                    emoji1 = self.badge_emojis["verified_bot"]
-                    emoji2 = self.badge_emojis["verified_bot2"]
-                    if emoji1:
-                        emoji = f"{emoji1}{emoji2}"
+            if flags:
+                for badge in sorted(flags):
+                    if badge == "verified_bot":
+                        emoji1 = self.badge_emojis["verified_bot"]
+                        emoji2 = self.badge_emojis["verified_bot2"]
+                        if emoji1:
+                            emoji = f"{emoji1}{emoji2}"
+                        else:
+                            emoji = None
                     else:
-                        emoji = None
-                else:
-                    emoji = self.badge_emojis[badge]
-                if emoji:
-                    badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
-                else:
-                    badges += f"\N{BLACK QUESTION MARK ORNAMENT}\N{VARIATION SELECTOR-16} {badge.replace('_', ' ').title()}\n"
+                        emoji = self.badge_emojis[badge]
+                    if emoji:
+                        badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
+                    else:
+                        badges += f"\N{BLACK QUESTION MARK ORNAMENT}\N{VARIATION SELECTOR-16} {badge.replace('_', ' ').title()}\n"
             if badges:
                 data.add_field(name="Badges", value=badges)
             if "Economy" in self.bot.cogs:
