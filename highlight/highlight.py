@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from io import BytesIO
 from typing import Literal, Optional
 
@@ -22,6 +23,7 @@ class Highlight(commands.Cog):
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.highlightcache = {}
+        self.recache = {}
 
     async def red_get_data_for_user(self, *, user_id: int):
         data = []
@@ -52,7 +54,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.3.3"
+    __version__ = "1.4.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -99,7 +101,26 @@ class Highlight(commands.Cog):
                 continue
             highlighted_words = []
             for word in highlight[user]:
-                if word.lower() in message.content.lower():
+                if highlight[user][word].get("boundary", False):
+                    if word.lower() in self.recache:
+                        pattern = self.recache[word.lower()]
+                    else:
+                        pattern = re.compile(rf"\b{re.escape(word.lower())}\b", flags=re.I)
+                        self.recache[word.lower()] = pattern
+                    if set(pattern.findall(message.content.lower())):
+                        highlighted_usr = message.guild.get_member(int(user))
+                        if highlighted_usr is None:
+                            continue
+                        if not message.channel.permissions_for(highlighted_usr).read_messages:
+                            continue
+                        if message.author.bot:
+                            if not highlight[user][word]["bots"]:
+                                continue
+
+                        if not highlight[user][word]["toggle"]:
+                            continue
+                        highlighted_words.append(word)
+                elif word.lower() in message.content.lower():
                     highlighted_usr = message.guild.get_member(int(user))
                     if highlighted_usr is None:
                         continue
@@ -162,7 +183,11 @@ class Highlight(commands.Cog):
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
             if text.lower() not in highlight[f"{ctx.author.id}"]:
-                highlight[f"{ctx.author.id}"][text.lower()] = {"toggle": False, "bots": False}
+                highlight[f"{ctx.author.id}"][text.lower()] = {
+                    "toggle": False,
+                    "bots": False,
+                    "boundary": False,
+                }
                 await ctx.send(
                     f"The word `{text}` has been added to your highlight list for {channel}."
                 )
@@ -322,6 +347,7 @@ class Highlight(commands.Cog):
                     word,
                     on_or_off(highlight[f"{ctx.author.id}"][word]["toggle"]),
                     yes_or_no(not highlight[f"{ctx.author.id}"][word]["bots"]),
+                    on_or_off(highlight[f"{ctx.author.id}"][word].get("boundary", False)),
                 ]
                 for word in highlight[f"{ctx.author.id}"]
             ]
@@ -331,7 +357,7 @@ class Highlight(commands.Cog):
                 description=box(
                     tabulate.tabulate(
                         sorted(words, key=lambda x: x[1], reverse=True),
-                        headers=["Word", "Toggle", "Ignoring Bots"],
+                        headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
                     ),
                     lang="prolog",
                 ),
@@ -340,6 +366,71 @@ class Highlight(commands.Cog):
             await ctx.send(embed=embed)
         else:
             await ctx.send(f"You currently do not have any highlighted words set up in {channel}.")
+
+    @highlight.command()
+    async def boundary(
+        self, ctx, state: bool, channel: Optional[discord.TextChannel] = None, *, word: str = None
+    ):
+        """Use word boundaries for highlighting.
+
+        Expects a valid bool. Not passing a word will enable/disable bot highlighting for all
+        highlights.
+        """
+        channel = channel or ctx.channel
+        check = self.channel_check(ctx, channel)
+        if not check:
+            await ctx.send("Either you or the bot does not have permission for that channel.")
+            return
+        if word is None:
+            msg = "enable" if state else "disable"
+            await ctx.send(
+                f"Are you sure you wish to {msg} word bounderies for all your highlights? Type yes to confirm otherwise type no."
+            )
+            try:
+                pred = MessagePredicate.yes_or_no(ctx, user=ctx.author)
+                await ctx.bot.wait_for("message", check=pred, timeout=20)
+            except asyncio.TimeoutError:
+                await ctx.send("Exiting operation.")
+                return
+
+            if pred.result:
+                async with self.config.channel(channel).highlight() as highlight:
+                    highlights = highlight.get(str(ctx.author.id))
+                    if not highlights:
+                        return await ctx.send("You do not have any highlights setup.")
+                    for word in highlights:
+                        highlight[str(ctx.author.id)][word]["boundary"] = state
+                if state:
+                    await ctx.send("All you highlights will now use word boundaries.")
+                else:
+                    await ctx.send("None of your highlights will use word boundaries.")
+
+                await self.generate_cache()
+                return
+
+            else:
+                await ctx.send("Cancelling.")
+                return
+        word = word.lower()
+        async with self.config.channel(channel).highlight() as highlight:
+            highlights = highlight.get(str(ctx.author.id))
+            if not highlights:
+                return await ctx.send("You do not have any highlights setup.")
+            if word not in highlight[str(ctx.author.id)]:
+                return await ctx.send(
+                    f"You do not have a highlight for `{word}` setup in {channel}"
+                )
+            highlight[str(ctx.author.id)][word]["boundary"] = state
+            if state:
+                await ctx.send(
+                    f"The highlight `{word}` will now use word boundaries in {channel}."
+                )
+            else:
+                await ctx.send(
+                    f"The highlight `{word}` will no longer use word boundaries in {channel}."
+                )
+
+        await self.generate_cache()
 
 
 def yes_or_no(boolean):
