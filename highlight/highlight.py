@@ -401,7 +401,7 @@ class Highlight(commands.Cog):
                     for word in highlights:
                         highlight[str(ctx.author.id)][word]["boundary"] = state
                 if state:
-                    await ctx.send("All you highlights will now use word boundaries.")
+                    await ctx.send("All your highlights will now use word boundaries.")
                 else:
                     await ctx.send("None of your highlights will use word boundaries.")
 
