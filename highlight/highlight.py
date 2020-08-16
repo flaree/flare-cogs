@@ -373,7 +373,7 @@ class Highlight(commands.Cog):
     ):
         """Use word boundaries for highlighting.
 
-        Expects a valid bool. Not passing a word will enable/disable bot highlighting for all
+        Expects a valid bool. Not passing a word will enable/disable word boundaries for all
         highlights.
         """
         channel = channel or ctx.channel
