@@ -10,6 +10,6 @@
     "tags": [
       "commandstats"
     ],
-    "requirements": ["tabulate"],
+    "requirements": ["tabulate", "pandas"],
     "hidden": false
   }
