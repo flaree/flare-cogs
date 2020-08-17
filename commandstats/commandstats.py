@@ -3,6 +3,7 @@ import datetime
 import logging
 from collections import OrderedDict
 from copy import deepcopy
+from io import StringIO
 from typing import Counter, Optional
 
 import discord
@@ -10,6 +11,8 @@ import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+
+import pandas
 
 
 def chunks(l, n):
@@ -24,7 +27,7 @@ log = logging.getLogger("red.flare.commandstats")
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.9"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -291,6 +294,19 @@ class CommandStats(commands.Cog):
             await ctx.send(embed=embeds[0])
         else:
             await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @cmd.command()
+    async def csv(self, ctx):
+        """Return a CSV of all command actions."""
+        await self.update_global()
+        data = await self.config.globaldata()
+        df = pandas.DataFrame.from_dict(data, orient="index", columns=["Usage"])
+        df.index.name = "Commands"
+        s_buf = StringIO()
+        df.to_csv(s_buf)
+        s_buf.name = "commandstats.csv"
+        s_buf.seek(0)
+        await ctx.send(file=discord.File(s_buf))
 
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
