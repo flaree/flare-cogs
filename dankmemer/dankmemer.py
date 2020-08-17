@@ -1494,7 +1494,7 @@ class DankMemer(commands.Cog):
         data = await self.get(ctx, f"/theoffice?text={text}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
-        data.name = "theofficep.theof.png"
+        data.name = "theoffice.png"
         await self.send_img(ctx, discord.File(data))
 
     # @commands.check(tokencheck)
