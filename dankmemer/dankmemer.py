@@ -1429,6 +1429,86 @@ class DankMemer(commands.Cog):
         data.name = "youtube.png"
         await self.send_img(ctx, discord.File(data))
 
+    # New Endpoints
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def wwe(self, ctx, *, text: str):
+        """WWE Meme.
+
+        Text must be 5 comma seperated values.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/expandingwwe?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "expandingwwe.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def farmer(self, ctx, *, text: str):
+        """Farmer.
+
+        Text must be 2 sentences comma seperated.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/farmer?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "farmer.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def godwhy(self, ctx, *, text: str):
+        """God why.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/godwhy?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "godwhy.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def keepyourdistance(self, ctx, *, text: str):
+        """Keep your distance.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/keepurdistance?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "keepurdistance.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command()
+    async def theoffice(self, ctx, *, text: str):
+        """The office.
+
+        Text must be 2 sentences comma seperated.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/theoffice?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "theofficep.theof.png"
+        await self.send_img(ctx, discord.File(data))
+
+    # @commands.check(tokencheck)
+    # @commands.command()
+    # async def obama(self, ctx, *, text: str):
+    #     """Obama.
+    #     """
+    #     text = self.parse_text(text)
+    #     data = await self.get(ctx, f"/obama?usernames={ctx.author.name}")
+    #     if isinstance(data, dict):
+    #         return await self.send_error(ctx, data)
+    #     data.name = "obama.png"
+    #     await self.send_img(ctx, discord.File(data))
+
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
