@@ -1497,17 +1497,22 @@ class DankMemer(commands.Cog):
         data.name = "theoffice.png"
         await self.send_img(ctx, discord.File(data))
 
-    # @commands.check(tokencheck)
-    # @commands.command()
-    # async def obama(self, ctx, *, text: str):
-    #     """Obama.
-    #     """
-    #     text = self.parse_text(text)
-    #     data = await self.get(ctx, f"/obama?usernames={ctx.author.name}")
-    #     if isinstance(data, dict):
-    #         return await self.send_error(ctx, data)
-    #     data.name = "obama.png"
-    #     await self.send_img(ctx, discord.File(data))
+    @commands.check(tokencheck)
+    @commands.command()
+    async def obama(self, ctx, user: typing.Optional[discord.Member]):
+        """Obama.
+
+        user: discord User, takes their avatar and display name.
+        """
+        user = user or ctx.author
+        data = await self.get(
+            ctx,
+            f"/obama?avatar1={user.avatar_url_as(static_format='png')}&username1={user.display_name}",
+        )
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "obama.png"
+        await self.send_img(ctx, discord.File(data))
 
 
 def chunks(l, n):
