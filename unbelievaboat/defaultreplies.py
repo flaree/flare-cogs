@@ -15,7 +15,7 @@ work = [
     "You worked at the office and earned {amount}.",
     "{amount} falls out of the sky and hits you on the head.",
     "You help a newcomer set up a camp and he pays you {amount}",
-    "You work at a summer camp and earn {amount}."
+    "You work at a summer camp and earn {amount}.",
     "You work in a local bookmakers and earn {amount}.",
     "You work in your local shop and get paid {amount}.",
     "You earn {amount} from a football bet.",
