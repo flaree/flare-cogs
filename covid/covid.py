@@ -12,7 +12,7 @@ from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.1.2"
+    __version__ = "0.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -21,7 +21,7 @@ class Covid(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = "https://disease.sh/"
+        self.api = "https://disease.sh/v3/covid-19"
         self.newsapi = "https://newsapi.org/v2/top-headlines?q=COVID&sortBy=publishedAt&pageSize=100&country={}&apiKey={}&page=1"
         self.session = aiohttp.ClientSession(loop=self.bot.loop)
         self.newsapikey = None
@@ -126,7 +126,7 @@ class Covid(commands.Cog):
         """
         if not country:
             async with ctx.typing():
-                data = await self.get(self.api + "v2/all")
+                data = await self.get(self.api + "/all")
             if isinstance(data, dict):
                 if data.get("failed") is not None:
                     return await ctx.send(data.get("failed"))
@@ -151,7 +151,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
         else:
             async with ctx.typing():
-                data = await self.get(self.api + "v2/countries/{}".format(country))
+                data = await self.get(self.api + "/countries/{}?allowNull=true".format(country))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -170,8 +170,18 @@ class Covid(commands.Cog):
                 embed.add_field(name="Cases", value=humanize_number(country["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
                 embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
-                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
+                embed.add_field(
+                    name="Cases Today",
+                    value=humanize_number(country["todayCases"])
+                    if country["todayCases"] is not None
+                    else "Not reported/None.",
+                )
+                embed.add_field(
+                    name="Deaths Today",
+                    value=humanize_number(country["todayDeaths"])
+                    if country["todayDeaths"] is not None
+                    else "Not reported/None",
+                )
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
@@ -190,7 +200,9 @@ class Covid(commands.Cog):
         Example: [p]covid yesterday Ireland, England
         """
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries/{}?yesterday=1".format(country))
+            data = await self.get(
+                self.api + "/countries/{}?yesterday=1&allowNull=true".format(country)
+            )
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -209,8 +221,18 @@ class Covid(commands.Cog):
                 embed.add_field(name="Cases", value=humanize_number(country["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
                 embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
-                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
+                embed.add_field(
+                    name="Cases Yesterday",
+                    value=humanize_number(country["todayCases"])
+                    if country["todayCases"] is not None
+                    else "Not reported/None.",
+                )
+                embed.add_field(
+                    name="Deaths Yesterday",
+                    value=humanize_number(country["todayDeaths"])
+                    if country["todayDeaths"] is not None
+                    else "Not reported/None.",
+                )
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
@@ -225,7 +247,7 @@ class Covid(commands.Cog):
     async def todaycases(self, ctx):
         """Show the highest cases from countrys today."""
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=todayCases")
+            data = await self.get(self.api + "/countries?sort=todayCases")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -249,7 +271,7 @@ class Covid(commands.Cog):
     async def todaydeaths(self, ctx):
         """Show the highest deaths from countrys today."""
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=todayDeaths")
+            data = await self.get(self.api + "/countries?sort=todayDeaths")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -273,7 +295,7 @@ class Covid(commands.Cog):
     async def highestcases(self, ctx):
         """Show the highest cases from countrys overall."""
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=cases")
+            data = await self.get(self.api + "/countries?sort=cases")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -297,7 +319,7 @@ class Covid(commands.Cog):
     async def highestdeaths(self, ctx):
         """Show the highest deaths from countrys overall."""
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=deaths")
+            data = await self.get(self.api + "/countries?sort=deaths")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -326,7 +348,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=cases")
+            data = await self.get(self.api + "/countries?sort=cases")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -352,7 +374,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=todayCases")
+            data = await self.get(self.api + "/countries?sort=todayCases")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -378,7 +400,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=deaths")
+            data = await self.get(self.api + "/countries?sort=deaths")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -404,7 +426,7 @@ class Covid(commands.Cog):
         if amount > 20 or amount < 0:
             return await ctx.send("Invalid amount. Please choose between an amount between 1-20.")
         async with ctx.typing():
-            data = await self.get(self.api + "v2/countries?sort=todayDeaths")
+            data = await self.get(self.api + "/countries?sort=todayDeaths")
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -432,7 +454,7 @@ class Covid(commands.Cog):
             return await ctx.send_help()
         async with ctx.typing():
             states = ",".join(states.split(", "))
-            data = await self.get(self.api + "v2/states/{}".format(states))
+            data = await self.get(self.api + "/states/{}?allowNull=true".format(states))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -448,8 +470,18 @@ class Covid(commands.Cog):
                 )
                 embed.add_field(name="Cases", value=humanize_number(state["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
-                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
+                embed.add_field(
+                    name="Cases Today",
+                    value=humanize_number(state["todayCases"])
+                    if state["todayCases"] is not None
+                    else "Not reported/None.",
+                )
+                embed.add_field(
+                    name="Deaths Today",
+                    value=humanize_number(state["todayDeaths"])
+                    if state["todayDeaths"] is not None
+                    else "Not reported/None.",
+                )
                 embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
                 embeds.append(embed)
@@ -467,7 +499,9 @@ class Covid(commands.Cog):
         """
         async with ctx.typing():
             states = ",".join(states.split(", "))
-            data = await self.get(self.api + "v2/states/{}?yesterday=1".format(states))
+            data = await self.get(
+                self.api + "/states/{}?yesterday=1&allowNull=true".format(states)
+            )
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -483,8 +517,18 @@ class Covid(commands.Cog):
                 )
                 embed.add_field(name="Cases", value=humanize_number(state["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
-                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
+                embed.add_field(
+                    name="Cases Yesterday",
+                    value=humanize_number(state["todayCases"])
+                    if state["todayCases"] is not None
+                    else "Not reported/None.",
+                )
+                embed.add_field(
+                    name="Deaths Yesterday",
+                    value=humanize_number(state["todayDeaths"])
+                    if state["todayDeaths"] is not None
+                    else "Not reported/None.",
+                )
                 embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
                 embeds.append(embed)
