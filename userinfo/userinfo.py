@@ -6,13 +6,16 @@ from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_number
 from redbot.core.utils.common_filters import filter_invites
 
+adventure_bank = None
+
+
 log = logging.getLogger("red.flare.userinfo")
 
 # Thanks Preda, core logic is from https://github.com/PredaaA/predacogs/blob/master/serverinfo/serverinfo.py
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -145,6 +148,8 @@ class Userinfo(commands.Cog):
                     if self.status_emojis["away"]
                     else "\N{LARGE ORANGE CIRCLE}"
                 )
+            else:
+                statusemoji = "\N{MEDIUM BLACK CIRCLE}\N{VARIATION SELECTOR-16}"
             activity = "Chilling in {} status".format(user.status)
             status_string = mod.get_status_string(user)
 
@@ -247,8 +252,21 @@ class Userinfo(commands.Cog):
                     state = await cog.walletdisabledcheck(ctx)
                     if not state:
                         balance = await cog.walletbalance(user)
-                        bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}"
-                data.add_field(name="Balance", value=bankstat)
+                        bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}\n"
+                if "Adventure" in self.bot.cogs:
+                    cog = self.bot.get_cog("Adventure")
+                    if cog._separate_economy:
+                        global adventure_bank
+                        if adventure_bank is None:
+                            try:
+                                from adventure import bank as adventure_bank
+                            except:
+                                pass
+                        if adventure_bank:
+                            adventure_currency = await adventure_bank.get_balance(user)
+                            bankstat += f"**Adventure**: {str(humanize_number(adventure_currency))} {await adventure_bank.get_currency_name(ctx.guild)}"
+
+                data.add_field(name="Balances", value=bankstat)
             await ctx.send(embed=data)
 
 
