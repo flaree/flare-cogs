@@ -7,6 +7,6 @@
     "short": "Lock down the @everyone role from speaking.",
     "description": "Lock the @everyone role from speaking, reacting etc. Will restore previous permissions.",
     "tags": ["lockdown", "raids", "serverlock"],
-    "min_bot_version": "3.2.0",
+    "min_bot_version": "3.4.0",
     "requirements": ["jsonpickle"]
 }

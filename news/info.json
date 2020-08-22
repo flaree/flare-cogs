@@ -8,5 +8,5 @@
     "description": "Grab breaking headline around the world!",
     "tags": ["news", "information"],
     "requirements": ["validators", "iso8601"],
-    "min_bot_version": "3.2.0"
+    "min_bot_version": "3.4.0"
 }

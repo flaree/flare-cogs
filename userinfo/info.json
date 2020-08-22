@@ -6,5 +6,5 @@
     "short": "Userinfo with user badges.",
     "description": "Show a users normal userinfo + their badges and shared servers.",
     "tags": ["userinfo"],
-    "min_bot_version": "3.2.0"
+    "min_bot_version": "3.4.0"
 }

@@ -6,5 +6,6 @@
     "short": "Respond with the bot invite link when DM'd a server invite link.",
     "description": "Respond with the bots invite link if the bot recieves a message containing a server invite.",
     "tags": ["dminvite", "invites"],
+    "min_bot_version": "3.4.0",
     "hidden": false
 }

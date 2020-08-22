@@ -10,5 +10,6 @@
   "tags": [
     "botlist"
   ],
-  "hidden": false
+  "hidden": false,
+  "min_bot_version": "3.4.0"
 }
