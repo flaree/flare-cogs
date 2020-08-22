@@ -147,6 +147,7 @@ class Covid(commands.Cog):
             )
             embed.add_field(name="Cases Today", value=humanize_number(data["todayCases"]))
             embed.add_field(name="Deaths Today", value=humanize_number(data["todayDeaths"]))
+            embed.add_field(name="Recovered Today", value=humanize_number(data["todayRecovered"]))
             embed.add_field(name="Total Tests", value=humanize_number(data["tests"]))
             await ctx.send(embed=embed)
         else:
@@ -172,6 +173,9 @@ class Covid(commands.Cog):
                 embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
                 embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
                 embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
+                embed.add_field(
+                    name="Recovered Today", value=humanize_number(country["todayRecovered"])
+                )
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
