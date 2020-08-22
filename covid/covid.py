@@ -151,7 +151,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
         else:
             async with ctx.typing():
-                data = await self.get(self.api + "/countries/{}?allowNull=true".format(country))
+                data = await self.get(self.api + "/countries/{}".format(country))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -170,18 +170,8 @@ class Covid(commands.Cog):
                 embed.add_field(name="Cases", value=humanize_number(country["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
                 embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
-                embed.add_field(
-                    name="Cases Today",
-                    value=humanize_number(country["todayCases"])
-                    if country["todayCases"] is not None
-                    else "Not reported/None.",
-                )
-                embed.add_field(
-                    name="Deaths Today",
-                    value=humanize_number(country["todayDeaths"])
-                    if country["todayDeaths"] is not None
-                    else "Not reported/None",
-                )
+                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
@@ -200,9 +190,7 @@ class Covid(commands.Cog):
         Example: [p]covid yesterday Ireland, England
         """
         async with ctx.typing():
-            data = await self.get(
-                self.api + "/countries/{}?yesterday=1&allowNull=true".format(country)
-            )
+            data = await self.get(self.api + "/countries/{}?yesterday=1".format(country))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -222,16 +210,10 @@ class Covid(commands.Cog):
                 embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
                 embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
                 embed.add_field(
-                    name="Cases Yesterday",
-                    value=humanize_number(country["todayCases"])
-                    if country["todayCases"] is not None
-                    else "Not reported/None.",
+                    name="Cases Yesterday", value=humanize_number(country["todayCases"])
                 )
                 embed.add_field(
-                    name="Deaths Yesterday",
-                    value=humanize_number(country["todayDeaths"])
-                    if country["todayDeaths"] is not None
-                    else "Not reported/None.",
+                    name="Deaths Yesterday", value=humanize_number(country["todayDeaths"])
                 )
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
@@ -454,7 +436,7 @@ class Covid(commands.Cog):
             return await ctx.send_help()
         async with ctx.typing():
             states = ",".join(states.split(", "))
-            data = await self.get(self.api + "/states/{}?allowNull=true".format(states))
+            data = await self.get(self.api + "/states/{}".format(states))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -470,18 +452,8 @@ class Covid(commands.Cog):
                 )
                 embed.add_field(name="Cases", value=humanize_number(state["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
-                embed.add_field(
-                    name="Cases Today",
-                    value=humanize_number(state["todayCases"])
-                    if state["todayCases"] is not None
-                    else "Not reported/None.",
-                )
-                embed.add_field(
-                    name="Deaths Today",
-                    value=humanize_number(state["todayDeaths"])
-                    if state["todayDeaths"] is not None
-                    else "Not reported/None.",
-                )
+                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
+                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
                 embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
                 embeds.append(embed)
@@ -499,9 +471,7 @@ class Covid(commands.Cog):
         """
         async with ctx.typing():
             states = ",".join(states.split(", "))
-            data = await self.get(
-                self.api + "/states/{}?yesterday=1&allowNull=true".format(states)
-            )
+            data = await self.get(self.api + "/states/{}?yesterday=1".format(states))
             if isinstance(data, dict):
                 error = data.get("failed")
                 if error is not None:
@@ -517,17 +487,9 @@ class Covid(commands.Cog):
                 )
                 embed.add_field(name="Cases", value=humanize_number(state["cases"]))
                 embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
+                embed.add_field(name="Cases Yesterday", value=humanize_number(state["todayCases"]))
                 embed.add_field(
-                    name="Cases Yesterday",
-                    value=humanize_number(state["todayCases"])
-                    if state["todayCases"] is not None
-                    else "Not reported/None.",
-                )
-                embed.add_field(
-                    name="Deaths Yesterday",
-                    value=humanize_number(state["todayDeaths"])
-                    if state["todayDeaths"] is not None
-                    else "Not reported/None.",
+                    name="Deaths Yesterday", value=humanize_number(state["todayDeaths"])
                 )
                 embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
