@@ -221,7 +221,6 @@ class Covid(commands.Cog):
                 embed.add_field(name="Critical", value=humanize_number(country["critical"]))
                 embed.add_field(name="Active", value=humanize_number(country["active"]))
                 embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
-                embed.add_field(name="\u200b", value="\u200b")
                 embeds.append(embed)
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
