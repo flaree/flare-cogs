@@ -3,9 +3,6 @@ from typing import Any, Dict, Iterable, Optional
 import discord
 import tabulate
 from redbot.core import commands
-from redbot.core.i18n import Translator
-from redbot.core.utils.chat_formatting import box
-from redbot.core.utils.predicates import MessagePredicate
 from redbot.vendored.discord.ext import menus
 
 
