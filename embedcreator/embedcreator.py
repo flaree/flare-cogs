@@ -1,8 +1,9 @@
+import json
+from io import BytesIO, StringIO
+from typing import Optional
+
 import discord
 from redbot.core import commands
-from typing import Optional
-from io import BytesIO, StringIO
-import json
 
 
 class EmbedCreator(commands.Cog):
