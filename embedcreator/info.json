@@ -1,0 +1,11 @@
+{
+    "author": ["flare(flare#0001)"],
+    "install_msg": "Create embeds using JSON. Currently WIP",
+    "name": "EmbedCreator",
+    "disabled": false,
+    "short": "Create embeds using JSON.",
+    "description": "Create embeds using JSON.",
+    "tags": ["embed generator", "embeds"],
+    "min_bot_version": "3.4.0",
+    "hidden": false
+}
