@@ -186,7 +186,7 @@ class Highlight(commands.Cog):
                 highlight[f"{ctx.author.id}"] = {}
             if text.lower() not in highlight[f"{ctx.author.id}"]:
                 highlight[f"{ctx.author.id}"][text.lower()] = {
-                    "toggle": False,
+                    "toggle": True,
                     "bots": False,
                     "boundary": False,
                 }
