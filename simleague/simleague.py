@@ -121,7 +121,7 @@ class SimLeague(
         role: discord.Role = None,
     ):
         """Register a team.
-            Try keep team names to one word if possible."""
+        Try keep team names to one word if possible."""
         maxplayers = await self.config.guild(ctx.guild).maxplayers()
         if len(members) != maxplayers:
             return await ctx.send(f"You must provide {maxplayers} members.")

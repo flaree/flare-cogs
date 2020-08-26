@@ -1462,8 +1462,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def godwhy(self, ctx, *, text: str):
-        """God why.
-        """
+        """God why."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/godwhy?text={text}")
         if isinstance(data, dict):
@@ -1474,8 +1473,7 @@ class DankMemer(commands.Cog):
     @commands.check(tokencheck)
     @commands.command()
     async def keepyourdistance(self, ctx, *, text: str):
-        """Keep your distance.
-        """
+        """Keep your distance."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/keepurdistance?text={text}")
         if isinstance(data, dict):
