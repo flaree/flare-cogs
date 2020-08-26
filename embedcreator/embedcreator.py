@@ -20,7 +20,7 @@ class EmbedCreator(commands.Cog):
         # this cog does not story any data
         pass
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
