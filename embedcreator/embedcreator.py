@@ -1,4 +1,5 @@
 import json
+import re
 from io import BytesIO, StringIO
 from typing import Optional
 
@@ -6,6 +7,8 @@ import discord
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+
+START_CODE_BLOCK_RE = re.compile(r"^((```py)(?=\s)|(```))")
 
 
 class EmbedCreator(commands.Cog):
@@ -27,6 +30,13 @@ class EmbedCreator(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         self.config.register_guild(embeds={})
+
+    @staticmethod
+    def cleanup_code(content):
+        """Automatically removes code blocks from the code."""
+        # remove ```py\n```
+        if content.startswith("```") and content.endswith("```"):
+            return START_CODE_BLOCK_RE.sub("", content)[:-3]
 
     @commands.admin_or_permissions(manage_channels=True)
     @commands.group()
@@ -74,6 +84,7 @@ class EmbedCreator(commands.Cog):
     async def embed_json(self, ctx, *, raw_json: str):
         """Send an embed from directly pasting json."""
         channel = ctx.channel
+        raw_json = self.cleanup_code(raw_json)
         if not channel.permissions_for(ctx.me).send_messages:
             return await ctx.send(f"I do not have permission to send messages in {channel}.")
         if not channel.permissions_for(ctx.author).send_messages:
@@ -147,6 +158,7 @@ class EmbedCreator(commands.Cog):
     @store.command(name="json")
     async def store_json(self, ctx, name: str, *, raw_json):
         """Store an embed from raw json."""
+        raw_json = self.cleanup_code(raw_json)
         embeds_stored = await self.config.guild(ctx.guild).embeds()
         if name in embeds_stored:
             return await ctx.send("This embed already exists.")
