@@ -157,7 +157,7 @@ class SimsetMixin(MixinMeta):
     @bet.command()
     async def toggle(self, ctx, toggle: bool):
         """Set if betting is enabled or not.
-            Toggle must be a valid bool."""
+        Toggle must be a valid bool."""
         await self.config.guild(ctx.guild).bettoggle.set(toggle)
         await ctx.tick()
 
