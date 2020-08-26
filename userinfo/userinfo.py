@@ -194,7 +194,8 @@ class Userinfo(commands.Cog):
 
             data = discord.Embed(
                 description=(status_string or activity)
-                + f"\n\n{len(sharedguilds)} shared servers.",
+                + f"\n\n{len(sharedguilds)} shared servers." 
+                if len(sharedguilds) > 1 else f"\n\n{len(sharedguilds)} shared server.",
                 colour=user.colour,
             )
 
@@ -246,11 +247,13 @@ class Userinfo(commands.Cog):
             if badges:
                 data.add_field(name="Badges", value=badges)
             if "Economy" in self.bot.cogs:
+                balance_count = 1
                 bankstat = f"**Bank**: {str(humanize_number(await bank.get_balance(user)))} {await bank.get_currency_name(ctx.guild)}\n"
                 if "Unbelievaboat" in self.bot.cogs:
                     cog = self.bot.get_cog("Unbelievaboat")
                     state = await cog.walletdisabledcheck(ctx)
                     if not state:
+                        balance_count += 1
                         balance = await cog.walletbalance(user)
                         bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}\n"
                 if "Adventure" in self.bot.cogs:
@@ -264,9 +267,10 @@ class Userinfo(commands.Cog):
                                 pass
                         if adventure_bank:
                             adventure_currency = await adventure_bank.get_balance(user)
+                            balance_count += 1
                             bankstat += f"**Adventure**: {str(humanize_number(adventure_currency))} {await adventure_bank.get_currency_name(ctx.guild)}"
 
-                data.add_field(name="Balances", value=bankstat)
+                data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
             await ctx.send(embed=data)
 
 
