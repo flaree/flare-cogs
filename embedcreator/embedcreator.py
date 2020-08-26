@@ -37,6 +37,7 @@ class EmbedCreator(commands.Cog):
         # remove ```py\n```
         if content.startswith("```") and content.endswith("```"):
             return START_CODE_BLOCK_RE.sub("", content)[:-3]
+        return content
 
     @commands.admin_or_permissions(manage_channels=True)
     @commands.group()
