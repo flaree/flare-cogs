@@ -8,7 +8,7 @@ from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-START_CODE_BLOCK_RE = re.compile(r"^((```py)(?=\s)|(```))")
+START_CODE_BLOCK_RE = re.compile(r"^((```json)(?=\s)|(```))")
 
 
 class EmbedCreator(commands.Cog):
