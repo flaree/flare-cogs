@@ -113,10 +113,10 @@ class Userinfo(commands.Cog):
             )
 
             created_on = "{}\n({} day{} ago)".format(
-                user_created, since_created, "s" if since_created > 1 else ""
+                user_created, since_created, "" if since_created == 1 else "s"
             )
             joined_on = "{}\n({} day{} ago)".format(
-                user_joined, since_joined, "s" if since_created > 1 else ""
+                user_joined, since_joined, "" if since_joined == 1 else "s"
             )
             if user.is_on_mobile():
                 statusemoji = (
