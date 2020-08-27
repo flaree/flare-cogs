@@ -47,7 +47,7 @@ class Userinfo(commands.Cog):
             "hypesquad_bravery": discord.utils.get(self.bot.emojis, id=706198532998299779),
             "hypesquad_brilliance": discord.utils.get(self.bot.emojis, id=706198535846101092),
             "hypesquad": discord.utils.get(self.bot.emojis, id=706198537049866261),
-            "early_verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
+            "verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
             "bug_hunter": discord.utils.get(self.bot.emojis, id=706199712402898985),
             "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199774616879125),
             "partner": discord.utils.get(self.bot.emojis, id=706206032216457258),
@@ -94,9 +94,9 @@ class Userinfo(commands.Cog):
             names, nicks = await mod.get_names_and_nicks(user)
 
             joined_at = user.joined_at
-            since_created = (ctx.message.created_at - user.created_at).days
+            since_created = int((ctx.message.created_at - user.created_at).days)
             if joined_at is not None:
-                since_joined = (ctx.message.created_at - joined_at).days
+                since_joined = int((ctx.message.created_at - joined_at).days)
                 user_joined = joined_at.strftime("%d %b %Y %H:%M")
             else:
                 since_joined = "?"
@@ -110,8 +110,12 @@ class Userinfo(commands.Cog):
                 + 1
             )
 
-            created_on = "{}\n({} days ago)".format(user_created, since_created)
-            joined_on = "{}\n({} days ago)".format(user_joined, since_joined)
+            created_on = "{}\n({} day{} ago)".format(
+                user_created, since_created, "s" if since_created > 1 else ""
+            )
+            joined_on = "{}\n({} day{} ago)".format(
+                user_joined, since_joined, "s" if since_created > 1 else ""
+            )
             if user.is_on_mobile():
                 statusemoji = (
                     self.status_emojis["mobile"]
@@ -184,18 +188,16 @@ class Userinfo(commands.Cog):
                             role_chunks.append(chunk)
                         else:
                             remaining_roles += 1
-
                     role_chunks.append(continuation_string.format(numeric_number=remaining_roles))
 
                     role_str = "".join(role_chunks)
-
             else:
                 role_str = None
-
             data = discord.Embed(
                 description=(status_string or activity)
-                + f"\n\n{len(sharedguilds)} shared servers." 
-                if len(sharedguilds) > 1 else f"\n\n{len(sharedguilds)} shared server.",
+                + f"\n\n{len(sharedguilds)} shared servers."
+                if len(sharedguilds) > 1
+                else f"\n\n{len(sharedguilds)} shared server.",
                 colour=user.colour,
             )
 
@@ -229,6 +231,7 @@ class Userinfo(commands.Cog):
 
             flags = [f.name for f in user.public_flags.all()]
             badges = ""
+            badge_count = 0
             if flags:
                 for badge in sorted(flags):
                     if badge == "verified_bot":
@@ -244,8 +247,9 @@ class Userinfo(commands.Cog):
                         badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
                     else:
                         badges += f"\N{BLACK QUESTION MARK ORNAMENT}\N{VARIATION SELECTOR-16} {badge.replace('_', ' ').title()}\n"
+                    badge_count += 1
             if badges:
-                data.add_field(name="Badges", value=badges)
+                data.add_field(name="Badges" if badge_count > 1 else "Badge", value=badges)
             if "Economy" in self.bot.cogs:
                 balance_count = 1
                 bankstat = f"**Bank**: {str(humanize_number(await bank.get_balance(user)))} {await bank.get_currency_name(ctx.guild)}\n"
@@ -269,7 +273,6 @@ class Userinfo(commands.Cog):
                             adventure_currency = await adventure_bank.get_balance(user)
                             balance_count += 1
                             bankstat += f"**Adventure**: {str(humanize_number(adventure_currency))} {await adventure_bank.get_currency_name(ctx.guild)}"
-
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
             await ctx.send(embed=data)
 
