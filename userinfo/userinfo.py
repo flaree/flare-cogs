@@ -47,9 +47,7 @@ class Userinfo(commands.Cog):
             "hypesquad_bravery": discord.utils.get(self.bot.emojis, id=706198532998299779),
             "hypesquad_brilliance": discord.utils.get(self.bot.emojis, id=706198535846101092),
             "hypesquad": discord.utils.get(self.bot.emojis, id=706198537049866261),
-            "verified_bot_developer": discord.utils.get(
-                self.bot.emojis, id=706198727953612901
-            ),
+            "verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
             "bug_hunter": discord.utils.get(self.bot.emojis, id=706199712402898985),
             "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199774616879125),
             "partner": discord.utils.get(self.bot.emojis, id=706206032216457258),
