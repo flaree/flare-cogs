@@ -34,11 +34,11 @@ class Userinfo(commands.Cog):
         await self.bot.wait_until_ready()
         self.status_emojis = {
             "mobile": discord.utils.get(self.bot.emojis, id=749067110931759185),
-            "online": discord.utils.get(self.bot.emojis, id=749066278559416340),
-            "away": discord.utils.get(self.bot.emojis, id=749066277473222727),
-            "dnd": discord.utils.get(self.bot.emojis, id=749066277368103023),
-            "offline": discord.utils.get(self.bot.emojis, id=749066278156763236),
-            "streaming": discord.utils.get(self.bot.emojis, id=749066279041892392),
+            "online": discord.utils.get(self.bot.emojis, id=749221433552404581),
+            "away": discord.utils.get(self.bot.emojis, id=749221433095356417),
+            "dnd": discord.utils.get(self.bot.emojis, id=749221432772395140),
+            "offline": discord.utils.get(self.bot.emojis, id=749221433049088082),
+            "streaming": discord.utils.get(self.bot.emojis, id=749221434039205909),
         }
         self.badge_emojis = {
             "staff": discord.utils.get(self.bot.emojis, id=706198524156706917),
