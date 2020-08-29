@@ -49,7 +49,7 @@ class Userinfo(commands.Cog):
             "hypesquad": discord.utils.get(self.bot.emojis, id=706198537049866261),
             "verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
             "bug_hunter": discord.utils.get(self.bot.emojis, id=749067110847742062),
-            "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199774616879125),
+            "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199712402898985),
             "partner": discord.utils.get(self.bot.emojis, id=748668634871889930),
             "verified_bot": discord.utils.get(self.bot.emojis, id=706196603748483174),
             "verified_bot2": discord.utils.get(self.bot.emojis, id=706196604197273640),
