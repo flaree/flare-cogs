@@ -33,12 +33,12 @@ class Userinfo(commands.Cog):
     async def init(self):
         await self.bot.wait_until_ready()
         self.status_emojis = {
-            "mobile": discord.utils.get(self.bot.emojis, id=725387684113023057),
-            "online": discord.utils.get(self.bot.emojis, id=724950463417548890),
-            "away": discord.utils.get(self.bot.emojis, id=724950462729551883),
-            "dnd": discord.utils.get(self.bot.emojis, id=724950462499127338),
-            "offline": discord.utils.get(self.bot.emojis, id=724950462746460271),
-            "streaming": discord.utils.get(self.bot.emojis, id=724950551900717066),
+            "mobile": discord.utils.get(self.bot.emojis, id=749067110931759185),
+            "online": discord.utils.get(self.bot.emojis, id=749066278559416340),
+            "away": discord.utils.get(self.bot.emojis, id=749066277473222727),
+            "dnd": discord.utils.get(self.bot.emojis, id=749066277368103023),
+            "offline": discord.utils.get(self.bot.emojis, id=749066278156763236),
+            "streaming": discord.utils.get(self.bot.emojis, id=749066279041892392),
         }
         self.badge_emojis = {
             "staff": discord.utils.get(self.bot.emojis, id=706198524156706917),
@@ -48,9 +48,9 @@ class Userinfo(commands.Cog):
             "hypesquad_brilliance": discord.utils.get(self.bot.emojis, id=706198535846101092),
             "hypesquad": discord.utils.get(self.bot.emojis, id=706198537049866261),
             "verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
-            "bug_hunter": discord.utils.get(self.bot.emojis, id=706199712402898985),
+            "bug_hunter": discord.utils.get(self.bot.emojis, id=749067110847742062),
             "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199774616879125),
-            "partner": discord.utils.get(self.bot.emojis, id=706206032216457258),
+            "partner": discord.utils.get(self.bot.emojis, id=748668634871889930),
             "verified_bot": discord.utils.get(self.bot.emojis, id=706196603748483174),
             "verified_bot2": discord.utils.get(self.bot.emojis, id=706196604197273640),
         }
