@@ -1,15 +1,14 @@
 import aiohttp
-import discord
-import iso8601
-import validators
 from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+
+from .menus import ArticleFormat, GenericMenu
 
 
 class News(commands.Cog):
     """News Cog."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -108,23 +107,10 @@ class News(commands.Cog):
                     ctx.prefix
                 )
             )
-        embeds = []
-        total = 15 if len(data["articles"]) > 15 else len(data["articles"])
-        for i, article in enumerate(data["articles"][:15], 1):
-            embed = discord.Embed(
-                title=article["title"],
-                color=await self.bot.get_embed_color(ctx.channel),
-                description=f"\n{article['description']}",
-                timestamp=iso8601.parse_date(article["publishedAt"]),
-                url=article["url"],
-            )
-            if article["urlToImage"] is not None:
-                if validators.url(article["urlToImage"]):
-                    embed.set_image(url=article["urlToImage"])
-            embed.set_author(name=f"{article['author']} - {article['source']['name']}")
-            embed.set_footer(text=f"Article {i}/{total}")
-            embeds.append(embed)
-        await self.send_embeds(ctx, embeds)
+        await GenericMenu(source=ArticleFormat(data["articles"][:15]), ctx=ctx,).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     @news.command(name="global")
     async def global_all(self, ctx, *, query: str = None):
@@ -140,23 +126,10 @@ class News(commands.Cog):
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        embeds = []
-        total = 15 if len(data["articles"]) > 15 else len(data["articles"])
-        for i, article in enumerate(data["articles"][:15], 1):
-            embed = discord.Embed(
-                title=article["title"],
-                color=await self.bot.get_embed_color(ctx.channel),
-                description=f"\n{article['description']}",
-                timestamp=iso8601.parse_date(article["publishedAt"]),
-                url=article["url"],
-            )
-            if article["urlToImage"] is not None:
-                if validators.url(article["urlToImage"]):
-                    embed.set_image(url=article["urlToImage"])
-            embed.set_author(name=f"{article['author']} - {article['source']['name']}")
-            embed.set_footer(text=f"Article {i}/{total}")
-            embeds.append(embed)
-        await self.send_embeds(ctx, embeds)
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     @news.command()
     async def topglobal(self, ctx, *, query: str):
@@ -169,20 +142,7 @@ class News(commands.Cog):
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        embeds = []
-        total = 15 if len(data["articles"]) > 15 else len(data["articles"])
-        for i, article in enumerate(data["articles"][:15], 1):
-            embed = discord.Embed(
-                title=article["title"],
-                color=await self.bot.get_embed_color(ctx.channel),
-                description=f"\n{article['description']}",
-                timestamp=iso8601.parse_date(article["publishedAt"]),
-                url=article["url"],
-            )
-            if article["urlToImage"] is not None:
-                if validators.url(article["urlToImage"]):
-                    embed.set_image(url=article["urlToImage"])
-            embed.set_author(name=f"{article['author']} - {article['source']['name']}")
-            embed.set_footer(text=f"Article {i}/{total}")
-            embeds.append(embed)
-        await self.send_embeds(ctx, embeds)
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
+            ctx=ctx,
+            wait=False,
+        )
