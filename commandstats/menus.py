@@ -76,7 +76,7 @@ class GenericMenu(menus.MenuPages, inherit_buttons=False):
 
     # left
     @menus.button(
-        "\N{BLACK LEFT-POINTING TRIANGLE}", position=menus.First(0), skip_if=_skip_single_arrows
+        "\N{BLACK LEFT-POINTING TRIANGLE}", position=menus.First(1), skip_if=_skip_single_arrows
     )
     async def prev(self, payload: discord.RawReactionActionEvent):
         if self.current_page == 0:
