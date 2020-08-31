@@ -1,8 +1,10 @@
+import datetime
 from typing import Any, Dict, Iterable, Optional
 
 import discord
 import tabulate
 from redbot.core import commands
+from redbot.core.utils.chat_formatting import box
 from redbot.vendored.discord.ext import menus
 
 
@@ -11,6 +13,10 @@ class GenericMenu(menus.MenuPages, inherit_buttons=False):
         self,
         source: menus.PageSource,
         cog: Optional[commands.Cog] = None,
+        title: Optional[str] = None,
+        _type: Optional[str] = None,
+        ctx=None,
+        timestamp: Optional[datetime.datetime] = None,
         clear_reactions_after: bool = True,
         delete_message_after: bool = True,
         add_reactions: bool = True,
@@ -22,6 +28,10 @@ class GenericMenu(menus.MenuPages, inherit_buttons=False):
         **kwargs: Any,
     ) -> None:
         self.cog = cog
+        self.title = title
+        self._type = _type
+        self.timestamp = timestamp
+        self.ctx = ctx
         super().__init__(
             source,
             clear_reactions_after=clear_reactions_after,
@@ -107,17 +117,28 @@ class GenericMenu(menus.MenuPages, inherit_buttons=False):
         await self.show_page(self._source.get_max_pages() - 1)
 
 
-class SearchFormat(menus.ListPageSource):
+class EmbedFormat(menus.ListPageSource):
     def __init__(self, entries: Iterable[str]):
         super().__init__(entries, per_page=1)
 
-    async def format_page(self, menu: GenericMenu, string: str) -> str:
+    async def format_page(self, menu: GenericMenu, data) -> str:
+        stats = []
+        for item in data:
+            stats.append(item)
         embed = discord.Embed(
-            title="Pokemon Search", color=await menu.ctx.embed_color(), description=string
+            title=menu.title,
+            colour=await menu.ctx.embed_color(),
+            description=box(
+                tabulate.tabulate(stats, headers=[menu._type, "Times Used"]), lang="prolog"
+            ),
         )
-        embed.set_footer(
-            text=_("Page {page}/{amount}").format(
-                page=menu.current_page + 1, amount=menu._source.get_max_pages()
+        if menu.timestamp is not None:
+            embed.set_footer(text="Recording commands since")
+            embed.timestamp = menu.timestamp
+        else:
+            embed.set_footer(
+                text="Page {page}/{amount}".format(
+                    page=menu.current_page + 1, amount=menu._source.get_max_pages()
+                )
             )
-        )
         return embed

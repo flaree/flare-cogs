@@ -7,12 +7,11 @@ from io import StringIO
 from typing import Counter, Optional
 
 import discord
+import pandas
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import box
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-import pandas
+from .menus import EmbedFormat, GenericMenu
 
 
 def chunks(l, n):
@@ -27,7 +26,7 @@ log = logging.getLogger("red.flare.commandstats")
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.1.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -106,29 +105,12 @@ class CommandStats(commands.Cog):
         name = str(ctx.command)
         self.record(ctx, name)
 
-    async def build_embed(self, ctx, data, title, *, timestamp=None, _type="Command"):
+    def build_data(self, data):
         data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
         stats = []
         for cmd, amount in data.items():
-            stats.append([f"{cmd}", f"{amount} time{'s' if amount != 1 else ''}!"])
-        a = chunks(stats, 15)
-        embeds = []
-        for items in a:
-            stats = []
-            for item in items:
-                stats.append(item)
-            embed = discord.Embed(
-                title=title,
-                colour=await self.bot.get_embed_color(ctx.channel),
-                description=box(
-                    tabulate.tabulate(stats, headers=[_type, "Times Used"]), lang="prolog"
-                ),
-            )
-            if timestamp is not None:
-                embed.set_footer(text="Recording commands since")
-                embed.timestamp = timestamp
-            embeds.append(embed)
-        return embeds
+            stats.append([f"{cmd}", f"{amount} time{'s' if amount != 1 else ''}"])
+        return list(chunks(stats, 15))
 
     @commands.is_owner()
     @commands.group(invoke_without_command=True)
@@ -142,11 +124,15 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send("No commands have been used yet.")
         if command is None:
-            embeds = await self.build_embed(ctx, data, "Commands Used")
-            if len(embeds) == 1:
-                await ctx.send(embed=embeds[0])
-            else:
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(data)),
+                title="Commands Used",
+                _type="Command",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
 
         else:
             if command in data:
@@ -156,17 +142,22 @@ class CommandStats(commands.Cog):
 
     @cmd.command()
     async def automated(self, ctx):
-        """Automated command stats."""
+        """Automated command stats.
+
+        Commands that have `ctx.assume_yes` will qualify as automated."""
         await self.update_global()
         data = await self.config.automated()
         if not data:
             return await ctx.send("No commands have been used yet.")
-        embeds = await self.build_embed(ctx, data, "Automated Commands Used")
-
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+        await GenericMenu(
+            source=EmbedFormat(self.build_data(data)),
+            title="Automatic Commands Used",
+            _type="Command",
+            ctx=ctx,
+        ).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     @cmd.command(aliases=["server"])
     async def guild(
@@ -185,11 +176,15 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send(f"No commands have been used in {server.name} yet.")
         if command is None:
-            embeds = await self.build_embed(ctx, data, f"Commands Used in {server.name}")
-            if len(embeds) == 1:
-                await ctx.send(embed=embeds[0])
-            else:
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(data)),
+                title=f"Commands Used in {server.name}",
+                _type="Command",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
 
         else:
             if command in data:
@@ -210,13 +205,16 @@ class CommandStats(commands.Cog):
         if not data:
             return await ctx.send("No commands have been used in this session")
         if command is None:
-            embeds = await self.build_embed(
-                ctx, data, "Commands Used during session", timestamp=self.session_time
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(data)),
+                title="Commands Used during session",
+                _type="Command",
+                ctx=ctx,
+                timestamp=self.session_time,
+            ).start(
+                ctx=ctx,
+                wait=False,
             )
-            if len(embeds) == 1:
-                await ctx.send(embed=embeds[0])
-            else:
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
 
         else:
             if command in data:
@@ -227,73 +225,105 @@ class CommandStats(commands.Cog):
                 await ctx.send(f"`{command}` hasn't been used in this session!")
 
     @cmd.group(invoke_without_command=True)
-    async def cogstats(self, ctx, *, cogname: str):
-        """Show command stats per cog."""
-        cog = self.bot.get_cog(cogname)
-        if cog is None:
-            await ctx.send("No such cog.")
-            return
-        commands = set([x.qualified_name for x in cog.walk_commands()])
+    async def cogstats(self, ctx, *, cogname: str = None):
+        """Show command stats per cog, all cogs or per session."""
         await self.update_global()
-        data = await self.config.globaldata()
-        a = {}
-        for command in data:
-            if command in commands:
-                a[command] = data[command]
-        if not a:
-            await ctx.send(f"No commands used from {cogname} as of yet.")
-            return
-        embeds = await self.build_embed(ctx, a, f"{cogname} Commands Used")
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
-
-    @cogstats.command(name="session")
-    async def _session(self, ctx, *, cogname: str):
-        """Cog stats in this session."""
-        cog = self.bot.get_cog(cogname)
-        if cog is None:
-            await ctx.send("No such cog.")
-            return
-        commands = set([x.qualified_name for x in cog.walk_commands()])
-        data = deepcopy(self.session)
-        a = {}
-        for command in data:
-            if command in commands:
-                a[command] = data[command]
-        if not a:
-            await ctx.send(f"No commands used from {cogname} as of yet.")
-            return
-        embeds = await self.build_embed(
-            ctx, a, f"{cogname} Commands Used during session", timestamp=self.session_time
-        )
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
-
-    @cogstats.command()
-    async def all(self, ctx):
-        """Cog stats in this session."""
-        await self.update_global()
-        data = await self.config.globaldata()
-        a = {}
-        for cogn in self.bot.cogs:
-            cog = self.bot.get_cog(cogn)
+        if cogname is not None:
+            cog = self.bot.get_cog(cogname)
+            if cog is None:
+                await ctx.send("No such cog.")
+                return
             commands = set([x.qualified_name for x in cog.walk_commands()])
-            a[cogn] = 0
+            data = await self.config.globaldata()
+            a = {}
             for command in data:
                 if command in commands:
-                    a[cogn] += data[command]
-        if not a:
-            await ctx.send(f"No commands used from any cog as of yet.")
-            return
-        embeds = await self.build_embed(ctx, a, f"Cogs used.", _type="Cog")
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
+                    a[command] = data[command]
+            if not a:
+                await ctx.send(f"No commands used from {cogname} as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title=f"{cogname} Commands Used",
+                _type="Command",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
         else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+            data = await self.config.globaldata()
+            a = {}
+            for cogn in self.bot.cogs:
+                cog = self.bot.get_cog(cogn)
+                commands = set([x.qualified_name for x in cog.walk_commands()])
+                a[cogn] = 0
+                for command in data:
+                    if command in commands:
+                        a[cogn] += data[command]
+            if not a:
+                await ctx.send(f"No commands used from any cog as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title="Cogs Used",
+                _type="Cog",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
+
+    @cogstats.command(name="session")
+    async def _session(self, ctx, *, cogname: str = None):
+        """Cog stats in this session."""
+        await self.update_global()
+        if cogname is not None:
+            cog = self.bot.get_cog(cogname)
+            if cog is None:
+                await ctx.send("No such cog.")
+                return
+            commands = set([x.qualified_name for x in cog.walk_commands()])
+            data = deepcopy(self.session)
+            a = {}
+            for command in data:
+                if command in commands:
+                    a[command] = data[command]
+            if not a:
+                await ctx.send(f"No commands used from {cogname} as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title=f"{cogname} Commands Used During Session",
+                _type="Command",
+                ctx=ctx,
+                timestamp=self.session_time,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
+        else:
+            data = deepcopy(self.session)
+            a = {}
+            for cogn in self.bot.cogs:
+                cog = self.bot.get_cog(cogn)
+                commands = set([x.qualified_name for x in cog.walk_commands()])
+                a[cogn] = 0
+                for command in data:
+                    if command in commands:
+                        a[cogn] += data[command]
+            if not a:
+                await ctx.send(f"No commands used from any cog as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title="Cogs Used During Session",
+                _type="Cog",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
 
     @cmd.command()
     async def csv(self, ctx):
