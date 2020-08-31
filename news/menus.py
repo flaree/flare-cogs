@@ -1,8 +1,8 @@
 from typing import Any, Dict, Iterable, Optional
 
 import discord
-import validators
 import iso8601
+import validators
 from redbot.core import commands
 from redbot.vendored.discord.ext import menus
 
@@ -116,12 +116,12 @@ class ArticleFormat(menus.ListPageSource):
 
     async def format_page(self, menu: GenericMenu, article) -> str:
         embed = discord.Embed(
-                title=article["title"],
-                color=await menu.ctx.embed_colour(),
-                description=f"\n{article['description']}",
-                timestamp=iso8601.parse_date(article["publishedAt"]),
-                url=article["url"],
-            )
+            title=article["title"],
+            color=await menu.ctx.embed_colour(),
+            description=f"\n{article['description']}",
+            timestamp=iso8601.parse_date(article["publishedAt"]),
+            url=article["url"],
+        )
         if article["urlToImage"] is not None:
             if validators.url(article["urlToImage"]):
                 embed.set_image(url=article["urlToImage"])
