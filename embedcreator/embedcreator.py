@@ -18,9 +18,17 @@ class EmbedCreator(commands.Cog):
 
     async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
         # this cog does not story any data
-        pass
+        all_guilds = await self.config.all_guilds()
+        matches = []
+        for guild_id, guildconf in all_guilds.items():
+            for embed in guildconf["embeds"]:
+                if guildconf["embeds"][embed]["author"] == user_id:
+                    matches.append((guild_id, embed))
+        for match in matches:
+            async with self.config.guild_from_id(match[0]).embeds() as embeds:
+                embeds[match[1]]["author"] = 00000000
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)

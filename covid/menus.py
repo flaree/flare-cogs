@@ -2,10 +2,10 @@ import datetime
 from typing import Any, Dict, Iterable, Optional
 
 import discord
+import validators
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_number
 from redbot.vendored.discord.ext import menus
-import validators
 
 
 class GenericMenu(menus.MenuPages, inherit_buttons=False):
@@ -132,16 +132,17 @@ class ArticleFormat(menus.ListPageSource):
         embed.set_footer(text=f"Article {menu.current_page + 1 }/{menu._source.get_max_pages()}")
         return embed
 
+
 class CovidMenu(menus.ListPageSource):
     def __init__(self, entries: Iterable[str]):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu: GenericMenu, country) -> str:
         embed = discord.Embed(
-                    color=await menu.ctx.embed_colour(),
-                    title="Covid-19 | {} Statistics".format(country["country"]),
-                    timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
-                )
+            color=await menu.ctx.embed_colour(),
+            title="Covid-19 | {} Statistics".format(country["country"]),
+            timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
+        )
         embed.set_thumbnail(url=country["countryInfo"]["flag"])
         embed.add_field(name="Cases", value=humanize_number(country["cases"]))
         embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
@@ -157,15 +158,16 @@ class CovidMenu(menus.ListPageSource):
         embed.set_footer(text=f"Page {menu.current_page + 1 }/{menu._source.get_max_pages()}")
         return embed
 
+
 class CovidStateMenu(menus.ListPageSource):
     def __init__(self, entries: Iterable[str]):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu: GenericMenu, state) -> str:
         embed = discord.Embed(
-                    color=await menu.ctx.embed_colour(),
-                    title="Covid-19 | USA | {} Statistics".format(state["state"]),
-                )
+            color=await menu.ctx.embed_colour(),
+            title="Covid-19 | USA | {} Statistics".format(state["state"]),
+        )
         embed.add_field(name="Cases", value=humanize_number(state["cases"]))
         embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
         embed.add_field(name=f"Cases {menu.type}", value=humanize_number(state["todayCases"]))
@@ -174,4 +176,3 @@ class CovidStateMenu(menus.ListPageSource):
         embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
         embed.set_footer(text=f"Page {menu.current_page + 1 }/{menu._source.get_max_pages()}")
         return embed
-
