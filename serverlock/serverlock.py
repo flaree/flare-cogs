@@ -1,7 +1,6 @@
 import discord
-from redbot.core import Config, commands
-
 import jsonpickle
+from redbot.core import Config, commands
 
 
 class ServerLock(commands.Cog):
