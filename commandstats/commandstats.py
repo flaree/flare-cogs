@@ -8,7 +8,6 @@ from typing import Counter, Optional
 
 import discord
 import pandas
-import tabulate
 from redbot.core import Config, commands
 
 from .menus import EmbedFormat, GenericMenu
