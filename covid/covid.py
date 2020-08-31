@@ -3,16 +3,16 @@ import typing
 
 import aiohttp
 import discord
-import validators
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_number
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+
+from .menus import ArticleFormat, CovidMenu, CovidStateMenu, GenericMenu
 
 
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -89,24 +89,10 @@ class Covid(commands.Cog):
                     ctx.prefix
                 )
             )
-        embeds = []
-        for i, article in enumerate(data["articles"], 1):
-            embed = discord.Embed(
-                title=article["title"],
-                color=await self.bot.get_embed_color(ctx.channel),
-                description=f"[Click Here for Full Article]({article['url']})\n\n{article['description']}",
-                timestamp=datetime.datetime.fromisoformat(article["publishedAt"].replace("Z", "")),
-            )
-            if article["urlToImage"] is not None:
-                if validators.url(article["urlToImage"]):
-                    embed.set_image(url=article["urlToImage"])
-            embed.set_author(name=f"{article['author']} - {article['source']['name']}")
-            embed.set_footer(text=f"Article {i}/{data['totalResults']}")
-            embeds.append(embed)
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     @commands.command()
     @commands.is_owner()
@@ -160,30 +146,10 @@ class Covid(commands.Cog):
                 data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embeds = []
-            for country in data:
-                embed = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
-                    title="Covid-19 | {} Statistics".format(country["country"]),
-                    timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
-                )
-                embed.set_thumbnail(url=country["countryInfo"]["flag"])
-                embed.add_field(name="Cases", value=humanize_number(country["cases"]))
-                embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
-                embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
-                embed.add_field(name="Cases Today", value=humanize_number(country["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(country["todayDeaths"]))
-                embed.add_field(
-                    name="Recovered Today", value=humanize_number(country["todayRecovered"])
-                )
-                embed.add_field(name="Critical", value=humanize_number(country["critical"]))
-                embed.add_field(name="Active", value=humanize_number(country["active"]))
-                embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
-                embeds.append(embed)
-            if len(embeds) == 1:
-                await ctx.send(embed=embeds[0])
-            else:
-                await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(source=CovidMenu(data), ctx=ctx, type="Today").start(
+                ctx=ctx,
+                wait=False,
+            )
 
     @covid.command()
     async def yesterday(self, ctx, *, country: str):
@@ -201,31 +167,10 @@ class Covid(commands.Cog):
                 data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embeds = []
-            for country in data:
-                embed = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
-                    title="Covid-19 | {} Statistics".format(country["country"]),
-                    timestamp=datetime.datetime.utcfromtimestamp(country["updated"] / 1000),
-                )
-                embed.set_thumbnail(url=country["countryInfo"]["flag"])
-                embed.add_field(name="Cases", value=humanize_number(country["cases"]))
-                embed.add_field(name="Deaths", value=humanize_number(country["deaths"]))
-                embed.add_field(name="Recovered", value=humanize_number(country["recovered"]))
-                embed.add_field(
-                    name="Cases Yesterday", value=humanize_number(country["todayCases"])
-                )
-                embed.add_field(
-                    name="Deaths Yesterday", value=humanize_number(country["todayDeaths"])
-                )
-                embed.add_field(name="Critical", value=humanize_number(country["critical"]))
-                embed.add_field(name="Active", value=humanize_number(country["active"]))
-                embed.add_field(name="Total Tests", value=humanize_number(country["tests"]))
-                embeds.append(embed)
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(source=CovidMenu(data), ctx=ctx, type="Yesterday").start(
+                ctx=ctx,
+                wait=False,
+            )
 
     @covid.command()
     async def todaycases(self, ctx):
@@ -446,23 +391,10 @@ class Covid(commands.Cog):
                 data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embeds = []
-            for state in data:
-                embed = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
-                    title="Covid-19 | USA | {} Statistics".format(state["state"]),
-                )
-                embed.add_field(name="Cases", value=humanize_number(state["cases"]))
-                embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
-                embed.add_field(name="Cases Today", value=humanize_number(state["todayCases"]))
-                embed.add_field(name="Deaths Today", value=humanize_number(state["todayDeaths"]))
-                embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
-                embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
-                embeds.append(embed)
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(source=CovidStateMenu(data), ctx=ctx, type="Today").start(
+                ctx=ctx,
+                wait=False,
+            )
 
     @state.command(name="yesterday")
     async def _yesterday(self, ctx, *, states: str):
@@ -481,22 +413,7 @@ class Covid(commands.Cog):
                 data = [data]
             if not data:
                 return await ctx.send("No data available.")
-            embeds = []
-            for state in data:
-                embed = discord.Embed(
-                    color=await self.bot.get_embed_color(ctx.channel),
-                    title="Covid-19 | USA | {} Statistics".format(state["state"]),
-                )
-                embed.add_field(name="Cases", value=humanize_number(state["cases"]))
-                embed.add_field(name="Deaths", value=humanize_number(state["deaths"]))
-                embed.add_field(name="Cases Yesterday", value=humanize_number(state["todayCases"]))
-                embed.add_field(
-                    name="Deaths Yesterday", value=humanize_number(state["todayDeaths"])
-                )
-                embed.add_field(name="Active Cases", value=humanize_number(state["active"]))
-                embed.add_field(name="Total Tests", value=humanize_number(state["tests"]))
-                embeds.append(embed)
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS)
+            await GenericMenu(source=CovidStateMenu(data), ctx=ctx, type="Yesterday").start(
+                ctx=ctx,
+                wait=False,
+            )
