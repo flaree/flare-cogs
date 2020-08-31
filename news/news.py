@@ -1,6 +1,5 @@
 import aiohttp
 from redbot.core import commands
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .menus import ArticleFormat, GenericMenu
 
@@ -56,12 +55,6 @@ class News(commands.Cog):
                     }
             else:
                 return {"failed": data["message"]}
-
-    async def send_embeds(self, ctx, embeds):
-        if len(embeds) == 1:
-            await ctx.send(embed=embeds[0])
-        else:
-            await menu(ctx, embeds, DEFAULT_CONTROLS, timeout=90)
 
     @commands.group()
     async def news(self, ctx):
