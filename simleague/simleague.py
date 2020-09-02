@@ -500,11 +500,9 @@ class SimLeague(
             self.log.debug(f"Team 1: {t1totalxp} - Team 2: {t2totalxp}")
             redst1 = float(f"0.{reds1 * redcardmodifier}")
             redst2 = float(f"0.{reds2 * redcardmodifier}")
-            if redst1 == 0:
-                redst1 = 1
-            if redst2 == 0:
-                redst2 = 1
-            total = ["A"] * int((t1totalxp // redst1)) + ["B"] * int((t2totalxp // redst2))
+            total = ["A"] * int(((1 - redst1) * 100) * t1totalxp) + ["B"] * int(
+                ((1 - redst2) * 100) * t2totalxp
+            )
             rdmint = random.choice(total)
             if rdmint == "A":
                 return team1Stats
