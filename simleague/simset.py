@@ -180,9 +180,33 @@ class SimsetMixin(MixinMeta):
     @simset.command()
     async def resultchannel(self, ctx, channel: discord.TextChannel):
         """Add a channel for automatic result posting."""
-        async with self.config.guild(ctx.guild).resultchannel() as result:
-            result.append(channel.id)
+        channels = await self.config.guild(ctx.guild).resultchannel()
+        for c in channels:
+            if c == channel.id:
+                await ctx.send('Results are already posted in this channel')
+                return
+
+        channels.append(channel.id)
+        await self.config.guild(ctx.guild).resultchannel.set(channels)
         await ctx.tick()
+
+    @simset.command()
+    async def resultchannels(self, ctx, option: str):
+        """Show or clear all result channels."""
+        if option == "clear":
+            await self.config.guild(ctx.guild).resultchannel.set([])
+            await ctx.tick()
+        elif option == "show":
+            async with self.config.guild(ctx.guild).resultchannel() as result:
+                a = []
+                for res in result:
+                    channel = ctx.guild.get_channel(res).name
+                    a.append(channel)
+                embed = discord.Embed(title="Result channels", description="\n".join(a), colour=0xFF0000)
+                await ctx.send(embed=embed)
+        else:
+            await ctx.send("No parameter for resultchannels, you must choose 'show' or 'clear'")
+
 
     @simset.command()
     async def window(self, ctx, status: str):
