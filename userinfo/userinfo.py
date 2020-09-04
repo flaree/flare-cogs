@@ -15,7 +15,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -262,7 +262,7 @@ class Userinfo(commands.Cog):
                         bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}\n"
                 if "Adventure" in self.bot.cogs:
                     cog = self.bot.get_cog("Adventure")
-                    if cog._separate_economy:
+                    if getattr(cog, "_separate_economy", False):
                         global adventure_bank
                         if adventure_bank is None:
                             try:
