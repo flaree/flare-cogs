@@ -56,11 +56,11 @@ class Userinfo(commands.Cog):
         }
 
     async def red_get_data_for_user(self, *, user_id: int):
-        # this cog does not story any data
+        # this cog does not store any data
         return {}
 
     async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
-        # this cog does not story any data
+        # this cog does not store any data
         pass
 
     def cog_unload(self):
