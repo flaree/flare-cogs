@@ -183,7 +183,7 @@ class SimsetMixin(MixinMeta):
         channels = await self.config.guild(ctx.guild).resultchannel()
         for c in channels:
             if c == channel.id:
-                await ctx.send('Results are already posted in this channel')
+                await ctx.send("Results are already posted in this channel")
                 return
 
         channels.append(channel.id)
@@ -202,11 +202,12 @@ class SimsetMixin(MixinMeta):
                 for res in result:
                     channel = ctx.guild.get_channel(res).name
                     a.append(channel)
-                embed = discord.Embed(title="Result channels", description="\n".join(a), colour=0xFF0000)
+                embed = discord.Embed(
+                    title="Result channels", description="\n".join(a), colour=0xFF0000
+                )
                 await ctx.send(embed=embed)
         else:
             await ctx.send("No parameter for resultchannels, you must choose 'show' or 'clear'")
-
 
     @simset.command()
     async def window(self, ctx, status: str):
