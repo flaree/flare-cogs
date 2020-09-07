@@ -180,14 +180,12 @@ class SimsetMixin(MixinMeta):
     @simset.command()
     async def resultchannel(self, ctx, channel: discord.TextChannel):
         """Add a channel for automatic result posting."""
-        channels = await self.config.guild(ctx.guild).resultchannel()
-        for c in channels:
-            if c == channel.id:
+        async with self.config.guild(ctx.guild).resultchannel() as channels:
+            if channel.id in channels:
                 await ctx.send("Results are already posted in this channel")
                 return
 
-        channels.append(channel.id)
-        await self.config.guild(ctx.guild).resultchannel.set(channels)
+            channels.append(channel.id)
         await ctx.tick()
 
     @simset.command()
@@ -200,8 +198,9 @@ class SimsetMixin(MixinMeta):
             async with self.config.guild(ctx.guild).resultchannel() as result:
                 a = []
                 for res in result:
-                    channel = ctx.guild.get_channel(res).name
-                    a.append(channel)
+                    channel = ctx.guild.get_channel(res)
+                    if channel is not None:
+                        a.append(channel.name)
                 embed = discord.Embed(
                     title="Result channels", description="\n".join(a), colour=0xFF0000
                 )
