@@ -1,7 +1,7 @@
 import asyncio
+import contextlib
 import json
 import logging
-import contextlib
 from typing import Dict
 
 import aiohttp

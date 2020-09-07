@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.5"
+    __version__ = "0.1.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -34,6 +34,7 @@ class RedditPost(commands.Cog):
         self.config.register_global(delay=300)
         self.session = aiohttp.ClientSession()
         self.bg_loop_task: Optional[asyncio.Task] = None
+        self.notified = False
 
     async def red_get_data_for_user(self, *, user_id: int):
         # this cog does not story any data
@@ -60,8 +61,10 @@ class RedditPost(commands.Cog):
                 await asyncio.sleep(delay)
             except Exception as exc:
                 log.error("Exception in bg_loop: ", exc_info=exc)
-                msg = "An exception occured in the background loop for `redditpost`. Check your logs for more details and if possible, report them to the cog creator."
-                await self.bot.send_to_owners(msg)
+                if not self.notified:
+                    msg = "An exception occured in the background loop for `redditpost`. Check your logs for more details and if possible, report them to the cog creator.\nYou will no longer receive this message until you reload the cog to reduce spam."
+                    await self.bot.send_to_owners(msg)
+                    self.notified = True
 
     async def do_feeds(self):
         feeds = {}
