@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.15"
+    __version__ = "0.0.16"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
