@@ -64,7 +64,7 @@ class BotListsPost(commands.Cog):
     async def post_stats(self):
         await self.bot.wait_until_ready()
         await self.init()
-        botid = int(self.bot.user.id)
+        botid = str(self.bot.user.id)
         while True:
             success = []
             failed = []
@@ -89,7 +89,7 @@ class BotListsPost(commands.Cog):
                             for _list in data["failure"]:
                                 failed.append(f"{_list} ({data['failure'][_list][0]})")
                     else:
-
+                        print(await r.json())
                         failed.append(f"BotBlock ({r.status})")
 
             if self.bsdctoken is not None:
