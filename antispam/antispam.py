@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -150,8 +150,8 @@ class AntiSpam(commands.Cog):
             await ctx.send("Logging will no longer be posted.")
         await self.gen_cache()
 
-    @antispamset.command()
-    async def list(self, ctx):
+    @antispamset.command(name="list")
+    async def _list(self, ctx):
         """Show those currently blacklisted from using commands."""
         if not self.blacklist:
             return await ctx.send("No users currently blacklisted.")
@@ -178,3 +178,18 @@ class AntiSpam(commands.Cog):
             f"**Logging**: {'Yes - {}'.format(self.logchannel.mention) if self.logchannel else 'No'}"
         )
         await ctx.maybe_send_embed(msg)
+
+    @antispamset.command()
+    async def remove(self, ctx, user: discord.Member):
+        """Remove a user from the anti-spam blacklist."""
+        if user.id in self.blacklist:
+            del self.blacklist[user.id]
+            await ctx.tick()
+            return
+        await ctx.send(f"{user} isn't blocked from using commands.")
+
+    @antispamset.command()
+    async def clear(self, ctx):
+        """Clear the antispam list."""
+        self.blacklist = {}
+        await ctx.tick()
