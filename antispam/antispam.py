@@ -39,6 +39,7 @@ class AntiSpam(commands.Cog):
         pass
 
     async def gen_cache(self):
+        await self.bot.wait_until_ready()
         self.config_cache = await self.config.all()
         if self.config_cache["logging"]:
             self.logchannel = self.bot.get_channel(self.config_cache["logging"])
