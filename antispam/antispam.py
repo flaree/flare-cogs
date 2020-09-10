@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.6"
+    __version__ = "0.0.7"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -39,12 +39,7 @@ class AntiSpam(commands.Cog):
         pass
 
     async def gen_cache(self):
-        await self.bot.wait_until_ready()
         self.config_cache = await self.config.all()
-        if self.config_cache["logging"]:
-            self.logchannel = self.bot.get_channel(self.config_cache["logging"])
-        else:
-            self.logchannel = None
 
     def check(self, ctx):
         user = self.blacklist.get(ctx.author.id)
@@ -87,10 +82,12 @@ class AntiSpam(commands.Cog):
                     f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands.",
                     delete_after=self.config_cache["mute_length"],
                 )
-                if self.logchannel:
-                    await self.logchannel.send(
-                        f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
-                    )
+                if self.config_cache.get("logging", None) is not None:
+                    channel = self.bot.get_channel(self.config_cache["logging"])
+                    if channel:
+                        await channel.send(
+                            f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
+                        )
 
     @commands.is_owner()
     @commands.group()
