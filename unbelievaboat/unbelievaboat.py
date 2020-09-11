@@ -265,6 +265,8 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
     @commands.bot_has_permissions(embed_links=True)
     async def work(self, ctx):
         """Work for some cash."""
+        if ctx.assume_yes:
+            return await ctx.send("This command can't be scheduled.")
         cdcheck = await self.cdcheck(ctx, "workcd")
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "work")
@@ -310,6 +312,8 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
     @commands.bot_has_permissions(embed_links=True)
     async def crime(self, ctx):
         """Commit a crime, more risk but higher payout."""
+        if ctx.assume_yes:
+            return await ctx.send("This command can't be scheduled.")
         cdcheck = await self.cdcheck(ctx, "crimecd")
         if isinstance(cdcheck, tuple):
             embed = await self.cdnotice(ctx.author, cdcheck[1], "crime")
@@ -359,6 +363,8 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
     @commands.bot_has_permissions(embed_links=True)
     async def rob(self, ctx, user: discord.Member):
         """Rob another user."""
+        if ctx.assume_yes:
+            return await ctx.send("This command can't be scheduled.")
         if user == ctx.author:
             return await ctx.send("Robbing yourself doesn't make much sense.")
         cdcheck = await self.cdcheck(ctx, "robcd")
