@@ -12,6 +12,8 @@ START_CODE_BLOCK_RE = re.compile(r"^((```json)(?=\s)|(```))")
 
 
 class EmbedCreator(commands.Cog):
+    """EmbedCreator"""
+
     async def red_get_data_for_user(self, *, user_id: int):
         # this cog does not story any data
         return {}
