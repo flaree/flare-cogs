@@ -76,6 +76,7 @@ class EmbedCreator(commands.Cog):
         )
 
     @embed.command(name="file")
+    @commands.bot_has_permissions(embed_links=True)
     async def embed_file(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Send an embed from a json file."""
         channel = channel or ctx.channel
@@ -92,6 +93,7 @@ class EmbedCreator(commands.Cog):
         await self.build_embed(ctx, data=data, channel=channel)
 
     @embed.command(name="json")
+    @commands.bot_has_permissions(embed_links=True)
     async def embed_json(self, ctx, *, raw_json: str):
         """Send an embed from directly pasting json."""
         channel = ctx.channel
@@ -149,10 +151,12 @@ class EmbedCreator(commands.Cog):
 
     @embed.group()
     @commands.admin_or_permissions(manage_guild=True)
+    @commands.bot_has_permissions(embed_links=True)
     async def store(self, ctx):
         """Embed storing commands"""
 
     @store.command(name="file")
+    @commands.bot_has_permissions(embed_links=True)
     async def store_file(self, ctx, *, name: str):
         """Store an embed from a json file."""
         embeds_stored = await self.config.guild(ctx.guild).embeds()
@@ -167,6 +171,7 @@ class EmbedCreator(commands.Cog):
         await self.store_embed(ctx, name=name, data=data)
 
     @store.command(name="json")
+    @commands.bot_has_permissions(embed_links=True)
     async def store_json(self, ctx, name: str, *, raw_json):
         """Store an embed from raw json."""
         raw_json = self.cleanup_code(raw_json)
@@ -176,6 +181,7 @@ class EmbedCreator(commands.Cog):
         await self.store_embed(ctx, name=name, data=raw_json)
 
     @embed.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def send(self, ctx, channel: Optional[discord.TextChannel] = None, *, name: str):
         """Send a saved embed."""
         channel = channel or ctx.channel
@@ -196,9 +202,9 @@ class EmbedCreator(commands.Cog):
             del embeds[name]
         await ctx.tick()
 
-    @embed.command()
+    @embed.command(name="list")
     @commands.admin_or_permissions(manage_guild=True)
-    async def list(self, ctx):
+    async def _list(self, ctx):
         """List saved embeds."""
         embeds_stored = await self.config.guild(ctx.guild).embeds()
         if not embeds_stored:
