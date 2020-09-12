@@ -167,12 +167,16 @@ class AntiSpam(commands.Cog):
     async def settings(self, ctx):
         """Show current antispam settings"""
         await self.gen_cache()
+        if self.config_cache["logging"]:
+            channel = self.bot.get_channel(self.config_cache["logging"])
+        else:
+            channel = None
         msg = (
             f"**Blacklist Length**: {humanize_timedelta(seconds=self.config_cache['mute_length'])}\n"
             f"**Per** {humanize_timedelta(seconds=self.config_cache['per'])}\n"
             f"**Amount**: {self.config_cache['amount']}\n"
             f"**Mod/Admin Bypass**: {'Yes' if self.config_cache['mod_bypass'] else 'No'}\n"
-            f"**Logging**: {'Yes - {}'.format(self.logchannel.mention) if self.logchannel else 'No'}"
+            f"**Logging**: {'Yes - {}'.format(channel.mention) if channel else 'No'}"
         )
         await ctx.maybe_send_embed(msg)
 
