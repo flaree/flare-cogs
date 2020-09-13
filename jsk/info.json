@@ -1,6 +1,6 @@
 {
     "author": ["flare(flare#0001)"],
-    "install_msg": "This cog ports the Jishaku module to Red. No support is given for this cog, nor am I responsibile for anything that way go wrong as from you misuing the tools. Note that some of these may be useless on Red.",
+    "install_msg": "This cog ports the Jishaku module to Red. No support is given for this cog, nor am I responsibile for anything that way go wrong as from you misuing the tools. Note that some of these may be useless on Red. [p]help Jishaku or [p]help jsk",
     "name": "Jsk",
     "hidden": true,
     "short": "Jishaku ported to Red.",
