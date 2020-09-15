@@ -32,7 +32,7 @@ class StickBugged(commands.Cog):
         )
         return sb.video
 
-    @commands.command()
+    @commands.command(aliases=["stickbug", "stickbugged"])
     async def stick(self, ctx, user: discord.Member = None):
         """get stick bugged lol"""
         async with ctx.typing():
