@@ -32,6 +32,7 @@ class StickBugged(commands.Cog):
         )
         return sb.video
 
+    @commands.max_concurrency(2, commands.BucketType.default)
     @commands.command(aliases=["stickbug", "stickbugged"])
     async def stick(self, ctx, user: discord.Member = None):
         """get stick bugged lol"""
