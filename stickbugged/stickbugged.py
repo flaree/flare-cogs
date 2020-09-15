@@ -40,14 +40,20 @@ class StickBugged(commands.Cog):
             user = user or ctx.author
             io = BytesIO()
             await user.avatar_url_as(format="png").save(io, seek_begin=True)
-            await self.bot.loop.run_in_executor(None, self.blocking, io, ctx.message.id)
+            try:
+                await self.bot.loop.run_in_executor(None, self.blocking, io, ctx.message.id)
+            except Exception as e:
+                log.error("Error sending stick bugged video", exc_info=e)
+                return await ctx.send(
+                    "An error occured during the creation of the stick bugged video"
+                )
             fp = cog_data_path(self) / f"{ctx.message.id}stick.mp4"
             file = discord.File(str(fp), filename="stick.mp4")
             try:
                 await ctx.send(files=[file])
-            except Exception:
-                log.error("Error sending stick bugged video", exc_info=True)
+            except Exception as e:
+                log.error("Error sending stick bugged video", exc_info=e)
             try:
                 os.remove(fp)
-            except Exception:
-                log.error("Error deleting stick bugged video", exc_info=True)
+            except Exception as e:
+                log.error("Error deleting stick bugged video", exc_info=e)
