@@ -70,7 +70,7 @@ class CommandStats(commands.Cog):
     def record(self, ctx, name):
         guild = ctx.message.guild
         if not ctx.message.author.bot:
-            if ctx.assume_yes:
+            if getattr(ctx, "assume_yes", False):
                 if name not in self.cache["automated"]:
                     self.cache["automated"][name] = 1
                 else:
