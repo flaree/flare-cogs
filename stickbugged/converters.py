@@ -68,4 +68,4 @@ class ImageFinder(Converter):
                 urls.append(match.group(1))
         if not urls:
             raise BadArgument("No Images found in recent history.")
-        return urls
+        return urls[0]
