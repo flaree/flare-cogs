@@ -1,18 +1,20 @@
 import asyncio
 import logging
+import functools
 import os
 from io import BytesIO
 
 import aiohttp
 import discord
 from gsbl.stick_bug import StickBug
+from typing import Optional
 from PIL import Image
 from redbot.core import commands
 from redbot.core.data_manager import cog_data_path
 
 from .converters import ImageFinder
 
-log = logging.getLogger("redbot.flare.stick")
+log = logging.getLogger("red.flare.stick")
 
 
 class StickBugged(commands.Cog):
@@ -27,15 +29,14 @@ class StickBugged(commands.Cog):
 
     def __init__(self, bot) -> None:
         self.bot = bot
-        self._session = aiohttp.ClientSession()
+        self._stickbug = StickBug()
 
     def blocking(self, io, id):
-        sb = StickBug(Image.open(io))
+        self._stickbug.image = Image.open(io)
 
-        sb.video_resolution = (1280, 720)
-        sb.lsd_scale = 0.5
-
-        video = sb.video
+        self._stickbug.video_resolution = (1280, 720)
+        self._stickbug.lsd_scale = 0.5
+        video = self._stickbug.video
         video.write_videofile(
             str(cog_data_path(self)) + f"/{id}stick.mp4",
             threads=1,
@@ -44,28 +45,40 @@ class StickBugged(commands.Cog):
             logger=None,
             temp_audiofile=str(cog_data_path(self) / f"{id}stick.mp3"),
         )
-        return sb.video
+        video.close()
+        return
 
-    @commands.max_concurrency(2, commands.BucketType.default)
+    @commands.max_concurrency(1, commands.BucketType.default)
     @commands.command(aliases=["stickbug", "stickbugged"])
-    async def stick(self, ctx, image: ImageFinder):
+    async def stick(self, ctx, images: Optional[ImageFinder]):
         """get stick bugged lol"""
+        if images is None:
+            images = await ImageFinder().search_for_images(ctx)
+        if not images:
+            return await ctx.send_help()
+        image = images
         async with ctx.typing():
             io = BytesIO()
             if isinstance(image, discord.Asset):
                 await image.save(io, seek_begin=True)
             else:
-                async with self._session.get(str(image)) as resp:
-                    if resp.status == 200:
-                        io.write(await resp.read())
-                        io.seek(0)
-                    else:
-                        return await ctx.send("The picture returned an unknown status code.")
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(str(image)) as resp:
+                        if resp.status == 200:
+                            io.write(await resp.read())
+                            io.seek(0)
+                        else:
+                            return await ctx.send("The picture returned an unknown status code.")
             await asyncio.sleep(0.2)
+            fake_task = functools.partial(self.blocking, io=io, id=ctx.message.id)
+            task = self.bot.loop.run_in_executor(None, fake_task)
             try:
-                await self.bot.loop.run_in_executor(None, self.blocking, io, ctx.message.id)
+                video_file = await asyncio.wait_for(task, timeout=300)
+            except asyncio.TimeoutError:
+                log.error("Timeout creating stickbug video", exc_info=e)
+                return await ctx.send("Timeout creating stickbug video.")
             except Exception as e:
-                log.error("Error sending stick bugged video", exc_info=e)
+                log.exception("Error sending stick bugged video")
                 return await ctx.send(
                     "An error occured during the creation of the stick bugged video"
                 )
