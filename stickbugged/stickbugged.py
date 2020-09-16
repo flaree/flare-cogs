@@ -35,7 +35,9 @@ class StickBugged(commands.Cog):
         io = Image.open(io)
         self._stickbug.image = io
 
-        self._stickbug.video_resolution = max(min(1280, io.width), 128), max(min(720, io.height), 72)
+        self._stickbug.video_resolution = max(min(1280, io.width), 128), max(
+            min(720, io.height), 72
+        )
         self._stickbug.lsd_scale = 0.35
         video = self._stickbug.video
         video.write_videofile(
