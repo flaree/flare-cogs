@@ -32,10 +32,11 @@ class StickBugged(commands.Cog):
         self._stickbug = StickBug()
 
     def blocking(self, io, id):
-        self._stickbug.image = Image.open(io)
+        io = Image.open(io)
+        self._stickbug.image = io
 
-        self._stickbug.video_resolution = (1280, 720)
-        self._stickbug.lsd_scale = 0.5
+        self._stickbug.video_resolution = max(min(1280, io.width), 128), max(min(720, io.height), 72)
+        self._stickbug.lsd_scale = 0.35
         video = self._stickbug.video
         video.write_videofile(
             str(cog_data_path(self)) + f"/{id}stick.mp4",
