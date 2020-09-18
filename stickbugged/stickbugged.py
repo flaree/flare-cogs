@@ -1,13 +1,13 @@
 import asyncio
-import logging
 import functools
+import logging
 import os
 from io import BytesIO
+from typing import Optional
 
 import aiohttp
 import discord
 from gsbl.stick_bug import StickBug
-from typing import Optional
 from PIL import Image
 from redbot.core import commands
 from redbot.core.data_manager import cog_data_path

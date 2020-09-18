@@ -12,7 +12,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -59,6 +59,8 @@ class AntiSpam(commands.Cog):
             self.config_cache["mod_bypass"] and await self.bot.is_mod(ctx.author)
         ):
             return
+        if not ctx.valid:
+            return
         author = ctx.author
         ctx.guild
         now = datetime.now()
@@ -85,8 +87,9 @@ class AntiSpam(commands.Cog):
                 if self.config_cache.get("logging", None) is not None:
                     channel = self.bot.get_channel(self.config_cache["logging"])
                     if channel:
+                        server_msg = f"{ctx.channel.mention} ({ctx.guild})" if ctx.guild else "DMs"
                         await channel.send(
-                            f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds."
+                            f"{ctx.author}({ctx.author.id}) has been blacklisted from using commands for {self.config_cache['mute_length']} seconds.\nLast command was in {server_msg}."
                         )
 
     @commands.is_owner()
