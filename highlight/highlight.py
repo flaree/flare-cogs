@@ -5,6 +5,7 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import discord
+
 import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
@@ -54,7 +55,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.4.0"
+    __version__ = "1.4.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -170,7 +171,7 @@ class Highlight(commands.Cog):
         """Highlighting Commands."""
 
     @highlight.command()
-    async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *, text: str):
+    async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *text: str):
         """Add a word to be highlighted on.
 
         Text will be converted to lowercase.\nCan also provide an optional channel arguement for
@@ -184,26 +185,32 @@ class Highlight(commands.Cog):
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
                 highlight[f"{ctx.author.id}"] = {}
-            if text.lower() not in highlight[f"{ctx.author.id}"]:
-                highlight[f"{ctx.author.id}"][text.lower()] = {
-                    "toggle": True,
-                    "bots": False,
-                    "boundary": False,
-                }
-                await ctx.send(
-                    f"The word `{text}` has been added to your highlight list for {channel}."
-                )
-            else:
-                await ctx.send(f"The word {text} is already in your highlight list for {channel}.")
+            passed = []
+            failed = []
+            for word in text:
+                if word.lower() not in highlight[f"{ctx.author.id}"]:
+                    highlight[f"{ctx.author.id}"][word.lower()] = {
+                        "toggle": True,
+                        "bots": False,
+                        "boundary": False,
+                    }
+                    passed.append(word)
+                else:
+                    failed.append(word)
+        msg = ""
+        if passed:
+            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} was added to {ctx.author}'s highlight list in {channel}.\n"
+        if failed:
+            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {'are' if len(failed) > 1 else 'is'} already in your highlight list for {channel}."
+        await ctx.send(msg)
         await self.generate_cache()
 
     @highlight.command()
-    async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *, word: str):
+    async def remove(self, ctx, channel: Optional[discord.TextChannel] = None, *text: str):
         """Remove highlighting in a channel.
 
         An optional channel can be provided to remove a highlight from that channel.
         """
-        word = word.lower()
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
@@ -213,14 +220,21 @@ class Highlight(commands.Cog):
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
                 return await ctx.send(f"You don't have any highlights setup in {channel}")
-            if word in highlight[f"{ctx.author.id}"]:
-                await ctx.send(
-                    f"Highlighted word `{word}` has been removed from {channel} successfully."
-                )
-                del highlight[f"{ctx.author.id}"][word]
-
-            else:
-                await ctx.send("Your word is not currently setup in that channel..")
+            passed = []
+            failed = []
+            for word in text:
+                if word.lower() in highlight[f"{ctx.author.id}"]:
+                    del highlight[f"{ctx.author.id}"][word]
+                    passed.append(word)
+                else:
+                    failed.append(word)
+        msg = ""
+        if passed:
+            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} {'were' if len(failed) > 1 else 'was'} removed from {ctx.author}'s highlight list in {channel}.\n"
+        if failed:
+            a = "doesn't"
+            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {a if len(failed) > 1 else 'do not'} exist in your highlight list for {channel}."
+        await ctx.send(msg)
         await self.generate_cache()
 
     @highlight.command()
