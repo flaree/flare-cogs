@@ -95,6 +95,8 @@ class CommandStats(commands.Cog):
     @commands.Cog.listener()
     async def on_command(self, ctx):
         """Record standard command events."""
+        if not ctx.valid:
+            return
         name = str(ctx.command)
         self.record(ctx, name)
 
