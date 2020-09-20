@@ -59,7 +59,7 @@ class AntiSpam(commands.Cog):
                         to_delete.append(user)
                 for entry in to_delete:
                     del self.blacklist[entry]
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
             except Exception as exc:
                 log.error("Exception occured in snipe loop: ", exc_info=exc)
                 break
