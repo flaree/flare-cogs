@@ -53,7 +53,6 @@ class AntiSpam(commands.Cog):
         await self.bot.wait_until_ready()
         while True:
             try:
-                print(self.blacklist)
                 to_delete = []
                 for user in self.blacklist:
                     if self.blacklist[user]["expiry"] < datetime.now():
