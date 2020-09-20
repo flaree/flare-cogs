@@ -5,7 +5,6 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import discord
-
 import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
@@ -177,6 +176,8 @@ class Highlight(commands.Cog):
         Text will be converted to lowercase.\nCan also provide an optional channel arguement for
         the highlight to be applied to that channel.
         """
+        if not text:
+            return await ctx.send_help()
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
@@ -211,6 +212,8 @@ class Highlight(commands.Cog):
 
         An optional channel can be provided to remove a highlight from that channel.
         """
+        if not text:
+            return await ctx.send_help()
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
