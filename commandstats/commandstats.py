@@ -93,7 +93,7 @@ class CommandStats(commands.Cog):
                 self.session[name] += 1
 
     @commands.Cog.listener()
-    async def on_command(self, ctx):
+    async def on_command_completion(self, ctx):
         """Record standard command events."""
         if not ctx.valid:
             return
