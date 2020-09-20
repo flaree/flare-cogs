@@ -1,5 +1,7 @@
+import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 
 import discord
 from redbot.core import Config, commands
@@ -12,7 +14,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.9"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -29,6 +31,7 @@ class AntiSpam(commands.Cog):
         self.cache = {}
         self.blacklist = {}
         bot.add_check(self.check)
+        self.antispam_loop_task: Optional[asyncio.Task] = None
 
     async def red_get_data_for_user(self, *, user_id: int):
         # this cog does not story any data
@@ -37,6 +40,30 @@ class AntiSpam(commands.Cog):
     async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
         # this cog does not story any data
         pass
+
+    def cog_unload(self):
+        if self.antispam_loop_task:
+            self.antispam_loop_task.cancel()
+
+    async def init(self):
+        self.antispam_loop_task = self.bot.loop.create_task(self.antispam_loop())
+        await self.gen_cache()
+
+    async def antispam_loop(self):
+        await self.bot.wait_until_ready()
+        while True:
+            try:
+                print(self.blacklist)
+                to_delete = []
+                for user in self.blacklist:
+                    if self.blacklist[user]["expiry"] < datetime.now():
+                        to_delete.append(user)
+                for entry in to_delete:
+                    del self.blacklist[entry]
+                await asyncio.sleep(10)
+            except Exception as exc:
+                log.error("Exception occured in snipe loop: ", exc_info=exc)
+                break
 
     async def gen_cache(self):
         self.config_cache = await self.config.all()
@@ -81,7 +108,7 @@ class AntiSpam(commands.Cog):
                 expiry = datetime.now() + timedelta(seconds=self.config_cache["mute_length"])
                 self.blacklist[author.id] = {"id": author.id, "expiry": expiry}
                 await ctx.send(
-                    f"Slow down {ctx.author.name}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands.",
+                    f"Slow down {ctx.author.mention}! You're now on a {humanize_timedelta(seconds=self.config_cache['mute_length'])} cooldown from commands.",
                     delete_after=self.config_cache["mute_length"],
                 )
                 if self.config_cache.get("logging", None) is not None:
@@ -196,4 +223,14 @@ class AntiSpam(commands.Cog):
     async def clear(self, ctx):
         """Clear the antispam list."""
         self.blacklist = {}
+        await ctx.tick()
+
+    @antispamset.command()
+    async def add(
+        self, ctx, users: commands.Greedy[discord.Member], *, length: TimedeltaConverter
+    ):
+        """Manually blacklist a user for a set time."""
+        expiry = datetime.now() + length
+        for user in users:
+            self.blacklist[user.id] = {"id": user.id, "expiry": expiry}
         await ctx.tick()
