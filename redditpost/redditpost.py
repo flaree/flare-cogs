@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.6"
+    __version__ = "0.1.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -285,12 +285,15 @@ class RedditPost(commands.Cog):
         embeds = []
         data = data[:1] if latest else data
         webhook = None
-        if webhook_set and channel.permissions_for(channel.guild.me).manage_webhooks:
-            for hook in await channel.webhooks():
-                if hook.name == channel.guild.me.name:
-                    webhook = hook
-            if webhook is None:
-                webhook = await channel.create_webhook(name=channel.guild.me.name)
+        try:
+            if webhook_set and channel.permissions_for(channel.guild.me).manage_webhooks:
+                for hook in await channel.webhooks():
+                    if hook.name == channel.guild.me.name:
+                        webhook = hook
+                if webhook is None:
+                    webhook = await channel.create_webhook(name=channel.guild.me.name)
+        except Exception as e:
+            log.error("Error in webhooks during reddit feed posting", exc_info=e)
         for feed in data:
             feed = feed["data"]
             timestamp = feed["created_utc"]
