@@ -87,7 +87,7 @@ class Verify(commands.Cog):
 
             welcome_msgs = [f"Hello world! Welcome {user.name} to the server!"]
 
-            await mod.send(f"User {user.name} joined the server!", allowed_mentions=discord.AllowedMentions(here=True)
+            await mod.send(f"User {user.name} joined the server!", allowed_mentions=discord.AllowedMentions(here=True))
             await general.send(random.choice(welcome_msgs))
                            
         else:
