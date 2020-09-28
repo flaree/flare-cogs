@@ -3,7 +3,7 @@ from email.message import EmailMessage
 from redbot.core import Config, commands
 import secrets
 import discord
-
+import random
 
 class Verify(commands.Cog):
     def __init__(self, bot):
@@ -75,11 +75,21 @@ class Verify(commands.Cog):
             guild = self.bot.get_guild(713522800081764392)
             role = guild.get_role(713538570824187968)
             user = guild.get_member(ctx.author.id)
+            mod, general = self.bot.get_channel(713522800081764395), self.bot.get_channel(713524886840279042)
+
             await user.add_roles(
                 role,
                 reason=f"Automatically verified - Email: {await self.config.user(ctx.author).email()}",
             )
             await ctx.send("Your account has been verified! Head over to <#713791953589764156> to set your course/year!")
+            
+            # welcome messages for users
+
+            welcome_msgs = [f"Hello world! Welcome {user.name} to the server!"]
+
+            await mod.send(f"User {user.name} joined the server!", allowed_mentions=discord.AllowedMentions(here=True)
+            await general.send(random.choice(welcome_msgs))
+                           
         else:
             await ctx.send(
                 "That code doesn't match the one sent via the email. Try again or request a new code."
@@ -163,4 +173,4 @@ class Verify(commands.Cog):
         embed.add_field(name="Email", value=emaill)
         await ctx.send(embed=embed)
 
-
+                           
