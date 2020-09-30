@@ -124,7 +124,7 @@ class EmbedCreator(commands.Cog):
             return await ctx.send(
                 "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
             )
-        if not embed:
+        if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
         await channel.send(embed=embed)
 
@@ -147,7 +147,7 @@ class EmbedCreator(commands.Cog):
             return await ctx.send(
                 "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
             )
-        if not embed:
+        if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
         await ctx.send("Here's how this will look.", embed=embed)
         async with self.config.guild(ctx.guild).embeds() as embeds:

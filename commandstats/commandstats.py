@@ -164,7 +164,7 @@ class CommandStats(commands.Cog):
     async def guild(
         self,
         ctx,
-        server: Optional[commands.converter.GuildConverter] = None,
+        server: Optional[commands.GuildConverter] = None,
         *,
         command: str = None,
     ):
