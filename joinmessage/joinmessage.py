@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -63,10 +63,13 @@ class JoinMessage(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         self.config.register_global(message=None, toggle=False)
+        self.config.register_guild(notified=False)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         if not await self.config.toggle():
+            return
+        if await self.config.guild(guild).notified():
             return
         msg = await self.config.message()
         if msg is None:
@@ -85,6 +88,7 @@ class JoinMessage(commands.Cog):
         if not channel.permissions_for(guild.me).send_messages:
             return
         await channel.send(msg)
+        await self.config.guild(guild).notified.set(True)
         log.debug("Guild welcome message sent in {}".format(guild))
 
     @commands.group()
