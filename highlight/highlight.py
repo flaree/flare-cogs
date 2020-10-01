@@ -68,7 +68,7 @@ class Highlight(commands.Cog):
 
     async def generate_cache(self):
         self.highlightcache = await self.config.all_channels()
-        #self.guildcache = await self.config.all_guilds()
+        # self.guildcache = await self.config.all_guilds()
 
     async def migrate_config(self):
         if not await self.config.migrated():
@@ -97,7 +97,7 @@ class Highlight(commands.Cog):
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
         highlight = self.highlightcache.get(message.channel.id)
-       # highlight_guild = self.guildcache.get(message.guild.id)
+        # highlight_guild = self.guildcache.get(message.guild.id)
         if highlight is None:
             return
         # highlight_guild = highlight_guild.get("highlight", [])
