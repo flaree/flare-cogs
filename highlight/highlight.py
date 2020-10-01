@@ -101,7 +101,7 @@ class Highlight(commands.Cog):
         if highlight is None:
             return
         # highlight_guild = highlight_guild.get("highlight", [])
-        # highlight = highlight.get("highlight", [])
+        highlight = highlight.get("highlight", [])
         for user in highlight:
             if int(user) == message.author.id:
                 continue
