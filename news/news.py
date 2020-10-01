@@ -20,7 +20,7 @@ class News(commands.Cog):
         self.api = (
             "https://newsapi.org/v2/{}?{}&sortBy=publishedAt{}&apiKey={}&page=1&pageSize=15{}"
         )
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = aiohttp.ClientSession()
         self.newsapikey = None
 
     async def red_get_data_for_user(self, *, user_id: int):

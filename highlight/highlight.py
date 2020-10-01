@@ -22,6 +22,7 @@ class Highlight(commands.Cog):
         self.config.register_global(migrated=False)
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
+        self.config.register_member(**default_channel)
         self.highlightcache = {}
         self.recache = {}
 
@@ -67,6 +68,7 @@ class Highlight(commands.Cog):
 
     async def generate_cache(self):
         self.highlightcache = await self.config.all_channels()
+        self.guildcache = await self.config.all_guilds()
 
     async def migrate_config(self):
         if not await self.config.migrated():
@@ -95,14 +97,18 @@ class Highlight(commands.Cog):
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
         highlight = self.highlightcache.get(message.channel.id)
-        if highlight is None:
+        highlight_guild = self.guildcache.get(message.guild.id)
+        if highlight is None and highlight_guild is None:
             return
+        highlight_guild = highlight_guild.get("highlight", [])
         highlight = highlight.get("highlight", [])
         for user in highlight:
             if int(user) == message.author.id:
                 continue
             highlighted_words = []
             for word in highlight[user]:
+                if word in highlighted_words:
+                    continue
                 if highlight[user][word].get("boundary", False):
                     if word.lower() in self.recache:
                         pattern = self.recache[word.lower()]

@@ -23,7 +23,7 @@ class Covid(commands.Cog):
         self.bot = bot
         self.api = "https://disease.sh/v3/covid-19"
         self.newsapi = "https://newsapi.org/v2/top-headlines?q=COVID&sortBy=publishedAt&pageSize=100&country={}&apiKey={}&page=1"
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = aiohttp.ClientSession()
         self.newsapikey = None
 
     async def red_get_data_for_user(self, *, user_id: int):

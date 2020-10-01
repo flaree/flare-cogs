@@ -30,7 +30,7 @@ class BotListsPost(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_global(lists={}, version=1)
-        self._session = aiohttp.ClientSession(loop=self.bot.loop)
+        self._session = aiohttp.ClientSession()
         self.bsdctoken = None
         self.post_stats_task = self.bot.loop.create_task(self.post_stats())
 

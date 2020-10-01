@@ -51,7 +51,7 @@ class Faceit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.api = "https://open.faceit.com/data/v4"
-        self._session = aiohttp.ClientSession(loop=self.bot.loop)
+        self._session = aiohttp.ClientSession()
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         self.config.register_user(name=None)
         self.token = None

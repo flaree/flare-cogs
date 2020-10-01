@@ -32,7 +32,7 @@ class DankMemer(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_global(url="https://imgen.flaree.xyz/api")
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = aiohttp.ClientSession()
         self.headers = {}
 
     async def red_get_data_for_user(self, *, user_id: int):

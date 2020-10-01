@@ -85,7 +85,7 @@ class SimLeague(
         self.bot = bot
         self.bets = {}
         self.cache = time.time()
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = aiohttp.ClientSession()
 
     async def red_delete_data_for_user(
         self,

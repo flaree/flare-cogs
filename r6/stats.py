@@ -64,7 +64,7 @@ class Stats:
             "Diamond I": "diamond-old.png",
         }
         self.regions = {"ncsa": "NA", "emea": "EU", "apac": "Asia"}
-        self.session = aiohttp.ClientSession(loop=self.bot.loop)
+        self.session = aiohttp.ClientSession()
         self.bgs = ["twitch", "thermite", "ash", "sledge", "thatcher"]
 
     async def getimg(self, url):
