@@ -48,14 +48,17 @@ class ImageFinder(Converter):
                 urls.append(attachment.url)
 
         if not urls:
-            user = ctx.guild.get_member_named(argument)
-            if user:
-                if user.is_avatar_animated():
-                    url = user.avatar_url_as(format="gif")
-                    urls.append(url)
+            if ctx.guild:
+                user = ctx.guild.get_member_named(argument)
+                if user:
+                    if user.is_avatar_animated():
+                        url = user.avatar_url_as(format="gif")
+                        urls.append(url)
+                    else:
+                        url = user.avatar_url_as(format="png")
+                        urls.append(url)
                 else:
-                    url = user.avatar_url_as(format="png")
-                    urls.append(url)
-            else:
-                raise BadArgument("No images provided.")
+                    raise BadArgument("No images provided.")
+        if not urls:
+            raise BadArgument("No images provided.")
         return urls[0]
