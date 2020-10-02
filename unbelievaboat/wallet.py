@@ -197,7 +197,7 @@ class Wallet(MixinMeta):
         if isinstance(amount, str):
             if amount != "all":
                 return await ctx.send("You must provide a valid number or the string `all`.")
-            amount = await self.config.member(ctx.author).wallet()
+            amount = await self.configglobalcheckuser(ctx.author).wallet()
         await self.bankdeposit(ctx, ctx.author, amount)
 
     @commands.command()
