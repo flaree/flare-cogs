@@ -8,6 +8,7 @@ __red_end_user_data_statement__ = "This cog does not persistently store data abo
 async def setup_after_ready(bot):
     await bot.wait_until_red_ready()
     cog = DankMemer(bot)
+    await cog.initalize()
     for name, command in cog.all_commands.items():
         if not command.parent:
             if bot.get_command(name):
