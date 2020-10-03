@@ -287,7 +287,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def byemom(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def byemom(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Bye mom.
 
         User is a discord user ID, name or mention.
@@ -599,7 +605,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def floor(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def floor(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """The floor is ....
 
         User is a discord user ID, name or mention.
@@ -630,7 +642,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def garfield(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def garfield(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """I wonder who that's for - Garfield meme.
 
         User is a discord user ID, name or mention."""
@@ -740,7 +758,9 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def justpretending(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def justpretending(
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
+    ):
         """Playing dead.
 
         Text must be 2 comma seperated values.
@@ -766,7 +786,9 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def knowyourlocation(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def knowyourlocation(
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
+    ):
         """Google wants to know your location.
 
         Text must be 2 comma seperated values.
@@ -989,7 +1011,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def quote(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def quote(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Quote a discord user."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1211,7 +1239,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def sword(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def sword(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Swordknife.
 
         Text must be split on commas.
@@ -1265,7 +1299,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def tweet(self, ctx, user: typing.Optional[discord.Member], *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def tweet(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member],
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Create a fake tweet.
 
         user: discord User, takes their avatar, display name and name.
@@ -1296,7 +1336,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def unpopular(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def unpopular(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Get rid of that pesky teacher."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1394,7 +1440,12 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def whothisis(self, ctx, user: typing.Optional[discord.Member], username: commands.clean_content(fix_channel_mentions=True)):
+    async def whothisis(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member],
+        username: commands.clean_content(fix_channel_mentions=True),
+    ):
         """who this is."""
         user = user or ctx.author
         data = await self.get(
@@ -1416,7 +1467,13 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def youtube(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def youtube(
+        self,
+        ctx,
+        user: typing.Optional[discord.Member] = None,
+        *,
+        text: commands.clean_content(fix_channel_mentions=True),
+    ):
         """Create a youtube comment."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1472,7 +1529,9 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def keepyourdistance(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
+    async def keepyourdistance(
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
+    ):
         """Keep your distance."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/keepurdistance?text={text}")
