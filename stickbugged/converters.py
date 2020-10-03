@@ -49,12 +49,13 @@ class ImageFinder(Converter):
                 urls.append(attachment.url)
 
         if not urls:
-            user = ctx.guild.get_member_named(argument)
-            if user:
-                url = user.avatar_url_as(format="png")
-                urls.append(url)
-            else:
-                raise BadArgument("No images found.")
+            if ctx.guild:
+                user = ctx.guild.get_member_named(argument)
+                if user:
+                    url = user.avatar_url_as(format="png")
+                    urls.append(url)
+        if not urls:
+            raise BadArgument("No images found.")
         return urls[0]
 
     async def search_for_images(self, ctx):
