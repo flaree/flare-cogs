@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.16"
+    __version__ = "0.0.17"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -104,7 +104,7 @@ class DankMemer(commands.Cog):
 
     @commands.is_owner()
     @commands.command()
-    async def dmurl(self, ctx, *, url: str):
+    async def dmurl(self, ctx, *, url: commands.clean_content(fix_channel_mentions=True)):
         """Set the DankMemer API Url.
 
         Ensure the url ends in API without the backslash - Example: https://imgen.flaree.xyz/api
@@ -131,7 +131,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def abandon(self, ctx, *, text: str):
+    async def abandon(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Abandoning your son?"""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/abandon?text={text}")
@@ -190,7 +190,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def armor(self, ctx, *, text: str):
+    async def armor(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Nothing gets through this armour."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/armor?text={text}")
@@ -201,7 +201,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def balloon(self, ctx, *, text: str):
+    async def balloon(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Pop a balloon.
 
         Texts must be comma seperated.
@@ -247,7 +247,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def boo(self, ctx, *, text: str):
+    async def boo(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Scary.
 
         Texts must be comma seperated.
@@ -261,7 +261,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def brain(self, ctx, *, text: str):
+    async def brain(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Big brain meme.
 
         Texts must be 4 comma seperated items.
@@ -287,7 +287,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def byemom(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def byemom(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Bye mom.
 
         User is a discord user ID, name or mention.
@@ -318,7 +318,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def changemymind(self, ctx, *, text: str):
+    async def changemymind(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Change my mind?"""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/changemymind?text={text}")
@@ -329,7 +329,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def cheating(self, ctx, *, text: str):
+    async def cheating(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Cheating?.
 
         Text must be comma seperated.
@@ -343,7 +343,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def crab(self, ctx, *, text: str):
+    async def crab(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Crab rave.
 
         Text must be comma seperated.
@@ -357,7 +357,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def paperplease(self, ctx, *, text: str):
+    async def paperplease(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Papers Please Citation.
 
         Text must be 3 comma seperated values.
@@ -383,7 +383,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def confusedcat(self, ctx, *, text: str):
+    async def confusedcat(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Confused cat meme.
 
         Text must be 2 comma seperated values.
@@ -409,7 +409,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def cry(self, ctx, *, text: str):
+    async def cry(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Drink my tears meme.
 
         Text must be 2 comma seperated values.
@@ -483,7 +483,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def doglemon(self, ctx, *, text: str):
+    async def doglemon(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Dog and Lemon Meme.
 
         Text must be 2 comma seperated values.
@@ -521,7 +521,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def excuseme(self, ctx, *, text: str):
+    async def excuseme(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Excuse me, what the...
 
         Text must be 2 comma seperated values.
@@ -535,7 +535,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def expanddong(self, ctx, *, text: str):
+    async def expanddong(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Expanding?
 
         Text must be 2 comma seperated values.
@@ -549,7 +549,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def facts(self, ctx, *, text: str):
+    async def facts(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Facts book.
 
         Text must be 2 comma seperated values.
@@ -599,7 +599,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def floor(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def floor(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """The floor is ....
 
         User is a discord user ID, name or mention.
@@ -616,7 +616,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def fuck(self, ctx, *, text: str):
+    async def fuck(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Feck.
 
         Text must be 2 comma seperated values.
@@ -630,7 +630,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def garfield(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def garfield(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """I wonder who that's for - Garfield meme.
 
         User is a discord user ID, name or mention."""
@@ -682,7 +682,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def humansgood(self, ctx, *, text: str):
+    async def humansgood(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Humans are wonderful things."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/humansgood?text={text}")
@@ -693,7 +693,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def inator(self, ctx, *, text: str):
+    async def inator(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Xinator."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/inator?text={text}")
@@ -740,7 +740,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def justpretending(self, ctx, *, text: str):
+    async def justpretending(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Playing dead.
 
         Text must be 2 comma seperated values.
@@ -766,7 +766,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def knowyourlocation(self, ctx, *, text: str):
+    async def knowyourlocation(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Google wants to know your location.
 
         Text must be 2 comma seperated values.
@@ -780,7 +780,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()  # TODO: MP4s
-    async def kowalski(self, ctx, *, text: str):
+    async def kowalski(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Kowlalski tapping.
 
         Text must be 2 comma seperated values.
@@ -806,7 +806,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()  # TODO: MP4s
-    async def letmein(self, ctx, *, text: str):
+    async def letmein(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """LET ME IN."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/letmein?text={text}")
@@ -817,7 +817,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def lick(self, ctx, *, text: str):
+    async def lick(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Lick lick.
 
         Text must be 2 comma seperated values.
@@ -863,7 +863,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def master(self, ctx, *, text: str):
+    async def master(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Yes master!
 
         Text must be 3 comma seperated values.
@@ -881,8 +881,8 @@ class DankMemer(commands.Cog):
         self,
         ctx,
         image: typing.Optional[ImageFinder],
-        top_text: str,
-        bottom_text: str,
+        top_text: commands.clean_content(fix_channel_mentions=True),
+        bottom_text: commands.clean_content(fix_channel_mentions=True),
         color: typing.Optional[str],
         font: typing.Optional[str] = None,
     ):
@@ -917,7 +917,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def note(self, ctx, *, text: str):
+    async def note(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Pass a note back."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/note?text={text}")
@@ -928,7 +928,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def nothing(self, ctx, *, text: str):
+    async def nothing(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Woah!
 
         nothing.
@@ -942,7 +942,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def ohno(self, ctx, *, text: str):
+    async def ohno(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Oh no, it's stupid!"""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/ohno?text={text}")
@@ -953,7 +953,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def piccolo(self, ctx, *, text: str):
+    async def piccolo(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Piccolo."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/piccolo?text={text}")
@@ -964,7 +964,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def plan(self, ctx, *, text: str):
+    async def plan(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Gru makes a plan.
 
         Text must be 3 comma seperated values.
@@ -978,7 +978,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def presentation(self, ctx, *, text: str):
+    async def presentation(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Lisa makes a presentation."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/presentation?text={text}")
@@ -989,7 +989,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def quote(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def quote(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Quote a discord user."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1064,7 +1064,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def savehumanity(self, ctx, *, text: str):
+    async def savehumanity(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """The secret to saving humanity."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/savehumanity?text={text}")
@@ -1098,7 +1098,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def shit(self, ctx, *, text: str):
+    async def shit(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """I stepped in crap."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/shit?text={text}")
@@ -1141,7 +1141,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def slapsroof(self, ctx, *, text: str):
+    async def slapsroof(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """This bad boy can fit so much in it."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/slapsroof?text={text}")
@@ -1152,7 +1152,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def sneakyfox(self, ctx, *, text: str):
+    async def sneakyfox(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """That sneaky fox.
 
         Text must be 2 comma seperated values.
@@ -1186,7 +1186,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def stroke(self, ctx, *, text: str):
+    async def stroke(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """How to recognize a stroke?"""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/stroke?text={text}")
@@ -1197,7 +1197,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def surprised(self, ctx, *, text: str):
+    async def surprised(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Pikasuprised.
 
         Text must be 2 comma seperated values.
@@ -1211,7 +1211,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def sword(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def sword(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Swordknife.
 
         Text must be split on commas.
@@ -1230,7 +1230,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def thesearch(self, ctx, *, text: str):
+    async def thesearch(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """The search for intelligent life continues.."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/thesearch?text={text}")
@@ -1265,11 +1265,11 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def tweet(self, ctx, user: typing.Optional[discord.Member], *, text: str):
+    async def tweet(self, ctx, user: typing.Optional[discord.Member], *, text: commands.clean_content(fix_channel_mentions=True)):
         """Create a fake tweet.
 
         user: discord User, takes their avatar, display name and name.
-        text: String. Text to show on the generated image.
+        text: commands.clean_content(fix_channel_mentions=True)ing. Text to show on the generated image.
         """
         text = self.parse_text(text)
         user = user or ctx.author
@@ -1296,7 +1296,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def unpopular(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def unpopular(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Get rid of that pesky teacher."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1311,7 +1311,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def violence(self, ctx, *, text: str):
+    async def violence(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Violence is never the answer."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/violence?text={text}")
@@ -1322,7 +1322,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def violentsparks(self, ctx, *, text: str):
+    async def violentsparks(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Some violent sparks.
 
         Text must be 2 comma seperated values.
@@ -1336,7 +1336,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def vr(self, ctx, *, text: str):
+    async def vr(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Woah, VR is so realistic."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/vr?text={text}")
@@ -1347,7 +1347,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def walking(self, ctx, *, text: str):
+    async def walking(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Walking Meme."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/walking?text={text}")
@@ -1394,7 +1394,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def whothisis(self, ctx, user: typing.Optional[discord.Member], username: str):
+    async def whothisis(self, ctx, user: typing.Optional[discord.Member], username: commands.clean_content(fix_channel_mentions=True)):
         """who this is."""
         user = user or ctx.author
         data = await self.get(
@@ -1416,7 +1416,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def youtube(self, ctx, user: typing.Optional[discord.Member] = None, *, text: str):
+    async def youtube(self, ctx, user: typing.Optional[discord.Member] = None, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Create a youtube comment."""
         user = user or ctx.author
         text = self.parse_text(text)
@@ -1433,7 +1433,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def wwe(self, ctx, *, text: str):
+    async def wwe(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """WWE Meme.
 
         Text must be 5 comma seperated values.
@@ -1447,7 +1447,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def farmer(self, ctx, *, text: str):
+    async def farmer(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Farmer.
 
         Text must be 2 sentences comma seperated.
@@ -1461,7 +1461,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def godwhy(self, ctx, *, text: str):
+    async def godwhy(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """God why."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/godwhy?text={text}")
@@ -1472,7 +1472,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def keepyourdistance(self, ctx, *, text: str):
+    async def keepyourdistance(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """Keep your distance."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/keepurdistance?text={text}")
@@ -1483,7 +1483,7 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command()
-    async def theoffice(self, ctx, *, text: str):
+    async def theoffice(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
         """The office.
 
         Text must be 2 sentences comma seperated.
