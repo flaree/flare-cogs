@@ -1,5 +1,6 @@
 import discord
 from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 class Forward(commands.Cog):
@@ -16,7 +17,7 @@ class Forward(commands.Cog):
         self.bot = bot
 
         self.config = Config.get_conf(self, 1398467138476, force_registration=True)
-        default_global = {"toggles": {"botmessages": False}, "destination": None}
+        default_global = {"toggles": {"botmessages": False}, "destination": None, "blacklist": []}
         self.config.register_global(**default_global)
 
     async def red_get_data_for_user(self, *, user_id: int):
@@ -60,6 +61,8 @@ class Forward(commands.Cog):
         if message.channel.recipient.id in self.bot.owner_ids:
             return
         if not await self.bot.allowed_by_whitelist_blacklist(message.author):
+            return
+        if message.author.id in await self.config.blacklist():
             return
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
@@ -117,6 +120,35 @@ class Forward(commands.Cog):
         )
         await self.config.destination.set(data["config"])
         await ctx.send(data["msg"])
+
+    @forwardset.command(aliases=["bl"])
+    async def blacklist(self, ctx: commands.Context, user_id: int = None):
+        """Blacklist receiving messages from a user."""
+        if not user_id:
+            e = discord.Embed(
+                color=await ctx.embed_color(),
+                title="Forward Blacklist",
+                description=humanize_list(await self.config.blacklist()),
+            )
+            await ctx.send(embed=e)
+        else:
+            if user_id in await self.config.blacklist():
+                await ctx.send("This user is already blacklisted.")
+                return
+            async with self.config.blacklist() as b:
+                b.append(user_id)
+            await ctx.tick()
+
+    @forwardset.command(aliases=["unbl"])
+    async def unblacklist(self, ctx: commands.Context, user_id: int):
+        """Remove a user from the blacklist."""
+        if user_id not in await self.config.blacklist():
+            await ctx.send("This user is not in the blacklist.")
+            return
+        async with self.config.blacklist() as b:
+            index = b.index(user_id)
+            b.pop(index)
+        await ctx.tick()
 
     @commands.command()
     @commands.guild_only()
