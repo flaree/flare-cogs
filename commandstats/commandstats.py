@@ -173,8 +173,9 @@ class CommandStats(commands.Cog):
             server = ctx.guild
         await self.update_data()
         data = await self.config.guilddata()
-        data = data[str(server.id)]
-        if not data:
+        try:
+            data = data[str(server.id)]
+        except KeyError:
             return await ctx.send(f"No commands have been used in {server.name} yet.")
         if command is None:
             await GenericMenu(
