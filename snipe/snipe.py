@@ -96,6 +96,7 @@ class Snipe(commands.Cog):
         }
 
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.channel)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.command()
     async def snipe(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Shows the last deleted message from a specified channel."""
