@@ -77,7 +77,7 @@ class StickBugged(commands.Cog):
             task = self.bot.loop.run_in_executor(None, fake_task)
             try:
                 video_file = await asyncio.wait_for(task, timeout=300)
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 log.error("Timeout creating stickbug video", exc_info=e)
                 return await ctx.send("Timeout creating stickbug video.")
             except Exception as e:
