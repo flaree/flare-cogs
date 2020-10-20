@@ -132,7 +132,9 @@ class RedditPost(commands.Cog):
             f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
         ) as resp:
             if resp.status != 200:
-                return await ctx.send("Please ensure the subreddit name is correct and does NOT include the r/.")
+                return await ctx.send(
+                    "Please ensure the subreddit name is correct and does NOT include the r/."
+                )
             data = await resp.json()
             nsfw = data["data"].get("over18")
             if nsfw is None:
