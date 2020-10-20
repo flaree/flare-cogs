@@ -115,7 +115,7 @@ class EmbedCreator(commands.Cog):
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):
-            data = data["embed"][0]
+            data = data["embeds"][0]
         if data.get("timestamp"):
             data["timestamp"] = data["timestamp"].strip("Z")
         try:
