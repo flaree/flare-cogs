@@ -16,7 +16,9 @@ from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify
 log = logging.getLogger("red.flare.redditpost")
 
 REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
-REDDIT_REGEX = re.compile(r"(?i)\A(((https?://)?(www\.)?reddit\.com/)?r/)?([A-Za-z0-9][A-Za-z0-9_]{2,20})/?\Z")
+REDDIT_REGEX = re.compile(
+    r"(?i)\A(((https?://)?(www\.)?reddit\.com/)?r/)?([A-Za-z0-9][A-Za-z0-9_]{2,20})/?\Z"
+)
 
 
 class RedditPost(commands.Cog):
