@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from datetime import datetime, timedelta
 from html import unescape
 from typing import Optional
@@ -15,12 +16,13 @@ from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify
 log = logging.getLogger("red.flare.redditpost")
 
 REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
+REDDIT_REGEX = re.compile(r"(?i)(((https?://)?(www\.)?reddit\.com/)?r/)?(.+)/?")
 
 
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.8"
+    __version__ = "0.1.9"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -97,6 +99,14 @@ class RedditPost(commands.Cog):
                     async with self.config.channel(channel).reddits() as feeds:
                         feeds[sub]["last_post"] = time
 
+    @staticmethod
+    def _clean_subreddit(subreddit: str) -> str:
+        subreddit = subreddit.lstrip("/")
+        match = REDDIT_REGEX.fullmatch(subreddit)
+        if match:
+            subreddit = match.groups()[-1]
+        return subreddit.lower()
+
     @commands.admin_or_permissions(manage_channels=True)
     @commands.guild_only()
     @commands.group(aliases=["redditfeed"])
@@ -123,18 +133,14 @@ class RedditPost(commands.Cog):
     @redditpost.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
-        """Add a subreddit to post new content from.
-
-        Feed must not include the /r/
-        """
+        """Add a subreddit to post new content from."""
         channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
         async with self.session.get(
             f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
         ) as resp:
             if resp.status != 200:
-                return await ctx.send(
-                    "Please ensure the subreddit name is correct and does NOT include the r/."
-                )
+                return await ctx.send("Please ensure the subreddit name is correct.")
             data = await resp.json()
             nsfw = data["data"].get("over18")
             if nsfw is None:
@@ -197,6 +203,7 @@ class RedditPost(commands.Cog):
     ):
         """Removes a subreddit from the current channel, or a provided one."""
         channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -211,6 +218,7 @@ class RedditPost(commands.Cog):
     async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Force the latest post."""
         channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
         feeds = await self.config.channel(channel).reddits()
         if subreddit not in feeds:
             await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -234,6 +242,7 @@ class RedditPost(commands.Cog):
     async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
         """Whether to fetch all posts or just the latest post."""
         channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -250,6 +259,7 @@ class RedditPost(commands.Cog):
     ):
         """Whether to send the post as a webhook or message from the bot."""
         channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
