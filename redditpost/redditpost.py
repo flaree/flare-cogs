@@ -20,7 +20,7 @@ REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.7"
+    __version__ = "0.1.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -131,6 +131,8 @@ class RedditPost(commands.Cog):
         async with self.session.get(
             f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
         ) as resp:
+            if resp.status != 200:
+                return await ctx.send("Please ensure the subreddit name is correct and does NOT include the r/.")
             data = await resp.json()
             nsfw = data["data"].get("over18")
             if nsfw is None:
