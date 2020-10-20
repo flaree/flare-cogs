@@ -16,7 +16,7 @@ from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify
 log = logging.getLogger("red.flare.redditpost")
 
 REDDIT_LOGO = "https://www.redditinc.com/assets/images/site/reddit-logo.png"
-REDDIT_REGEX = re.compile(r"(?i)(((https?://)?(www\.)?reddit\.com/)?r/)?(.+)/?")
+REDDIT_REGEX = re.compile(r"(?i)\A(((https?://)?(www\.)?reddit\.com/)?r/)?([A-Za-z0-9][A-Za-z0-9_]{2,20})/?\Z")
 
 
 class RedditPost(commands.Cog):
@@ -100,12 +100,12 @@ class RedditPost(commands.Cog):
                         feeds[sub]["last_post"] = time
 
     @staticmethod
-    def _clean_subreddit(subreddit: str) -> str:
+    def _clean_subreddit(subreddit: str):
         subreddit = subreddit.lstrip("/")
         match = REDDIT_REGEX.fullmatch(subreddit)
         if match:
-            subreddit = match.groups()[-1]
-        return subreddit.lower()
+            return match.groups()[-1].lower()
+        return None
 
     @commands.admin_or_permissions(manage_channels=True)
     @commands.guild_only()
@@ -136,6 +136,8 @@ class RedditPost(commands.Cog):
         """Add a subreddit to post new content from."""
         channel = channel or ctx.channel
         subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
         async with self.session.get(
             f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
         ) as resp:
@@ -204,6 +206,8 @@ class RedditPost(commands.Cog):
         """Removes a subreddit from the current channel, or a provided one."""
         channel = channel or ctx.channel
         subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -219,6 +223,8 @@ class RedditPost(commands.Cog):
         """Force the latest post."""
         channel = channel or ctx.channel
         subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
         feeds = await self.config.channel(channel).reddits()
         if subreddit not in feeds:
             await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -243,6 +249,8 @@ class RedditPost(commands.Cog):
         """Whether to fetch all posts or just the latest post."""
         channel = channel or ctx.channel
         subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
@@ -260,6 +268,8 @@ class RedditPost(commands.Cog):
         """Whether to send the post as a webhook or message from the bot."""
         channel = channel or ctx.channel
         subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit not in feeds:
                 await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
