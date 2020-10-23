@@ -155,7 +155,7 @@ class AntiSpam(commands.Cog):
         duration_seconds = length.total_seconds()
         await self.config.per.set(duration_seconds)
         await ctx.send(
-            f"The spam filter has been set to check commands during a  {humanize_timedelta(seconds=duration_seconds)} period."
+            f"The spam filter has been set to check commands during a {humanize_timedelta(seconds=duration_seconds).rstrip('s')} period."
         )
         await self.gen_cache()
 
