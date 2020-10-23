@@ -132,6 +132,8 @@ class AntiSpam(commands.Cog):
             `[p]antispamset length 1d2h30m`
             `[p]antispamset length 1 day 2 hours 30 minutes`
         """
+        if not length:
+            return await ctx.send("You must provide a value greater than 0.")
         duration_seconds = length.total_seconds()
         await self.config.mute_length.set(duration_seconds)
         await ctx.send(
