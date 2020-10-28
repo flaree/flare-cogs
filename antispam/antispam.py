@@ -14,7 +14,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.0.10"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -125,7 +125,15 @@ class AntiSpam(commands.Cog):
 
     @antispamset.command()
     async def length(self, ctx, *, length: TimedeltaConverter):
-        """How long to blacklist a user from using commands."""
+        """How long to blacklist a user from using commands.
+
+        Accepts: seconds, minutes, hours, days, weeks
+        Examples:
+            `[p]antispamset length 1d2h30m`
+            `[p]antispamset length 1 day 2 hours 30 minutes`
+        """
+        if not length:
+            return await ctx.send("You must provide a value greater than 0.")
         duration_seconds = length.total_seconds()
         await self.config.mute_length.set(duration_seconds)
         await ctx.send(
@@ -135,11 +143,19 @@ class AntiSpam(commands.Cog):
 
     @antispamset.command()
     async def per(self, ctx, *, length: TimedeltaConverter):
-        """How long of a timeframe to keep track of command spamming."""
+        """How long of a timeframe to keep track of command spamming.
+
+        Accepts: seconds, minutes, hours, days, weeks
+        Examples:
+            `[p]antispamset per 1d2h30m`
+            `[p]antispamset per 1 day 2 hours 30 minutes`
+        """
+        if not length:
+            return await ctx.send("You must provide a value greater than 0.")
         duration_seconds = length.total_seconds()
         await self.config.per.set(duration_seconds)
         await ctx.send(
-            f"The spam filter has been set to check commands during a  {humanize_timedelta(seconds=duration_seconds)} period."
+            f"The spam filter has been set to check commands during a {humanize_timedelta(seconds=duration_seconds).rstrip('s')} period."
         )
         await self.gen_cache()
 
