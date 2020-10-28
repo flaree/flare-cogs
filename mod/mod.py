@@ -67,7 +67,7 @@ class Mod(ModClass):
     async def notify(self):
         if not await self.config.notified():
             await self.bot.send_to_owners(
-                "This cog is now deprecated and will no longer receive updates or any bug fixes. Please switch to the timed mute option now in core by loading the mutes cog available in 3.4.1"
+                "Flare's mod cog is now deprecated and will no longer receive updates or any bug fixes. Please switch to the timed mute option now in core by loading the mutes cog available in 3.4.1"
             )
             await self.config.notified.set(True)
 
