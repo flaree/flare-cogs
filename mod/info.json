@@ -6,12 +6,12 @@
   "name": "Mod",
   "disabled": false,
   "short": "Mod with timed role mutes.",
-  "description": "Core mod with the inclusion of timed role mutes.",
+  "description": "Core mod with the inclusion of timed role mutes. This cog is no longer supported. Unload and load core mutes.",
   "tags": [
     "mute",
     "temp mute",
     "rolemute"
   ],
   "min_bot_version": "3.4.0",
-  "hidden": false
+  "hidden": true
 }

@@ -31,7 +31,7 @@ class Mod(ModClass):
             self, identifier=95932766180343808, force_registration=True
         )
         defaultsguild = {"muterole": None, "respect_hierarchy": True}
-        defaults = {"muted": {}}
+        defaults = {"muted": {}, "notified": False}
         self.__config.register_guild(**defaultsguild)
         self.__config.register_global(**defaults)
         self.loop = bot.loop.create_task(self.unmute_loop())
@@ -63,6 +63,13 @@ class Mod(ModClass):
 
     def cog_unload(self):
         self.loop.cancel()
+
+    async def notify(self):
+        if not await self.config.notified():
+            await self.bot.send_to_owners(
+                "This cog is now deprecated and will no longer receive updates or any bug fixes. Please switch to the timed mute option now in core by loading the mutes cog available in 3.4.1"
+            )
+            await self.config.notified.set(True)
 
     async def unmute_loop(self):
         while True:
