@@ -30,7 +30,7 @@ class EmbedCreator(commands.Cog):
             async with self.config.guild_from_id(match[0]).embeds() as embeds:
                 embeds[match[1]]["author"] = 00000000
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -56,7 +56,11 @@ class EmbedCreator(commands.Cog):
 
     @embed.command(name="from", aliases=["from_message", "from_msg"])
     async def from_message(
-        self, ctx, message_id: int, channel: Optional[discord.TextChannel] = None, name: Optional[str] = None
+        self,
+        ctx,
+        message_id: int,
+        channel: Optional[discord.TextChannel] = None,
+        name: Optional[str] = None,
     ):
         """Return the JSON in file format from an existing message."""
         channel = channel or ctx.channel
@@ -113,9 +117,7 @@ class EmbedCreator(commands.Cog):
                     "Unable to read JSON, ensure it is correctly formatted and validated."
                 )
             if not isinstance(data, dict):
-                return await ctx.send(
-                    "The JSON provided is not in a dictionary format."
-                )
+                return await ctx.send("The JSON provided is not in a dictionary format.")
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):
@@ -140,9 +142,7 @@ class EmbedCreator(commands.Cog):
                 "Unable to read JSON, ensure it is correctly formatted and validated."
             )
         if not isinstance(data, dict):
-            return await ctx.send(
-                "The JSON provided is not in a dictionary format."
-            )
+            return await ctx.send("The JSON provided is not in a dictionary format.")
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):
