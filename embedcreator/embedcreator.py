@@ -112,6 +112,10 @@ class EmbedCreator(commands.Cog):
                 return await ctx.send(
                     "Unable to read JSON, ensure it is correctly formatted and validated."
                 )
+            if not isinstance(data, dict):
+                return await ctx.send(
+                    "The JSON provided is not in a dictionary format."
+                )
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):
@@ -134,6 +138,10 @@ class EmbedCreator(commands.Cog):
         except json.decoder.JSONDecodeError:
             return await ctx.send(
                 "Unable to read JSON, ensure it is correctly formatted and validated."
+            )
+        if not isinstance(data, dict):
+            return await ctx.send(
+                "The JSON provided is not in a dictionary format."
             )
         if data.get("embed"):
             data = data["embed"]
