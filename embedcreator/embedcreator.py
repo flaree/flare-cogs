@@ -56,7 +56,7 @@ class EmbedCreator(commands.Cog):
 
     @embed.command(name="from", aliases=["from_message", "from_msg"])
     async def from_message(
-        self, ctx, message_id: int, channel: Optional[discord.TextChannel] = None
+        self, ctx, message_id: int, channel: Optional[discord.TextChannel] = None, name: Optional[str] = None
     ):
         """Return the JSON in file format from an existing message."""
         channel = channel or ctx.channel
@@ -72,7 +72,7 @@ class EmbedCreator(commands.Cog):
         io.seek(0)
         await ctx.send(
             "Here is that embed contents as a json.",
-            file=discord.File(io, filename="embedcontents.json"),
+            file=discord.File(io, filename=f"{name}.json" if name else "embedcontents.json"),
         )
 
     @embed.command(name="file")
