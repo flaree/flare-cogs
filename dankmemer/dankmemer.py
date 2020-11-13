@@ -21,7 +21,7 @@ async def tokencheck(ctx):
 class DankMemer(commands.Cog):
     """Dank Memer Commands."""
 
-    __version__ = "0.0.17"
+    __version__ = "0.0.18"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -1569,6 +1569,18 @@ class DankMemer(commands.Cog):
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
         data.name = "obama.png"
+        await self.send_img(ctx, discord.File(data))
+
+    @commands.check(tokencheck)
+    @commands.command(aliases=["em"])
+    async def emergencymeeting(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
+        """Call an emergency meeting.
+        """
+        text = self.parse_text(text)
+        data = await self.get(ctx, f"/emergencymeeting?text={text}")
+        if isinstance(data, dict):
+            return await self.send_error(ctx, data)
+        data.name = "emergencymeeting.png"
         await self.send_img(ctx, discord.File(data))
 
 
