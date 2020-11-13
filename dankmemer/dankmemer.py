@@ -1573,9 +1573,10 @@ class DankMemer(commands.Cog):
 
     @commands.check(tokencheck)
     @commands.command(aliases=["em"])
-    async def emergencymeeting(self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)):
-        """Call an emergency meeting.
-        """
+    async def emergencymeeting(
+        self, ctx, *, text: commands.clean_content(fix_channel_mentions=True)
+    ):
+        """Call an emergency meeting."""
         text = self.parse_text(text)
         data = await self.get(ctx, f"/emergencymeeting?text={text}")
         if isinstance(data, dict):
