@@ -106,7 +106,7 @@ class RedditPost(commands.Cog):
         subreddit = subreddit.lstrip("/")
         match = REDDIT_REGEX.fullmatch(subreddit)
         if match:
-            return match.groups()[-1].lower()
+            return match.groups()[-1]
         return None
 
     @commands.admin_or_permissions(manage_channels=True)
@@ -340,7 +340,7 @@ class RedditPost(commands.Cog):
             embed = discord.Embed(
                 title=unescape(title),
                 url=unescape(link),
-                description=desc,
+                description="{}".format(desc).replace("&#x200B;", ""),
                 color=channel.guild.me.color,
                 timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
             )
