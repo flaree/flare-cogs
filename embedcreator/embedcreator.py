@@ -1,5 +1,6 @@
 import json
 import re
+import traceback
 from io import BytesIO, StringIO
 from typing import Optional
 
@@ -134,9 +135,18 @@ class EmbedCreator(commands.Cog):
             return await ctx.send("Embed could not be built from the json provided.")
         if len(embed) < 1 or len(embed) > 6000:
             return await ctx.send(
-                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000.."
+                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
             )
-        await channel.send(embed=embed)
+        try:
+            await channel.send(embed=embed)
+        except discord.errors.HTTPException as error:
+            err = "\n".join(traceback.format_exception_only(type(error), error))
+            em = discord.Embed(
+                title="Parsing Error",
+                description=f"The following is an extract of the error:\n```py\n{err}``` \nValidate your input by using any available embed generator online.",
+                colour=discord.Color.red(),
+            )
+            await ctx.send(embed=em)
 
     async def store_embed(self, ctx, *, name, data):
         try:
@@ -163,9 +173,18 @@ class EmbedCreator(commands.Cog):
             return await ctx.send("Embed could not be built from the json provided.")
         if len(embed) < 1 or len(embed) > 6000:
             return await ctx.send(
-                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000.."
+                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
             )
-        await ctx.send("Here's how this will look.", embed=embed)
+        try:
+            await ctx.send("Here's how this will look.", embed=embed)
+        except discord.errors.HTTPException as error:
+            err = "\n".join(traceback.format_exception_only(type(error), error))
+            em = discord.Embed(
+                title="Parsing Error",
+                description=f"The following is an extract of the error:\n```py\n{err}``` \nValidate your input by using any available embed generator online.",
+                colour=discord.Color.red(),
+            )
+            await ctx.send(embed=em)
         async with self.config.guild(ctx.guild).embeds() as embeds:
             embeds[name] = {"data": data, "author": ctx.author.id}
 
