@@ -30,7 +30,7 @@ class EmbedCreator(commands.Cog):
             async with self.config.guild_from_id(match[0]).embeds() as embeds:
                 embeds[match[1]]["author"] = 00000000
 
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -132,6 +132,10 @@ class EmbedCreator(commands.Cog):
             )
         if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
+        if len(embed) < 1 or len(embed) > 6000:
+            return await ctx.send(
+                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000.."
+            )
         await channel.send(embed=embed)
 
     async def store_embed(self, ctx, *, name, data):
@@ -157,6 +161,10 @@ class EmbedCreator(commands.Cog):
             )
         if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
+        if len(embed) < 1 or len(embed) > 6000:
+            return await ctx.send(
+                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000.."
+            )
         await ctx.send("Here's how this will look.", embed=embed)
         async with self.config.guild(ctx.guild).embeds() as embeds:
             embeds[name] = {"data": data, "author": ctx.author.id}
