@@ -75,6 +75,7 @@ class Covid(commands.Cog):
         )
 
     @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def covidnews(self, ctx, countrycode: str):
         """Covid News from a Country - County must be 2-letter ISO 3166-1 code.
 
@@ -104,6 +105,7 @@ class Covid(commands.Cog):
         await ctx.maybe_send_embed(msg)
 
     @commands.group(invoke_without_command=True)
+    @commands.bot_has_permissions(embed_links=True)
     async def covid(self, ctx, *, country: typing.Optional[str]):
         """Stats about Covid-19 or countries if provided.
 
@@ -152,6 +154,7 @@ class Covid(commands.Cog):
             )
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def yesterday(self, ctx, *, country: str):
         """Show the statistics from yesterday for countries.
 
@@ -173,6 +176,7 @@ class Covid(commands.Cog):
             )
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def todaycases(self, ctx):
         """Show the highest cases from countrys today."""
         async with ctx.typing():
@@ -197,6 +201,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def todaydeaths(self, ctx):
         """Show the highest deaths from countrys today."""
         async with ctx.typing():
@@ -221,6 +226,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def highestcases(self, ctx):
         """Show the highest cases from countrys overall."""
         async with ctx.typing():
@@ -245,6 +251,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def highestdeaths(self, ctx):
         """Show the highest deaths from countrys overall."""
         async with ctx.typing():
@@ -269,6 +276,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def topcases(self, ctx, amount: int = 6):
         """Show X countries with top amount of cases.
 
@@ -295,6 +303,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def topcasestoday(self, ctx, amount: int = 6):
         """Show X countries with top amount of cases today.
 
@@ -321,6 +330,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def topdeaths(self, ctx, amount: int = 6):
         """Show X countries with top amount of deaths.
 
@@ -347,6 +357,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
     async def topdeathstoday(self, ctx, amount: int = 6):
         """Show X countries with top amount of deaths today.
 
@@ -373,6 +384,7 @@ class Covid(commands.Cog):
             await ctx.send(embed=embed)
 
     @covid.group(invoke_without_command=True)
+    @commands.bot_has_permissions(embed_links=True)
     async def state(self, ctx, *, states: str):
         """Show stats for specific states.
 
@@ -397,6 +409,7 @@ class Covid(commands.Cog):
             )
 
     @state.command(name="yesterday")
+    @commands.bot_has_permissions(embed_links=True)
     async def _yesterday(self, ctx, *, states: str):
         """Show stats for yesterday for specific states.
 
