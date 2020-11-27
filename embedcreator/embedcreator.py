@@ -31,7 +31,7 @@ class EmbedCreator(commands.Cog):
             async with self.config.guild_from_id(match[0]).embeds() as embeds:
                 embeds[match[1]]["author"] = 00000000
 
-    __version__ = "0.0.7"
+    __version__ = "0.0.8"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -149,12 +149,13 @@ class EmbedCreator(commands.Cog):
             await ctx.send(embed=em)
 
     async def store_embed(self, ctx, *, name, data):
-        try:
-            data = json.loads(data)
-        except json.decoder.JSONDecodeError:
-            return await ctx.send(
-                "Unable to read JSON, ensure it is correctly formatted and validated."
-            )
+        if not isinstance(data, dict):
+            try:
+                data = json.loads(data)
+            except json.decoder.JSONDecodeError:
+                return await ctx.send(
+                    "Unable to read JSON, ensure it is correctly formatted and validated."
+                )
         if not isinstance(data, dict):
             return await ctx.send("The JSON provided is not in a dictionary format.")
         if data.get("embed"):
@@ -218,6 +219,26 @@ class EmbedCreator(commands.Cog):
         if name in embeds_stored:
             return await ctx.send("This embed already exists.")
         await self.store_embed(ctx, name=name, data=raw_json)
+
+    @store.command(name="from", aliases=["from_message", "from_msg"])
+    async def from_message(
+        self,
+        ctx,
+        name: str,
+        message_id: int,
+        channel: Optional[discord.TextChannel] = None,
+    ):
+        """Save an embed from an existing message."""
+        channel = channel or ctx.channel
+        try:
+            message = await channel.fetch_message(message_id)
+        except discord.HTTPException:
+            return await ctx.send("No such message can be retrieved.")
+
+        if not message.embeds:
+            return await ctx.send("This message doesn't appear to have an embed.")
+        data = message.embeds[0].to_dict()
+        await self.store_embed(ctx, name=name, data=data)
 
     @embed.command()
     @commands.bot_has_permissions(embed_links=True)
