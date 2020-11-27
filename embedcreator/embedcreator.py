@@ -221,7 +221,7 @@ class EmbedCreator(commands.Cog):
         await self.store_embed(ctx, name=name, data=raw_json)
 
     @store.command(name="from", aliases=["from_message", "from_msg"])
-    async def from_message(
+    async def from_message_store(
         self,
         ctx,
         name: str,
