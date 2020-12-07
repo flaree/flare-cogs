@@ -24,6 +24,10 @@ class Connect4(commands.Cog):
         """
 		Play connect4 with another player
 		"""
+        if player2.bot:
+            return await ctx.send("That's a bot, silly!")
+        if ctx.author == player2:
+            return await ctx.send("You can't play yourself!")
         start = await self.startgame(ctx, player2)
         if not start:
             return
@@ -32,23 +36,23 @@ class Connect4(commands.Cog):
         game = Connect4Game(player1.display_name, player2.display_name)
 
         message = await ctx.send(str(game))
-        msg2 = await ctx.send("Please wait untill all reactions are added to play.")
+        msg2 = await ctx.send("Please wait until all reactions are added to play.")
 
         for digit in self.DIGITS:
             await message.add_reaction(digit)
         await msg2.delete()
 
-        def check(reaction, user):
+        def check(reaction):
             return (
-                user == (player1, player2)[game.whomst_turn() - 1]
-                and str(reaction) in self.VALID_REACTIONS
-                and reaction.message.id == message.id
+                reaction.member == (player1, player2)[game.whomst_turn() - 1]
+                and str(reaction.emoji) in self.VALID_REACTIONS
+                and reaction.message_id == message.id
             )
 
         while game.whomst_won() == game.NO_WINNER:
             try:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check, timeout=self.GAME_TIMEOUT_THRESHOLD
+                reaction = await self.bot.wait_for(
+                    "raw_reaction_add", check=check, timeout=self.GAME_TIMEOUT_THRESHOLD
                 )
             except asyncio.TimeoutError:
                 game.forfeit()
@@ -56,17 +60,17 @@ class Connect4(commands.Cog):
 
             await asyncio.sleep(0.2)
             try:
-                await message.remove_reaction(reaction, user)
+                await message.remove_reaction(reaction.emoji, reaction.member)
             except discord.errors.Forbidden:
                 pass
 
-            if str(reaction) == self.CANCEL_GAME_EMOJI:
+            if str(reaction.emoji) == self.CANCEL_GAME_EMOJI:
                 game.forfeit()
                 break
 
             try:
                 # convert the reaction to a 0-indexed int and move in that column
-                game.move(self.DIGITS.index(str(reaction)))
+                game.move(self.DIGITS.index(str(reaction.emoji)))
             except ValueError:
                 pass  # the column may be full
 
