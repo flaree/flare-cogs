@@ -115,6 +115,7 @@ class JoinMessage(commands.Cog):
             await ctx.send(
                 f"You do not have a message configured. Configure one using `{ctx.clean_prefix}joinmessage message`."
             )
+            return
         raw = discord.utils.escape_markdown(msg)
         await ctx.send(raw)
 
