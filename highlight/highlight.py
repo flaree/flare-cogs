@@ -233,7 +233,7 @@ class Highlight(commands.Cog):
             failed = []
             for word in text:
                 if word.lower() in highlight[f"{ctx.author.id}"]:
-                    del highlight[f"{ctx.author.id}"][word]
+                    del highlight[f"{ctx.author.id}"][word.lower()]
                     passed.append(word)
                 else:
                     failed.append(word)
