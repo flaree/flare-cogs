@@ -144,9 +144,10 @@ class EmbedCreator(commands.Cog):
         if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
         if len(embed) < 1 or len(embed) > 6000:
-            return await ctx.send(
-                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-            )
+            if not any([embed.thumbnail, embed.image]):
+                return await ctx.send(
+                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                )
         try:
             await channel.send(embed=embed)
         except discord.errors.HTTPException as error:
@@ -183,9 +184,10 @@ class EmbedCreator(commands.Cog):
         if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
         if len(embed) < 1 or len(embed) > 6000:
-            return await ctx.send(
-                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-            )
+            if not any([embed.thumbnail, embed.image]):
+                return await ctx.send(
+                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                )
         try:
             await ctx.send("Here's how this will look.", embed=embed)
         except discord.errors.HTTPException as error:
@@ -304,9 +306,10 @@ class EmbedCreator(commands.Cog):
         if not isinstance(embed, discord.Embed):
             return await ctx.send("Embed could not be built from the json provided.")
         if len(embed) < 1 or len(embed) > 6000:
-            return await ctx.send(
-                "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-            )
+            if not any([embed.thumbnail, embed.image]):
+                return await ctx.send(
+                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                )
         try:
             await message.edit(embed=embed)
         except discord.errors.HTTPException as error:
@@ -402,9 +405,10 @@ class EmbedCreator(commands.Cog):
             if not isinstance(embed, discord.Embed):
                 return await ctx.send("Embed could not be built from the json provided.")
             if len(embed) < 1 or len(embed) > 6000:
-                return await ctx.send(
-                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                )
+                if not any([embed.thumbnail, embed.image]):
+                    return await ctx.send(
+                        "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                    )
             complete_embeds.append(embed)
         try:
             await menu(
