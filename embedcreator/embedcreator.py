@@ -529,7 +529,7 @@ class EmbedCreator(commands.Cog):
         await self.build_embed(ctx, data=data, channel=channel)
 
     @global_embeds.command(name="menu")
-    async def embed_menu(self, ctx, *, embed_names: str):
+    async def embed_menu_global(self, ctx, *, embed_names: str):
         """Send a menu of multiple embeds.
         Must be split using spaces.
 
@@ -549,9 +549,9 @@ class EmbedCreator(commands.Cog):
             )
         await self.menu_embed(ctx, embeds=embeds)
 
-    @global_embeds.command()
+    @global_embeds.command(name="delete")
     @commands.admin_or_permissions(manage_guild=True)
-    async def delete(self, ctx, *, name: str):
+    async def delete_global(self, ctx, *, name: str):
         """Delete a globally saved embed."""
         embeds_stored = await self.config.embeds()
         if name not in embeds_stored:
