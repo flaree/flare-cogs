@@ -41,7 +41,7 @@ class Userinfo(commands.Cog):
             "streaming": discord.utils.get(self.bot.emojis, id=749221434039205909),
         }
         self.badge_emojis = {
-            "staff": discord.utils.get(self.bot.emojis, id=706198524156706917),
+            "staff": discord.utils.get(self.bot.emojis, id=790550232387289088),
             "early_supporter": discord.utils.get(self.bot.emojis, id=706198530837970998),
             "hypesquad_balance": discord.utils.get(self.bot.emojis, id=706198531538550886),
             "hypesquad_bravery": discord.utils.get(self.bot.emojis, id=706198532998299779),
