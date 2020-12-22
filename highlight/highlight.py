@@ -7,7 +7,8 @@ from typing import Literal, Optional
 import discord
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import box, humanize_list, inline
+from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
@@ -55,7 +56,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.4.1"
+    __version__ = "1.4.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -376,19 +377,24 @@ class Highlight(commands.Cog):
                 ]
                 for word in highlight[f"{ctx.author.id}"]
             ]
-            embed = discord.Embed(
-                title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
-                colour=ctx.author.colour,
-                description=box(
-                    tabulate.tabulate(
-                        sorted(words, key=lambda x: x[1], reverse=True),
-                        headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+            ems = []
+            for page in pagify(words):
+                embed = discord.Embed(
+                    title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
+                    colour=ctx.author.colour,
+                    description=box(
+                        tabulate.tabulate(
+                            sorted(page, key=lambda x: x[1], reverse=True),
+                            headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+                        ),
+                        lang="prolog",
                     ),
-                    lang="prolog",
-                ),
-            )
-
-            await ctx.send(embed=embed)
+                )
+                ems.append(embed)
+            if len(ems) == 1:
+                await ctx.send(embed=ems[0])
+            else:
+                await menu(ctx, ems, DEFAULT_CONTROLS)
         else:
             await ctx.send(f"You currently do not have any highlighted words set up in {channel}.")
 
