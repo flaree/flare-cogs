@@ -7,11 +7,17 @@ from typing import Literal, Optional
 import discord
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify
+from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i : i + n]
 
 
 class Highlight(commands.Cog):
@@ -378,7 +384,7 @@ class Highlight(commands.Cog):
                 for word in highlight[f"{ctx.author.id}"]
             ]
             ems = []
-            for page in pagify(words):
+            for page in chunks(words, 10):
                 embed = discord.Embed(
                     title=f"Current highlighted text for {ctx.author.display_name} in {channel}:",
                     colour=ctx.author.colour,
