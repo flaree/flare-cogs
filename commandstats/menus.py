@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Optional
 import discord
 import tabulate
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import box
+from redbot.core.utils.chat_formatting import box, escape, humanize_number
 from redbot.vendored.discord.ext import menus
 
 
@@ -145,3 +145,48 @@ class EmbedFormat(menus.ListPageSource):
                 )
             )
         return embed
+
+
+class LeaderboardSource(menus.ListPageSource):
+    def __init__(self, entries):
+        super().__init__(entries, per_page=10)
+
+    async def format_page(self, menu: GenericMenu, entries):
+        bot = menu.ctx.bot
+        position = (menu.current_page * self.per_page) + 1
+        print(entries)
+        bal_len = len(humanize_number(entries[0][1]))
+        pound_len = len(str(position + 9))
+        header = "{pound:{pound_len}}{score:{bal_len}}{name:2}\n".format(
+            pound="#",
+            name=("Name"),
+            score=("Score"),
+            bal_len=bal_len + 6,
+            pound_len=pound_len + 3,
+        )
+        msg = ""
+        for i, data in enumerate(entries, start=position):
+            print(i, data)
+            try:
+                server = bot.get_guild(int(data[0])).name
+            except AttributeError:
+                server = "<unknown server>"
+            name = escape(server, formatting=True)
+
+            balance = data[1]
+            balance = humanize_number(balance)
+            msg += (
+                f"{f'{humanize_number(i)}.': <{pound_len + 2}} "
+                f"{balance: <{bal_len + 5}} "
+                f"{name}\n"
+            )
+
+        bank_name = "Guild Command Leaderboard."
+        page = discord.Embed(
+            title=("{}").format(bank_name),
+            color=await menu.ctx.embed_color(),
+            description="{}\n{} ".format(box(header, lang="prolog"), box(msg, lang="md")),
+        )
+        print(page)
+
+        return page

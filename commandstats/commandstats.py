@@ -10,7 +10,7 @@ import discord
 import pandas
 from redbot.core import Config, commands
 
-from .menus import EmbedFormat, GenericMenu
+from .menus import EmbedFormat, GenericMenu, LeaderboardSource
 
 
 def chunks(l, n):
@@ -25,7 +25,7 @@ log = logging.getLogger("red.flare.commandstats")
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -339,6 +339,21 @@ class CommandStats(commands.Cog):
         s_buf.name = "commandstats.csv"
         s_buf.seek(0)
         await ctx.send(file=discord.File(s_buf))
+
+    @cmd.command()
+    @commands.is_owner()
+    async def guilds(self, ctx):
+        """Leaderboard of guilds by most commands used."""
+        await self.update_data()
+        data = await self.config.guilddata()
+        guildata = [(k, sum(data[k].values())) for k in data]
+        await GenericMenu(
+            source=LeaderboardSource(sorted(guildata, key=lambda x: x[1], reverse=True)),
+            ctx=ctx,
+        ).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
