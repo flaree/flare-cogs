@@ -86,7 +86,7 @@ async def send_with_msg_ref(
 class Tips(commands.Cog):
     """Tips - Credit to Jackenmen"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -95,7 +95,7 @@ class Tips(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
         self.config = Config.get_conf(self, 176070082584248320, force_registration=True)
-        self.config.register_global(tips=["Add tips by using `{prefix}tips add-tip`"], chance=50)
+        self.config.register_global(tips=["Add tips by using `{prefix}tips add-tip`."], chance=50)
         self.config.register_user(toggle=True)
 
     async def initialize(self) -> None:
@@ -128,7 +128,7 @@ class Tips(commands.Cog):
         await ctx.tick()
 
     @commands.is_owner()
-    @tips.command(name="add-tip", aliases=["add", "addtip"])
+    @tips.command(name="add-tip", aliases=["add", "addtip", "create"])
     async def add_tip(self, ctx, *, tip: str):
         """Add a tip message.
         Append {prefix} to have it formatted with prefix on send.
@@ -142,7 +142,7 @@ class Tips(commands.Cog):
         await self.generate_cache()
 
     @commands.is_owner()
-    @tips.command(name="del-tip", aliases=["del", "deltip"])
+    @tips.command(name="del-tip", aliases=["del", "deltip", "delete"])
     async def del_tips(self, ctx, *, id: int):
         """Delete a custom tip."""
         async with self.config.tips() as replies:
