@@ -185,5 +185,6 @@ class LeaderboardSource(menus.ListPageSource):
             color=await menu.ctx.embed_color(),
             description="{}\n{} ".format(box(header, lang="prolog"), box(msg, lang="md")),
         )
+        page.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
 
         return page
