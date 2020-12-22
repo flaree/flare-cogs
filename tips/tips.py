@@ -6,14 +6,17 @@ from discord.abc import Messageable
 from redbot.core import commands
 from redbot.core.commands import Context
 from redbot.core.config import Config
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 real_send = Messageable.send
+
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i : i + n]
+
+
 # Thanks Jack for smileysend
 @functools.wraps(real_send)
 async def send(
@@ -47,18 +50,19 @@ async def send(
                 else:
                     content = tip_msg
     return await send_with_msg_ref(
-            self,
-            content,
-            tts=tts,
-            embed=embed,
-            file=file,
-            files=files,
-            delete_after=delete_after,
-            nonce=nonce,
-            allowed_mentions=allowed_mentions,
-            reference=reference,
-            mention_author=mention_author,
-        )
+        self,
+        content,
+        tts=tts,
+        embed=embed,
+        file=file,
+        files=files,
+        delete_after=delete_after,
+        nonce=nonce,
+        allowed_mentions=allowed_mentions,
+        reference=reference,
+        mention_author=mention_author,
+    )
+
 
 async def send_with_msg_ref(
     messageable: Messageable,
@@ -70,18 +74,13 @@ async def send_with_msg_ref(
     try:
         return await real_send(messageable, content, reference=reference, **kwargs)
     except discord.HTTPException as e:
-        if (
-            e.code == 50035
-            and "In message_reference: Unknown message" in str(e)
-        ):
+        if e.code == 50035 and "In message_reference: Unknown message" in str(e):
             return await send_with_msg_ref(
                 messageable,
                 content,
                 **kwargs,
             )
         raise
-
-
 
 
 class Tips(commands.Cog):
@@ -156,7 +155,10 @@ class Tips(commands.Cog):
 
     @commands.is_owner()
     @tips.command(name="list-tips", aliases=["list", "listtips"])
-    async def list_tips(self, ctx,):
+    async def list_tips(
+        self,
+        ctx,
+    ):
         """List custom tips."""
         async with self.config.tips() as replies:
             if not replies:
