@@ -125,6 +125,7 @@ class Tips(commands.Cog):
             return await ctx.send("Chance must be greater than 1")
         await self.config.chance.set(chance)
         await self.generate_cache()
+        await ctx.tick()
 
     @commands.is_owner()
     @tips.command(name="add-tip", aliases=["add", "addtip"])
