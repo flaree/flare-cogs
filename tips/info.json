@@ -10,6 +10,6 @@
   "tags": [
     "tips"
   ],
-  "min_bot_version": "3.4.4",
+  "min_bot_version": "3.4.4.dev1",
   "hidden": true
 }
