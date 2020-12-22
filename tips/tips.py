@@ -112,6 +112,7 @@ class Tips(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def tips(self, ctx: commands.Context, toggle: bool) -> None:
+        """Toggle and setup tips"""
         await self.config.user(ctx.author).toggle.set(toggle)
         await ctx.tick()
         await self.generate_cache()
