@@ -312,6 +312,7 @@ class EmbedCreator(commands.Cog):
                 )
         try:
             await message.edit(embed=embed)
+            await ctx.tick()
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))
             em = discord.Embed(
