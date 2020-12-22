@@ -154,7 +154,6 @@ class LeaderboardSource(menus.ListPageSource):
     async def format_page(self, menu: GenericMenu, entries):
         bot = menu.ctx.bot
         position = (menu.current_page * self.per_page) + 1
-        print(entries)
         bal_len = len(humanize_number(entries[0][1]))
         pound_len = len(str(position + 9))
         header = "{pound:{pound_len}}{score:{bal_len}}{name:2}\n".format(
@@ -166,7 +165,6 @@ class LeaderboardSource(menus.ListPageSource):
         )
         msg = ""
         for i, data in enumerate(entries, start=position):
-            print(i, data)
             try:
                 server = bot.get_guild(int(data[0])).name
             except AttributeError:
@@ -187,6 +185,5 @@ class LeaderboardSource(menus.ListPageSource):
             color=await menu.ctx.embed_color(),
             description="{}\n{} ".format(box(header, lang="prolog"), box(msg, lang="md")),
         )
-        print(page)
 
         return page
