@@ -36,7 +36,7 @@ async def send(
     if isinstance(self, Context):
         content = str(content) if content is not None else None
         cog = self.bot.get_cog("Tips")
-        if (cog).usercache.get(self.author.id, {}).get("toggle", False):
+        if (cog).usercache.get(self.author.id, {}).get("toggle", True):
             tips = cog.message_cache if cog.message_cache else ["No tips configured."]
             tip_msg = random.choice(tips).format(
                 prefix=self.clean_prefix
