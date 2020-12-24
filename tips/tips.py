@@ -28,9 +28,7 @@ async def send(self, content=None, **kwargs):
                 if len(content) + len(tip_msg) > 2000:
                     return await real_send(self, content, **kwargs)
                 else:
-                    content = cog.tip_format.format(
-                        content=content, tip_msg=tip_msg, prefix=self.clean_prefix
-                    )
+                    content = cog.tip_format.format(content=content, tip_msg=tip_msg, prefix=self.clean_prefix)
             else:
                 content = cog.tip_format.replace("{content}", "").format(tip_msg=tip_msg, prefix=self.clean_prefix)
     return await real_send(self, content, **kwargs)
@@ -72,7 +70,11 @@ class Tips(commands.Cog):
     async def tips(self, ctx: commands.Context, toggle: bool) -> None:
         """
         Toggle and setup tips.
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 9174f8f72c7509363fdf3f96a1fcccb942a8111d
         Run `[prefix]tips off` to disable tips.
         """
         await self.config.user(ctx.author).toggle.set(toggle)
@@ -98,7 +100,7 @@ class Tips(commands.Cog):
     async def add_tip(self, ctx, *, tip: str):
         """
         Add a tip message.
-
+        
         Append {prefix} to have it formatted with prefix on send.
         """
         async with self.config.tips() as replies:
@@ -166,9 +168,7 @@ class Tips(commands.Cog):
         """
         if formatting:
             await self.config.tip_format.set(formatting)
-            await ctx.channel.send(
-                f"The tip format has been set to:\n{formatting}"
-            )  # intentionally uses ctx.channel to avoid tips being triggered
+            await ctx.channel.send(f"The tip format has been set to:\n{formatting}") # intentionally uses ctx.channel to avoid tips being triggered
         else:
             await self.config.tip_format.clear()
             await ctx.channel.send("The tip format has been reset to the default.")
@@ -176,6 +176,5 @@ class Tips(commands.Cog):
         content = "This is example content of a message with a tip."
         tips = self.message_cache if self.message_cache else ["No tips configured."]
         tip_msg = random.choice(tips).format(prefix=ctx.clean_prefix)
-        await ctx.channel.send(
-            self.tip_format.format(content=content, tip_msg=tip_msg, prefix=ctx.clean_prefix)
-        )
+        await ctx.channel.send(self.tip_format.format(content=content, tip_msg=tip_msg, prefix=ctx.clean_prefix))
+        
