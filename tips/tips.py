@@ -70,11 +70,7 @@ class Tips(commands.Cog):
     async def tips(self, ctx: commands.Context, toggle: bool) -> None:
         """
         Toggle and setup tips.
-<<<<<<< HEAD
-
-=======
         
->>>>>>> 9174f8f72c7509363fdf3f96a1fcccb942a8111d
         Run `[prefix]tips off` to disable tips.
         """
         await self.config.user(ctx.author).toggle.set(toggle)
