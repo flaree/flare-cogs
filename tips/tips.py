@@ -32,7 +32,9 @@ async def send(self, content=None, **kwargs):
                         content=content, tip_msg=tip_msg, prefix=self.clean_prefix
                     )
             else:
-                content = tip_msg
+                content = cog.tip_format.replace("{content}", "").format(
+                    tip_msg=tip_msg, prefix=self.clean_prefix
+                )
     return await real_send(self, content, **kwargs)
 
 
