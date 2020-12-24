@@ -2,13 +2,11 @@ import functools
 import random
 
 import discord
-from discord.abc import Messageable
 from redbot.core import commands
-from redbot.core.commands import Context
 from redbot.core.config import Config
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-real_send = Messageable.send
+real_send = commands.Context.send
 
 
 def chunks(l, n):
@@ -19,68 +17,21 @@ def chunks(l, n):
 
 # Thanks Jack for smileysend
 @functools.wraps(real_send)
-async def send(
-    self,
-    content=None,
-    *,
-    tts=False,
-    embed=None,
-    file=None,
-    files=None,
-    delete_after=None,
-    nonce=None,
-    allowed_mentions=None,
-    reference=None,
-    mention_author=None,
-):
-    if isinstance(self, Context):
-        content = str(content) if content is not None else None
-        cog = self.bot.get_cog("Tips")
-        if (cog).usercache.get(self.author.id, {}).get("toggle", True):
+async def send(self, content=None, **kwargs):
+    content = str(content) if content is not None else None
+    cog = self.bot.get_cog("Tips")
+    if (cog).usercache.get(self.author.id, {}).get("toggle", True):
+        if random.randint(1, cog.chance) == 1:
             tips = cog.message_cache if cog.message_cache else ["No tips configured."]
-            tip_msg = random.choice(tips).format(
-                prefix=self.clean_prefix
-            ) + "\nYou can turn these tips off by typing `{}tips off`\n".format(self.clean_prefix)
-            if random.randint(1, cog.chance) == 1:
-                if content:
-                    if len(content) > 1995 - len(tip_msg):
-                        await real_send(self, tip_msg)
-                    else:
-                        content = f"{tip_msg}\n{content}"
+            tip_msg = random.choice(tips).format(prefix=self.clean_prefix)
+            if content:
+                if len(content) + len(tip_msg) > 2000:
+                    return await real_send(self, content, **kwargs)
                 else:
-                    content = tip_msg
-    return await send_with_msg_ref(
-        self,
-        content,
-        tts=tts,
-        embed=embed,
-        file=file,
-        files=files,
-        delete_after=delete_after,
-        nonce=nonce,
-        allowed_mentions=allowed_mentions,
-        reference=reference,
-        mention_author=mention_author,
-    )
-
-
-async def send_with_msg_ref(
-    messageable: Messageable,
-    content=None,
-    *,
-    reference=None,
-    **kwargs,
-) -> discord.Message:
-    try:
-        return await real_send(messageable, content, reference=reference, **kwargs)
-    except discord.HTTPException as e:
-        if e.code == 50035 and "In message_reference: Unknown message" in str(e):
-            return await send_with_msg_ref(
-                messageable,
-                content,
-                **kwargs,
-            )
-        raise
+                    content = cog.tip_format.format(content=content, tip_msg=tip_msg, prefix=self.clean_prefix)
+            else:
+                content = tip_msg
+    return await real_send(self, content, **kwargs)
 
 
 class Tips(commands.Cog):
@@ -95,24 +46,33 @@ class Tips(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
         self.config = Config.get_conf(self, 176070082584248320, force_registration=True)
-        self.config.register_global(tips=["Add tips by using `{prefix}tips add-tip`."], chance=50)
+        self.config.register_global(
+            tips=["Add tips by using `{prefix}tips add-tip`."],
+            chance=50,
+            tip_format="{tip_msg}\nYou can turn these tips off by typing `{prefix}tips off`\n\n{content}",
+        )
         self.config.register_user(toggle=True)
 
     async def initialize(self) -> None:
-        setattr(Messageable, "send", send)
+        setattr(commands.Context, "send", send)
         await self.generate_cache()
 
     async def generate_cache(self):
         self.usercache = await self.config.all_users()
         self.message_cache = await self.config.tips()
         self.chance = await self.config.chance()
+        self.tip_format = await self.config.tip_format()
 
     def cog_unload(self) -> None:
-        setattr(Messageable, "send", real_send)
+        setattr(commands.Context, "send", real_send)
 
     @commands.group(invoke_without_command=True)
     async def tips(self, ctx: commands.Context, toggle: bool) -> None:
-        """Toggle and setup tips"""
+        """
+        Toggle and setup tips.
+        
+        Run `[prefix]tips off` to disable tips.
+        """
         await self.config.user(ctx.author).toggle.set(toggle)
         await ctx.tick()
         await self.generate_cache()
@@ -120,8 +80,11 @@ class Tips(commands.Cog):
     @commands.is_owner()
     @tips.command()
     async def chance(self, ctx, chance: int):
-        """Chance for a tip to show.
-        Default is 50"""
+        """
+        Chance for a tip to show.
+
+        Default is 50
+        """
         if chance <= 1:
             return await ctx.send("Chance must be greater than 1")
         await self.config.chance.set(chance)
@@ -131,7 +94,9 @@ class Tips(commands.Cog):
     @commands.is_owner()
     @tips.command(name="add-tip", aliases=["add", "addtip", "create"])
     async def add_tip(self, ctx, *, tip: str):
-        """Add a tip message.
+        """
+        Add a tip message.
+        
         Append {prefix} to have it formatted with prefix on send.
         """
         async with self.config.tips() as replies:
@@ -177,3 +142,34 @@ class Tips(commands.Cog):
                 await ctx.send(embed=embeds[0])
             else:
                 await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @commands.is_owner()
+    @tips.command(name="format")
+    async def format(
+        self,
+        ctx: commands.Context,
+        *,
+        formatting = None,
+    ):
+        """
+        Set the format for tip messages.
+        
+        Variables:
+        `tip_msg` - the tip
+        `content` - the original message content
+        `prefix` - the invocation prefix
+
+        Default value:
+        `{tip_msg}\\nYou can turn these tips off by typing `{prefix}tips off`\\n\\n{content}`
+        """
+        if formatting:
+            await self.config.tip_format.set(formatting)
+            await ctx.channel.send(f"The tip format has been set to:\n{formatting}") # intentionally uses ctx.channel to avoid tips being triggered
+        else:
+            await self.config.tip_format.clear()
+            await ctx.channel.send("The tip format has been reset to the default.")
+        await self.generate_cache()
+        content = "This is example content of a message with a tip."
+        tips = self.message_cache if self.message_cache else ["No tips configured."]
+        tip_msg = random.choice(tips).format(prefix=ctx.clean_prefix)
+        await ctx.channel.send(self.tip_format.format(content=content, tip_msg=tip_msg, prefix=ctx.clean_prefix))
