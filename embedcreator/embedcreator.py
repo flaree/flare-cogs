@@ -120,34 +120,9 @@ class EmbedCreator(commands.Cog):
         await self.build_embed(ctx, data=raw_json, channel=channel)
 
     async def build_embed(self, ctx, *, data, channel):
-        if not isinstance(data, dict):
-            try:
-                data = json.loads(data)
-            except json.decoder.JSONDecodeError:
-                return await ctx.send(
-                    "Unable to read JSON, ensure it is correctly formatted and validated."
-                )
-            if not isinstance(data, dict):
-                return await ctx.send("The JSON provided is not in a dictionary format.")
-        if data.get("embed"):
-            data = data["embed"]
-        if data.get("embeds"):
-            data = data["embeds"][0]
-        if data.get("timestamp"):
-            data["timestamp"] = data["timestamp"].strip("Z")
-        try:
-            embed = discord.Embed().from_dict(data)
-        except Exception:
-            return await ctx.send(
-                "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
-            )
-        if not isinstance(embed, discord.Embed):
-            return await ctx.send("Embed could not be built from the json provided.")
-        if len(embed) < 1 or len(embed) > 6000:
-            if not any([embed.thumbnail, embed.image]):
-                return await ctx.send(
-                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                )
+        embed = await self.validate_data(ctx, data=data)
+        if not embed:
+            return
         try:
             await channel.send(embed=embed)
         except discord.errors.HTTPException as error:
@@ -160,34 +135,9 @@ class EmbedCreator(commands.Cog):
             await ctx.send(embed=em)
 
     async def store_embed(self, ctx, is_global, *, name, data):
-        if not isinstance(data, dict):
-            try:
-                data = json.loads(data)
-            except json.decoder.JSONDecodeError:
-                return await ctx.send(
-                    "Unable to read JSON, ensure it is correctly formatted and validated."
-                )
-        if not isinstance(data, dict):
-            return await ctx.send("The JSON provided is not in a dictionary format.")
-        if data.get("embed"):
-            data = data["embed"]
-        if data.get("embeds"):
-            data = data["embeds"][0]
-        if data.get("timestamp"):
-            data["timestamp"] = data["timestamp"].strip("Z")
-        try:
-            embed = discord.Embed().from_dict(data)
-        except Exception:
-            return await ctx.send(
-                "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
-            )
-        if not isinstance(embed, discord.Embed):
-            return await ctx.send("Embed could not be built from the json provided.")
-        if len(embed) < 1 or len(embed) > 6000:
-            if not any([embed.thumbnail, embed.image]):
-                return await ctx.send(
-                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                )
+        embed = await self.validate_data(ctx, data=data)
+        if not embed:
+            return
         try:
             await ctx.send("Here's how this will look.", embed=embed)
         except discord.errors.HTTPException as error:
@@ -204,6 +154,42 @@ class EmbedCreator(commands.Cog):
         else:
             async with self.config.embeds() as embeds:
                 embeds[name] = {"data": data, "author": ctx.author.id}
+
+    async def validate_data(self, ctx, *, data) -> Optional[discord.Embed]:
+        if not isinstance(data, dict):
+                try:
+                    data = json.loads(data)
+                except json.decoder.JSONDecodeError:
+                    return await ctx.send(
+                        "Unable to read JSON, ensure it is correctly formatted and validated."
+                    )
+        if not isinstance(data, dict):
+            await ctx.send("The JSON provided is not in a dictionary format.")
+            return False
+        if data.get("embed"):
+            data = data["embed"]
+        if data.get("embeds"):
+            data = data["embeds"][0]
+        if data.get("timestamp"):
+            data["timestamp"] = data["timestamp"].strip("Z")
+        try:
+            embed = discord.Embed().from_dict(data)
+        except Exception:
+            await ctx.send(
+                "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
+            )
+            return False
+        else:
+            if not isinstance(embed, discord.Embed):
+                await ctx.send("Embed could not be built from the json provided.")
+                return False
+            if len(embed) < 1 or len(embed) > 6000:
+                if not any([embed.thumbnail, embed.image]):
+                    await ctx.send(
+                        "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                    )
+                    return False
+            return embed
 
     @embed.group()
     @commands.admin_or_permissions(manage_guild=True)
@@ -269,11 +255,15 @@ class EmbedCreator(commands.Cog):
             return await ctx.send("This embed doesn't exist in this guild.")
         data = embeds_stored[name]["data"]
         await self.build_embed(ctx, data=data, channel=channel)
+    
 
     @embed.command()
     @commands.bot_has_permissions(embed_links=True)
     async def edit(self, ctx, message: discord.Message, *, name: str):
-        """Edit a bot sent message with a new embed. Message format is in messageID format."""
+        """Edit a bot sent message with a new embed. 
+        
+        Message format is in messageID format.
+        Messages in other channels must follow ChannelID-MessageID format."""
         if message.guild != ctx.guild:
             return await ctx.send("I can only edit messages in this server.")
         if message.author != ctx.guild.me:
@@ -282,36 +272,11 @@ class EmbedCreator(commands.Cog):
         if name not in embeds_stored:
             return await ctx.send("This embed doesn't exist.")
         data = embeds_stored[name]["data"]
-        if not isinstance(data, dict):
-            try:
-                data = json.loads(data)
-            except json.decoder.JSONDecodeError:
-                return await ctx.send(
-                    "Unable to read JSON, ensure it is correctly formatted and validated."
-                )
-            if not isinstance(data, dict):
-                return await ctx.send("The JSON provided is not in a dictionary format.")
-        if data.get("embed"):
-            data = data["embed"]
-        if data.get("embeds"):
-            data = data["embeds"][0]
-        if data.get("timestamp"):
-            data["timestamp"] = data["timestamp"].strip("Z")
+        embed = await self.validate_data(ctx, data=data)
+        if not embed:
+            return
         try:
-            embed = discord.Embed().from_dict(data)
-        except Exception:
-            return await ctx.send(
-                "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
-            )
-        if not isinstance(embed, discord.Embed):
-            return await ctx.send("Embed could not be built from the json provided.")
-        if len(embed) < 1 or len(embed) > 6000:
-            if not any([embed.thumbnail, embed.image]):
-                return await ctx.send(
-                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                )
-        try:
-            await message.edit(embed=embed)
+            await message.edit(content="", embed=embed)
             await ctx.tick()
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))
@@ -321,6 +286,35 @@ class EmbedCreator(commands.Cog):
                 colour=discord.Color.red(),
             )
             await ctx.send(embed=em)
+
+    @embed.command(name="editjson", aliases=["edit-json", "editraw"])
+    @commands.bot_has_permissions(embed_links=True)
+    async def edit_json(self, ctx, message: discord.Message, *, raw_json: str):
+        """Edit a bot sent message with a new embed from JSON. 
+        
+        Message format is in messageID format.
+        Messages in other channels must follow ChannelID-MessageID format."""
+        if message.guild != ctx.guild:
+            return await ctx.send("I can only edit messages in this server.")
+        if message.author != ctx.guild.me:
+            return await ctx.send("I cannot edit messages that are not sent by me.")
+        data = self.cleanup_code(raw_json)
+        embed = await self.validate_data(ctx, data=data)
+        if not embed:
+            return
+        try:
+            await message.edit(content="", embed=embed)
+            await ctx.tick()
+        except discord.errors.HTTPException as error:
+            err = "\n".join(traceback.format_exception_only(type(error), error))
+            em = discord.Embed(
+                title="Parsing Error",
+                description=f"The following is an extract of the error:\n```py\n{err}``` \nValidate your input by using any available embed generator online.",
+                colour=discord.Color.red(),
+            )
+            await ctx.send(embed=em)
+        
+    
 
     @embed.command()
     @commands.admin_or_permissions(manage_guild=True)
@@ -378,6 +372,7 @@ class EmbedCreator(commands.Cog):
                 f"The following embed{'s' if len(failed) > 1 else ''} {'does' if len(failed) == 1 else 'do'} not exist in this guild: {humanize_list(failed)}"
             )
         await self.menu_embed(ctx, embeds=embeds)
+        
 
     async def menu_embed(self, ctx, embeds):
         complete_embeds = []
