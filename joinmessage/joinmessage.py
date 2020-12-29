@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.8"
+    __version__ = "0.0.9"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -62,7 +62,7 @@ class JoinMessage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        self.config.register_global(message=None, toggle=False)
+        self.config.register_global(message=None, toggle=False, embed=False)
         self.config.register_guild(notified=False)
 
     @commands.Cog.listener()
@@ -87,7 +87,15 @@ class JoinMessage(commands.Cog):
             return
         if not channel.permissions_for(guild.me).send_messages:
             return
-        await channel.send(msg)
+        if await self.config.embed() and channel.permissions_for(guild.me).embed_links:
+            embed = discord.Embed(
+                title=f"Thanks for inviting {guild.me.name}!",
+                description=msg,
+                colour=await self.bot.get_embed_colour(location=channel),
+            )
+            await channel.send(embed=embed)
+        else:
+            await channel.send(msg)
         await self.config.guild(guild).notified.set(True)
         log.debug("Guild welcome message sent in {}".format(guild))
 
@@ -106,6 +114,17 @@ class JoinMessage(commands.Cog):
             await ctx.send("Server join messages have been enabled.")
             return
         await ctx.send("Server join messages have been disabled.")
+
+    @joinmessage.command(usage="type")
+    async def embed(self, ctx, _type: bool = None):
+        """Toggle sending of embed or not."""
+        if _type is None:
+            _type = not await self.config.embed()
+        await self.config.embed.set(_type)
+        if _type:
+            await ctx.send("Server join messages will now be sent as an embed.")
+            return
+        await ctx.send("Server join messages will be sent in raw text.")
 
     @joinmessage.command(usage="raw")
     async def raw(self, ctx):
