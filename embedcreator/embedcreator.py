@@ -11,6 +11,7 @@ from .embedmixin import EmbedMixin
 from .globalembeds import EmbedGlobal
 from .sending import EmbedSending
 from .storing import EmbedStoring
+from .update import EmbedUpdate
 from .utils import EmbedUtils
 
 START_CODE_BLOCK_RE = re.compile(r"^((```json)(?=\s)|(```))")
@@ -27,6 +28,7 @@ class EmbedCreator(
     EmbedGlobal,
     EmbedSending,
     EmbedStoring,
+    EmbedUpdate,
     commands.Cog,
     metaclass=CompositeMetaClass,
 ):
@@ -57,7 +59,7 @@ class EmbedCreator(
             for match in all_matches:
                 embeds[match]["author"] = 00000000
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
