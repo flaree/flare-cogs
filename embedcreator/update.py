@@ -11,7 +11,6 @@ from .embedmixin import embed
 
 
 class EmbedUpdate(MixinMeta):
-
     @embed.group()
     @commands.mod_or_permissions(manage_guild=True)
     async def update(self, ctx):
@@ -64,5 +63,3 @@ class EmbedUpdate(MixinMeta):
             return await ctx.send("This message doesn't appear to have an embed.")
         data = message.embeds[0].to_dict()
         await self.store_embed(ctx, False, name=name, data=data)
-
-    
