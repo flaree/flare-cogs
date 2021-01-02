@@ -2,7 +2,7 @@
   "author": [
     "flare(flare#0001)"
   ],
-  "install_msg": "Append a message to the beginning of X bot messages randomly\nThis cog relies on the core code of SmileySend by Jack1142\n[p]help tips.\n**THIS COG REQUIRES D.PY 1.6 WHICH IS NOT ON RED YET!** If you do not have d.py 1.6, unload this cog or your bot will NOT send any messages",
+  "install_msg": "Append a message to the beginning of X bot messages randomly\nThis cog relies on the core code of SmileySend by Jack1142\n[p]help tips.\n",
   "name": "Tips",
   "disabled": false,
   "short": "Append a message to a bot message.",
@@ -10,6 +10,5 @@
   "tags": [
     "tips"
   ],
-  "min_bot_version": "3.4.4.dev1",
-  "hidden": true
+  "min_bot_version": "3.4.4"
 }
