@@ -75,7 +75,7 @@ class Tips(commands.Cog):
         """
         Toggle and setup tips.
 
-        Run `[prefix]tips off` to disable tips.
+        Run `[p]tips off` to disable tips.
         """
         await self.config.user(ctx.author).toggle.set(toggle)
         await ctx.tick()
@@ -101,7 +101,7 @@ class Tips(commands.Cog):
         """
         Add a tip message.
 
-        Append {prefix} to have it formatted with prefix on send.
+        Append `{prefix}` to have it formatted with prefix on send.
         """
         async with self.config.tips() as replies:
             if tip in replies:
