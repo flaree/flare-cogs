@@ -59,6 +59,8 @@ COLUMNS = [
     [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
 ]
 
+BET_TYPES = {"red": "color", "black": "color", "1st dozen": "dozen", "2nd dozen": "dozen", "3rd dozen": "dozen", "odd": "oddoreven", "even": "oddoreven", "1st half": "half", "2nd half": "half", "1st column": "column", "2nd column": "column", "3rd column": "column"}
+
 
 class Roulette(MixinMeta):
     """Roulette Game."""
@@ -72,40 +74,31 @@ class Roulette(MixinMeta):
             if _type < 0 or _type > 36:
                 return {"failed": "Bet must be between 0 and 36."}
             if _type == 0:
+                for bet in self.roulettegames[ctx.guild.id]["zero"]:
+                    if bet.get(_type, False):
+                        if bet[_type]["user"] == ctx.author.id:
+                            return {"failed": "You cannot make duplicate bets."}
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
                 return {"sucess": 200}
+            for bet in self.roulettegames[ctx.guild.id]["number"]:
+                if bet.get(_type, False):
+                    if bet[_type]["user"] == ctx.author.id:
+                        return {"failed": "You cannot make duplicate bets."}
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
             return {"sucess": 200}
-        if _type.lower() in ["red", "black"]:
-            self.roulettegames[ctx.guild.id]["color"].append(
+        if _type.lower() in BET_TYPES:
+            for bet in self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]]:
+                if bet.get(_type.lower(), False):
+                    if bet[_type.lower()]["user"] == ctx.author.id:
+                        return {"failed": "You cannot make duplicate bets."}
+            self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
             return {"sucess": 200}
-        if _type.lower() in ["1st dozen", "2nd dozen", "3rd dozen"]:
-            self.roulettegames[ctx.guild.id]["dozen"].append(
-                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
-            )
-            return {"sucess": 200}
-        if _type.lower() in ["odd", "even"]:
-            self.roulettegames[ctx.guild.id]["oddoreven"].append(
-                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
-            )
-            return {"sucess": 200}
-        if _type.lower() in ["1st half", "2nd half"]:
-            self.roulettegames[ctx.guild.id]["half"].append(
-                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
-            )
-            return {"sucess": 200}
-        if _type.lower() in ["1st column", "2nd column", "3rd column"]:
-            self.roulettegames[ctx.guild.id]["column"].append(
-                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
-            )
-            return {"sucess": 200}
-
         return {"failed": "Not a valid option"}
 
     async def payout(self, ctx, winningnum, bets):
