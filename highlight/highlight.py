@@ -5,9 +5,10 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import discord
+
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import box, humanize_list, inline
+from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils.predicates import MessagePredicate
 
@@ -27,10 +28,11 @@ class Highlight(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         self.config.register_global(migrated=False)
+        self.config.register_member(blacklist=[], whitelist=[])
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
-        self.config.register_member(**default_channel)
         self.highlightcache = {}
+        self.whitelist_blacklist = {}
         self.recache = {}
 
     async def red_get_data_for_user(self, *, user_id: int):
@@ -75,6 +77,7 @@ class Highlight(commands.Cog):
 
     async def generate_cache(self):
         self.highlightcache = await self.config.all_channels()
+        self.whitelist_blacklist = await self.config.all_members()
         # self.guildcache = await self.config.all_guilds()
 
     async def migrate_config(self):
@@ -112,6 +115,22 @@ class Highlight(commands.Cog):
         for user in highlight:
             if int(user) == message.author.id:
                 continue
+            if self.whitelist_blacklist.get(message.guild.id, False):
+                if self.whitelist_blacklist[message.guild.id].get(int(user), False):
+                    if (
+                        self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
+                        and message.author.id
+                        not in self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
+                    ):
+                        print("not whitelisted")
+                        continue
+                    elif (
+                        self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
+                        and message.author.id
+                        in self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
+                    ):
+                        print("blacklisted")
+                        continue
             highlighted_words = []
             for word in highlight[user]:
                 if word in highlighted_words:
@@ -181,6 +200,74 @@ class Highlight(commands.Cog):
     @commands.group(autohelp=True)
     async def highlight(self, ctx):
         """Highlighting Commands."""
+
+    @highlight.group()
+    async def whitelist(self, ctx):
+        """Manage highlight whitelist.
+
+        Whitelist takes priority over blacklist."""
+
+    @highlight.group()
+    async def blacklist(self, ctx):
+        """Manage highlight blacklist.
+
+        Whitelist takes priority over blacklist."""
+
+    @whitelist.command(name="user")
+    async def whitelist_addremove(self, ctx, user: discord.Member):
+        """Add or remove a member from highlight whitelist.
+
+        This is per guild."""
+        async with self.config.member(ctx.author).whitelist() as whitelist:
+            if user.id in whitelist:
+                whitelist.remove(user.id)
+                await ctx.send(
+                    f"{ctx.author.name} has removed {user} from their highlight whitelist."
+                )
+            else:
+                whitelist.append(user.id)
+                await ctx.send(f"{ctx.author.name} has added {user} to their highlight whitelist.")
+        await self.generate_cache()
+
+    @whitelist.command(name="list")
+    async def whitelist_list(self, ctx):
+        """List those in your whitelist."""
+        whitelist = await self.config.member(ctx.author).whitelist()
+        if not whitelist:
+            return await ctx.send("Your whitelist is empty.")
+        msg = ""
+        for _id in whitelist:
+            msg += f" - {_id}\n"
+        for page in pagify(msg):
+            await ctx.send(box(page))
+
+    @blacklist.command(name="list")
+    async def blacklist_list(self, ctx):
+        """List those in your blacklist."""
+        blacklist = await self.config.member(ctx.author).blacklist()
+        if not blacklist:
+            return await ctx.send("Your blacklist is empty.")
+        msg = ""
+        for _id in blacklist:
+            msg += f" - {_id}\n"
+        for page in pagify(msg):
+            await ctx.send(box(page))
+
+    @blacklist.command(name="user")
+    async def blacklist_addremove(self, ctx, user: discord.Member):
+        """Add or remove a member from highlight blacklist.
+
+        This is per guild."""
+        async with self.config.member(ctx.author).blacklist() as blacklist:
+            if user.id in blacklist:
+                blacklist.remove(user.id)
+                await ctx.send(
+                    f"{ctx.author.name} has removed {user} from their highlight blacklist."
+                )
+            else:
+                blacklist.append(user.id)
+                await ctx.send(f"{ctx.author.name} has added {user} to their highlight blacklist.")
+        await self.generate_cache()
 
     @highlight.command()
     async def add(self, ctx, channel: Optional[discord.TextChannel] = None, *text: str):
