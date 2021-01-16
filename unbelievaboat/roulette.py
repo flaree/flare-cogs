@@ -59,7 +59,20 @@ COLUMNS = [
     [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
 ]
 
-BET_TYPES = {"red": "color", "black": "color", "1st dozen": "dozen", "2nd dozen": "dozen", "3rd dozen": "dozen", "odd": "oddoreven", "even": "oddoreven", "1st half": "half", "2nd half": "half", "1st column": "column", "2nd column": "column", "3rd column": "column"}
+BET_TYPES = {
+    "red": "color",
+    "black": "color",
+    "1st dozen": "dozen",
+    "2nd dozen": "dozen",
+    "3rd dozen": "dozen",
+    "odd": "oddoreven",
+    "even": "oddoreven",
+    "1st half": "half",
+    "2nd half": "half",
+    "1st column": "column",
+    "2nd column": "column",
+    "3rd column": "column",
+}
 
 
 class Roulette(MixinMeta):
