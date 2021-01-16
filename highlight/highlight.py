@@ -122,14 +122,12 @@ class Highlight(commands.Cog):
                         and message.author.id
                         not in self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
                     ):
-                        print("not whitelisted")
                         continue
                     elif (
                         self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
                         and message.author.id
                         in self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
                     ):
-                        print("blacklisted")
                         continue
             highlighted_words = []
             for word in highlight[user]:
