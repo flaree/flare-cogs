@@ -22,9 +22,9 @@ if [!DIFF!]==[] (
 goto %1
 
 :reformat
-py -m autoflake --in-place --imports=aiohttp,discord,redbot !DIFF! || goto :eof
-py -m isort !DIFF! || goto :eof
-py -m black !DIFF!
+autoflake --in-place --imports=aiohttp,discord,redbot !DIFF! || goto :eof
+isort !DIFF! || goto :eof
+black !DIFF!
 goto :eof
 
 :stylecheck

@@ -7,6 +7,7 @@ from typing import Optional
 
 import aiohttp
 import discord
+
 from gsbl.stick_bug import StickBug
 from PIL import Image
 from redbot.core import commands

@@ -1,6 +1,7 @@
 import logging
 
 import discord
+
 from redbot.core import bank, commands
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_number

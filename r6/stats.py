@@ -3,6 +3,7 @@ from io import BytesIO
 
 import aiohttp
 import discord
+
 import r6statsapi
 from PIL import Image, ImageDraw, ImageFont
 from redbot.core.data_manager import bundled_data_path

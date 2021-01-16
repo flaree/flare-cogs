@@ -1,6 +1,7 @@
 import logging
 
 import discord
+
 from redbot.core import Config, commands
 
 log = logging.getLogger("red.flare.joinmessage")

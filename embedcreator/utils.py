@@ -1,9 +1,10 @@
 import json
 import traceback
-from typing import Optional
 from io import StringIO
+from typing import Optional
 
 import discord
+
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
