@@ -2,7 +2,7 @@
     "author": [
       "flare(flare#0001)"
     ],
-    "install_msg": "Command Statistics, Check out commands used in a guild, globally or in the current session(while the cog is loaded). Note to developers: This cog allows you to record 3rd part events. See: <https://github.com/flaree/Flare-Cogs/pull/28>\nThis command will save the data to config ever 5 minutes to prevent loss of data.",
+    "install_msg": "Command Statistics, Check out commands used in a guild, globally or in the current session(while the cog is loaded). Note to developers: This cog allows you to record 3rd party events. See: <https://github.com/flaree/Flare-Cogs/pull/28>\nThis command will save the data to config every 5 minutes to prevent loss of data.",
     "name": "CommandStats",
     "disabled": false,
     "short": "Track all commands used.",
