@@ -42,7 +42,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.0.10"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -311,10 +311,13 @@ class Faceit(commands.Cog):
         if stats.get("errors"):
             return await ctx.send(stats.get("errors")[0]["message"])
         embeds = []
-        recent_results = [
-            ("W" if int(game) else "L") for game in stats["lifetime"]["Recent Results"]
-        ]
-        msg = "**Recent Results**: " + " ".join(recent_results) + "\n"
+        if stats["lifetime"]["Recent Results"] is not None:
+            recent_results = [
+                ("W" if bool(int(game)) else "L") for game in stats["lifetime"]["Recent Results"]
+            ]
+            msg = "**Recent Results**: " + " ".join(recent_results) + "\n"
+        else:
+            msg = "**Recent Results**: N/A"
         msg += "\n".join(
             [
                 f"**{item[0]}**: {item[1]}"
