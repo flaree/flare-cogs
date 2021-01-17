@@ -313,7 +313,9 @@ class Faceit(commands.Cog):
         embeds = []
         if stats["lifetime"]["Recent Results"] is not None:
             recent_results = [
-                ("W" if bool(int(game)) else "L") for game in stats["lifetime"]["Recent Results"]
+                ("W" if bool(int(game)) else "L")
+                for game in stats["lifetime"]["Recent Results"]
+                if game is not None
             ]
             msg = "**Recent Results**: " + " ".join(recent_results) + "\n"
         else:
