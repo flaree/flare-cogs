@@ -81,6 +81,13 @@ class Roulette(MixinMeta):
 
     async def betting(self, ctx, bet, _type):
         try:
+            if not await self.walletdisabledcheck(ctx):
+                await self.walletwithdraw(ctx.author, bet)
+            else:
+                await bank.withdraw_credits(ctx.author, bet)
+        except ValueError:
+            return  {"failed": "You do not have enough funds to complete this bet."}
+        try:
             _type = int(_type)
         except ValueError:
             pass
@@ -204,13 +211,6 @@ class Roulette(MixinMeta):
             return await ctx.send(f"Your bet must be greater than {humanize_number(minbet)}.")
         if amount > maxbet:
             return await ctx.send(f"Your bet must be less than {humanize_number(maxbet)}.")
-        try:
-            if not await self.walletdisabledcheck(ctx):
-                await self.walletwithdraw(ctx.author, amount)
-            else:
-                await bank.withdraw_credits(ctx.author, amount)
-        except ValueError:
-            return await ctx.send("You do not have enough funds to complete this bet.")
         betret = await self.betting(ctx, amount, bet)
         if betret.get("failed") is not None:
             return await ctx.send(betret["failed"])
