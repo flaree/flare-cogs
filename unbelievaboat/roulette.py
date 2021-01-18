@@ -86,7 +86,7 @@ class Roulette(MixinMeta):
             else:
                 await bank.withdraw_credits(ctx.author, bet)
         except ValueError:
-            return  {"failed": "You do not have enough funds to complete this bet."}
+            return {"failed": "You do not have enough funds to complete this bet."}
         try:
             _type = int(_type)
         except ValueError:
