@@ -60,7 +60,7 @@ class EmbedCreator(
             for match in all_matches:
                 embeds[match]["author"] = 00000000
 
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -81,11 +81,11 @@ class EmbedCreator(
         return content
 
     async def build_embed(self, ctx, *, data, channel):
-        embed = await self.validate_data(ctx, data=data)
+        embed, content = await self.validate_data(ctx, data=data)
         if not embed:
             return
         try:
-            await channel.send(embed=embed)
+            await channel.send(content, embed=embed)
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))
             em = discord.Embed(
@@ -96,11 +96,14 @@ class EmbedCreator(
             await ctx.send(embed=em)
 
     async def store_embed(self, ctx, is_global, *, name, data):
-        embed = await self.validate_data(ctx, data=data)
+        embed, content = await self.validate_data(ctx, data=data)
         if not embed:
             return
         try:
-            await ctx.send("Here's how this will look.", embed=embed)
+            await ctx.send(
+                f"Here's how this will look.\n{content if content is not None else ''}",
+                embed=embed,
+            )
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))
             em = discord.Embed(
@@ -122,12 +125,16 @@ class EmbedCreator(
             try:
                 data = json.loads(data)
             except json.decoder.JSONDecodeError:
-                return await ctx.send(
+                await ctx.send(
                     "Unable to read JSON, ensure it is correctly formatted and validated."
                 )
+                return False, None
         if not isinstance(data, dict):
             await ctx.send("The JSON provided is not in a dictionary format.")
-            return False
+            return False, None
+        content = None
+        if data.get("content"):
+            content = data["content"]
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):
@@ -140,15 +147,15 @@ class EmbedCreator(
             await ctx.send(
                 "Oops. An error occured turning the input to an embed. Please validate the file and ensure it is using the correct keys."
             )
-            return False
+            return False, None
         else:
             if not isinstance(embed, discord.Embed):
                 await ctx.send("Embed could not be built from the json provided.")
-                return False
+                return False, None
             if len(embed) < 1 or len(embed) > 6000:
                 if not any([embed.thumbnail, embed.image]):
                     await ctx.send(
                         "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
                     )
-                    return False
-            return embed
+                    return False, None
+            return embed, content

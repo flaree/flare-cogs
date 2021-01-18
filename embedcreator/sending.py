@@ -66,11 +66,11 @@ class EmbedSending(MixinMeta):
         if name not in embeds_stored:
             return await ctx.send("This embed doesn't exist.")
         data = embeds_stored[name]["data"]
-        embed = await self.validate_data(ctx, data=data)
+        embed, content = await self.validate_data(ctx, data=data)
         if not embed:
             return
         try:
-            await message.edit(content="", embed=embed)
+            await message.edit(content=content, embed=embed)
             await ctx.tick()
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))
@@ -87,17 +87,18 @@ class EmbedSending(MixinMeta):
         """Edit a bot sent message with a new embed from JSON.
 
         Message format is in messageID format.
-        Messages in other channels must follow ChannelID-MessageID format."""
+        Messages in other channels must follow ChannelID-MessageID format.
+        To add content, add a "content" entry to the json."""
         if message.guild != ctx.guild:
             return await ctx.send("I can only edit messages in this server.")
         if message.author != ctx.guild.me:
             return await ctx.send("I cannot edit messages that are not sent by me.")
         data = self.cleanup_code(raw_json)
-        embed = await self.validate_data(ctx, data=data)
+        embed, content = await self.validate_data(ctx, data=data)
         if not embed:
             return
         try:
-            await message.edit(content="", embed=embed)
+            await message.edit(content=content, embed=embed)
             await ctx.tick()
         except discord.errors.HTTPException as error:
             err = "\n".join(traceback.format_exception_only(type(error), error))

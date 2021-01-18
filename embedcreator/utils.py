@@ -20,7 +20,8 @@ class EmbedUtils(MixinMeta):
         Must be split using spaces.
 
         Example Usage: [p]embed menu embed1 embed2 embed3
-        Note: embeds must be saved."""
+        Note: embeds must be saved.
+        Embed menus do not support message content."""
         embeds_stored = await self.config.guild(ctx.guild).embeds()
         failed = []
         embeds = []
@@ -38,7 +39,7 @@ class EmbedUtils(MixinMeta):
     async def menu_embed(self, ctx, embeds):
         complete_embeds = []
         for data in embeds:
-            embed = await self.validate_data(ctx, data=data)
+            embed, _ = await self.validate_data(ctx, data=data)
             if not embed:
                 return
             try:
@@ -90,10 +91,10 @@ class EmbedUtils(MixinMeta):
                 f"The following embed{'s' if len(failed) > 1 else ''} {'does' if len(failed) == 1 else 'do'} not exist in this guild: {humanize_list(failed)}"
             )
         for embed in embeds:
-            embed = await self.validate_data(ctx, data=embed)
+            embed, content = await self.validate_data(ctx, data=embed)
             if not embed:
                 return
-            await ctx.send(embed=embed)
+            await ctx.send(content, embed=embed)
 
     @embed.command()
     @commands.admin_or_permissions(manage_guild=True)
