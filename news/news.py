@@ -1,5 +1,4 @@
 import aiohttp
-
 from redbot.core import commands
 
 from .menus import ArticleFormat, GenericMenu

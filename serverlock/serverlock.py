@@ -1,5 +1,4 @@
 import discord
-
 import jsonpickle
 from redbot.core import Config, commands
 

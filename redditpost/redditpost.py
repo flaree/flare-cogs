@@ -7,7 +7,6 @@ from typing import Optional
 
 import aiohttp
 import discord
-
 import tabulate
 import validators
 from redbot.core import Config, commands

@@ -4,7 +4,6 @@ from typing import Literal
 
 import aiohttp
 import discord
-
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, close_menu, menu, next_page, prev_page

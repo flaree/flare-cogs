@@ -2,7 +2,6 @@ import typing
 from io import BytesIO
 
 import discord
-
 import r6statsapi
 from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta

@@ -5,7 +5,6 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import discord
-
 import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify

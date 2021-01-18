@@ -7,7 +7,6 @@ from io import StringIO
 from typing import Counter, Optional
 
 import discord
-
 import pandas
 from redbot.core import Config, commands
 

@@ -1,7 +1,6 @@
 from typing import Union
 
 import discord
-
 from redbot.core import bank, commands
 from redbot.core.errors import BalanceTooHigh
 from redbot.core.utils.chat_formatting import box, humanize_number

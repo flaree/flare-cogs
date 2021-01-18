@@ -3,7 +3,6 @@ from io import BytesIO
 from typing import Optional
 
 import discord
-
 from redbot.core import commands
 
 from .abc import MixinMeta

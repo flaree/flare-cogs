@@ -5,7 +5,6 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import discord
-
 import tabulate
 from redbot.core import Config, bank, checks, commands
 from redbot.core.errors import BalanceTooHigh

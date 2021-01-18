@@ -7,7 +7,6 @@ from typing import Literal, Optional
 
 import aiohttp
 import discord
-
 from redbot.core import Config, bank, checks, commands
 from redbot.core.utils.chat_formatting import box
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu

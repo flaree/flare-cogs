@@ -6,7 +6,6 @@ from typing import Dict
 
 import aiohttp
 import discord
-
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu

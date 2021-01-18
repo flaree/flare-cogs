@@ -5,7 +5,6 @@ from abc import ABC
 from typing import Optional
 
 import discord
-
 from redbot.core import Config, commands
 
 from .embedmixin import EmbedMixin

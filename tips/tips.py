@@ -2,7 +2,6 @@ import functools
 import random
 
 import discord
-
 from redbot.core import commands
 from redbot.core.config import Config
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu

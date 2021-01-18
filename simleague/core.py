@@ -4,7 +4,6 @@ from io import BytesIO
 
 import aiohttp
 import discord
-
 from motor.motor_asyncio import AsyncIOMotorClient
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from redbot.core.data_manager import bundled_data_path
