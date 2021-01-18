@@ -5,6 +5,8 @@ ifeq ($(DIFF),)
 	DIFF := $(shell git ls-files "*.py" "*.pyi")
 endif
 
+installreqs:
+	$(PYTHON) -m pip install --upgrade autoflake isort black
 lint:
 	$(PYTHON) -m flake8 --count --select=E9,F7,F82 --show-source $(DIFF)
 stylecheck:
