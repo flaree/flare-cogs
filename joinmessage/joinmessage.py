@@ -44,7 +44,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.9"
+    __version__ = "0.0.10"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -63,7 +63,7 @@ class JoinMessage(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        self.config.register_global(message=None, toggle=False, embed=False)
+        self.config.register_global(message=None, toggle=False, embed=False, image=None)
         self.config.register_guild(notified=False)
 
     @commands.Cog.listener()
@@ -94,6 +94,9 @@ class JoinMessage(commands.Cog):
                 description=msg,
                 colour=await self.bot.get_embed_colour(location=channel),
             )
+            img = await self.config.image()
+            if img is not None:
+                embed.set_image(url=img)
             await channel.send(embed=embed)
         else:
             await channel.send(msg)
@@ -137,7 +140,16 @@ class JoinMessage(commands.Cog):
             )
             return
         raw = discord.utils.escape_markdown(msg)
-        await ctx.send(raw)
+        await ctx.send(f"```{raw}```")
+
+    @joinmessage.command(usage="image")
+    async def image(self, ctx, url: str = None):
+        """Set image to be used when using embeds."""
+        if url is None:
+            await self.config.image.set(None)
+        else:
+            await self.config.image.set(url)
+        await ctx.tick()
 
     @joinmessage.command()
     async def message(self, ctx, *, message: str = None):
