@@ -136,10 +136,12 @@ class Tips(commands.Cog):
                 return await ctx.send("No tips have been configured.")
             a = chunks(replies, 10)
             embeds = []
+            i = 0
             for item in a:
                 items = []
-                for i, strings in enumerate(item):
+                for strings in item:
                     items.append(f"**Reply {i}**: {strings}")
+                    i += 1
                 embed = discord.Embed(colour=discord.Color.red(), description="\n".join(items))
                 embeds.append(embed)
             if len(embeds) == 1:
