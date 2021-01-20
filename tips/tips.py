@@ -2,6 +2,7 @@ import functools
 import random
 
 import discord
+
 from redbot.core import commands
 from redbot.core.config import Config
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
@@ -142,7 +143,10 @@ class Tips(commands.Cog):
                 for strings in item:
                     items.append(f"**Reply {i}**: {strings}")
                     i += 1
-                embed = discord.Embed(colour=discord.Color.red(), description="\n".join(items))
+                embed = discord.Embed(
+                    colour=await self.bot.get_embed_colour(ctx.channel),
+                    description="\n".join(items),
+                )
                 embeds.append(embed)
             if len(embeds) == 1:
                 await ctx.send(embed=embeds[0])
