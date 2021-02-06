@@ -3,6 +3,7 @@ import asyncio
 import discord
 from redbot.core import commands, Config
 from redbot.core.utils.predicates import MessagePredicate
+from redbot.core.utils.menus import start_adding_reactions
 
 from .core import Connect4Game
 
@@ -36,11 +37,7 @@ class Connect4(commands.Cog):
         game = Connect4Game(player1.display_name, player2.display_name)
 
         message = await ctx.send(str(game))
-        msg2 = await ctx.send("Please wait until all reactions are added to play.")
-
-        for digit in self.DIGITS:
-            await message.add_reaction(digit)
-        await msg2.delete()
+        start_adding_reactions(message, self.DIGITS)
 
         def check(reaction):
             return (
@@ -74,7 +71,12 @@ class Connect4(commands.Cog):
             except ValueError:
                 pass  # the column may be full
 
-            await message.edit(content=str(game))
+            try:
+                await message.edit(content=str(game))
+            except discord.NotFound:
+                return await ctx.send("Connect4 game cancelled.")
+            except discord.Forbidden:
+                return
 
         await self.end_game(game, message)
         winnernum = game.whomst_won()
@@ -82,34 +84,36 @@ class Connect4(commands.Cog):
             stats["played"] += 1
         if int(winnernum) == 1:
             async with self.config.guild(ctx.guild).stats() as stats:
+                player1_id = str(player1.id)
+                player2_id = str(player2.id)
                 if player1.id in stats["wins"]:
-                    stats["wins"][player1.id] += 1
+                    stats["wins"][player1_id] += 1
                 else:
-                    stats["wins"][player1.id] = 1
+                    stats["wins"][player1_id] = 1
                 if player2.id in stats["losses"]:
-                    stats["losses"][player2.id] += 1
+                    stats["losses"][player2_id] += 1
                 else:
-                    stats["losses"][player2.id] = 1
+                    stats["losses"][player2_id] = 1
         elif int(winnernum) == -1:
             async with self.config.guild(ctx.guild).stats() as stats:
                 if player1.id in stats["draws"]:
-                    stats["draws"][player1.id] += 1
+                    stats["draws"][player1_id] += 1
                 else:
-                    stats["draws"][player1.id] = 1
+                    stats["draws"][player1_id] = 1
                 if player2.id in stats["draws"]:
-                    stats["draws"][player2.id] += 1
+                    stats["draws"][player2_id] += 1
                 else:
-                    stats["draws"][player2.id] = 1
+                    stats["draws"][player2_id] = 1
         else:
             async with self.config.guild(ctx.guild).stats() as stats:
                 if player2.id in stats["wins"]:
-                    stats["wins"][player2.id] += 1
+                    stats["wins"][player2_id] += 1
                 else:
-                    stats["wins"][player2.id] = 1
+                    stats["wins"][player2_id] = 1
                 if player1.id in stats["losses"]:
-                    stats["losses"][player1.id] += 1
+                    stats["losses"][player1_id] += 1
                 else:
-                    stats["losses"][player1.id] = 1
+                    stats["losses"][player1_id] = 1
 
     @classmethod
     async def end_game(cls, game, message):
