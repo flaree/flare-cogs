@@ -74,7 +74,12 @@ class Connect4(commands.Cog):
             except ValueError:
                 pass  # the column may be full
 
-            await message.edit(content=str(game))
+            try:
+                await message.edit(content=str(game))
+            except discord.NotFound:
+                return await ctx.send("Connect4 game cancelled.")
+            except discord.Forbidden:
+                return
 
         await self.end_game(game, message)
         winnernum = game.whomst_won()
