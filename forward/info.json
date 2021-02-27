@@ -3,7 +3,7 @@
     "flare(flare#0001)",
     "Aikaterna"
   ],
-  "install_msg": "Forward messages sent to the bot to the bot owner or in a specified channel. Bare in mind that this cog is set to ignore messages from the bot owner.",
+  "install_msg": "Forward messages sent to the bot to the bot owner or in a specified channel. Bare in mind that this cog is set to ignore messages from the bot owner.\nThis cog forwards all media too, and if set to resend bot messages opens it up to receiving NSFW pics. ",
   "name": "Forward",
   "disabled": false,
   "short": "Forward messages sent to the bot to the bot owner or in a specified channel.",
