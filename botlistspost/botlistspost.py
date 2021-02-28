@@ -165,7 +165,7 @@ class BotListsPost(commands.Cog):
             )
         if site not in lists:
             return await ctx.send(
-                f"Your list doesn't appear to exist. Ensure its named after how it appears in `{ctx.cleanprefix}botlist list`"
+                f"Your list doesn't appear to exist. Ensure its named after how it appears in `{ctx.clean_prefix}botlist list`"
             )
         async with self.config.lists() as config:
             if site in config:
@@ -185,7 +185,7 @@ class BotListsPost(commands.Cog):
             )
         if site not in lists:
             return await ctx.send(
-                f"Your list doesn't appear to exist. Ensure its named after how it appears in `{ctx.cleanprefix}botlist list`"
+                f"Your list doesn't appear to exist. Ensure its named after how it appears in `{ctx.clean_prefix}botlist list`"
             )
         async with self.config.lists() as config:
             if site in config:
