@@ -161,6 +161,7 @@ class Faceit(commands.Cog):
         if name is None:
             await self.config.user(ctx.author).name.set(name)
             await ctx.send("Your account link has been reset.")
+            return
         uname = await self.get_userid(name)
         if isinstance(uname, dict):
             await ctx.send(uname["failed"])
