@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.10"
+    __version__ = "0.0.11"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -129,7 +129,7 @@ class JoinMessage(commands.Cog):
             return
         await ctx.send("Server join messages will be sent in raw text.")
 
-    @joinmessage.command(usage="raw")
+    @joinmessage.command()
     async def raw(self, ctx):
         """Send the configured message with markdown escaped."""
         msg = await self.config.message()
@@ -141,7 +141,7 @@ class JoinMessage(commands.Cog):
         raw = discord.utils.escape_markdown(msg)
         await ctx.send(f"```{raw}```")
 
-    @joinmessage.command(usage="image")
+    @joinmessage.command()
     async def image(self, ctx, url: str = None):
         """Set image to be used when using embeds."""
         if url is None:
