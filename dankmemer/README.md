@@ -7,7 +7,7 @@ Imgen is the name given to the image generator that powers Dank Memers image man
 Start by first making a venv. Making a venv is highly recommended. You can host imgen inside the same venv you're hosting your redbot instance on OR you can create a new venv and setup imgen there. It's completely your choice.
 [Read this if you don't know how to create a venv](https://docs.discord.red/en/stable/install_linux_mac.html#creating-venv-linux).
 
-Before you activate your venv, first install rethinkdb from [here](https://rethinkdb.com/docs/install/) depending on your linux distribution or docker, whichever you prefer.
+Before you activate your venv, make sure you installed ImageMagik, if you didn't please check out [this guide](https://docs.wand-py.org/en/0.4.1/guide/install.html) and install that, you will also need rethinkdb from [here](https://rethinkdb.com/docs/install/) depending on your linux distribution or docker, whichever you prefer.
 Also install `redis-server` for your linux distribution. If you're using Ubuntu 18.04 or above, you can follow [this guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04).
 
 Now that you have created venv, activate it with:
@@ -81,6 +81,6 @@ Now, download the dankmemer cog and load it and do:
 
 Now do `[p]help DankMemer` to see if your bot lists all the commands this cog has.
 
-NOTE: If you're hosting your Red bot instance on Amazon AWS, you need to enable traffic from ports 80, 443 and 65535 from your AWS console -> Securit Groups and you also need to enable those ports from your system/VPS firewall otherwise you won't be able to access your Public IP. Google it if you don't know how to do it.
+NOTE: If you're hosting your Red bot instance on Amazon AWS, you need to enable traffic from ports 80, 443 and 65535 from your AWS console -> Security Groups and you also need to enable those ports from your system/VPS firewall otherwise you won't be able to access your Public IP. Google it if you don't know how to do it.
 
 ## Yes, this guide isn't extremely detailed. If you want to host it then I expect you to know what you're doing. What I listed was some information not seen on their repo.
