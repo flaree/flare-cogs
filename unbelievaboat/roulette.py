@@ -93,9 +93,9 @@ class Roulette(MixinMeta):
             if _type < 0 or _type > 36:
                 return {"failed": "Bet must be between 0 and 36."}
             if _type == 0:
-                for bet in self.roulettegames[ctx.guild.id]["zero"]:
-                    if bet.get(_type, False):
-                        if bet[_type]["user"] == ctx.author.id:
+                for better in self.roulettegames[ctx.guild.id]["zero"]:
+                    if better.get(_type, False):
+                        if better[_type]["user"] == ctx.author.id:
                             return {"failed": "You cannot make duplicate bets."}
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
@@ -105,9 +105,9 @@ class Roulette(MixinMeta):
                 except ValueError:
                     return {"failed": "You do not have enough funds to complete this bet."}
                 return {"sucess": 200}
-            for bet in self.roulettegames[ctx.guild.id]["number"]:
-                if bet.get(_type, False):
-                    if bet[_type]["user"] == ctx.author.id:
+            for better in self.roulettegames[ctx.guild.id]["number"]:
+                if better.get(_type, False):
+                    if better[_type]["user"] == ctx.author.id:
                         return {"failed": "You cannot make duplicate bets."}
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
