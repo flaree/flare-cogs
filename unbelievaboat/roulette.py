@@ -78,7 +78,7 @@ BET_TYPES = {
 class Roulette(MixinMeta):
     """Roulette Game."""
 
-    async def withdraw(self, ctx, bet):
+    async def roulettewithdraw(self, ctx, bet):
         if not await self.walletdisabledcheck(ctx):
             await self.walletwithdraw(ctx.author, bet)
         else:
@@ -101,7 +101,7 @@ class Roulette(MixinMeta):
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
                 try:
-                    await self.withdraw(ctx, bet)
+                    await self.roulettewithdraw(ctx, bet)
                 except ValueError:
                     return {"failed": "You do not have enough funds to complete this bet."}
                 return {"sucess": 200}
@@ -113,7 +113,7 @@ class Roulette(MixinMeta):
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
             try:
-                await self.withdraw(ctx, bet)
+                await self.roulettewithdraw(ctx, bet)
             except ValueError:
                 return {"failed": "You do not have enough funds to complete this bet."}
             return {"sucess": 200}
@@ -126,7 +126,7 @@ class Roulette(MixinMeta):
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
             try:
-                await self.withdraw(ctx, bet)
+                await self.roulettewithdraw(ctx, bet)
             except ValueError:
                 return {"failed": "You do not have enough funds to complete this bet."}
             return {"sucess": 200}

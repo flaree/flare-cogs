@@ -78,7 +78,7 @@ class Wallet(MixinMeta):
         try:
             if wallet + amount > max_bal:
                 return await ctx.send(
-                    f"You have attempted to withdraw more cash the the maximum balance allows. The maximum balance is {humanize_number(max_bal)} {await bank.get_currency_name(ctx.guild)}."
+                    f"You have attempted to withdraw more cash than the maximum balance allows. The maximum balance is {humanize_number(max_bal)} {await bank.get_currency_name(ctx.guild)}."
                 )
             await bank.withdraw_credits(user, amount)
             await self.walletset(user, wallet + amount)
