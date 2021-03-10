@@ -83,7 +83,6 @@ class Roulette(MixinMeta):
             await self.walletwithdraw(ctx.author, bet)
         else:
             await bank.withdraw_credits(ctx.author, bet)
-        
 
     async def betting(self, ctx, bet, _type):
         try:
