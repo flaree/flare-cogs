@@ -78,14 +78,14 @@ BET_TYPES = {
 class Roulette(MixinMeta):
     """Roulette Game."""
 
+    async def withdraw(self, ctx, bet):
+        if not await self.walletdisabledcheck(ctx):
+            await self.walletwithdraw(ctx.author, bet)
+        else:
+            await bank.withdraw_credits(ctx.author, bet)
+        
+
     async def betting(self, ctx, bet, _type):
-        try:
-            if not await self.walletdisabledcheck(ctx):
-                await self.walletwithdraw(ctx.author, bet)
-            else:
-                await bank.withdraw_credits(ctx.author, bet)
-        except ValueError:
-            return {"failed": "You do not have enough funds to complete this bet."}
         try:
             _type = int(_type)
         except ValueError:
@@ -101,6 +101,10 @@ class Roulette(MixinMeta):
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
+                try:
+                    await self.withdraw(ctx, bet)
+                except ValueError:
+                    return {"failed": "You do not have enough funds to complete this bet."}
                 return {"sucess": 200}
             for bet in self.roulettegames[ctx.guild.id]["number"]:
                 if bet.get(_type, False):
@@ -109,6 +113,10 @@ class Roulette(MixinMeta):
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
+            try:
+                await self.withdraw(ctx, bet)
+            except ValueError:
+                return {"failed": "You do not have enough funds to complete this bet."}
             return {"sucess": 200}
         if _type.lower() in BET_TYPES:
             for better in self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]]:
@@ -118,12 +126,15 @@ class Roulette(MixinMeta):
             self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
+            try:
+                await self.withdraw(ctx, bet)
+            except ValueError:
+                return {"failed": "You do not have enough funds to complete this bet."}
             return {"sucess": 200}
         return {"failed": "Not a valid option"}
 
     async def payout(self, ctx, winningnum, bets):
         msg = []
-        print(bets)
         conf = await self.configglobalcheck(ctx)
         payouts = await conf.roulette_payouts()
         color = NUMBERS[winningnum]
@@ -165,6 +176,7 @@ class Roulette(MixinMeta):
                     betinfo = list(bet.values())[0]
                     user = ctx.guild.get_member(betinfo["user"])
                     payout = betinfo["amount"] + (betinfo["amount"] * payouts[bettype])
+                    before_bal = await bank.get_balance(user)
                     if not await self.walletdisabledcheck(ctx):
                         user_conf = await self.configglobalcheckuser(user)
                         wallet = await user_conf.wallet()

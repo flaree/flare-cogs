@@ -26,7 +26,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.5"
+    __version__ = "0.5.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
