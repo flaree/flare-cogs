@@ -142,9 +142,7 @@ class BotListsPost(commands.Cog):
             return await ctx.send(
                 f"An error occured retrieving the lists. Error Code: {lists['error']}"
             )
-        msg = ""
-        for _list in lists:
-            msg += f"[{_list}]({lists[_list]['url']})\n"
+        msg = "".join(f"[{_list}]({lists[_list]['url']})\n" for _list in lists)
         embeds = []
         for page in pagify(msg, page_length=1024):
             embed = discord.Embed(
@@ -200,9 +198,7 @@ class BotListsPost(commands.Cog):
         conf = await self.config.lists()
         if not conf:
             return await ctx.send("You don't have any lists setup.")
-        msg = ""
-        for _list in conf:
-            msg += f"{_list}\n"
+        msg = "".join(f"{_list}\n" for _list in conf)
         embeds = []
         for page in pagify(msg, page_length=1024):
             embed = discord.Embed(

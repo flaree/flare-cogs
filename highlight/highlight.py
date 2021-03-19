@@ -35,11 +35,13 @@ class Highlight(commands.Cog):
         self.recache = {}
 
     async def red_get_data_for_user(self, *, user_id: int):
-        data = []
         config = await self.config.all_channels()
-        for channel in config:
-            if str(user_id) in config[channel]["highlight"]:
-                data.append(channel, config[channel]["highlight"][str(user_id)])
+        data = [
+            channel
+            for channel in config
+            if str(user_id) in config[channel]["highlight"]
+        ]
+
         if data is None:
             return {}
         contents = f"Highlight Data for Discord user with ID {user_id}:\n"
@@ -53,11 +55,13 @@ class Highlight(commands.Cog):
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ) -> None:
-        data = []
         config = await self.config.all_channels()
-        for channel in config:
-            if str(user_id) in config[channel]["highlight"]:
-                data.append(channel)
+        data = [
+            channel
+            for channel in config
+            if str(user_id) in config[channel]["highlight"]
+        ]
+
         for channel in data:
             async with self.config.channel_from_id(channel).highlight() as highlight:
                 del highlight[str(user_id)]
@@ -80,24 +84,26 @@ class Highlight(commands.Cog):
         # self.guildcache = await self.config.all_guilds()
 
     async def migrate_config(self):
-        if not await self.config.migrated():
-            a = {}
-            conf = await self.config.all_channels()
-            for channel in conf:
-                a[channel] = {}
-                for user in conf[channel]["highlight"]:
-                    a[channel][user] = {}
-                    for highlight in conf[channel]["highlight"][user]:
-                        a[channel][user][highlight] = {
-                            "toggle": conf[channel]["toggle"][user],
-                            "bots": False,
-                        }
-            group = self.config._get_base_group(self.config.CHANNEL)
-            async with group.all() as new_data:
-                for channel in a:
-                    new_data[channel] = {"highlight": a[channel]}
-            await self.config.migrated.set(True)
-            logger.info("Migration complete.")
+        if await self.config.migrated():
+            return
+
+        a = {}
+        conf = await self.config.all_channels()
+        for channel in conf:
+            a[channel] = {}
+            for user in conf[channel]["highlight"]:
+                a[channel][user] = {}
+                for highlight in conf[channel]["highlight"][user]:
+                    a[channel][user][highlight] = {
+                        "toggle": conf[channel]["toggle"][user],
+                        "bots": False,
+                    }
+        group = self.config._get_base_group(self.config.CHANNEL)
+        async with group.all() as new_data:
+            for channel in a:
+                new_data[channel] = {"highlight": a[channel]}
+        await self.config.migrated.set(True)
+        logger.info("Migration complete.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -114,20 +120,21 @@ class Highlight(commands.Cog):
         for user in highlight:
             if int(user) == message.author.id:
                 continue
-            if self.whitelist_blacklist.get(message.guild.id, False):
-                if self.whitelist_blacklist[message.guild.id].get(int(user), False):
-                    if (
-                        self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
-                        and message.author.id
-                        not in self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
-                    ):
-                        continue
-                    elif (
-                        self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
-                        and message.author.id
-                        in self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
-                    ):
-                        continue
+            if self.whitelist_blacklist.get(
+                message.guild.id, False
+            ) and self.whitelist_blacklist[message.guild.id].get(int(user), False):
+                if (
+                    self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
+                    and message.author.id
+                    not in self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
+                ):
+                    continue
+                elif (
+                    self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
+                    and message.author.id
+                    in self.whitelist_blacklist[message.guild.id][int(user)]["blacklist"]
+                ):
+                    continue
             highlighted_words = []
             for word in highlight[user]:
                 if word in highlighted_words:
@@ -144,9 +151,11 @@ class Highlight(commands.Cog):
                             continue
                         if not message.channel.permissions_for(highlighted_usr).read_messages:
                             continue
-                        if message.author.bot:
-                            if not highlight[user][word]["bots"]:
-                                continue
+                        if (
+                            message.author.bot
+                            and not highlight[user][word]["bots"]
+                        ):
+                            continue
 
                         if not highlight[user][word]["toggle"]:
                             continue
@@ -157,22 +166,20 @@ class Highlight(commands.Cog):
                         continue
                     if not message.channel.permissions_for(highlighted_usr).read_messages:
                         continue
-                    if message.author.bot:
-                        if not highlight[user][word]["bots"]:
-                            continue
+                    if message.author.bot and not highlight[user][word]["bots"]:
+                        continue
 
                     if not highlight[user][word]["toggle"]:
                         continue
                     highlighted_words.append(word)
             if highlighted_words:
-                msglist = []
-                msglist.append(message)
+                msglist = [message]
                 async for messages in message.channel.history(
                     limit=5, before=message, oldest_first=False
                 ):
                     msglist.append(messages)
                 msglist.reverse()
-                context = "\n".join([f"**{x.author}**: {x.content}" for x in msglist])
+                context = "\n".join(f"**{x.author}**: {x.content}" for x in msglist)
                 if len(context) > 2000:
                     context = "**Context omitted due to message size limits.\n**"
                 embed = discord.Embed(
@@ -232,9 +239,7 @@ class Highlight(commands.Cog):
         whitelist = await self.config.member(ctx.author).whitelist()
         if not whitelist:
             return await ctx.send("Your whitelist is empty.")
-        msg = ""
-        for _id in whitelist:
-            msg += f" - {_id}\n"
+        msg = "".join(f" - {_id}\n" for _id in whitelist)
         for page in pagify(msg):
             await ctx.send(box(page))
 
@@ -244,9 +249,7 @@ class Highlight(commands.Cog):
         blacklist = await self.config.member(ctx.author).blacklist()
         if not blacklist:
             return await ctx.send("Your blacklist is empty.")
-        msg = ""
-        for _id in blacklist:
-            msg += f" - {_id}\n"
+        msg = "".join(f" - {_id}\n" for _id in blacklist)
         for page in pagify(msg):
             await ctx.send(box(page))
 
@@ -419,11 +422,10 @@ class Highlight(commands.Cog):
                     await ctx.send("Bots will no longer trigger on any of your highlights.")
 
                 await self.generate_cache()
-                return
-
             else:
                 await ctx.send("Cancelling.")
-                return
+            return
+
         word = word.lower()
         async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
@@ -527,11 +529,10 @@ class Highlight(commands.Cog):
                     await ctx.send("None of your highlights will use word boundaries.")
 
                 await self.generate_cache()
-                return
-
             else:
                 await ctx.send("Cancelling.")
-                return
+            return
+
         word = word.lower()
         async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))

@@ -379,18 +379,17 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         userbalance = await self.walletbalance(user)
         if userbalance <= 50:
             finechance = random.randint(1, 10)
-            if finechance > 5:
-                embed = discord.Embed(
-                    colour=discord.Color.red(),
-                    description="You steal {}'s wallet but there was nothing of value inside.".format(
-                        user.name
-                    ),
-                    timestamp=ctx.message.created_at,
-                )
-                embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-                return await ctx.send(embed=embed)
-            else:
+            if finechance <= 5:
                 return await self.fine(ctx, "rob")
+            embed = discord.Embed(
+                colour=discord.Color.red(),
+                description="You steal {}'s wallet but there was nothing of value inside.".format(
+                    user.name
+                ),
+                timestamp=ctx.message.created_at,
+            )
+            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            return await ctx.send(embed=embed)
         modifier = roll()
         stolen = random.randint(1, int(userbalance * modifier))
         embed = discord.Embed(

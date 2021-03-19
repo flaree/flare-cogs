@@ -125,9 +125,10 @@ class ArticleFormat(menus.ListPageSource):
             timestamp=iso8601.parse_date(article["publishedAt"]),
             url=article["url"],
         )
-        if article["urlToImage"] is not None:
-            if validators.url(article["urlToImage"]):
-                embed.set_image(url=article["urlToImage"])
+        if article["urlToImage"] is not None and validators.url(
+            article["urlToImage"]
+        ):
+            embed.set_image(url=article["urlToImage"])
         embed.set_author(name=f"{article['author']} - {article['source']['name']}")
         embed.set_footer(text=f"Article {menu.current_page + 1 }/{menu._source.get_max_pages()}")
         return embed

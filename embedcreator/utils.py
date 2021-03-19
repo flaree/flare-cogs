@@ -49,11 +49,12 @@ class EmbedUtils(MixinMeta):
                 )
             if not isinstance(embed, discord.Embed):
                 return await ctx.send("Embed could not be built from the json provided.")
-            if len(embed) < 1 or len(embed) > 6000:
-                if not any([embed.thumbnail, embed.image]):
-                    return await ctx.send(
-                        "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                    )
+            if (len(embed) < 1 or len(embed) > 6000) and not any(
+                [embed.thumbnail, embed.image]
+            ):
+                return await ctx.send(
+                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                )
             complete_embeds.append(embed)
         try:
             await menu(
@@ -117,15 +118,11 @@ class EmbedUtils(MixinMeta):
         for embed in embeds_stored:
             user = ctx.guild.get_member(embeds_stored[embed]["author"])
             msg += f"{embed} - Created by: {user if user is not None else '<removed user>'}\n"
-        embeds = []
-        for page in pagify(msg):
-            embeds.append(
-                discord.Embed(
+        embeds = [discord.Embed(
                     title=f"Embeds in {ctx.guild}",
                     description=page,
                     color=await ctx.embed_colour(),
-                )
-            )
+                ) for page in pagify(msg)]
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
             return

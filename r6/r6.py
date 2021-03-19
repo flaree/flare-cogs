@@ -312,9 +312,7 @@ class R6(commands.Cog):
         data = await self.request_data(ctx, "operator", player=profile, platform=platform)
         if data is None:
             return
-        ops = []
-        for operators in data.operators:
-            ops.append(operators["name"].lower())
+        ops = [operators["name"].lower() for operators in data.operators]
         if operator.lower() not in ops:
             return await ctx.send(
                 "No statistics found for the current operator or the operator is invalid."
@@ -340,9 +338,11 @@ class R6(commands.Cog):
                 embed.add_field(name="Match Stats", value=stats, inline=True)
                 embed.add_field(name="Kill Stats", value=killstats, inline=True)
                 try:
-                    msg = ""
-                    for ability in data["abilities"]:
-                        msg += f'**{ability["ability"]}**: {ability["value"]}'
+                    msg = "".join(
+                        f'**{ability["ability"]}**: {ability["value"]}'
+                        for ability in data["abilities"]
+                    )
+
                     embed.add_field(name="Operator Stats", value=msg)
                 except KeyError:
                     pass
@@ -386,10 +386,7 @@ class R6(commands.Cog):
         if season > len(data[0]) - 1 or season < 6:
             return await ctx.send("Invalid season.")
         seasondata = data[1][data[0][season]]["regions"][str(region)][0]
-        if season >= 14:
-            ranks = self.stats.ranksember
-        else:
-            ranks = self.stats.ranks
+        ranks = self.stats.ranksember if season >= 14 else self.stats.ranks
         async with ctx.typing():
             picture = await self.config.member(ctx.author).picture()
             if picture:
@@ -465,9 +462,7 @@ class R6(commands.Cog):
         data = await self.request_data(ctx, "operator", player=profile, platform=platform)
         if data is None:
             return
-        ops = []
-        for operators in data.operators:
-            ops.append(operators["name"].lower())
+        ops = [operators["name"].lower() for operators in data.operators]
         if not ops:
             return await ctx.send("No operator statistics found.")
         if len(ops) > 26:
@@ -483,33 +478,31 @@ class R6(commands.Cog):
                     colour=ctx.author.colour,
                 )
                 for i in range(len(opsone)):
-                    if statistic.lower() != "playtime":
-                        em1.add_field(
-                            name=data.operators[i]["name"], value=data.operators[i][statistic]
-                        )
-                    else:
+                    if statistic.lower() == "playtime":
                         em1.add_field(
                             name=data.operators[i]["name"],
                             value=str(
                                 humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
+                        )
+                    else:
+                        em1.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
                         )
                 for i in range(len(opstwo)):
                     i += 25
-                    if statistic.lower() != "playtime":
-                        em2.add_field(
-                            name=data.operators[i]["name"], value=data.operators[i][statistic]
-                        )
-                    else:
+                    if statistic.lower() == "playtime":
                         em2.add_field(
                             name=data.operators[i]["name"],
                             value=str(
                                 humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
                         )
-            embeds = []
-            embeds.append(em1)
-            embeds.append(em2)
+                    else:
+                        em2.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
+                        )
+            embeds = [em1, em2]
             await menu(ctx, embeds, DEFAULT_CONTROLS)
         else:
             async with ctx.typing():
@@ -517,16 +510,16 @@ class R6(commands.Cog):
                     title=f"{statistic.title()} statistics for {profile}", colour=ctx.author.colour
                 )
                 for i in range(len(ops)):
-                    if statistic.lower() != "playtime":
-                        em1.add_field(
-                            name=data.operators[i]["name"], value=data.operators[i][statistic]
-                        )
-                    else:
+                    if statistic.lower() == "playtime":
                         em1.add_field(
                             name=data.operators[i]["name"],
                             value=str(
                                 humanize_timedelta(seconds=int(data.operators[i][statistic]))
                             ),
+                        )
+                    else:
+                        em1.add_field(
+                            name=data.operators[i]["name"], value=data.operators[i][statistic]
                         )
             await ctx.send(embed=em1)
 
@@ -623,9 +616,7 @@ class R6(commands.Cog):
         data = await self.request_data(ctx, "weapon", player=profile, platform=platform)
         if data is None:
             return
-        weapons = []
-        for wep in data.weapons:
-            weapons.append(wep["weapon"].lower())
+        weapons = [wep["weapon"].lower() for wep in data.weapons]
         if weapon.lower() not in weapons:
             return await ctx.send("Invalid weapon or no statistics available.")
         ind = weapons.index(weapon.lower())

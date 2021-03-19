@@ -77,8 +77,7 @@ class Forward(commands.Cog):
                 embed = discord.Embed(description=message.content, timestamp=message.created_at)
             await self._destination(msg, embed)
         else:
-            embeds = []
-            embeds.append(discord.Embed(description=message.content))
+            embeds = [discord.Embed(description=message.content)]
             embeds[0].set_author(
                 name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
             )

@@ -67,11 +67,10 @@ class StickBugged(commands.Cog):
             else:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(str(image)) as resp:
-                        if resp.status == 200:
-                            io.write(await resp.read())
-                            io.seek(0)
-                        else:
+                        if resp.status != 200:
                             return await ctx.send("The picture returned an unknown status code.")
+                        io.write(await resp.read())
+                        io.seek(0)
             await asyncio.sleep(0.2)
             fake_task = functools.partial(self.blocking, io=io, id=ctx.message.id)
             task = self.bot.loop.run_in_executor(None, fake_task)

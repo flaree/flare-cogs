@@ -262,4 +262,4 @@ class Mod(ModClass):
                 usermsg = user_obj.mention
             expiry = datetime.fromtimestamp(guildmuted[user]["expiry"]) - datetime.now()
             msg += f"{usermsg} is muted for {humanize_timedelta(timedelta=expiry)}\n"
-        await ctx.maybe_send_embed(msg if msg else "Nobody is currently muted.")
+        await ctx.maybe_send_embed(msg or "Nobody is currently muted.")

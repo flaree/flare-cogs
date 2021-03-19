@@ -56,9 +56,8 @@ class Covid(commands.Cog):
                 }
             if response.status == 200:
                 try:
-                    if isinstance(data, dict):
-                        if data.get("message") is not None:
-                            return {"failed": data["message"]}
+                    if isinstance(data, dict) and data.get("message") is not None:
+                        return {"failed": data["message"]}
                     return data
                 except aiohttp.ServerTimeoutError:
                     return {
@@ -115,9 +114,8 @@ class Covid(commands.Cog):
         if not country:
             async with ctx.typing():
                 data = await self.get(self.api + "/all")
-            if isinstance(data, dict):
-                if data.get("failed") is not None:
-                    return await ctx.send(data.get("failed"))
+            if isinstance(data, dict) and data.get("failed") is not None:
+                return await ctx.send(data.get("failed"))
             if not data:
                 return await ctx.send("No data available.")
             embed = discord.Embed(
