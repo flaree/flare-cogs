@@ -20,9 +20,9 @@ def chunks(l, n):
 async def send(self, content=None, **kwargs):
     content = str(content) if content is not None else None
     cog = self.bot.get_cog("Tips")
-    if (cog).usercache.get(self.author.id, {}).get(
-        "toggle", True
-    ) and random.randint(1, cog.chance) == 1:
+    if (cog).usercache.get(self.author.id, {}).get("toggle", True) and random.randint(
+        1, cog.chance
+    ) == 1:
         tips = cog.message_cache or ["No tips configured."]
         tip_msg = random.choice(tips).format(prefix=self.clean_prefix)
         if content:

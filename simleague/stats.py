@@ -151,10 +151,7 @@ class StatsMixin(MixinMeta):
         stats = await self.config.guild(ctx.guild).stats()
         stats = stats["cleansheets"]
         if stats:
-            a = [
-                f"{k} - {stats[k]}"
-                for k in sorted(stats, key=stats.get, reverse=True)[:10]
-            ]
+            a = [f"{k} - {stats[k]}" for k in sorted(stats, key=stats.get, reverse=True)[:10]]
 
             embed = discord.Embed(
                 title="Most Cleansheets", description="\n".join(a), colour=0xFF0000

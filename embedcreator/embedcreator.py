@@ -152,9 +152,7 @@ class EmbedCreator(
             if not isinstance(embed, discord.Embed):
                 await ctx.send("Embed could not be built from the json provided.")
                 return False, None
-            if (len(embed) < 1 or len(embed) > 6000) and not any(
-                [embed.thumbnail, embed.image]
-            ):
+            if (len(embed) < 1 or len(embed) > 6000) and not any([embed.thumbnail, embed.image]):
                 await ctx.send(
                     "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
                 )

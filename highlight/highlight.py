@@ -36,11 +36,7 @@ class Highlight(commands.Cog):
 
     async def red_get_data_for_user(self, *, user_id: int):
         config = await self.config.all_channels()
-        data = [
-            channel
-            for channel in config
-            if str(user_id) in config[channel]["highlight"]
-        ]
+        data = [channel for channel in config if str(user_id) in config[channel]["highlight"]]
 
         if data is None:
             return {}
@@ -56,11 +52,7 @@ class Highlight(commands.Cog):
         user_id: int,
     ) -> None:
         config = await self.config.all_channels()
-        data = [
-            channel
-            for channel in config
-            if str(user_id) in config[channel]["highlight"]
-        ]
+        data = [channel for channel in config if str(user_id) in config[channel]["highlight"]]
 
         for channel in data:
             async with self.config.channel_from_id(channel).highlight() as highlight:
@@ -120,9 +112,9 @@ class Highlight(commands.Cog):
         for user in highlight:
             if int(user) == message.author.id:
                 continue
-            if self.whitelist_blacklist.get(
-                message.guild.id, False
-            ) and self.whitelist_blacklist[message.guild.id].get(int(user), False):
+            if self.whitelist_blacklist.get(message.guild.id, False) and self.whitelist_blacklist[
+                message.guild.id
+            ].get(int(user), False):
                 if (
                     self.whitelist_blacklist[message.guild.id][int(user)]["whitelist"]
                     and message.author.id
@@ -151,10 +143,7 @@ class Highlight(commands.Cog):
                             continue
                         if not message.channel.permissions_for(highlighted_usr).read_messages:
                             continue
-                        if (
-                            message.author.bot
-                            and not highlight[user][word]["bots"]
-                        ):
+                        if message.author.bot and not highlight[user][word]["bots"]:
                             continue
 
                         if not highlight[user][word]["toggle"]:

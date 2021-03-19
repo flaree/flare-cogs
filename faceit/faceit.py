@@ -243,7 +243,7 @@ class Faceit(commands.Cog):
                     for player in game["teams"][team]["players"]
                 ]
 
-                embed.add_field(name=f'{value} Players', value="\n".join(players))
+                embed.add_field(name=f"{value} Players", value="\n".join(players))
 
             embeds.append(embed)
         if embeds:
@@ -291,9 +291,7 @@ class Faceit(commands.Cog):
                 playerstats = sorted(player["player_stats"].items())
                 embed.add_field(
                     name=player["nickname"],
-                    value="\n".join(
-                        f"**{item[0]}**: {item[1]}" for item in playerstats
-                    ),
+                    value="\n".join(f"**{item[0]}**: {item[1]}" for item in playerstats),
                 )
 
             embed.add_field(name="\u200b", value="\u200b")
@@ -338,8 +336,7 @@ class Faceit(commands.Cog):
             embed = discord.Embed(
                 title=f"{segment['label']} statistics",
                 description="\n".join(
-                    f"**{item[0]}**: {item[1]}"
-                    for item in sorted(segment["stats"].items())
+                    f"**{item[0]}**: {item[1]}" for item in sorted(segment["stats"].items())
                 ),
             )
 
