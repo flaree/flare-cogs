@@ -68,29 +68,30 @@ class CommandStats(commands.Cog):
         asyncio.create_task(self.update_global())
 
     def record(self, ctx, name):
+        if ctx.message.author.bot:
+            return
         guild = ctx.message.guild
-        if not ctx.message.author.bot:
-            if getattr(ctx, "assume_yes", False):
-                if name not in self.cache["automated"]:
-                    self.cache["automated"][name] = 1
-                else:
-                    self.cache["automated"][name] += 1
-                return
-            if guild is not None:
-                if str(guild.id) not in self.cache["guild"]:
-                    self.cache["guild"][str(guild.id)] = Counter({})
-                if name not in self.cache["guild"][str(guild.id)]:
-                    self.cache["guild"][str(guild.id)][name] = 1
-                else:
-                    self.cache["guild"][str(guild.id)][name] += 1
-            if name not in self.cache["session"]:
-                self.cache["session"][name] = 1
+        if getattr(ctx, "assume_yes", False):
+            if name not in self.cache["automated"]:
+                self.cache["automated"][name] = 1
             else:
-                self.cache["session"][name] += 1
-            if name not in self.session:
-                self.session[name] = 1
+                self.cache["automated"][name] += 1
+            return
+        if guild is not None:
+            if str(guild.id) not in self.cache["guild"]:
+                self.cache["guild"][str(guild.id)] = Counter({})
+            if name not in self.cache["guild"][str(guild.id)]:
+                self.cache["guild"][str(guild.id)][name] = 1
             else:
-                self.session[name] += 1
+                self.cache["guild"][str(guild.id)][name] += 1
+        if name not in self.cache["session"]:
+            self.cache["session"][name] = 1
+        else:
+            self.cache["session"][name] += 1
+        if name not in self.session:
+            self.session[name] = 1
+        else:
+            self.session[name] += 1
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
@@ -108,9 +109,11 @@ class CommandStats(commands.Cog):
 
     def build_data(self, data):
         data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
-        stats = []
-        for cmd, amount in data.items():
-            stats.append([f"{cmd}", f"{amount} time{'s' if amount != 1 else ''}"])
+        stats = [
+            [f"{cmd}", f"{amount} time{'s' if amount != 1 else ''}"]
+            for cmd, amount in data.items()
+        ]
+
         return list(chunks(stats, 15))
 
     @commands.is_owner()
@@ -235,12 +238,9 @@ class CommandStats(commands.Cog):
             if cog is None:
                 await ctx.send("No such cog.")
                 return
-            commands = set([x.qualified_name for x in cog.walk_commands()])
+            commands = {x.qualified_name for x in cog.walk_commands()}
             data = await self.config.globaldata()
-            a = {}
-            for command in data:
-                if command in commands:
-                    a[command] = data[command]
+            a = {command: data[command] for command in data if command in commands}
             if not a:
                 await ctx.send(f"No commands used from {cogname} as of yet.")
                 return
@@ -258,11 +258,8 @@ class CommandStats(commands.Cog):
             a = {}
             for cogn in self.bot.cogs:
                 cog = self.bot.get_cog(cogn)
-                commands = set([x.qualified_name for x in cog.walk_commands()])
-                a[cogn] = 0
-                for command in data:
-                    if command in commands:
-                        a[cogn] += data[command]
+                commands = {x.qualified_name for x in cog.walk_commands()}
+                a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
                 await ctx.send(f"No commands used from any cog as of yet.")
                 return
@@ -285,12 +282,9 @@ class CommandStats(commands.Cog):
             if cog is None:
                 await ctx.send("No such cog.")
                 return
-            commands = set([x.qualified_name for x in cog.walk_commands()])
+            commands = {x.qualified_name for x in cog.walk_commands()}
             data = deepcopy(self.session)
-            a = {}
-            for command in data:
-                if command in commands:
-                    a[command] = data[command]
+            a = {command: data[command] for command in data if command in commands}
             if not a:
                 await ctx.send(f"No commands used from {cogname} as of yet.")
                 return
@@ -309,11 +303,8 @@ class CommandStats(commands.Cog):
             a = {}
             for cogn in self.bot.cogs:
                 cog = self.bot.get_cog(cogn)
-                commands = set([x.qualified_name for x in cog.walk_commands()])
-                a[cogn] = 0
-                for command in data:
-                    if command in commands:
-                        a[cogn] += data[command]
+                commands = {x.qualified_name for x in cog.walk_commands()}
+                a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
                 await ctx.send(f"No commands used from any cog as of yet.")
                 return
@@ -358,10 +349,7 @@ class CommandStats(commands.Cog):
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
             for guild in self.cache["guild"]:
-                if guild in guilddata:
-                    olddata = Counter(guilddata[guild])
-                else:
-                    olddata = Counter({})
+                olddata = Counter(guilddata[guild]) if guild in guilddata else Counter({})
                 data = Counter(olddata + self.cache["guild"][guild])
                 self.cache["guild"][guild] = Counter()
                 guilddata[guild] = data

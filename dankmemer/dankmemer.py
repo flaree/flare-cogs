@@ -921,14 +921,8 @@ class DankMemer(commands.Cog):
         bottom_text = urllib.parse.quote(bottom_text)
         if image is None:
             image = ctx.author.avatar_url_as(static_format="png")
-        if font:
-            fnt = f"&font={font}"
-        else:
-            fnt = ""
-        if color:
-            clr = f"&color={urllib.parse.quote(color)}"
-        else:
-            clr = ""
+        fnt = f"&font={font}" if font else ""
+        clr = f"&color={urllib.parse.quote(color)}" if color else ""
         data = await self.get(
             ctx, f"/meme?avatar1={image}&top_text={top_text}&bottom_text={bottom_text}{clr}{fnt}"
         )

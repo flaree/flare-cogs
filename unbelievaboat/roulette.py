@@ -94,9 +94,11 @@ class Roulette(MixinMeta):
                 return {"failed": "Bet must be between 0 and 36."}
             if _type == 0:
                 for better in self.roulettegames[ctx.guild.id]["zero"]:
-                    if better.get(_type, False):
-                        if better[_type]["user"] == ctx.author.id:
-                            return {"failed": "You cannot make duplicate bets."}
+                    if (
+                        better.get(_type, False)
+                        and better[_type]["user"] == ctx.author.id
+                    ):
+                        return {"failed": "You cannot make duplicate bets."}
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
@@ -106,9 +108,11 @@ class Roulette(MixinMeta):
                     return {"failed": "You do not have enough funds to complete this bet."}
                 return {"sucess": 200}
             for better in self.roulettegames[ctx.guild.id]["number"]:
-                if better.get(_type, False):
-                    if better[_type]["user"] == ctx.author.id:
-                        return {"failed": "You cannot make duplicate bets."}
+                if (
+                    better.get(_type, False)
+                    and better[_type]["user"] == ctx.author.id
+                ):
+                    return {"failed": "You cannot make duplicate bets."}
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
@@ -119,9 +123,11 @@ class Roulette(MixinMeta):
             return {"sucess": 200}
         if _type.lower() in BET_TYPES:
             for better in self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]]:
-                if better.get(_type.lower(), False):
-                    if better[_type.lower()]["user"] == ctx.author.id:
-                        return {"failed": "You cannot make duplicate bets."}
+                if (
+                    better.get(_type.lower(), False)
+                    and better[_type.lower()]["user"] == ctx.author.id
+                ):
+                    return {"failed": "You cannot make duplicate bets."}
             self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
@@ -168,10 +174,10 @@ class Roulette(MixinMeta):
             "dozen": dozen,
             "column": column,
         }
-        for bettype in payout_types:
+        for bettype, value in payout_types.items():
             for bet in bets[bettype]:
                 bet_type = list(bet.keys())[0]
-                if bet_type == payout_types[bettype]:
+                if bet_type == value:
                     betinfo = list(bet.values())[0]
                     user = ctx.guild.get_member(betinfo["user"])
                     payout = betinfo["amount"] + (betinfo["amount"] * payouts[bettype])
@@ -358,8 +364,10 @@ class Roulette(MixinMeta):
         embed = discord.Embed(color=ctx.author.color, title="Roulette Settings")
         embed.add_field(name="Status", value="Enabled" if enabled else "Disabled")
         embed.add_field(name="Time to Spin", value=humanize_timedelta(seconds=time))
-        payoutsmsg = ""
-        for payout in sorted(payouts, key=lambda x: payouts[x], reverse=True):
-            payoutsmsg += f"**{payout.replace('_', ' ').title()}**: {payouts[payout]}\n"
+        payoutsmsg = "".join(
+            f"**{payout.replace('_', ' ').title()}**: {payouts[payout]}\n"
+            for payout in sorted(payouts, key=lambda x: payouts[x], reverse=True)
+        )
+
         embed.add_field(name="Payout Settings", value=payoutsmsg)
         await ctx.send(embed=embed)

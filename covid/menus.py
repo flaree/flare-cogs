@@ -128,9 +128,8 @@ class ArticleFormat(menus.ListPageSource):
             description=f"[Click Here for Full data]({data['url']})\n\n{data['description']}",
             timestamp=datetime.datetime.fromisoformat(data["publishedAt"].replace("Z", "")),
         )
-        if data["urlToImage"] is not None:
-            if validators.url(data["urlToImage"]):
-                embed.set_image(url=data["urlToImage"])
+        if data["urlToImage"] is not None and validators.url(data["urlToImage"]):
+            embed.set_image(url=data["urlToImage"])
         embed.set_author(name=f"{data['author']} - {data['source']['name']}")
         embed.set_footer(text=f"Article {menu.current_page + 1 }/{menu._source.get_max_pages()}")
         return embed

@@ -48,12 +48,11 @@ class ImageFinder(Converter):
             for attachment in attachments:
                 urls.append(attachment.url)
 
-        if not urls:
-            if ctx.guild:
-                user = ctx.guild.get_member_named(argument)
-                if user:
-                    url = user.avatar_url_as(format="png")
-                    urls.append(url)
+        if not urls and ctx.guild:
+            user = ctx.guild.get_member_named(argument)
+            if user:
+                url = user.avatar_url_as(format="png")
+                urls.append(url)
         if not urls:
             raise BadArgument("No images found.")
         return urls[0]

@@ -127,11 +127,8 @@ class SimLeague(
             return await ctx.send(f"You must provide {maxplayers} members.")
 
         names = {str(x.id): x.name for x in members}
-        a = []
         memids = await self.config.guild(ctx.guild).users()
-        for uid in names:
-            if uid in memids:
-                a.append(uid)
+        a = [uid for uid in names if uid in memids]
         if a:
             b = []
             for ids in a:
@@ -223,11 +220,11 @@ class SimLeague(
             lvllen = 6
 
             msg = f"{'Team':{teamlen}} {'Level':{lvllen}} {'Captain':{caplen}} {'Role':{rolelen}} {'Members'}\n"
+            non = "None"
             for team in teams:
                 lvl = teams[team]["cachedlevel"]
                 captain = list(teams[team]["captain"].values())[0]
                 role = teams[team]["role"]
-                non = "None"
                 msg += (
                     f"{f'{team}': <{teamlen}} "
                     f"{f'{lvl}': <{lvllen}} "
@@ -292,17 +289,13 @@ class SimLeague(
         if week is None:
             embed = discord.Embed(color=0xFF0000)
             for i, fixture in enumerate(fixtures[:25]):
-                a = []
-                for game in fixture:
-                    a.append(f"{game[0]} vs {game[1]}")
+                a = [f"{game[0]} vs {game[1]}" for game in fixture]
                 embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
             await ctx.send(embed=embed)
             if len(fixtures) > 25:
                 embed = discord.Embed(color=0xFF0000)
                 for i, fixture in enumerate(fixtures[25:], 25):
-                    a = []
-                    for game in fixture:
-                        a.append(f"{game[0]} vs {game[1]}")
+                    a = [f"{game[0]} vs {game[1]}" for game in fixture]
                     embed.add_field(name="Week {}".format(i + 1), value="\n".join(a))
                 await ctx.send(embed=embed)
         else:
@@ -316,9 +309,7 @@ class SimLeague(
                 games = games[week]
             except IndexError:
                 return await ctx.send("Invalid gameweek.")
-            a = []
-            for fixture in games:
-                a.append(f"{fixture[0]} vs {fixture[1]}")
+            a = [f"{fixture[0]} vs {fixture[1]}" for fixture in games]
             await ctx.maybe_send_embed("\n".join(a))
 
     @commands.command()
@@ -331,8 +322,8 @@ class SimLeague(
         standings = await self.config.guild(ctx.guild).standings()
         if standings is None:
             return await ctx.send("The table is empty.")
+        t = []  # PrettyTable(["Team", "W", "L", "D", "PL", "PO"])
         if not verbose:
-            t = []  # PrettyTable(["Team", "W", "L", "D", "PL", "PO"])
             for x in sorted(
                 standings,
                 key=lambda x: (standings[x]["points"], standings[x]["gd"], standings[x]["gf"]),
@@ -349,9 +340,7 @@ class SimLeague(
                     ]
                 )
             tab = tabulate(t, headers=["Team", "Wins", "Losses", "Draws", "Played", "Points"])
-            await ctx.send(box(tab))
         else:
-            t = []
             for x in sorted(
                 standings,
                 key=lambda x: (standings[x]["points"], standings[x]["gd"], standings[x]["gf"]),
@@ -374,7 +363,8 @@ class SimLeague(
                 t,
                 headers=["Team", "Wins", "Losses", "Draws", "Played", "Points", "GD", "GF", "GA"],
             )
-            await ctx.send(box(tab))
+
+        await ctx.send(box(tab))
 
     @checks.admin_or_permissions(manage_guild=True)
     @commands.cooldown(rate=1, per=30, type=commands.BucketType.guild)
@@ -493,8 +483,8 @@ class SimLeague(
                 t1totalxp = 1
             if t2totalxp < 2:
                 t2totalxp = 1
-            team1bonus = team1bonus * 15
-            team2bonus = team2bonus * 15
+            team1bonus *= 15
+            team2bonus *= 15
             t1totalxp = t1totalxp * float(f"1.{team1bonus}")
             t2totalxp = t2totalxp * float(f"1.{team2bonus}")
             self.log.debug(f"Team 1: {t1totalxp} - Team 2: {t2totalxp}")
@@ -530,7 +520,7 @@ class SimLeague(
                 rc = rC_team2
             if event == 0:
                 rosterUpdate = [i for i in fs_players if i not in rc]
-                if len(rosterUpdate) == 0:
+                if not rosterUpdate:
                     return await ctx.send(
                         "Game abandoned, no score recorded due to no players remaining."
                     )
@@ -540,27 +530,22 @@ class SimLeague(
                     isassist = True
                 if len(rosterUpdate) < 3:
                     isassist = False
-                if isassist:
-                    player = random.choice(rosterUpdate)
-                    rosterUpdate.remove(player)
-                    assister = random.choice(rosterUpdate)
-                    output = [team, player, assister]
-                else:
-                    player = random.choice(rosterUpdate)
-                    output = [team, player]
-                return output
+                player = random.choice(rosterUpdate)
+                if not isassist:
+                    return [team, player]
+                rosterUpdate.remove(player)
+                assister = random.choice(rosterUpdate)
+                return [team, player, assister]
             elif event == 1:
                 rosterUpdate = [i for i in fs_players if i not in rc]
                 if len(rosterUpdate) == 1:
                     return None
                 player = random.choice(rosterUpdate)
                 if player in yc or player in yellowcards:
-                    output = [team, player, 2]
-                    return output
+                    return [team, player, 2]
                 else:
-                    output = [team, player]
-                    return output
-            elif event == 2 or event == 3:
+                    return [team, player]
+            elif event in [2, 3]:
                 rosterUpdate = [i for i in fs_players if i not in rc]
                 if len(rosterUpdate) == 1 and event == 2:
                     return None
@@ -1118,11 +1103,11 @@ class SimLeague(
             await ctx.send("The maximum bet is {}".format(maxbet))
             return False
 
-        if not await bank.can_spend(ctx.author, bet):
-            await ctx.send("You do not have enough money to cover the bet.")
-            return False
-        else:
+        if await bank.can_spend(ctx.author, bet):
             return True
+
+        await ctx.send("You do not have enough money to cover the bet.")
+        return False
 
     @commands.command(name="bet")
     async def _bet(self, ctx, bet: int, *, team: str):

@@ -41,15 +41,11 @@ class EmbedGlobal(MixinMeta):
         for embed in embeds_stored:
             user = ctx.guild.get_member(embeds_stored[embed]["author"])
             msg += f"{embed} - Created by: {user if user is not None else '<unknown user>'}\n"
-        embeds = []
-        for page in pagify(msg):
-            embeds.append(
-                discord.Embed(
+        embeds = [discord.Embed(
                     title=f"Global Embeds",
                     description=page,
                     color=await ctx.embed_colour(),
-                )
-            )
+                ) for page in pagify(msg)]
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
             return

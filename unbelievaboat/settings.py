@@ -42,15 +42,15 @@ class SettingsMixin(MixinMeta):
         seconds = time.total_seconds()
         if seconds < 30:
             return await ctx.send("The miniumum interval is 30 seconds.")
-        jobcd = {
-            "work": "workcd",
-            "crime": "crimecd",
-            "rob": "robcd",
-            "deposit": "depositcd",
-            "withdraw": "withdrawcd",
-        }
         conf = await self.configglobalcheck(ctx)
         async with conf.cooldowns() as cooldowns:
+            jobcd = {
+                "work": "workcd",
+                "crime": "crimecd",
+                "rob": "robcd",
+                "deposit": "depositcd",
+                "withdraw": "withdrawcd",
+            }
             cooldowns[jobcd[job]] = int(seconds)
         await ctx.tick()
 
@@ -157,8 +157,8 @@ class SettingsMixin(MixinMeta):
         if "{amount}" not in reply:
             return await ctx.send("{amount} must be present in the reply.")
         conf = await self.configglobalcheck(ctx)
-        jobreplies = {"work": "workreplies", "crime": "crimereplies"}
         async with conf.replies() as replies:
+            jobreplies = {"work": "workreplies", "crime": "crimereplies"}
             if reply in replies[jobreplies[job]]:
                 return await ctx.send("That is already a response.")
             replies[jobreplies[job]].append(reply)
@@ -172,9 +172,9 @@ class SettingsMixin(MixinMeta):
         """Delete a custom reply."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
-        jobreplies = {"work": "workreplies", "crime": "crimereplies"}
         conf = await self.configglobalcheck(ctx)
         async with conf.replies() as replies:
+            jobreplies = {"work": "workreplies", "crime": "crimereplies"}
             if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             if id > len(replies[jobreplies[job]]):
@@ -189,9 +189,9 @@ class SettingsMixin(MixinMeta):
         """List custom replies."""
         if job not in ["work", "crime"]:
             return await ctx.send("Invalid job.")
-        jobreplies = {"work": "workreplies", "crime": "crimereplies"}
         conf = await self.configglobalcheck(ctx)
         async with conf.replies() as replies:
+            jobreplies = {"work": "workreplies", "crime": "crimereplies"}
             if not replies[jobreplies[job]]:
                 return await ctx.send("This job has no custom replies.")
             a = chunks(replies[jobreplies[job]], 10)
@@ -217,10 +217,10 @@ class SettingsMixin(MixinMeta):
         conf = await self.configglobalcheck(ctx)
         if enable:
             await ctx.send("Default replies are enabled.")
-            await conf.defaultreplies.set(enable)
         else:
             await ctx.send("Default replies are now disabled.")
-            await conf.defaultreplies.set(enable)
+
+        await conf.defaultreplies.set(enable)
 
     @commands.command()
     @commands.guild_only()

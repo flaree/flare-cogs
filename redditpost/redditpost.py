@@ -349,9 +349,8 @@ class RedditPost(commands.Cog):
             if image.endswith(("png", "jpg", "jpeg", "gif")):
                 embed.set_image(url=unescape(image))
             else:
-                if feed["permalink"] not in image:
-                    if validators.url(image):
-                        embed.add_field(name="Attachment", value=unescape(image))
+                if feed["permalink"] not in image and validators.url(image):
+                    embed.add_field(name="Attachment", value=unescape(image))
             embeds.append(embed)
         if timestamps:
             if embeds:

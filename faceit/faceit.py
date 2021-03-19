@@ -237,13 +237,13 @@ class Faceit(commands.Cog):
             embed.set_footer(
                 text=f"Game {i}/20 - Duration: {humanize_timedelta(seconds=game['finished_at'] - game['started_at'])}"
             )
-            for team in teams:
-                players = []
-                for player in game["teams"][team]["players"]:
-                    players.append(
-                        f"[{player['nickname']}]({player['faceit_url'].format(lang='en')})"
-                    )
-                embed.add_field(name=f"{teams[team]} Players", value="\n".join(players))
+            for team, value in teams.items():
+                players = [
+                    f"[{player['nickname']}]({player['faceit_url'].format(lang='en')})"
+                    for player in game["teams"][team]["players"]
+                ]
+
+                embed.add_field(name=f'{value} Players', value="\n".join(players))
 
             embeds.append(embed)
         if embeds:
@@ -274,12 +274,14 @@ class Faceit(commands.Cog):
         team2stats = sorted(match[0]["teams"][1]["team_stats"].items())
         embed.add_field(
             name=f"{team1} Team Stats",
-            value="\n".join([f"**{item[0]}**: {item[1]}" for item in team1stats]),
+            value="\n".join(f"**{item[0]}**: {item[1]}" for item in team1stats),
         )
+
         embed.add_field(
             name=f"{team2} Team Stats",
-            value="\n".join([f"**{item[0]}**: {item[1]}" for item in team2stats]),
+            value="\n".join(f"**{item[0]}**: {item[1]}" for item in team2stats),
         )
+
         embed.set_footer(text="Page 1/3")
         embeds.append(embed)
 
@@ -289,8 +291,11 @@ class Faceit(commands.Cog):
                 playerstats = sorted(player["player_stats"].items())
                 embed.add_field(
                     name=player["nickname"],
-                    value="\n".join([f"**{item[0]}**: {item[1]}" for item in playerstats]),
+                    value="\n".join(
+                        f"**{item[0]}**: {item[1]}" for item in playerstats
+                    ),
                 )
+
             embed.add_field(name="\u200b", value="\u200b")
             embed.set_footer(text=f"Page {i}/3")
             embeds.append(embed)
@@ -321,12 +326,11 @@ class Faceit(commands.Cog):
         else:
             msg = "**Recent Results**: N/A"
         msg += "\n".join(
-            [
-                f"**{item[0]}**: {item[1]}"
-                for item in sorted(stats["lifetime"].items())
-                if item[0] != "Recent Results"
-            ]
+            f"**{item[0]}**: {item[1]}"
+            for item in sorted(stats["lifetime"].items())
+            if item[0] != "Recent Results"
         )
+
         embed = discord.Embed(title=f"{game.title()} stats for {name}", description=msg)
         embed.set_footer(text=f"Page 1/{len(stats['segments']) + 1}")
         embeds.append(embed)
@@ -334,9 +338,11 @@ class Faceit(commands.Cog):
             embed = discord.Embed(
                 title=f"{segment['label']} statistics",
                 description="\n".join(
-                    [f"**{item[0]}**: {item[1]}" for item in sorted(segment["stats"].items())]
+                    f"**{item[0]}**: {item[1]}"
+                    for item in sorted(segment["stats"].items())
                 ),
             )
+
             embed.set_thumbnail(url=segment["img_regular"])
             embed.set_footer(text=f"Page {i}/{len(stats['segments']) + 1}")
             embeds.append(embed)
@@ -364,12 +370,14 @@ class Faceit(commands.Cog):
         embed.set_footer(text="Started:")
         embed.add_field(
             name=f"{team1['name']} Roster",
-            value="\n".join([player["nickname"] for player in team1["roster"]]),
+            value="\n".join(player["nickname"] for player in team1["roster"]),
         )
+
         embed.add_field(
             name=f"{team2['name']} Roster",
-            value="\n".join([player["nickname"] for player in team2["roster"]]),
+            value="\n".join(player["nickname"] for player in team2["roster"]),
         )
+
         await ctx.send(embed=embed)
 
     async def is_ongoing(self, ctx, name, messages=True):

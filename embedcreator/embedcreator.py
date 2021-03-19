@@ -50,10 +50,11 @@ class EmbedCreator(
             async with self.config.guild_from_id(match[0]).embeds() as embeds:
                 embeds[match[1]]["author"] = 00000000
         all_embeds = await self.config.all()
-        all_matches = []
-        for embed in all_embeds["embeds"]:
-            if all_embeds["embeds"][embed]["author"] == user_id:
-                all_matches.append(embed)
+        all_matches = [
+            embed
+            for embed in all_embeds["embeds"]
+            if all_embeds["embeds"][embed]["author"] == user_id
+        ]
 
         async with self.config.embeds() as embeds:
             for match in all_matches:
@@ -151,10 +152,11 @@ class EmbedCreator(
             if not isinstance(embed, discord.Embed):
                 await ctx.send("Embed could not be built from the json provided.")
                 return False, None
-            if len(embed) < 1 or len(embed) > 6000:
-                if not any([embed.thumbnail, embed.image]):
-                    await ctx.send(
-                        "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
-                    )
-                    return False, None
+            if (len(embed) < 1 or len(embed) > 6000) and not any(
+                [embed.thumbnail, embed.image]
+            ):
+                await ctx.send(
+                    "The returned embed does not fit within discords size limitations. The total embed length must be greater then 0 and less than 6000."
+                )
+                return False, None
             return embed, content
