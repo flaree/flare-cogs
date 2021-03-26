@@ -1,0 +1,11 @@
+{
+    "author": ["flare(flare#0001)", "flame", "trustyjaid"],
+    "install_msg": "Thanks for installing crypto, use [p]help crypto for more information..",
+    "name": "Crypto",
+    "disabled": false,
+    "short": "Buy and sell cyrptocurrencies with Red economy.",
+    "description": "Buy and sell cyrptocurrencies with Red economy.",
+    "tags": ["crypto"],
+    "requirements": ["tabulate"],
+    "min_bot_version": "3.4.0"
+}
