@@ -125,9 +125,7 @@ class EmbedFormat(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu: GenericMenu, data) -> str:
-        stats = []
-        for item in data:
-            stats.append(item)
+        stats = [item for item in data]
         embed = discord.Embed(
             title=menu.title,
             colour=await menu.ctx.embed_color(),

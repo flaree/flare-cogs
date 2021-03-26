@@ -322,8 +322,7 @@ class SimHelper(MixinMeta):
         file = BytesIO()
         result.save(file, "PNG", quality=100)
         file.seek(0)
-        image = discord.File(file, filename="score.png")
-        return image
+        return discord.File(file, filename="score.png")
 
     async def penaltyimg(self, ctx, teamevent, time, player):
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
@@ -496,8 +495,7 @@ class SimHelper(MixinMeta):
         file = BytesIO()
         result.save(file, "PNG", quality=100)
         file.seek(0)
-        image = discord.File(file, filename="extratime.png")
-        return image
+        return discord.File(file, filename="extratime.png")
 
     async def motmpic(self, ctx, user, team, goals, assists):
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
@@ -919,8 +917,7 @@ class SimHelper(MixinMeta):
         file = BytesIO()
         result.save(file, "PNG", quality=100)
         file.seek(0)
-        image = discord.File(file, filename="pikaleague.png")
-        return image
+        return discord.File(file, filename="pikaleague.png")
 
     async def get(self, url):
         async with self.session.get(url) as response:
@@ -1162,12 +1159,11 @@ class SimHelper(MixinMeta):
 
     async def updatecachegame(self, guild, team1, team2):
         self.log.info("Updating game cache.")
-        t1totalxp = 0
-        t2totalxp = 0
         cog = self.bot.get_cog("SimLeague")
         async with cog.config.guild(guild).teams() as teams:
             team1pl = teams[team1]["members"]
 
+            t1totalxp = 0
             for memberid in team1pl:
                 user = await self.bot.fetch_user(int(memberid))
                 try:
@@ -1179,6 +1175,7 @@ class SimHelper(MixinMeta):
             teams[team1]["cachedlevel"] = t1totalxp
 
             team2pl = teams[team2]["members"]
+            t2totalxp = 0
             for memberid in team2pl:
                 user = await self.bot.fetch_user(int(memberid))
                 try:

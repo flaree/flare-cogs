@@ -258,8 +258,7 @@ class Stats:
         result.save(file, "png")
         file.name = f"general-{data.username}.png"
         file.seek(0)
-        image = discord.File(file)
-        return image
+        return discord.File(file)
 
     async def rankedstatscreate(self, data):
         font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
@@ -411,8 +410,7 @@ class Stats:
         result.save(file, "png")
         file.name = f"ranked-{data.username}.png"
         file.seek(0)
-        image = discord.File(file)
-        return image
+        return discord.File(file)
 
     async def casualstatscreate(self, data):
         font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
@@ -564,8 +562,7 @@ class Stats:
         result.save(file, "png")
         file.name = f"casual-{data.username}.png"
         file.seek(0)
-        image = discord.File(file)
-        return image
+        return discord.File(file)
 
     async def seasoncreate(self, data, seasondata, season, profile, seasonname):
         font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
@@ -605,10 +602,7 @@ class Stats:
 
         # op badge
 
-        if season >= 14:
-            ranks = self.ranksember
-        else:
-            ranks = self.ranks
+        ranks = self.ranksember if season >= 14 else self.ranks
         url = self.rankurl + ranks[seasondata["rank_text"]]
 
         process.paste(aviholder, (995, 15), aviholder)
@@ -758,8 +752,7 @@ class Stats:
         result.save(file, "png")
         file.name = f"season-{data.username}.png"
         file.seek(0)
-        image = discord.File(file)
-        return image
+        return discord.File(file)
 
     async def operatorstatscreate(self, data, index, profile):
         font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
@@ -913,8 +906,7 @@ class Stats:
         result.save(file, "png")
         file.name = f"operator-{data.username}.png"
         file.seek(0)
-        image = discord.File(file)
-        return image
+        return discord.File(file)
 
     def round_corner(self, radius):
         """Draw a round corner"""

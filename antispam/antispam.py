@@ -53,10 +53,12 @@ class AntiSpam(commands.Cog):
         await self.bot.wait_until_ready()
         while True:
             try:
-                to_delete = []
-                for user in self.blacklist:
-                    if self.blacklist[user]["expiry"] < datetime.now():
-                        to_delete.append(user)
+                to_delete = [
+                    user
+                    for user in self.blacklist
+                    if self.blacklist[user]["expiry"] < datetime.now()
+                ]
+
                 for entry in to_delete:
                     del self.blacklist[entry]
                 await asyncio.sleep(60)
@@ -75,9 +77,7 @@ class AntiSpam(commands.Cog):
             del self.blacklist[ctx.author.id]
             log.debug(f"{ctx.author}({ctx.author.id}) has been removed from the spam blacklist.")
             return True
-        if isinstance(ctx.command, commands.commands._AlwaysAvailableCommand):
-            return True
-        return False
+        return isinstance(ctx.command, commands.commands._AlwaysAvailableCommand)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
@@ -197,12 +197,12 @@ class AntiSpam(commands.Cog):
         """Show those currently blacklisted from using commands."""
         if not self.blacklist:
             return await ctx.send("No users currently blacklisted.")
-        msg = []
-        for user in self.blacklist:
-            if self.blacklist[user]["expiry"] > datetime.now():
-                msg.append(
-                    f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
-                )
+        msg = [
+            f"{self.bot.get_user(self.blacklist[user]['id'])}: {humanize_timedelta(timedelta=self.blacklist[user]['expiry'] - datetime.now())}"
+            for user in self.blacklist
+            if self.blacklist[user]["expiry"] > datetime.now()
+        ]
+
         if not msg:
             return await ctx.send("No users currently blacklisted.")
         for page in pagify("\n".join(msg)):

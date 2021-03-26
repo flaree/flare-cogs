@@ -12,35 +12,37 @@ class SimsetMixin(MixinMeta):
     @commands.group(autohelp=True)
     async def simset(self, ctx):
         """Simulation Settings."""
-        if ctx.invoked_subcommand is None:
-            guild = ctx.guild
-            # Display current settings
-            gametime = await self.config.guild(guild).gametime()
-            htbreak = await self.config.guild(guild).htbreak()
-            results = await self.config.guild(guild).resultchannel()
-            bettoggle = await self.config.guild(guild).bettoggle()
-            maxplayers = await self.config.guild(guild).maxplayers()
-            redcardmodif = await self.config.guild(guild).redcardmodifier()
-            transfers = await self.config.guild(guild).transferwindow()
-            mentions = await self.config.guild(guild).mentions()
-            msg = ""
-            msg += "Game Time: 1m for every {}s.\n".format(gametime)
-            msg += "Team Limit: {} players.\n".format(maxplayers)
-            msg += "HT Break: {}s.\n".format(htbreak)
-            msg += "Red Card Modifier: {}% loss per red card.\n".format(redcardmodif)
-            msg += "Posting Results: {}.\n".format("Yes" if results else "No")
-            msg += "Transfer Window: {}.\n".format("Open" if transfers else "Closed")
-            msg += "Accepting Bets: {}.\n".format("Yes" if bettoggle else "No")
-            msg += "Mentions on game start: {}.\n".format("Yes" if mentions else "No")
+        if ctx.invoked_subcommand is not None:
+            return
 
-            if bettoggle:
-                bettime = await self.config.guild(guild).bettime()
-                betmax = await self.config.guild(guild).betmax()
-                betmin = await self.config.guild(guild).betmin()
-                msg += "Bet Time: {}s.\n".format(bettime)
-                msg += "Max Bet: {}.\n".format(betmax)
-                msg += "Min Bet: {}.\n".format(betmin)
-            await ctx.send(box(msg))
+        guild = ctx.guild
+        # Display current settings
+        gametime = await self.config.guild(guild).gametime()
+        htbreak = await self.config.guild(guild).htbreak()
+        results = await self.config.guild(guild).resultchannel()
+        bettoggle = await self.config.guild(guild).bettoggle()
+        maxplayers = await self.config.guild(guild).maxplayers()
+        redcardmodif = await self.config.guild(guild).redcardmodifier()
+        transfers = await self.config.guild(guild).transferwindow()
+        mentions = await self.config.guild(guild).mentions()
+        msg = ""
+        msg += "Game Time: 1m for every {}s.\n".format(gametime)
+        msg += "Team Limit: {} players.\n".format(maxplayers)
+        msg += "HT Break: {}s.\n".format(htbreak)
+        msg += "Red Card Modifier: {}% loss per red card.\n".format(redcardmodif)
+        msg += "Posting Results: {}.\n".format("Yes" if results else "No")
+        msg += "Transfer Window: {}.\n".format("Open" if transfers else "Closed")
+        msg += "Accepting Bets: {}.\n".format("Yes" if bettoggle else "No")
+        msg += "Mentions on game start: {}.\n".format("Yes" if mentions else "No")
+
+        if bettoggle:
+            bettime = await self.config.guild(guild).bettime()
+            betmax = await self.config.guild(guild).betmax()
+            betmin = await self.config.guild(guild).betmin()
+            msg += "Bet Time: {}s.\n".format(bettime)
+            msg += "Max Bet: {}.\n".format(betmax)
+            msg += "Min Bet: {}.\n".format(betmin)
+        await ctx.send(box(msg))
 
     @checks.admin_or_permissions(manage_guild=True)
     @simset.group(autohelp=True)
@@ -54,10 +56,10 @@ class SimsetMixin(MixinMeta):
         It disables the standings command."""
         if bool:
             await ctx.send("Cup mode is now active.")
-            await self.config.guild(ctx.guild).cupmode.set(bool)
         else:
             await ctx.send("Cup mode is now disabled.")
-            await self.config.guild(ctx.guild).cupmode.set(bool)
+
+        await self.config.guild(ctx.guild).cupmode.set(bool)
 
     @checks.guildowner()
     @simset.group(autohelp=True, hidden=True)
@@ -273,7 +275,7 @@ class SimsetMixin(MixinMeta):
         matchs = []
         fixtures = []
         return_matchs = []
-        for fixture in range(1, n):
+        for _ in range(1, n):
             for i in range(n // 2):
                 matchs.append((teams[i], teams[n - 1 - i]))
                 return_matchs.append((teams[n - 1 - i], teams[i]))
