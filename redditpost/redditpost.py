@@ -24,7 +24,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.9"
+    __version__ = "0.1.10"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -358,7 +358,10 @@ class RedditPost(commands.Cog):
                 try:
                     for emb in embeds[::-1]:
                         if webhook is None:
-                            await channel.send(embed=emb)
+                            try:
+                                await channel.send(embed=emb) #TODO: More approprriate error handling
+                            except (discord.Forbidden, discord.HTTPException):
+                                log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
                             await webhook.send(
                                 username=f"r/{feed['subreddit']}", avatar_url=icon, embed=emb
