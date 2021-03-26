@@ -358,7 +358,9 @@ class RedditPost(commands.Cog):
                     for emb in embeds[::-1]:
                         if webhook is None:
                             try:
-                                await channel.send(embed=emb) #TODO: More approprriate error handling
+                                await channel.send(
+                                    embed=emb
+                                )  # TODO: More approprriate error handling
                             except (discord.Forbidden, discord.HTTPException):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
