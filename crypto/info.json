@@ -4,7 +4,7 @@
     "name": "Crypto",
     "disabled": false,
     "short": "Buy and sell cyrptocurrencies with Red economy.",
-    "description": "Buy and sell cyrptocurrencies with Red economy.",
+    "description": "Buy and sell cryptocurrencies with Red economy.",
     "tags": ["crypto"],
     "requirements": ["tabulate"],
     "min_bot_version": "3.4.0"

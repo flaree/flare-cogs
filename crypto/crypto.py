@@ -242,7 +242,7 @@ class Crypto(commands.Cog):
     @commands.is_owner()
     async def cryptoapi(self, ctx):
         """
-        Instructions for how to setup the stock API
+        Instructions for how to setup the crypto API
         """
         msg = (
             "1. Go to https://coinmarketcap.com/api/ sign up for an account.\n"
