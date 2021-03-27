@@ -188,6 +188,7 @@ class Wallet(MixinMeta):
     @commands.command()
     @wallet_disabled_check()
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def deposit(self, ctx, amount: Union[int, str]):
         """Deposit cash from your wallet to your bank."""
         cdcheck = await self.cdcheck(ctx, "depositcd")
@@ -203,6 +204,7 @@ class Wallet(MixinMeta):
     @commands.command()
     @wallet_disabled_check()
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def withdraw(self, ctx, amount: int):
         """Withdraw cash from your bank to your wallet."""
         cdcheck = await self.cdcheck(ctx, "withdrawcd")
