@@ -30,7 +30,6 @@ class AntiSpam(commands.Cog):
         )
         self.cache = {}
         self.blacklist = {}
-        bot.add_check(self.check)
         self.antispam_loop_task: Optional[asyncio.Task] = None
 
     async def red_get_data_for_user(self, *, user_id: int):
@@ -69,7 +68,7 @@ class AntiSpam(commands.Cog):
     async def gen_cache(self):
         self.config_cache = await self.config.all()
 
-    def check(self, ctx):
+    def bot_check(self, ctx):
         user = self.blacklist.get(ctx.author.id)
         if user is None:
             return True
