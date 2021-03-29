@@ -35,8 +35,29 @@ repos:
     - id: check-yaml
 
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: '20.8b1'
     hooks:
-    -   id: black
-        language_version: python3.8
-        args: [-l 99]
+      - id: black
+-   repo: https://github.com/Pierre-Sassoulas/black-disable-checker
+    rev: '0.0.1'
+    hooks:
+      - id: black-disable-checker
+-   repo: https://github.com/pycqa/isort
+    rev: '5.8.0'
+    hooks:
+      - id: isort
+-   repo: local
+    hooks:
+      - id: readmegen
+        name: readmegen
+        description: >-
+          Script to automatically generate readme.md
+        entry: python ./.utils/utils.py
+        language: python
+        additional_dependencies:
+          - babel~=2.9.0
+          - tabulate~=0.8.9
+        always_run: true
+        pass_filenames: false
+        require_serial: true
+        verbose: true

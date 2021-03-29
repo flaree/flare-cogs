@@ -175,7 +175,6 @@ class Roulette(MixinMeta):
                     betinfo = list(bet.values())[0]
                     user = ctx.guild.get_member(betinfo["user"])
                     payout = betinfo["amount"] + (betinfo["amount"] * payouts[bettype])
-                    before_bal = await bank.get_balance(user)
                     if not await self.walletdisabledcheck(ctx):
                         user_conf = await self.configglobalcheckuser(user)
                         wallet = await user_conf.wallet()

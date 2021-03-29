@@ -18,7 +18,7 @@ class Crypto(commands.Cog):
     """Buy and Sell Crypto"""
 
     __version__ = "0.0.1"
-    __author__ = "flare, flame and trustyjaid."
+    __author__ = "flare, Flame and TrustyJAID."
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
