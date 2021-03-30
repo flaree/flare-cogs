@@ -215,7 +215,7 @@ def makereadme():
                         _version = maybe_version.group(1)
         if info and not (info.disabled or info.hidden):
             to_append = [info.name, _version]
-            description = f"<details><summary>{info.short}</summary>{info.description}</details>"
+            description = f"<details><summary>{info.short}</summary>{info.description if info.description != info.short else ''}</details>"
             to_append.append(description)
             to_append.append(babel_list(info.author, style="standard"))
             table_data.append(to_append)
