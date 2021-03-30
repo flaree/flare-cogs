@@ -1,7 +1,6 @@
 import re
 
 from discord.ext.commands.converter import Converter
-from discord.ext.commands.errors import BadArgument
 
 MENTION_REGEX = re.compile(r"<@!?([0-9]+)>")
 ID_REGEX = re.compile(r"[0-9]{17,}")
