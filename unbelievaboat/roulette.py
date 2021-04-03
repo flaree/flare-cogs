@@ -96,13 +96,13 @@ class Roulette(MixinMeta):
                 for better in self.roulettegames[ctx.guild.id]["zero"]:
                     if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
                         return {"failed": "You cannot make duplicate bets."}
-                self.roulettegames[ctx.guild.id]["zero"].append(
-                    {_type: {"user": ctx.author.id, "amount": bet}}
-                )
                 try:
                     await self.roulettewithdraw(ctx, bet)
                 except ValueError:
                     return {"failed": "You do not have enough funds to complete this bet."}
+                self.roulettegames[ctx.guild.id]["zero"].append(
+                    {_type: {"user": ctx.author.id, "amount": bet}}
+                )
                 return {"sucess": 200}
             for better in self.roulettegames[ctx.guild.id]["number"]:
                 if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
@@ -122,13 +122,13 @@ class Roulette(MixinMeta):
                     and better[_type.lower()]["user"] == ctx.author.id
                 ):
                     return {"failed": "You cannot make duplicate bets."}
-            self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
-                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
-            )
             try:
                 await self.roulettewithdraw(ctx, bet)
             except ValueError:
                 return {"failed": "You do not have enough funds to complete this bet."}
+            self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
+                {_type.lower(): {"user": ctx.author.id, "amount": bet}}
+            )
             return {"sucess": 200}
         return {"failed": "Not a valid option"}
 
