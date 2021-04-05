@@ -1,4 +1,5 @@
 import datetime
+import logging
 import random
 from abc import ABC
 from io import BytesIO
@@ -17,6 +18,8 @@ from .roulette import Roulette
 from .settings import SettingsMixin
 from .wallet import Wallet
 
+log = logging.getLogger("red.flare.unbelievaboat")
+
 
 class CompositeMetaClass(type(commands.Cog), type(ABC)):
     """This allows the metaclass used for proper type detection to coexist with discord.py's
@@ -26,7 +29,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.7"
+    __version__ = "0.5.8"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -218,8 +221,11 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             for user in role.members:
                 try:
                     await bank.deposit_credits(user, amount)
-                except (ValueError, TypeError):
-                    pass
+                except (ValueError, TypeError) as e:
+                    if isinstance(e, ValueError):
+                        log.debug(f"Failed to add money to {user} - invalid amount.")
+                    else:
+                        log.debug(f"Failed to add money to {user} - deposit amount is not an int.")
                 except BalanceTooHigh as e:
                     await bank.set_balance(ctx.author, e.max_balance)
                     failedmsg += f"Failed to add {amount} to {user} due to the max wallet balance limit. Their cash has been set to the max balance.\n"
