@@ -41,7 +41,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.0.10"
+    __version__ = "0.1.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -87,7 +87,12 @@ class Faceit(commands.Cog):
                 return await resp.json()
             if resp.status == 401:
                 return {"error": "Authorization Failed - API Key may be invalid."}
-            return await resp.json()
+            try:
+                return await resp.json()
+            except aiohttp.ContentTypeError:
+                return {
+                    "error": f"An error occured getting your request and returned a {resp.status} status code."
+                }
 
     async def get_ongoing(self, _id):
         async with self._session.get(
@@ -393,3 +398,90 @@ class Faceit(commands.Cog):
                 await ctx.send("No ongoing game available.")
             return False
         return ongoing
+
+    @faceit.group()
+    async def search(self, ctx):
+        """Faceit Searching"""
+
+    @search.command()
+    async def hub(self, ctx, *, name: str):
+        """Search for faceit hub by name."""
+        data = await self.get("/search/hubs?name={}".format(name))
+        if data.get("error"):
+            return await ctx.send(data.get("error"))
+        if data.get("errors"):
+            return await ctx.send(data.get("errors")[0]["message"])
+        if len(data["items"]) == 0:
+            return await ctx.send("No hubs can be found with such name.")
+        embeds = []
+        for i, hub in enumerate(data["items"], 1):
+            embed = discord.Embed(title=hub["name"], colour=await ctx.embed_colour())
+            embed.add_field(
+                name="Hub Information",
+                value=f"**Name**: {hub['name']}\n**Game**: {hub['game'].title()}\n**Region**: {hub['region']}\n**ID**: {hub['competition_id']}\n**Num. members**: {hub['number_of_members']}\n",
+            )
+            embed.add_field(
+                name="Organizer Information",
+                value=f"**Name**: {hub['organizer_name']}\n**Org. ID**: {hub['organizer_id']}",
+                inline=False,
+            )
+            embed.set_footer(text=f"Page {i}/{len(data['items'])}")
+            embeds.append(embed)
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @search.command(name="player")
+    async def search_player(self, ctx, *, nickname: str):
+        """Search for faceit player by name."""
+        data = await self.get("/search/players?nickname={}".format(nickname))
+        if data.get("error"):
+            return await ctx.send(data.get("error"))
+        if data.get("errors"):
+            return await ctx.send(data.get("errors")[0]["message"])
+        if len(data["items"]) == 0:
+            return await ctx.send("No players can be found with such name.")
+        embeds = []
+        for i, player in enumerate(data["items"], 1):
+            embed = discord.Embed(colour=await ctx.embed_colour())
+            embed.set_author(name=player["nickname"], icon_url=player["avatar"])
+            embed.set_thumbnail(url=player["avatar"])
+            embed.add_field(
+                name="Player Information",
+                value=f"**Name**: {player['nickname']}\n**Country**: {player['country']}\n**Verified**: {player['verified']}",
+            )
+            if player.get("games"):
+                msg = ""
+                for game in player["games"]:
+                    msg += f"**{game['name'].title()}**: Level {game['skill_level']}\n"
+                embed.add_field(name="Game Information", value=msg)
+            embed.set_footer(text=f"ID: {player['player_id']} | Page: {i}/{len(data['items'])}")
+            embeds.append(embed)
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @search.command(aliases=["org"])
+    async def organizers(self, ctx, *, name: str):
+        """Search for faceit organizers by name."""
+        data = await self.get("/search/organizers?name={}".format(name))
+        if data.get("error"):
+            return await ctx.send(data.get("error"))
+        if data.get("errors"):
+            return await ctx.send(data.get("errors")[0]["message"])
+        if len(data["items"]) == 0:
+            return await ctx.send("No organizers can be found with such name.")
+        embeds = []
+        for i, hub in enumerate(data["items"], 1):
+            embed = discord.Embed(title=hub["name"], colour=await ctx.embed_colour())
+            embed.set_thumbnail(url=hub["avatar"])
+            embed.add_field(
+                name="Organizer Information",
+                value=f"**Name**: {hub['name']}\n**Games**: {', '.join(hub['games'])}\n**Countries**: {', '.join(hub['countries'])}\n**Regions**: {', '.join(hub['regions'])}",
+                inline=False,
+            )
+            embed.set_footer(text=f"ID: {hub['organizer_id']} | Page {i}/{len(data['items'])}")
+            embeds.append(embed)
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        await menu(ctx, embeds, DEFAULT_CONTROLS)
