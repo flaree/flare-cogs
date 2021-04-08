@@ -60,7 +60,7 @@ class EmbedCreator(
             for match in all_matches:
                 embeds[match]["author"] = 00000000
 
-    __version__ = "0.2.2"
+    __version__ = "0.2.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -82,7 +82,7 @@ class EmbedCreator(
 
     async def build_embed(self, ctx, *, data, channel):
         embed, content = await self.validate_data(ctx, data=data)
-        if not embed:
+        if embed is False:
             return
         try:
             await channel.send(content, embed=embed)
@@ -97,7 +97,7 @@ class EmbedCreator(
 
     async def store_embed(self, ctx, is_global, *, name, data):
         embed, content = await self.validate_data(ctx, data=data)
-        if not embed:
+        if embed is False:
             return
         try:
             await ctx.send(
