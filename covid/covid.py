@@ -12,7 +12,7 @@ from .menus import ArticleFormat, CovidMenu, CovidStateMenu, GenericMenu
 class Covid(commands.Cog):
     """Covid-19 (Novel Coronavirus Stats)."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -428,3 +428,75 @@ class Covid(commands.Cog):
                 ctx=ctx,
                 wait=False,
             )
+
+    @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def continent(self, ctx, *, continent: str):
+        """Stats about Covid-19 for a particular continent.
+
+        Example: [p]covid continent europe
+        """
+        async with ctx.typing():
+            data = await self.get(self.api + f"/continents/{continent}")
+        if isinstance(data, dict) and data.get("failed") is not None:
+            return await ctx.send(data.get("failed"))
+        if not data:
+            return await ctx.send("No data available.")
+
+        embed = discord.Embed(
+            color=await self.bot.get_embed_color(ctx.channel),
+            title=f"Covid-19 {continent.title()} Statistics",
+            timestamp=datetime.datetime.utcfromtimestamp(data["updated"] / 1000),
+        )
+        embed.add_field(name="Cases", value=humanize_number(data["cases"]))
+        embed.add_field(name="Deaths", value=humanize_number(data["deaths"]))
+        embed.add_field(name="Recovered", value=humanize_number(data["recovered"]))
+        embed.add_field(name="Critical", value=humanize_number(data["critical"]))
+        embed.add_field(name="Active", value=humanize_number(data["active"]))
+        embed.add_field(name="Cases Today", value=humanize_number(data["todayCases"]))
+        embed.add_field(name="Deaths Today", value=humanize_number(data["todayDeaths"]))
+        embed.add_field(name="Recovered Today", value=humanize_number(data["todayRecovered"]))
+        embed.add_field(name="Total Tests", value=humanize_number(data["tests"]))
+        await ctx.send(embed=embed)
+
+    @covid.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def vaccine(self, ctx, *, country: typing.Optional[str]):
+        """Stats about Covid-19 vaccinate data globally or per country.
+
+        Example: [p]covid Ireland, England
+        """
+        if not country:
+            async with ctx.typing():
+                data = await self.get(self.api + "/vaccine/coverage")
+            if isinstance(data, dict) and data.get("failed") is not None:
+                return await ctx.send(data.get("failed"))
+            if not data:
+                return await ctx.send("No data available.")
+            embed = discord.Embed(
+                color=await self.bot.get_embed_color(ctx.channel),
+                title="Covid-19 Global Vaccine Statistics",
+            )
+            msg = ""
+            for day in data:
+                msg += f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data[day])}\n"
+            embed.description = f"```{msg}```"
+            await ctx.send(embed=embed)
+        else:
+            async with ctx.typing():
+                data = await self.get(self.api + "/vaccine/coverage/countries/{}".format(country))
+            if isinstance(data, dict) and data.get("failed") is not None:
+                return await ctx.send(data.get("failed"))
+            if not data:
+                return await ctx.send("No data available.")
+            if not data:
+                return await ctx.send("No data available.")
+            embed = discord.Embed(
+                color=await self.bot.get_embed_color(ctx.channel),
+                title=f"Covid-19 {data['country']} Vaccine Statistics",
+            )
+            msg = ""
+            for day in data["timeline"]:
+                msg += f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data['timeline'][day])}\n"
+            embed.description = f"```{msg}```"
+            await ctx.send(embed=embed)
