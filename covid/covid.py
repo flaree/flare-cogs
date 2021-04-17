@@ -464,7 +464,8 @@ class Covid(commands.Cog):
     async def vaccine(self, ctx, *, country: typing.Optional[str]):
         """Stats about Covid-19 vaccinate data globally or per country.
 
-        Example: [p]covid Ireland, England
+        Example: [p]covid vaccine
+        [p]covid vaccine ireland
         """
         if not country:
             async with ctx.typing():
