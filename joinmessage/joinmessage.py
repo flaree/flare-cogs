@@ -43,7 +43,7 @@ CHANNELS = [
 class JoinMessage(commands.Cog):
     """Send a message on guild join."""
 
-    __version__ = "0.0.11"
+    __version__ = "0.1.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -166,3 +166,24 @@ class JoinMessage(commands.Cog):
             return
         await self.config.message.set(message)
         await ctx.send("Your message will be sent as:\n{}".format(message))
+
+    @joinmessage.command()
+    async def test(self, ctx):
+        """Test your joinmessage."""
+        msg = await self.config.message()
+        if msg is None:
+            log.info("No message setup, please set one up via the joinmessage message command.")
+            return
+        channel, guild = ctx.channel, ctx.guild
+        if await self.config.embed() and channel.permissions_for(guild.me).embed_links:
+            embed = discord.Embed(
+                title=f"Thanks for inviting {guild.me.name}!",
+                description=msg,
+                colour=await self.bot.get_embed_colour(location=channel),
+            )
+            img = await self.config.image()
+            if img is not None:
+                embed.set_image(url=img)
+            await channel.send(embed=embed)
+        else:
+            await channel.send(msg)
