@@ -194,7 +194,7 @@ class CommandStats(commands.Cog):
         else:
             if command in data:
                 await ctx.send(
-                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {ctx.guild}!"
+                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {server.name}!"
                 )
             else:
                 await ctx.send(f"`{command}` hasn't been used in {server.name}!")
