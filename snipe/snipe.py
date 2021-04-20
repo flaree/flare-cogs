@@ -67,24 +67,18 @@ class Snipe(commands.Cog):
         self.config_cache = await self.config.all_guilds()
 
     @commands.Cog.listener()
-    async def on_raw_message_delete(self, payload):
-        guild_id = payload.guild_id
-        if guild_id is None:
+    async def on_message_delete(self, message: discord.Message):
+        guild = message.guild
+        if guild is None:
             return
-        config = self.config_cache.get(guild_id)
+        config = self.config_cache.get(guild.id)
         if not config:
             return
         if not config["toggle"]:
             return
-        message = payload.cached_message
-        if message is None:
-            log.debug(
-                f"Message {payload.message_id} not found in the cache, not adding to snipe cache. Guild ID: {guild_id} | Channel ID: {payload.channel_id}"
-            )
-            return
         if message.author.bot:
             return
-        self.add_cache_entry(message, guild_id, payload.channel_id)
+        self.add_cache_entry(message, guild.id, message.channel.id)
 
     def add_cache_entry(self, message, guild, channel):
         if guild not in self.cache:
