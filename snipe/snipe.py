@@ -116,7 +116,7 @@ class Snipe(commands.Cog):
             await ctx.send("There's nothing to snipe!")
             return
         del self.cache[ctx.guild.id][channel.id]
-        author = self.bot.get_user(channelsnipe["author"])
+        author = ctx.guild.get_member(channelsnipe["author"])
         if not channelsnipe["content"]:
             embed = discord.Embed(
                 description="No message content.\nThe deleted message may have been an image or an embed.",
