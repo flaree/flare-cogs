@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
 
 log = logging.getLogger("red.flare.snipe")
@@ -95,6 +95,7 @@ class Snipe(commands.Cog):
             "timestamp": message.created_at,
         }
 
+    @commands.guild_only()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.channel)
     @commands.bot_has_permissions(embed_links=True)
     @commands.command()
@@ -121,7 +122,7 @@ class Snipe(commands.Cog):
             await ctx.send("There's nothing to snipe!")
             return
         del self.cache[ctx.guild.id][channel.id]
-        author = ctx.guild.get_member(channelsnipe["author"])
+        author = self.bot.get_user(channelsnipe["author"])
         if not channelsnipe["content"]:
             embed = discord.Embed(
                 description="No message content.\nThe deleted message may have been an image or an embed.",
@@ -141,7 +142,8 @@ class Snipe(commands.Cog):
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         await ctx.send(embed=embed)
 
-    @checks.admin_or_permissions(manage_guild=True)
+    @commands.admin_or_permissions(manage_guild=True)
+    @commands.guild_only()
     @commands.group()
     async def snipeset(self, ctx):
         """Group Command for Snipe Settings."""
