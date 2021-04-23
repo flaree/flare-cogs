@@ -98,7 +98,8 @@ class Forward(commands.Cog):
         Type must be a valid bool.
         """
         async with self.config.toggles() as toggles:
-            type = not toggles.get("botmessages")
+            if type is None:
+                type = not toggles.get("botmessages")
             if type:
                 toggles["botmessages"] = True
                 await ctx.send("Bot message notifications have been enabled.")
