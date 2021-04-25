@@ -58,7 +58,7 @@ class ApiTools(commands.Cog):
         if len(msg) > 2029:
             msg += "\n..."
         embed = discord.Embed(
-            title="Results for **GET** {}".format(url),
+            title=f"Results for **GET** {url}",
             color=color,
             description=box(msg, lang="json"),
         )
@@ -79,11 +79,11 @@ class ApiTools(commands.Cog):
             headers = {}
         data, status = await self.req("post", url, headers=headers)
         color = discord.Color.green() if status == 200 else discord.Color.red()
-        msg = json.dumps(data, indent=4, sort_keys=True)[:2030]
+        msg = json.dumps(data, indent=4)[:2030]
         if len(msg) > 2029:
             msg += "\n..."
         embed = discord.Embed(
-            title="Results for **POST** {}".format(url),
+            title=f"Results for **POST** {url}",
             color=color,
             description=box(msg, lang="json"),
         )
