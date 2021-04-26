@@ -9,6 +9,6 @@ async def embed(self, ctx: commands.Context):
 
 
 class EmbedMixin:
-    """ This is mostly here to easily mess with things... """
+    """This is mostly here to easily mess with things..."""
 
     c = embed
