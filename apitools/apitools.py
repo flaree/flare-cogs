@@ -9,7 +9,7 @@ from redbot.core.utils.chat_formatting import box
 class ApiTools(commands.Cog):
     """API tool to get/post data."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -52,7 +52,12 @@ class ApiTools(commands.Cog):
                 )
         else:
             headers = {}
-        data, status = await self.req("get", url, headers=headers)
+        try:
+            data, status = await self.req("get", url, headers=headers)
+        except Exception:
+            return await ctx.send(
+                "An error occured while trying to post your request. Ensure the URL is correct etcetra."
+            )
         color = discord.Color.green() if status == 200 else discord.Color.red()
         msg = json.dumps(data, indent=4, sort_keys=True)[:2030]
         if len(msg) > 2029:
@@ -77,7 +82,12 @@ class ApiTools(commands.Cog):
                 )
         else:
             headers = {}
-        data, status = await self.req("post", url, headers=headers)
+        try:
+            data, status = await self.req("post", url, headers=headers)
+        except Exception:
+            return await ctx.send(
+                "An error occured while trying to post your request. Ensure the URL is correct etcetra."
+            )
         color = discord.Color.green() if status == 200 else discord.Color.red()
         msg = json.dumps(data, indent=4)[:2030]
         if len(msg) > 2029:
