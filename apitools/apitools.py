@@ -9,7 +9,7 @@ from redbot.core.utils.chat_formatting import box
 class ApiTools(commands.Cog):
     """API tool to get/post data."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -24,9 +24,9 @@ class ApiTools(commands.Cog):
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
 
-    async def req(self, get_or_post, url, headers={}):
+    async def req(self, get_or_post, url, headers={}, data={}):
         reqmethod = self.session.get if get_or_post == "get" else self.session.post
-        async with reqmethod(url, headers=headers) as req:
+        async with reqmethod(url, headers=headers, dta=json.dumps(data)) as req:
             data = await req.text()
             status = req.status
         try:
@@ -71,19 +71,24 @@ class ApiTools(commands.Cog):
         await ctx.send(embed=embed)
 
     @apitools.command()
-    async def post(self, ctx, url, *, headers=None):
+    async def post(self, ctx, url, *, headers_and_data=None):
         """Send a HTTP POST request."""
-        if headers is not None:
+        if headers_and_data is not None:
             try:
-                headers = json.loads(headers)
+                headers_and_data = json.loads(headers_and_data)
+                headers = headers_and_data.get("Headers", {}) or headers_and_data.get(
+                    "headers", {}
+                )
+                data = headers_and_data.get("Data", {}) or headers_and_data.get("data", {})
             except json.JSONDecodeError:
                 return await ctx.send(
-                    "The headers you provided are invalid. Please provide them in JSON/Dictionary format."
+                    'The data you provided are invalid. Please provide them in JSON/Dictionary format.\nExample: {"headers": {"Authorization": "token"}, "data": {"name": "flare"}}'
                 )
         else:
             headers = {}
+            data = {}
         try:
-            data, status = await self.req("post", url, headers=headers)
+            data, status = await self.req("post", url, headers=headers, data=data)
         except Exception:
             return await ctx.send(
                 "An error occured while trying to post your request. Ensure the URL is correct etcetra."
