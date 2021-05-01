@@ -26,7 +26,7 @@ class ApiTools(commands.Cog):
 
     async def req(self, get_or_post, url, headers={}, data={}):
         reqmethod = self.session.get if get_or_post == "get" else self.session.post
-        async with reqmethod(url, headers=headers, dta=json.dumps(data)) as req:
+        async with reqmethod(url, headers=headers, data=json.dumps(data)) as req:
             data = await req.text()
             status = req.status
         try:
