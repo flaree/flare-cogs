@@ -8,6 +8,7 @@ from typing import Counter, Optional
 
 import discord
 import pandas
+from redbot.cogs.downloader.repo_manager import Repo
 from redbot.core import Config, commands
 
 from .menus import EmbedFormat, GenericMenu, LeaderboardSource
@@ -22,10 +23,14 @@ def chunks(l, n):
 log = logging.getLogger("red.flare.commandstats")
 
 
+async def downloadercheck(ctx):
+    return ctx.bot.get_cog("Downloader") is not None
+
+
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.2"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -130,7 +135,7 @@ class CommandStats(commands.Cog):
         if command is None:
             await GenericMenu(
                 source=EmbedFormat(self.build_data(data)),
-                title="Commands Used",
+                title="Commands Statistics",
                 _type="Command",
                 ctx=ctx,
             ).start(
@@ -155,7 +160,7 @@ class CommandStats(commands.Cog):
             return await ctx.send("No commands have been used yet.")
         await GenericMenu(
             source=EmbedFormat(self.build_data(data)),
-            title="Automatic Commands Used",
+            title="Automatic Commands Statistics",
             _type="Command",
             ctx=ctx,
         ).start(
@@ -183,7 +188,7 @@ class CommandStats(commands.Cog):
         if command is None:
             await GenericMenu(
                 source=EmbedFormat(self.build_data(data)),
-                title=f"Commands Used in {server.name}",
+                title=f"Commands Statistics in {server.name}",
                 _type="Command",
                 ctx=ctx,
             ).start(
@@ -212,7 +217,7 @@ class CommandStats(commands.Cog):
         if command is None:
             await GenericMenu(
                 source=EmbedFormat(self.build_data(data)),
-                title="Commands Used during session",
+                title="Commands Statistics during session",
                 _type="Command",
                 ctx=ctx,
                 timestamp=self.session_time,
@@ -246,7 +251,7 @@ class CommandStats(commands.Cog):
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title=f"{cogname} Commands Used",
+                title=f"{cogname} Commands Statistics",
                 _type="Command",
                 ctx=ctx,
             ).start(
@@ -265,7 +270,7 @@ class CommandStats(commands.Cog):
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title="Cogs Used",
+                title="Cogs Statistics",
                 _type="Cog",
                 ctx=ctx,
             ).start(
@@ -290,7 +295,7 @@ class CommandStats(commands.Cog):
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title=f"{cogname} Commands Used During Session",
+                title=f"{cogname} Commands Statistics During Session",
                 _type="Command",
                 ctx=ctx,
                 timestamp=self.session_time,
@@ -310,7 +315,7 @@ class CommandStats(commands.Cog):
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title="Cogs Used During Session",
+                title="Cogs Statistics During Session",
                 _type="Cog",
                 ctx=ctx,
             ).start(
@@ -345,6 +350,64 @@ class CommandStats(commands.Cog):
             ctx=ctx,
             wait=False,
         )
+
+    @cmd.command()
+    @commands.is_owner()
+    @commands.check(downloadercheck)
+    async def repo(self, ctx, repo: Repo = None):
+        """Show command stats per Repo or by repo."""
+        cog = self.bot.get_cog("Downloader")
+        all_installed_cogs = await cog.installed_cogs()
+        await self.update_global()
+        data = await self.config.globaldata()
+        if repo is not None:
+            installed_cogs_in_repo = [
+                cog.name for cog in all_installed_cogs if cog.repo_name == repo.name
+            ]
+            installed_cogs = [
+                (self.bot.cogs[cog], cog)
+                for cog in self.bot.cogs
+                if cog.lower() in installed_cogs_in_repo
+            ]
+            a = {}
+            for cog, cogname in installed_cogs:
+                commands = {x.qualified_name for x in cog.walk_commands()}
+                a[cogname] = sum(data[command] for command in data if command in commands)
+            if not a:
+                await ctx.send(f"No commands used from any cog in {repo.name} as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title=f"Repo Statistics for {repo.name}",
+                _type="Cog",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
+        else:
+            installed_cogs_in_repo = {cog.name: cog.repo_name for cog in all_installed_cogs}
+            installed_cogs = [
+                (self.bot.cogs[cog], cog, installed_cogs_in_repo[cog.lower()])
+                for cog in self.bot.cogs
+                if cog.lower() in installed_cogs_in_repo
+            ]
+            a = {installed_cogs_in_repo[repo]: 0 for repo in installed_cogs_in_repo}
+            for cog, cogname, repo in installed_cogs:
+                commands = {x.qualified_name for x in cog.walk_commands()}
+                a[repo] += sum(data[command] for command in data if command in commands)
+            if not a:
+                await ctx.send(f"No commands used from any repos as of yet.")
+                return
+            await GenericMenu(
+                source=EmbedFormat(self.build_data(a)),
+                title=f"Repo Statistics",
+                _type="Repo",
+                ctx=ctx,
+            ).start(
+                ctx=ctx,
+                wait=False,
+            )
 
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
