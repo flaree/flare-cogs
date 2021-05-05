@@ -24,7 +24,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.10"
+    __version__ = "0.1.11"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -262,7 +262,9 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
-    @redditpost.command(name="webhook", aliases=["webhooks"])
+    @redditpost.command(
+        name="webhook", aliases=["webhooks"], usage="<subreddit> <true_or_false> [channel]"
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_webhooks=True)
     async def webhook(
         self, ctx, subreddit: str, webhook: bool, channel: discord.TextChannel = None
