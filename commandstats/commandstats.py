@@ -30,7 +30,7 @@ async def downloadercheck(ctx):
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.1.2"
+    __version__ = "0.1.3"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -61,7 +61,7 @@ class CommandStats(commands.Cog):
             try:
                 await self.update_global()
                 await self.update_data()
-                await asyncio.sleep(300)
+                await asyncio.sleep(180)
             except Exception as exc:
                 log.error("Exception in bg_loop: ", exc_info=exc)
                 self.bg_loop_task.cancel()
@@ -72,11 +72,10 @@ class CommandStats(commands.Cog):
         asyncio.create_task(self.update_data())
         asyncio.create_task(self.update_global())
 
-    def record(self, ctx, name):
-        if ctx.message.author.bot:
-            return
-        guild = ctx.message.guild
-        if getattr(ctx, "assume_yes", False):
+    def record(
+        self, name: str, guild: Optional[discord.Guild] = None, automated: Optional[bool] = None
+    ):
+        if automated is not None and automated:
             if name not in self.cache["automated"]:
                 self.cache["automated"][name] = 1
             else:
@@ -103,14 +102,23 @@ class CommandStats(commands.Cog):
         """Record standard command events."""
         if not ctx.valid:
             return
+        if ctx.message.author.bot:
+            return
         name = str(ctx.command)
-        self.record(ctx, name)
+        self.record(name, ctx.guild, ctx.assume_yes)
 
     @commands.Cog.listener()
     async def on_commandstats_action(self, ctx):
         """Record action events (i.e. other cog emits 'commandstats_action')."""
         name = str(ctx.command)
-        self.record(ctx, name)
+        self.record(name, ctx.guild)
+
+    @commands.Cog.listener()
+    async def on_commandstats_action_v2(
+        self, name: str, guild: Optional[discord.Guild] = None, automated: Optional[bool] = None
+    ):
+        """Record action events (i.e. other cog emits 'commandstats_action_v2')."""
+        self.record(name, guild, automated)
 
     def build_data(self, data):
         data = OrderedDict(sorted(data.items(), key=lambda t: t[1], reverse=True))
