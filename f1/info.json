@@ -1,0 +1,11 @@
+{
+    "author": ["flare(flare#0001)"],
+    "install_msg": "Data related to Formula F1.",
+    "name": "F1",
+    "disabled": false,
+    "short": "Data related to F1.",
+    "description": "F1 data, races, drivers, constructors etc.",
+    "tags": ["F1", "formula one", "racing", "forumla", "one"],
+    "min_bot_version": "3.4.0",
+    "hidden": false
+}
