@@ -12,7 +12,7 @@ API_URL = "http://ergast.com/api/f1"
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -173,11 +173,11 @@ class F1(commands.Cog):
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
-        results = data["MRData"]["RaceTable"]["Races"][0]
+        results = data["MRData"]["RaceTable"]["Races"]
         if not results:
             await ctx.send("No data available.")
             return
-        standings = results["Results"]
+        standings = results[0]["Results"]
 
         embed = discord.Embed(
             color=await ctx.embed_colour(),
@@ -214,7 +214,10 @@ class F1(commands.Cog):
         )
         msg = ""
         for circuit in circuits:
-            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n'
+            time = datetime.datetime.fromisoformat(
+                circuit["date"] + "T" + circuit["time"].replace("Z", "")
+            )
+            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **{time.strftime("%B - %I:%M %p")}**\n'
         if len(msg) > 2048:
             for page in pagify(msg, page_length=1024):
                 embed.add_field(name="-", value=page, inline=False)
@@ -281,3 +284,33 @@ class F1(commands.Cog):
             data, headers=["Position", "Points", "Wins", "Constructor"], tablefmt="plainfmt"
         )
         await ctx.send(box(msg, lang="apache"))
+
+    @f1.command(aliases=["quali", "qualify"])
+    async def qualifying(self, ctx: commands.Context, year: int, round: int):
+        """F1 race result."""
+        if year > datetime.datetime.now().year:
+            await ctx.send("You cannot view data from the future silly.")
+            return
+        data = await self.get(f"/{year}/{round}/qualifying.json")
+        if data.get("failed"):
+            await ctx.send(data["failed"])
+            return
+        results = data["MRData"]["RaceTable"]["Races"]
+        if not results:
+            await ctx.send("No data available.")
+            return
+        standings = results[0]
+        drivers = standings["QualifyingResults"]
+
+        embed = discord.Embed(
+            color=await ctx.embed_colour(),
+            title=f"F1 Qualifying Information - {standings['raceName']}",
+            url=standings["url"],
+        )
+        for driver in drivers:
+            embed.add_field(
+                name=f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]}\n',
+                value=f'**Q1**: {driver.get("Q1", "N/A")}\n**Q2**: {driver.get("Q2", "N/A")}\n**Q3**: {driver.get("Q3", "N/A")}',
+            )
+
+        await ctx.send(embed=embed)
