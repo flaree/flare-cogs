@@ -7,12 +7,13 @@ from redbot.core import commands
 from redbot.core.utils.chat_formatting import box, pagify
 
 API_URL = "http://ergast.com/api/f1"
+DATE_SUFFIX = {1: "st", 2: "nd", 3: "rd"}
 
 
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -217,7 +218,8 @@ class F1(commands.Cog):
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
             )
-            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **{time.strftime("%B - %I:%M %p")}**\n'
+            date = time.strftime(f"%B {self.ord(time.day)} - %I:%M %p")
+            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **{date}**\n'
         if len(msg) > 2048:
             for page in pagify(msg, page_length=1024):
                 embed.add_field(name="-", value=page, inline=False)
@@ -314,3 +316,8 @@ class F1(commands.Cog):
             )
 
         await ctx.send(embed=embed)
+
+    def ord(self, n):
+        return str(n) + (
+            "th" if 4 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+        )
