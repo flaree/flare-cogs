@@ -30,7 +30,7 @@ async def downloadercheck(ctx):
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.1.4"
+    __version__ = "0.1.5"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -428,6 +428,8 @@ class CommandStats(commands.Cog):
         for cmd in data:
             if command in cmd:
                 new_data[cmd] = data[cmd]
+        if not new_data:
+            return await ctx.send("No data can be found for your query.")
 
         await GenericMenu(
             source=EmbedFormat(self.build_data(new_data)),
