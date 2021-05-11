@@ -30,7 +30,7 @@ async def downloadercheck(ctx):
 class CommandStats(commands.Cog):
     """Command Statistics."""
 
-    __version__ = "0.1.3"
+    __version__ = "0.1.4"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -416,6 +416,28 @@ class CommandStats(commands.Cog):
                 ctx=ctx,
                 wait=False,
             )
+
+    @cmd.command()
+    async def search(self, ctx, *, command: str):
+        """Search for command stats"""
+        await self.update_global()
+        data = await self.config.globaldata()
+        if not data:
+            return await ctx.send("No commands have been used yet.")
+        new_data = Counter({})
+        for cmd in data:
+            if command in cmd:
+                new_data[cmd] = data[cmd]
+
+        await GenericMenu(
+            source=EmbedFormat(self.build_data(new_data)),
+            title=f"Commands Statistics for {command}",
+            _type="Command",
+            ctx=ctx,
+        ).start(
+            ctx=ctx,
+            wait=False,
+        )
 
     async def update_data(self):
         async with self.config.guilddata() as guilddata:
