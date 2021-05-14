@@ -1,7 +1,7 @@
 import logging
 
 import discord
-from redbot.core import bank, commands
+from redbot.core import Config, bank, commands
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_number
 from redbot.core.utils.common_filters import filter_invites
@@ -15,7 +15,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.1.2"
+    __version__ = "0.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -24,6 +24,32 @@ class Userinfo(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
+        default_global = {
+            "status_emojis": {
+                "mobile": 749067110931759185,
+                "online": 749221433552404581,
+                "away": 749221433095356417,
+                "dnd": 749221432772395140,
+                "offline": 749221433049088082,
+                "streaming": 749221434039205909,
+            },
+            "badge_emojis": {
+                "staff": 790550232387289088,
+                "early_supporter": 706198530837970998,
+                "hypesquad_balance": 706198531538550886,
+                "hypesquad_bravery": 706198532998299779,
+                "hypesquad_brilliance": 706198535846101092,
+                "hypesquad": 706198537049866261,
+                "verified_bot_developer": 706198727953612901,
+                "bug_hunter": 749067110847742062,
+                "bug_hunter_level_2": 706199712402898985,
+                "partner": 748668634871889930,
+                "verified_bot": 706196603748483174,
+                "verified_bot2": 706196604197273640,
+            },
+        }
+        self.config.register_global(**default_global)
         self.emojis = self.bot.loop.create_task(self.init())
 
     def cog_unload(self):
@@ -32,27 +58,53 @@ class Userinfo(commands.Cog):
 
     async def init(self):
         await self.bot.wait_until_ready()
+        await self.gen_emojis()
+
+    async def gen_emojis(self):
+        config = await self.config.all()
         self.status_emojis = {
-            "mobile": discord.utils.get(self.bot.emojis, id=749067110931759185),
-            "online": discord.utils.get(self.bot.emojis, id=749221433552404581),
-            "away": discord.utils.get(self.bot.emojis, id=749221433095356417),
-            "dnd": discord.utils.get(self.bot.emojis, id=749221432772395140),
-            "offline": discord.utils.get(self.bot.emojis, id=749221433049088082),
-            "streaming": discord.utils.get(self.bot.emojis, id=749221434039205909),
+            "mobile": discord.utils.get(self.bot.emojis, id=config["status_emojis"]["mobile"]),
+            "online": discord.utils.get(self.bot.emojis, id=config["status_emojis"]["online"]),
+            "away": discord.utils.get(self.bot.emojis, id=config["status_emojis"]["away"]),
+            "dnd": discord.utils.get(self.bot.emojis, id=config["status_emojis"]["dnd"]),
+            "offline": discord.utils.get(self.bot.emojis, id=config["status_emojis"]["offline"]),
+            "streaming": discord.utils.get(
+                self.bot.emojis, id=config["status_emojis"]["streaming"]
+            ),
         }
         self.badge_emojis = {
-            "staff": discord.utils.get(self.bot.emojis, id=790550232387289088),
-            "early_supporter": discord.utils.get(self.bot.emojis, id=706198530837970998),
-            "hypesquad_balance": discord.utils.get(self.bot.emojis, id=706198531538550886),
-            "hypesquad_bravery": discord.utils.get(self.bot.emojis, id=706198532998299779),
-            "hypesquad_brilliance": discord.utils.get(self.bot.emojis, id=706198535846101092),
-            "hypesquad": discord.utils.get(self.bot.emojis, id=706198537049866261),
-            "verified_bot_developer": discord.utils.get(self.bot.emojis, id=706198727953612901),
-            "bug_hunter": discord.utils.get(self.bot.emojis, id=749067110847742062),
-            "bug_hunter_level_2": discord.utils.get(self.bot.emojis, id=706199712402898985),
-            "partner": discord.utils.get(self.bot.emojis, id=748668634871889930),
-            "verified_bot": discord.utils.get(self.bot.emojis, id=706196603748483174),
-            "verified_bot2": discord.utils.get(self.bot.emojis, id=706196604197273640),
+            "staff": discord.utils.get(self.bot.emojis, id=config["badge_emojis"]["staff"]),
+            "early_supporter": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["early_supporter"]
+            ),
+            "hypesquad_balance": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["hypesquad_balance"]
+            ),
+            "hypesquad_bravery": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["hypesquad_bravery"]
+            ),
+            "hypesquad_brilliance": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["hypesquad_brilliance"]
+            ),
+            "hypesquad": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["hypesquad"]
+            ),
+            "verified_bot_developer": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["verified_bot_developer"]
+            ),
+            "bug_hunter": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["bug_hunter"]
+            ),
+            "bug_hunter_level_2": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["bug_hunter_level_2"]
+            ),
+            "partner": discord.utils.get(self.bot.emojis, id=config["badge_emojis"]["partner"]),
+            "verified_bot": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["verified_bot"]
+            ),
+            "verified_bot2": discord.utils.get(
+                self.bot.emojis, id=config["badge_emojis"]["verified_bot2"]
+            ),
         }
 
     async def red_get_data_for_user(self, *, user_id: int):
@@ -72,6 +124,45 @@ class Userinfo(commands.Cog):
             except Exception as error:
                 log.info(error)
             self.bot.add_command(_old_userinfo)
+
+    @commands.group(hidden=True)
+    async def uinfoset(self, ctx):
+        """Manage userinfo settings."""
+
+    @uinfoset.command()
+    async def setemoji(self, ctx, status_or_badge: str, type: str, emoji_id: int):
+        """Set status or badge emoji"""
+        if status_or_badge not in ["status", "badge"]:
+            return await ctx.send("You must choose either status or badge.")
+        if status_or_badge == "status":
+            async with self.config.status_emojis() as emojis:
+                if type not in emojis:
+                    await ctx.send(
+                        "That emoji doesn't exist. Valid emoji types are: {}".format(
+                            ", ".join(emojis.keys())
+                        )
+                    )
+                    return
+                emojis[type] = emoji_id
+        else:
+            async with self.config.badge_emojis() as emojis:
+                if type not in emojis:
+                    await ctx.send(
+                        "That emoji doesn't exist. Valid emoji types are: {}".format(
+                            ", ".join(emojis.keys())
+                        )
+                    )
+                    return
+                emojis[type] = emoji_id
+        await self.gen_emojis()
+        await ctx.tick()
+
+    @uinfoset.command()
+    async def clear(self, ctx):
+        """Reset emojis to default."""
+        await self.config.clear_all()
+        await self.gen_emojis()
+        await ctx.tick()
 
     @commands.command()
     @commands.guild_only()
