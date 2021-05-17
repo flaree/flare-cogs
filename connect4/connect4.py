@@ -5,7 +5,7 @@ from redbot.core import commands, Config
 from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.menus import start_adding_reactions
 
-from .core import Connect4Game
+from .core import Connect4Game, Connect4Menu
 
 
 class Connect4(commands.Cog):
@@ -20,7 +20,7 @@ class Connect4(commands.Cog):
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
         self.config.register_guild(**defaults)
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     async def connect4(self, ctx, player2: discord.Member):
         """
 		Play connect4 with another player
@@ -34,7 +34,7 @@ class Connect4(commands.Cog):
             return
         player1 = ctx.message.author
 
-        game = Connect4Game(player1.display_name, player2.display_name)
+        game = Connect4Game(player1, player2)
 
         message = await ctx.send(str(game))
         start_adding_reactions(message, self.DIGITS)
@@ -114,6 +114,21 @@ class Connect4(commands.Cog):
                     stats["losses"][player1_id] += 1
                 else:
                     stats["losses"][player1_id] = 1
+
+    @connect4.command("menu")
+    async def connect4_menu(self, ctx: commands.Context, player2: discord.Member):
+        if player2.bot:
+            return await ctx.send("That's a bot, silly!")
+        if ctx.author == player2:
+            return await ctx.send("You can't play yourself!")
+        start = await self.startgame(ctx, player2)
+        if not start:
+            return
+        player1 = ctx.message.author
+
+        game = Connect4Game(player1, player2)
+        menu = Connect4Menu(self, game)
+        await menu.start(ctx)
 
     @classmethod
     async def end_game(cls, game, message):
