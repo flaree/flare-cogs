@@ -87,7 +87,7 @@ class Connect4(commands.Cog):
                 f"Draws: {draws}",
             ]
             e = discord.Embed(color=member.color, description="\n".join(description))
-            e.set_author(name=f"{ctx.author} Connect 4 Stats", icon_url=ctx.author.avatar_url)
+            e.set_author(name=f"{member} Connect 4 Stats", icon_url=ctx.author.avatar_url)
         else:
             games_played = stats["played"]
             ties = stats["ties"]
