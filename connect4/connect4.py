@@ -1,18 +1,23 @@
 import asyncio
+from collections import Counter
 
 import discord
 from redbot.core import commands, Config
 from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.menus import start_adding_reactions
 
-from .core import Connect4Game
+from .core import Connect4Game, Connect4Menu
 
 
 class Connect4(commands.Cog):
-    CANCEL_GAME_EMOJI = "🚫"
-    DIGITS = [str(digit) + "\N{combining enclosing keycap}" for digit in range(1, 8)] + ["🚫"]
-    VALID_REACTIONS = [CANCEL_GAME_EMOJI] + DIGITS
-    GAME_TIMEOUT_THRESHOLD = 60
+    """
+    Play Connect 4!
+    """
+    EMOJI_MEDALS = {
+        1: "\N{FIRST PLACE MEDAL}",
+        2: "\N{SECOND PLACE MEDAL}",
+        3: "\N{THIRD PLACE MEDAL}",
+    }
 
     def __init__(self, bot):
         self.bot = bot
@@ -20,123 +25,13 @@ class Connect4(commands.Cog):
         self.config = Config.get_conf(self, identifier=4268355870, force_registration=True)
         self.config.register_guild(**defaults)
 
-    @commands.command()
-    async def connect4(self, ctx, player2: discord.Member):
-        """
-		Play connect4 with another player
-		"""
-        if player2.bot:
-            return await ctx.send("That's a bot, silly!")
-        if ctx.author == player2:
-            return await ctx.send("You can't play yourself!")
-        start = await self.startgame(ctx, player2)
-        if not start:
-            return
-        player1 = ctx.message.author
-
-        game = Connect4Game(player1.display_name, player2.display_name)
-
-        message = await ctx.send(str(game))
-        start_adding_reactions(message, self.DIGITS)
-
-        def check(reaction):
-            return (
-                reaction.member == (player1, player2)[game.whomst_turn() - 1]
-                and str(reaction.emoji) in self.VALID_REACTIONS
-                and reaction.message_id == message.id
-            )
-
-        while game.whomst_won() == game.NO_WINNER:
-            try:
-                reaction = await self.bot.wait_for(
-                    "raw_reaction_add", check=check, timeout=self.GAME_TIMEOUT_THRESHOLD
-                )
-            except asyncio.TimeoutError:
-                game.forfeit()
-                break
-
-            await asyncio.sleep(0.2)
-            try:
-                await message.remove_reaction(reaction.emoji, reaction.member)
-            except discord.errors.Forbidden:
-                pass
-
-            if str(reaction.emoji) == self.CANCEL_GAME_EMOJI:
-                game.forfeit()
-                break
-
-            try:
-                # convert the reaction to a 0-indexed int and move in that column
-                game.move(self.DIGITS.index(str(reaction.emoji)))
-            except ValueError:
-                pass  # the column may be full
-
-            try:
-                await message.edit(content=str(game))
-            except discord.NotFound:
-                return await ctx.send("Connect4 game cancelled.")
-            except discord.Forbidden:
-                return
-
-        await self.end_game(game, message)
-        winnernum = game.whomst_won()
-        player1_id = str(player1.id)
-        player2_id = str(player2.id)
-        async with self.config.guild(ctx.guild).stats() as stats:
-            stats["played"] += 1
-        if int(winnernum) == 1:
-            async with self.config.guild(ctx.guild).stats() as stats:
-                if player1.id in stats["wins"]:
-                    stats["wins"][player1_id] += 1
-                else:
-                    stats["wins"][player1_id] = 1
-                if player2.id in stats["losses"]:
-                    stats["losses"][player2_id] += 1
-                else:
-                    stats["losses"][player2_id] = 1
-        elif int(winnernum) == -1:
-            async with self.config.guild(ctx.guild).stats() as stats:
-                if player1.id in stats["draws"]:
-                    stats["draws"][player1_id] += 1
-                else:
-                    stats["draws"][player1_id] = 1
-                if player2.id in stats["draws"]:
-                    stats["draws"][player2_id] += 1
-                else:
-                    stats["draws"][player2_id] = 1
-        else:
-            async with self.config.guild(ctx.guild).stats() as stats:
-                if player2.id in stats["wins"]:
-                    stats["wins"][player2_id] += 1
-                else:
-                    stats["wins"][player2_id] = 1
-                if player1.id in stats["losses"]:
-                    stats["losses"][player1_id] += 1
-                else:
-                    stats["losses"][player1_id] = 1
-
-    @classmethod
-    async def end_game(cls, game, message):
-        await message.edit(content=str(game))
-        await cls.clear_reactions(message)
-
-    @staticmethod
-    async def clear_reactions(message):
-        try:
-            await message.clear_reactions()
-        except discord.HTTPException:
-            pass
-
     @staticmethod
     async def startgame(ctx: commands.Context, user: discord.Member) -> bool:
         """
 		Whether to start the connect 4 game.
 		"""
-        await ctx.send(
-            "{}, {} is challenging you to a game of Connect4. (y/n)".format(
-                user.mention, ctx.author.name
-            )
-        )
+        await ctx.send(f"{user.mention}, {ctx.author.name} is challenging you to a game of Connect4. (y/n)")
+
         try:
             pred = MessagePredicate.yes_or_no(ctx, user=user)
             await ctx.bot.wait_for("message", check=pred, timeout=60)
@@ -146,6 +41,66 @@ class Connect4(commands.Cog):
 
         if pred.result:
             return True
+
+        await ctx.send("Game cancelled.")
+        return False
+
+    @commands.group(invoke_without_command=True)
+    async def connect4(self, ctx: commands.Context, member: discord.Member):
+        """
+        Play Connect 4 with another player.
+        """
+        if member.bot:
+            return await ctx.send("That's a bot, silly!")
+        if ctx.author == member:
+            return await ctx.send("You can't play yourself!")
+        if not await self.startgame(ctx, member):
+            return
+
+        game = Connect4Game(ctx.author, member)
+        menu = Connect4Menu(self, game)
+        await menu.start(ctx)
+
+    def create_field(self, stats: dict, key: str) -> dict:
+        counter = Counter(stats[key])
+        values = []
+        total = sum(counter.values())
+        for place, (user_id, win_count) in enumerate(counter.most_common(3), 1):
+            medal = self.EMOJI_MEDALS[place]
+            values.append(f"{medal} <@!{user_id}>: {win_count}")
+        return {"name": f"{key.title()}: {total}", "value": "\n".join(values), "inline": True} if values else {}
+
+    @connect4.command("stats")
+    async def connect4_stats(self, ctx: commands.Context, member: discord.Member = None):
+        """
+        View Connect 4 stats.
+        """
+        stats = await self.config.guild(ctx.guild).stats()
+        if member:
+            member_id = str(member.id)
+            wins = stats["wins"].get(member_id, 0)
+            losses = stats["losses"].get(member_id, 0)
+            draws = stats["draws"].get(member_id, 0)
+            description = [
+                f"Wins: {wins}",
+                f"Losses: {losses}",
+                f"Draws: {draws}",
+            ]
+            e = discord.Embed(color=member.color, description="\n".join(description))
+            e.set_author(name=f"{ctx.author} Connect 4 Stats", icon_url=ctx.author.avatar_url)
         else:
-            await ctx.send("Game cancelled.")
-            return False
+            games_played = stats["played"]
+            ties = stats["ties"]
+            description = [
+                f"Games played: {games_played}",
+                f"Ties: {ties}",
+            ]
+            e = discord.Embed(color=await ctx.embed_color(), description="\n".join(description))
+            if wins := self.create_field(stats, "wins"):
+                e.add_field(**wins)
+            if losses := self.create_field(stats, "losses"):
+                e.add_field(**losses)
+            if draws := self.create_field(stats, "draws"):
+                e.add_field(**draws)
+            e.set_author(name=f"{ctx.guild} Connect 4 Stats", icon_url=ctx.guild.icon_url)
+        await ctx.send(embed=e)

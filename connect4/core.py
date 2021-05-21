@@ -1,6 +1,10 @@
 from itertools import chain, groupby
 from typing import Union
 
+import discord
+from redbot.core import commands
+from redbot.vendored.discord.ext import menus
+
 
 class Board(list):
     __slots__ = frozenset({"width", "height"})
@@ -8,7 +12,7 @@ class Board(list):
     def __init__(self, width, height, player1_name=None, player2_name=None):
         self.width = width
         self.height = height
-        for x in range(width):
+        for _ in range(width):
             self.append([0] * height)
 
     def __getitem__(self, pos: Union[int, tuple]):
@@ -73,26 +77,21 @@ class Board(list):
     def _full(self):
         """is there a move in every position?"""
 
-        for x in range(self.width):
-            if self[x, 0] == 0:
-                return False
-        return True
+        return all(self[x, 0] != 0 for x in range(self.width))
 
 
 class Connect4Game:
-    __slots__ = frozenset({"board", "turn_count", "_whomst_forfeited", "names"})
-
     FORFEIT = -2
     TIE = -1
     NO_WINNER = 0
 
     PIECES = "\N{medium white circle}" "\N{large red circle}" "\N{large blue circle}"
 
-    def __init__(self, player1_name=None, player2_name=None):
-        if player1_name is not None and player2_name is not None:
-            self.names = (player1_name, player2_name)
-        else:
-            self.names = ("Player 1", "Player 2")
+    def __init__(self, player1: discord.Member, player2: discord.Member):
+        self.player1 = player1
+        self.player2 = player2
+        self.players = (player1, player2)
+        self.names = (player1.display_name, player2.display_name)
 
         self.board = Board(7, 6)
         self.turn_count = 0
@@ -144,9 +143,11 @@ class Connect4Game:
         return status + "\n"
 
     def _get_instructions(self):
-        instructions = ""
-        for i in range(1, self.board.width + 1):
-            instructions += str(i) + "\N{combining enclosing keycap}"
+        instructions = "".join(
+            str(i) + "\N{combining enclosing keycap}"
+            for i in range(1, self.board.width + 1)
+        )
+
         return instructions + "\n"
 
     def _format_row(self, y):
@@ -156,7 +157,7 @@ class Connect4Game:
         x, y = pos
         return self.PIECES[self.board[x, y]]
 
-    def whomst_won(self):
+    def whomst_won(self) -> int:
         """Get the winner on the current board.
 		If there's no winner yet, return Connect4Game.NO_WINNER.
 		If it's a tie, return Connect4Game.TIE"""
@@ -197,3 +198,95 @@ class Connect4Game:
         player_number -= 1  # these lists are 0-indexed but the players aren't
 
         return self.names[player_number]
+
+    @property
+    def current_player(self) -> discord.Member:
+        player_number = self.whomst_turn() - 1
+        return self.players[player_number]
+
+
+class Connect4Menu(menus.Menu):
+    CANCEL_GAME_EMOJI = "🚫"
+    DIGITS = [str(digit) + "\N{combining enclosing keycap}" for digit in range(1, 8)]
+    GAME_TIMEOUT_THRESHOLD = 60
+
+    def __init__(self, cog, game: Connect4Game):
+        self.cog = cog
+        self.game = game
+        super().__init__(timeout=self.GAME_TIMEOUT_THRESHOLD, delete_message_after=False, clear_reactions_after=True)
+        for index, digit in enumerate(self.DIGITS):
+            self.add_button(menus.Button(digit, self.handle_digit_press, position=menus.First(index)))
+
+    def reaction_check(self, payload: discord.RawReactionActionEvent):
+        if payload.message_id != self.message.id:
+            return False
+        if payload.user_id != self.game.current_player.id:
+            return False
+        return payload.emoji in self.buttons
+
+    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel) -> discord.Message:
+        return await channel.send(self.game)
+
+    async def handle_digit_press(self, payload: discord.RawReactionActionEvent):
+        try:
+            # convert the reaction to a 0-indexed int and move in that column
+            self.game.move(self.DIGITS.index(str(payload.emoji)))
+        except ValueError:
+            pass  # the column may be full
+        await self.edit(content=self.game)
+        if self.game.whomst_won() != self.game.NO_WINNER:
+            await self.end()
+    
+    @menus.button(CANCEL_GAME_EMOJI, position=menus.Last(0))
+    async def close_menu(self, payload: discord.RawReactionActionEvent):
+        self.game.forfeit()
+        await self.end()
+
+    async def end(self):
+        self.stop()
+
+    async def edit(self, *, respond: bool = True, **kwargs):
+        try:
+            await self.message.edit(**kwargs)
+        except discord.NotFound:
+            await self.cancel("Connect4 game cancelled since the message was deleted." if respond else None)
+        except discord.Forbidden:
+            await self.cancel(None)
+
+    async def cancel(self, message: str = "Connect4 game cancelled."):
+        if message:
+            await self.ctx.send(message)
+        self.stop()
+
+    async def finalize(self, timed_out: bool):
+        if timed_out:
+            await self.ctx.send(content="Connect4 game timed out.")
+        gameboard = str(self.game)
+        if self.message.content != gameboard:
+            await self.edit(content=gameboard, respond=False)
+        await self.store_stats()
+
+    @staticmethod
+    def add_stat(stats: dict, key: str, user_id: str):
+        if user_id in stats[key]:
+            stats[key][user_id] += 1
+        else:
+            stats[key][user_id] = 1
+
+    async def store_stats(self):
+        winnernum = self.game.whomst_won()
+        if winnernum in (Connect4Game.FORFEIT, Connect4Game.NO_WINNER):
+            return
+
+        player1_id = str(self.game.player1.id)
+        player2_id = str(self.game.player2.id)
+        async with self.cog.config.guild(self.message.guild).stats() as stats:
+            stats["played"] += 1
+            if winnernum == Connect4Game.TIE:
+                stats["ties"] += 1
+                self.add_stat(stats, "draw", player1_id)
+                self.add_stat(stats, "draw", player2_id)
+            else:
+                winner, loser = (player1_id, player2_id) if winnernum == 1 else (player2_id, player1_id)
+                self.add_stat(stats, "wins", winner)
+                self.add_stat(stats, "losses", loser)
