@@ -70,9 +70,11 @@ class F1(commands.Cog):
         embed = discord.Embed(
             color=await ctx.embed_colour(), title=f"F1 Driver Information - {year}"
         )
-        msg = ""
-        for driver in sorted(drivers, key=lambda x: int(x["permanentNumber"])):
-            msg += f'[{driver["givenName"]} {driver["familyName"]}]({driver["url"]}) - No. {driver["permanentNumber"]} - {driver["nationality"]}\n'
+        msg = "".join(
+            f'[{driver["givenName"]} {driver["familyName"]}]({driver["url"]}) - No. {driver["permanentNumber"]} - {driver["nationality"]}\n'
+            for driver in sorted(drivers, key=lambda x: int(x["permanentNumber"]))
+        )
+
         embed.description = msg
 
         await ctx.send(embed=embed)
@@ -98,11 +100,11 @@ class F1(commands.Cog):
         embed = discord.Embed(
             color=await ctx.embed_colour(), title=f"F1 Constructor Information - {year}"
         )
-        msg = ""
-        for constructor in constructors:
-            msg += (
-                f'[{constructor["name"]}]({constructor["url"]}) - {constructor["nationality"]}\n'
-            )
+        msg = "".join(
+            f'[{constructor["name"]}]({constructor["url"]}) - {constructor["nationality"]}\n'
+            for constructor in constructors
+        )
+
         embed.description = msg
 
         await ctx.send(embed=embed)
@@ -128,9 +130,11 @@ class F1(commands.Cog):
         embed = discord.Embed(
             color=await ctx.embed_colour(), title=f"F1 Circuit Information - {year}"
         )
-        msg = ""
-        for circuit in circuits:
-            msg += f'[{circuit["circuitName"]}]({circuit["url"]}) - {circuit["Location"]["locality"]}, {circuit["Location"]["country"]}\n'
+        msg = "".join(
+            f'[{circuit["circuitName"]}]({circuit["url"]}) - {circuit["Location"]["locality"]}, {circuit["Location"]["country"]}\n'
+            for circuit in circuits
+        )
+
         if len(msg) > 2048:
             for page in pagify(msg, page_length=1024):
                 embed.add_field(name="-", value=page, inline=False)
@@ -157,10 +161,14 @@ class F1(commands.Cog):
             title=f"F1 Race Information - {results['raceName']}",
             url=results["url"],
         )
-        msg = ""
-        for driver in standings:
-            msg += f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]} - {driver["status"]}\n'
+        msg = "".join(
+            f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]} - {driver["status"]}\n'
+            for driver in standings
+        )
+
         embed.description = msg
+
+        await ctx.send(embed=embed)
 
         await ctx.send(embed=embed)
 
@@ -185,9 +193,11 @@ class F1(commands.Cog):
             title=f"F1 Race Information - {results['raceName']}",
             url=results["url"],
         )
-        msg = ""
-        for driver in standings:
-            msg += f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]} - {driver["status"]}\n'
+        msg = "".join(
+            f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]} - {driver["status"]}\n'
+            for driver in standings
+        )
+
         embed.description = msg
 
         await ctx.send(embed=embed)
@@ -225,7 +235,7 @@ class F1(commands.Cog):
                 embed.add_field(name="-", value=page, inline=False)
         else:
             embed.description = msg
-        embed.set_footer(text="Times displayed are in track times.")
+        embed.set_footer(text="Times displayed are in UTC.")
 
         await ctx.send(embed=embed)
 
