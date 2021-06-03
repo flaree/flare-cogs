@@ -1,0 +1,17 @@
+
+{
+    "author": [
+      "Neil(Neil Shah#6469)"
+    ],
+    "install_msg": "This cog will make a simple slash command the hosts a number geussing game",
+    "name": "SlashCommand",
+    "disabled": false,
+    "short": "Simple slash command",
+    "description": "Make a simple slash command game",
+    "tags": [
+      "slashcommand",
+      "numbergame"
+    ],
+    "min_bot_version": "0.0.1",
+    "hidden": false
+  }
