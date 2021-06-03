@@ -11,7 +11,7 @@ import tabulate
 import validators
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify
+from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify, spoiler
 
 log = logging.getLogger("red.flare.redditpost")
 
@@ -24,7 +24,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.11"
+    __version__ = "0.1.12"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -339,6 +339,8 @@ class RedditPost(commands.Cog):
                 desc = desc[:2000] + "..."
             if len(title) > 252:
                 title = title[:252] + "..."
+            if feed.get("spoiler", False):
+                desc = "(spoiler)\n" + spoiler(desc)
             embed = discord.Embed(
                 title=unescape(title),
                 url=unescape(link),
