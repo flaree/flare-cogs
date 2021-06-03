@@ -1,14 +1,16 @@
-import discord
 import random
+
+import discord
 from discord.ext import commands
-from discord_slash import cog_ext, SlashContext
-from discord_slash.utils.manage_commands import create_option, create_choice
+from discord_slash import SlashContext, cog_ext
+from discord_slash.utils.manage_commands import create_choice, create_option
+
 
 class SlashCommand(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-    
+
     @cog_ext.cog_slash(name="numbergame",
           description="play a simpe number game",
           options=[
@@ -19,7 +21,7 @@ class SlashCommand(commands.Cog):
               required=True,
             )]
             )
-        
+
     async def numbergame(self, ctx, number: int):
         numberGuess = random.randint(1, 11)
         if number = numberGuess:
