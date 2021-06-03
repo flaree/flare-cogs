@@ -35,18 +35,18 @@ class Userinfo(commands.Cog):
                 "streaming": 749221434039205909,
             },
             "badge_emojis": {
-                "staff": 790550232387289088,
+                "staff": 848556248832016384,
                 "early_supporter": 706198530837970998,
                 "hypesquad_balance": 706198531538550886,
                 "hypesquad_bravery": 706198532998299779,
                 "hypesquad_brilliance": 706198535846101092,
                 "hypesquad": 706198537049866261,
                 "verified_bot_developer": 706198727953612901,
-                "bug_hunter": 749067110847742062,
+                "bug_hunter": 848556247632052225,
                 "bug_hunter_level_2": 706199712402898985,
-                "partner": 748668634871889930,
-                "verified_bot": 706196603748483174,
-                "verified_bot2": 706196604197273640,
+                "partner": 848556249192202247,
+                "verified_bot": 848561838974697532,
+                "verified_bot2": 848561839260434482,
             },
         }
         self.config.register_global(**default_global)
