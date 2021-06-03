@@ -192,7 +192,7 @@ def save_json(folder, data):
 def makereadme():
     """Generate README.md from info about all cogs"""
     table_data = []
-    for folder in os.listdir(ROOT):
+    for folder in sorted(os.listdir(ROOT)):
         if folder.startswith(".") or folder.startswith("_"):
             continue
         _version = ""
@@ -213,7 +213,7 @@ def makereadme():
                     maybe_version = VER_REG.search(data)
                     if maybe_version:
                         _version = maybe_version.group(1)
-        if info and not (info.disabled or info.hidden):
+        if info and not info.disabled and not info.hidden:
             to_append = [info.name, _version]
             description = f"<details><summary>{info.short}</summary>{info.description if info.description != info.short else ''}</details>"
             to_append.append(description)
