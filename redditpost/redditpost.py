@@ -24,7 +24,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.12"
+    __version__ = "0.1.13"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -350,7 +350,7 @@ class RedditPost(commands.Cog):
             )
             embed.set_author(name=f"New post on r/{unescape(feed['subreddit'])}")
             embed.set_footer(text=f"Submitted by /u/{unescape(feed['author'])}")
-            if image.endswith(("png", "jpg", "jpeg", "gif")):
+            if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.get("spoiler", False):
                 embed.set_image(url=unescape(image))
             else:
                 if feed["permalink"] not in image and validators.url(image):
