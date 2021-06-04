@@ -1,0 +1,14 @@
+{
+  "author": [
+    "flare(flare#0001)"
+  ],
+  "install_msg": "connect4",
+  "name": "Connect4",
+  "disabled": true,
+  "short": "connect4",
+  "description": "connect4",
+  "tags": [
+    "connect4"
+  ],
+  "hidden": true
+}
