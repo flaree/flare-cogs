@@ -214,19 +214,24 @@ def makereadme():
                     if maybe_version:
                         _version = maybe_version.group(1)
         if info and not info.disabled and not info.hidden:
-            to_append = [info.name, _version]
+            to_append = [info.name.strip(), _version.strip()]
             description = f"<details><summary>{info.short}</summary>{info.description if info.description != info.short else ''}</details>"
-            to_append.append(description)
-            to_append.append(babel_list(info.author, style="standard"))
+            to_append.append(description.strip())
+            to_append.append(babel_list(info.author, style="standard").strip())
             table_data.append(to_append)
 
     body = tabulate.tabulate(
         table_data,
         headers=["Name", "Status/Version", "Description (Click to see full status)", "Authors"],
+        # headers=["Name", "Version", "Description (Click to see full info)", "Author(s)"],
         tablefmt="github",
     )
+    file_content = HEADER.format(body=body)
+    with open(f"{ROOT}/README.md", "r") as outfile:
+        if re.sub(" +", " ", outfile.read()) == re.sub(" +", " ", file_content):
+            return 1
     with open(f"{ROOT}/README.md", "w") as outfile:
-        outfile.write(HEADER.format(body=body))
+        outfile.write(file_content)
     return 1
 
 
