@@ -15,7 +15,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -176,11 +176,7 @@ class Userinfo(commands.Cog):
 
             if not user:
                 user = author
-            sharedguilds = {
-                guild
-                async for guild in AsyncIter(self.bot.guilds, steps=100)
-                if user in guild.members
-            }
+            sharedguilds = user.mutual_guilds
             roles = user.roles[-1:0:-1]
             names, nicks = await mod.get_names_and_nicks(user)
 
