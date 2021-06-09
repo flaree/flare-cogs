@@ -79,7 +79,7 @@ class StickBugged(commands.Cog):
             except asyncio.TimeoutError as e:
                 log.error("Timeout creating stickbug video", exc_info=e)
                 return await ctx.send("Timeout creating stickbug video.")
-            except Exception as e:
+            except Exception:
                 log.exception("Error sending stick bugged video")
                 return await ctx.send(
                     "An error occured during the creation of the stick bugged video"

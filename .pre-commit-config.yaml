@@ -3,7 +3,7 @@ default_language_version:
 fail_fast: false
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.0.1
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
@@ -26,7 +26,7 @@ repos:
           args: ['--in-place', '--remove-unused-variable']
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v1.2.3
+    rev: v4.0.1
     hooks:
     - id: trailing-whitespace
     - id: end-of-file-fixer
@@ -35,11 +35,11 @@ repos:
     - id: check-yaml
 
 -   repo: https://github.com/psf/black
-    rev: '20.8b1'
+    rev: '21.5b2'
     hooks:
       - id: black
 -   repo: https://github.com/Pierre-Sassoulas/black-disable-checker
-    rev: '0.0.1'
+    rev: '1.0.1'
     hooks:
       - id: black-disable-checker
 -   repo: https://github.com/pycqa/isort
