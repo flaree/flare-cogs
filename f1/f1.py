@@ -13,7 +13,7 @@ DATE_SUFFIX = {1: "st", 2: "nd", 3: "rd"}
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -167,8 +167,6 @@ class F1(commands.Cog):
         )
 
         embed.description = msg
-
-        await ctx.send(embed=embed)
 
         await ctx.send(embed=embed)
 
