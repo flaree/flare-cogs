@@ -165,7 +165,7 @@ class Snipe(commands.Cog):
         if not channelsnipe:
             if channelsnipe is False:
                 return
-            await self.reply(ctx, "There's nothing to snipe!")
+            await self.reply(ctx, "There's nothing to snipe!", mention_author=False)
             return
 
         if not ctx.guild.chunked:
@@ -183,7 +183,7 @@ class Snipe(commands.Cog):
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
         else:
             embed.set_author(name="Removed Member")
-        await self.reply(ctx, embed=embed)
+        await self.reply(ctx, embed=embed, mention_author=False)
 
     @staticmethod
     def get_content(content: str, limit: int = 1024):
@@ -201,7 +201,7 @@ class Snipe(commands.Cog):
         if not channelsnipe:
             if channelsnipe is False:
                 return
-            await self.reply(ctx, "There's nothing to snipe!")
+            await self.reply(ctx, "There's nothing to snipe!", mention_author=False)
             return
 
         if not ctx.guild.chunked:
@@ -221,7 +221,7 @@ class Snipe(commands.Cog):
             embed.set_author(name="Removed Member")
         else:
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
-        await self.reply(ctx, embed=embed)
+        await self.reply(ctx, embed=embed, mention_author=False)
 
     @commands.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
@@ -236,10 +236,10 @@ class Snipe(commands.Cog):
         State must be a bool or one of the following: True/False, On/Off, Y/N"""
         if state:
             await self.config.guild(ctx.guild).toggle.set(True)
-            await self.reply(ctx, f"Sniping has been enabled in {ctx.guild}.")
+            await self.reply(ctx, f"Sniping has been enabled in {ctx.guild}.", mention_author=False)
         else:
             await self.config.guild(ctx.guild).toggle.set(False)
-            await self.reply(ctx, f"Sniping has been disabled in {ctx.guild}.")
+            await self.reply(ctx, f"Sniping has been disabled in {ctx.guild}.", mention_author=False)
         await self.generate_cache()
 
     @snipeset.command()
