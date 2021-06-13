@@ -236,10 +236,14 @@ class Snipe(commands.Cog):
         State must be a bool or one of the following: True/False, On/Off, Y/N"""
         if state:
             await self.config.guild(ctx.guild).toggle.set(True)
-            await self.reply(ctx, f"Sniping has been enabled in {ctx.guild}.", mention_author=False)
+            await self.reply(
+                ctx, f"Sniping has been enabled in {ctx.guild}.", mention_author=False
+            )
         else:
             await self.config.guild(ctx.guild).toggle.set(False)
-            await self.reply(ctx, f"Sniping has been disabled in {ctx.guild}.", mention_author=False)
+            await self.reply(
+                ctx, f"Sniping has been disabled in {ctx.guild}.", mention_author=False
+            )
         await self.generate_cache()
 
     @snipeset.command()
