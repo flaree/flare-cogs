@@ -2,6 +2,7 @@ import logging
 
 import discord
 from redbot.core import Config, bank, commands
+from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_number
 from redbot.core.utils.common_filters import filter_invites
 
@@ -175,7 +176,15 @@ class Userinfo(commands.Cog):
 
             if not user:
                 user = author
-            sharedguilds = user.mutual_guilds
+            sharedguilds = (
+                user.mutual_guilds
+                if hasattr(user, "mutual_guilds")
+                else {
+                    guild
+                    async for guild in AsyncIter(self.bot.guilds, steps=100)
+                    if user in guild.members
+                }
+            )
             roles = user.roles[-1:0:-1]
             names, nicks = await mod.get_names_and_nicks(user)
 
