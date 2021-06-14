@@ -1,12 +1,12 @@
 import discord
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import humanize_list
+from redbot.core.utils.chat_formatting import humanize_list, pagify
 
 
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.5"
+    __version__ = "1.2.6"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -74,7 +74,11 @@ class Forward(commands.Cog):
                     {**message.embeds[0].to_dict(), "timestamp": str(message.created_at)}
                 )
             else:
-                embed = discord.Embed(description=message.content, timestamp=message.created_at)
+                content = list(pagify(message.content, page_length=1000))
+                embed = discord.Embed(description=content[0], timestamp=message.created_at)
+                if len(content) > 1:
+                    for page in content:
+                        embed.add_field(name="Message Continued", value=page)
             await self._destination(msg, embed)
         else:
             embeds = [discord.Embed(description=message.content)]
