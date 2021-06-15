@@ -174,9 +174,11 @@ class Snipe(commands.Cog):
         author = ctx.guild.get_member(channelsnipe["author"])
         content = list(pagify(channelsnipe["content"]))
         if content:
-            description=content[0]
+            description = content[0]
         else:
-            description="No message content.\nThe deleted message may have been an image or an embed."
+            description = (
+                "No message content.\nThe deleted message may have been an image or an embed."
+            )
         embed = discord.Embed(
             description=description,
             timestamp=channelsnipe["timestamp"],
