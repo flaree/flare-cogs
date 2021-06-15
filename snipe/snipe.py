@@ -178,7 +178,7 @@ class Snipe(commands.Cog):
         else:
             description="No message content.\nThe deleted message may have been an image or an embed."
         embed = discord.Embed(
-            description=description
+            description=description,
             timestamp=channelsnipe["timestamp"],
             color=ctx.author.color,
         )
