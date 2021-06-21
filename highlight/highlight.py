@@ -64,7 +64,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.5.0"
+    __version__ = "1.5.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -765,7 +765,7 @@ class Highlight(commands.Cog):
         await self.generate_cache()
 
     @guild.command(name="list")
-    async def _list(self, ctx: commands.Context):
+    async def _guild_list(self, ctx: commands.Context):
         """Current highlight settings for a channel.
 
         A channel argument can be supplied to view settings for said channel.
