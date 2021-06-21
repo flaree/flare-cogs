@@ -293,7 +293,7 @@ class Highlight(commands.Cog):
     ):
         """Add a word to be highlighted on.
 
-        Text will be converted to lowercase.\nCan also provide an optional channel arguement for
+        Text will be converted to lowercase.\nCan also provide an optional channel argument for
         the highlight to be applied to that channel.
         """
         if not text:
@@ -483,7 +483,7 @@ class Highlight(commands.Cog):
     async def _list(self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None):
         """Current highlight settings for a channel.
 
-        A channel arguement can be supplied to view settings for said channel.
+        A channel argument can be supplied to view settings for said channel.
         """
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
@@ -602,7 +602,7 @@ class Highlight(commands.Cog):
     async def guild_add(self, ctx: commands.Context, *text: str):
         """Add a word to be highlighted on for thhe guild.
 
-        Text will be converted to lowercase.\nCan also provide an optional channel arguement for
+        Text will be converted to lowercase.\nCan also provide an optional channel argument for
         the highlight to be applied to that channel.
         """
         if not text:
@@ -768,7 +768,7 @@ class Highlight(commands.Cog):
     async def _list(self, ctx: commands.Context):
         """Current highlight settings for a channel.
 
-        A channel arguement can be supplied to view settings for said channel.
+        A channel argument can be supplied to view settings for said channel.
         """
         highlight = await self.config.guild(ctx.guild).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
