@@ -46,7 +46,7 @@ repos:
     hooks:
       - id: black-disable-checker
 -   repo: https://github.com/pycqa/isort
-    rev: '5.8.0'
+    rev: '5.9.1'
     hooks:
       - id: isort
 -   repo: local
