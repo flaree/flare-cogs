@@ -15,6 +15,14 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
+# from: https://docs.python.org/3/library/stdtypes.html#str.format_map
+class Default(dict):
+    """Used with str.format_map to avoid KeyErrors on bad tips."""
+
+    def __missing__(self, key):
+        return f"{{{key}}}"
+
+
 # Thanks Jack for smileysend
 @functools.wraps(real_send)
 async def send(self, content=None, **kwargs):
@@ -24,18 +32,12 @@ async def send(self, content=None, **kwargs):
         1, cog.chance
     ) == 1:
         tips = cog.message_cache or ["No tips configured."]
-        tip_msg = random.choice(tips).format(prefix=self.clean_prefix)
-        if content:
-            if len(content) + len(tip_msg) > 2000:
-                return await real_send(self, content, **kwargs)
-            else:
-                content = cog.tip_format.format(
-                    content=content, tip_msg=tip_msg, prefix=self.clean_prefix
-                )
-        else:
-            content = cog.tip_format.replace("{content}", "").format(
-                tip_msg=tip_msg, prefix=self.clean_prefix
-            )
+        tip_msg = random.choice(tips).replace("{prefix}", self.clean_prefix)
+        new_content = cog.tip_format.format_map(
+            Default(content=content if content else "", tip_msg=tip_msg, prefix=self.clean_prefix)
+        )
+        if len(new_content) <= 2000:
+            content = new_content
     return await real_send(self, content, **kwargs)
 
 
