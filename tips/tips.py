@@ -20,6 +20,7 @@ class Default(dict):
     """Used with str.format_map to avoid KeyErrors on bad tips."""
 
     def __missing__(self, key):
+        # returns missing keys as '{key}'
         return f"{{{key}}}"
 
 
