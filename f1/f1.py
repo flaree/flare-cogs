@@ -13,7 +13,7 @@ DATE_SUFFIX = {1: "st", 2: "nd", 3: "rd"}
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -325,6 +325,51 @@ class F1(commands.Cog):
             )
 
         await ctx.send(embed=embed)
+
+    @f1.command(name="next")
+    async def _next(self, ctx):
+        """Find out when the next F1 Grand Prix is scheduled to take place."""
+        year = datetime.datetime.now().year
+        data = await self.get(f"/{year}.json")
+        if data.get("failed"):
+            await ctx.send(data["failed"])
+            return
+        circuits = data["MRData"]["RaceTable"]["Races"]
+        if not circuits:
+            await ctx.send("No data available.")
+            return
+
+        datetimes = []
+        for circuit in circuits:
+
+            time = datetime.datetime.fromisoformat(
+                circuit["date"] + "T" + circuit["time"].replace("Z", "")
+            ).date()
+            circuit["datetime"] = time
+            datetimes.append(time)
+        try:
+            next_date = min(
+                [d for d in datetimes if str(d) > str(datetime.date.today())],
+                key=lambda s: s - datetime.date.today(),
+            )
+        except ValueError:
+            return await ctx.send("I couldn't find the next F1 race available.")
+        for circuit in circuits:
+            if circuit["datetime"] == next_date:
+                embed = discord.Embed(
+                    color=await ctx.embed_colour(),
+                    title=f"F1 Next Race - {circuit['raceName']}",
+                    timestamp=datetime.datetime.fromisoformat(
+                        circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                    ),
+                )
+                embed.set_footer(text="Race Date:")
+                embed.add_field(
+                    name="Information",
+                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}',
+                )
+                await ctx.send(embed=embed)
+                return
 
     def ord(self, n):
         return str(n) + (
