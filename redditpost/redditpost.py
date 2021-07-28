@@ -167,7 +167,7 @@ class RedditPost(commands.Cog):
             response = await self.fetch_feed(url)
 
             if response is None:
-                return await ctx.send(f"That didn't seem to be a valid rss feed.")
+                return await ctx.send(f"That didn't seem to be a valid reddit feed.")
 
             feeds[subreddit] = {
                 "url": url,
