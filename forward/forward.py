@@ -6,7 +6,7 @@ from redbot.core.utils.chat_formatting import humanize_list, pagify
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.6"
+    __version__ = "1.2.7"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -70,6 +70,7 @@ class Forward(commands.Cog):
                     return
             msg = f"Sent PM to {message.channel.recipient} (`{message.channel.recipient.id}`)"
             if message.embeds:
+                msg += f"\n**Message Content**: {message.content}"
                 embed = discord.Embed.from_dict(
                     {**message.embeds[0].to_dict(), "timestamp": str(message.created_at)}
                 )
