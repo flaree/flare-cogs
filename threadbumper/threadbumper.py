@@ -39,7 +39,7 @@ class ThreadBumper(commands.Cog):
                     continue
                 await thread.edit(archived=False, auto_archive_duration=60)
                 await thread.edit(archived=False, auto_archive_duration=1440)
-                log.debug
+                log.debug(f"Thread {thread.id} was bumped")
 
     def __init__(self, bot):
         self.bot = bot
