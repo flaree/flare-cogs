@@ -1,10 +1,14 @@
 {
-    "author": ["flare(flare#0001)"],
+    "author": [
+        "flare(flare#0001)"
+    ],
     "install_msg": "Userinfo with badges and bank information. If you wish for the badge emojis to work, you must have you bot added to the friends of Martine server. You can request it to be added here: https://discord.gg/eKxTEsF\nYou can also use your own emojis using `[p]uinfoset setemoji`, you can reset to default with `[p]uinfoset clear`.",
     "name": "Userinfo",
     "hidden": false,
     "short": "Userinfo with user badges and economy details.",
     "description": "Show a users normal userinfo + their badges and shared servers and bank stuff.",
-    "tags": ["userinfo"],
+    "tags": [
+        "userinfo"
+    ],
     "min_bot_version": "3.4.0"
 }

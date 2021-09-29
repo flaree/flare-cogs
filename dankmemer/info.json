@@ -1,17 +1,19 @@
 {
-  "author": [
-    "flare(flare#0001)"
-  ],
-  "install_msg": "This cog requires the use of an imgen instance. Check [p]dankmemersetup for information, alternatively check our the readme in the DankMemer folder on the repo (The hosting of your own instance is not supported outside of the readme file. You are on your own for issues that may arise or questions). If you wish to host your own instance, you can use the inbuilt command to change url.\nThis cog features over 95 commands, some may conflict.\nThis cog may feature some commands that may be found offensive, they were left included as they're part of the imgen. Disable those commands as you wish.",
-  "name": "DankMemer",
-  "disabled": false,
-  "short": "DankMemer image generator.",
-  "description": "DankMemer's image generation commands.",
-  "tags": [
-    "memes",
-    "image gen"
-  ],
-  "requirements": ["validators"],
-  "min_bot_version": "3.4.0",
-  "hidden": false
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "This cog requires the use of an imgen instance. Check [p]dankmemersetup for information, alternatively check our the readme in the DankMemer folder on the repo (The hosting of your own instance is not supported outside of the readme file. You are on your own for issues that may arise or questions). If you wish to host your own instance, you can use the inbuilt command to change url.\nThis cog features over 95 commands, some may conflict.\nThis cog may feature some commands that may be found offensive, they were left included as they're part of the imgen. Disable those commands as you wish.",
+    "name": "DankMemer",
+    "disabled": false,
+    "short": "DankMemer image generator.",
+    "description": "DankMemer's image generation commands.",
+    "tags": [
+        "memes",
+        "image gen"
+    ],
+    "requirements": [
+        "validators"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
 }
