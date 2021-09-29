@@ -7,7 +7,6 @@ from typing import Literal, Optional
 import discord
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import pagify
 
 log = logging.getLogger("red.flare.snipe")
 
