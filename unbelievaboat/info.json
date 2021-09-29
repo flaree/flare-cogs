@@ -1,19 +1,21 @@
 {
-  "author": [
-    "flare(flare#0001)"
-  ],
-  "install_msg": "Unbelievaboat economy commands converted for Red use.",
-  "name": "Unbelievaboat",
-  "disabled": false,
-  "short": "Unbelievaboat economy commands converted for Red use.",
-  "description": "Unbelievaboat economy commands converted for Red use..",
-  "tags": [
-    "economy",
-    "unbelievaboat",
-    "rob",
-    "work"
-  ],
-  "requirements": ["tabulate"],
-  "min_bot_version": "3.4.0",
-  "hidden": false
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Unbelievaboat economy commands converted for Red use.",
+    "name": "Unbelievaboat",
+    "disabled": false,
+    "short": "Unbelievaboat economy commands converted for Red use.",
+    "description": "Unbelievaboat economy commands converted for Red use..",
+    "tags": [
+        "economy",
+        "unbelievaboat",
+        "rob",
+        "work"
+    ],
+    "requirements": [
+        "tabulate"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
 }

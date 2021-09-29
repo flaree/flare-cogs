@@ -1,16 +1,18 @@
 {
-  "author": [
-    "flare(flare#0001)"
-  ],
-  "install_msg": "Highlight certain words to be notified of when said.",
-  "name": "Highlight",
-  "disabled": false,
-  "short": "Highlight certain words to be notified of if said in a certain channel.",
-  "description": "Highlight certain words to be notified of if said in a certain channel.",
-  "tags": [
-    "highlight"
-  ],
-  "requirements": ["tabulate"],
-  "min_bot_version": "3.4.0",
-  "hidden": false
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Highlight certain words to be notified of when said.",
+    "name": "Highlight",
+    "disabled": false,
+    "short": "Highlight certain words to be notified of if said in a certain channel.",
+    "description": "Highlight certain words to be notified of if said in a certain channel.",
+    "tags": [
+        "highlight"
+    ],
+    "requirements": [
+        "tabulate"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
 }

@@ -1,11 +1,20 @@
 {
-    "author": ["flare(flare#0001)"],
+    "author": [
+        "flare(flare#0001)"
+    ],
     "install_msg": "Thanks for this installing the R6 cog. This cog comes bundled with a font file and some background images.",
     "name": "R6",
     "disabled": false,
     "short": "Show R6 Statistics.",
     "description": "List R6 Statistics from seasons, individual operators, all operators and more!",
-    "tags": ["r6", "stats", "operators"],
-    "requirements": ["pillow", "r6statsapi"],
+    "tags": [
+        "r6",
+        "stats",
+        "operators"
+    ],
+    "requirements": [
+        "pillow",
+        "r6statsapi"
+    ],
     "min_bot_version": "3.4.0"
 }

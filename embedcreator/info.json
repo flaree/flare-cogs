@@ -1,11 +1,16 @@
 {
-    "author": ["flare(flare#0001)"],
+    "author": [
+        "flare(flare#0001)"
+    ],
     "install_msg": "Create embeds using JSON. This cog is currently feature locked. If you wish to use a better embed creator, try embed utils by Phen.",
     "name": "EmbedCreator",
     "disabled": false,
     "short": "Create embeds using JSON.",
     "description": "Create embeds using JSON.",
-    "tags": ["embed generator", "embeds"],
+    "tags": [
+        "embed generator",
+        "embeds"
+    ],
     "min_bot_version": "3.4.0",
     "hidden": true
 }

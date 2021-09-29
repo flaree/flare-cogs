@@ -1,6 +1,6 @@
 {
     "author": [
-      "flare(flare#0001)"
+        "flare(flare#0001)"
     ],
     "install_msg": "Snipe command, show the last deleted message in a channel. ( Sniped messaged are not persistent across reloads or restarts. )",
     "name": "Snipe",
@@ -8,8 +8,8 @@
     "short": "Snipe the last message deleted in a channel.",
     "description": "Snipe command converted to Red, get the last message deleted in a channel.",
     "tags": [
-      "snipe"
+        "snipe"
     ],
     "min_bot_version": "3.4.0",
     "hidden": false
-  }
+}
