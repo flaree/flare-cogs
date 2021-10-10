@@ -6,6 +6,7 @@ from html import unescape
 from typing import Optional
 
 import aiohttp
+import asyncpraw
 import discord
 import tabulate
 import validators
@@ -24,7 +25,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.1.13"
+    __version__ = "0.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -35,10 +36,11 @@ class RedditPost(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=959327661803438081, force_registration=True)
         self.config.register_channel(reddits={})
-        self.config.register_global(delay=300)
+        self.config.register_global(delay=300, SCHEMA_VERSION=1)
         self.session = aiohttp.ClientSession()
         self.bg_loop_task: Optional[asyncio.Task] = None
         self.notified = False
+        self.client = None
 
     async def red_get_data_for_user(self, *, user_id: int):
         # this cog does not story any data
@@ -48,8 +50,32 @@ class RedditPost(commands.Cog):
         # this cog does not story any data
         pass
 
-    def init(self):
-        self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
+    async def init(self):
+        if await self.config.SCHEMA_VERSION() == 1:
+            data = await self.config.all_channels()
+            for channel, _ in data.items():
+                async with self.config.channel_from_id(channel).reddits() as sub_data:
+                    for feed in sub_data:
+                        sub_data[feed]["subreddit"] = sub_data[feed]["url"].split("/")[4]
+            await self.bot.send_to_owners(
+                "Hi there.\nRedditPost has now been given an update to accomodate the new reddit ratelimits. This cog now requires authenthication.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`\nOnce this is complete please reload the cog."
+            )
+            await self.config.SCHEMA_VERSION.set(2)
+
+        token = await self.bot.get_shared_api_tokens("redditpost")
+        try:
+            self.client = asyncpraw.Reddit(
+                client_id=token.get("clientid", None),
+                client_secret=token.get("clientsecret", None),
+                user_agent=f"{self.bot.user.name} Discord Bot",
+            )
+
+            self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
+        except Exception as exc:
+            log.error("Exception in init: ", exc_info=exc)
+            await self.bot.send_to_owners(
+                "An exception occured in the authenthication. Please ensure the client id and secret are set correctly.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`"
+            )
 
     def cog_unload(self):
         if self.bg_loop_task:
@@ -71,6 +97,8 @@ class RedditPost(commands.Cog):
                     self.notified = True
 
     async def do_feeds(self):
+        if self.client is None:
+            return
         feeds = {}
         channel_data = await self.config.all_channels()
         for channel_id, data in channel_data.items():
@@ -79,7 +107,7 @@ class RedditPost(commands.Cog):
             if not channel:
                 continue
             for sub, feed in data["reddits"].items():
-                url = feed.get("url", None)
+                url = feed.get("subreddit", None)
                 if not url:
                     continue
                 if url in feeds:
@@ -96,6 +124,7 @@ class RedditPost(commands.Cog):
                     feed.get("latest", True),
                     feed.get("webhooks", False),
                     feed.get("logo", REDDIT_LOGO),
+                    url,
                 )
                 if time is not None:
                     async with self.config.channel(channel).reddits() as feeds:
@@ -114,6 +143,13 @@ class RedditPost(commands.Cog):
     @commands.group(aliases=["redditfeed"])
     async def redditpost(self, ctx):
         """Reddit auto-feed posting."""
+
+    @redditpost.command()
+    @commands.is_owner()
+    async def setup(self, ctx):
+        """Details on setting up RedditPost"""
+        msg = "To setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`"
+        await ctx.send(msg)
 
     @redditpost.command()
     @commands.is_owner()
@@ -140,37 +176,29 @@ class RedditPost(commands.Cog):
         subreddit = self._clean_subreddit(subreddit)
         if not subreddit:
             return await ctx.send("That doesn't look like a subreddit name to me.")
-        async with self.session.get(
-            f"https://www.reddit.com/r/{subreddit}/about.json?sort=new"
-        ) as resp:
-            if resp.status != 200:
-                return await ctx.send("Please ensure the subreddit name is correct.")
-            data = await resp.json()
-            nsfw = data["data"].get("over18")
-            if nsfw is None:
-                await ctx.send(
-                    "I cannot find any information for this subreddit. Please check if it is the corrent name."
-                )
-                return
-            if nsfw and not channel.is_nsfw():
-                return await ctx.send(
-                    "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
-                )
-            logo = REDDIT_LOGO if not data["data"]["icon_img"] else data["data"]["icon_img"]
+        if self.client is None:
+            await ctx.send(
+                f"Please setup the client correctly, `{ctx.clean_prefix}redditpost setup` for more information"
+            )
+            return
+        subreddit_info = await self.client.subreddit(subreddit, fetch=True)
+        if subreddit_info.over18 and not channel.is_nsfw():
+            return await ctx.send(
+                "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
+            )
+        logo = REDDIT_LOGO if not subreddit_info.icon_img else subreddit_info.icon_img
 
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit in feeds:
                 return await ctx.send("That subreddit is already set to post.")
 
-            url = f"https://www.reddit.com/r/{subreddit}/new.json?sort=new"
-
-            response = await self.fetch_feed(url)
+            response = await self.fetch_feed(subreddit)
 
             if response is None:
                 return await ctx.send(f"That didn't seem to be a valid reddit feed.")
 
             feeds[subreddit] = {
-                "url": url,
+                "url": subreddit,
                 "last_post": datetime.now().timestamp(),
                 "latest": True,
                 "logo": logo,
@@ -231,8 +259,12 @@ class RedditPost(commands.Cog):
         if subreddit not in feeds:
             await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
             return
-
-        data = await self.fetch_feed(feeds[subreddit]["url"])
+        if self.client is None:
+            await ctx.send(
+                f"Please setup the client correctly, `{ctx.clean_prefix}redditpost setup` for more information"
+            )
+            return
+        data = await self.fetch_feed(feeds[subreddit]["subreddit"])
         if data is None:
             return await ctx.send("No post could be found.")
         await self.format_send(
@@ -242,6 +274,7 @@ class RedditPost(commands.Cog):
             True,
             feeds[subreddit].get("webhooks", False),
             feeds[subreddit].get("logo", REDDIT_LOGO),
+            subreddit,
         )
         await ctx.tick()
 
@@ -288,27 +321,15 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
-    async def fetch_feed(self, url: str):
-        timeout = aiohttp.client.ClientTimeout(total=15)
+    async def fetch_feed(self, subreddit: str):
         try:
-            async with self.session.get(url, timeout=timeout) as response:
-                if response.status == 200:
-                    data = await response.json()
-                else:
-                    return None
-        except (aiohttp.ClientError, asyncio.TimeoutError):
+            subreddit = await self.client.subreddit(subreddit)
+            resp = [submission async for submission in subreddit.new(limit=20)]
+            return resp
+        except Exception:
             return None
-        except Exception as exc:
-            log.info(
-                f"Unexpected exception type {type(exc)} encountered for feed url: {url}",
-                exc_info=exc,
-            )
-            return None
-        if data["data"]["dist"] > 0:
-            return data["data"]["children"]
-        return None
 
-    async def format_send(self, data, channel, last_post, latest, webhook_set, icon):
+    async def format_send(self, data, channel, last_post, latest, webhook_set, icon, subreddit):
         timestamps = []
         embeds = []
         data = data[:1] if latest else data
@@ -323,37 +344,36 @@ class RedditPost(commands.Cog):
         except Exception as e:
             log.error("Error in webhooks during reddit feed posting", exc_info=e)
         for feed in data:
-            feed = feed["data"]
-            timestamp = feed["created_utc"]
-            if feed["over_18"] and not channel.is_nsfw():
+            timestamp = feed.created_utc
+            if feed.over_18 and not channel.is_nsfw():
                 timestamps.append(timestamp)
                 continue
             if timestamp <= last_post:
                 break
             timestamps.append(timestamp)
-            desc = unescape(feed["selftext"])
-            image = feed["url"]
-            link = "https://reddit.com" + feed["permalink"]
-            title = feed["title"]
+            desc = unescape(feed.selftext)
+            image = feed.url
+            link = "https://reddit.com" + feed.permalink
+            title = feed.title
             if len(desc) > 2000:
                 desc = desc[:2000] + "..."
             if len(title) > 252:
                 title = title[:252] + "..."
-            if feed.get("spoiler", False):
+            if feed.spoiler:
                 desc = "(spoiler)\n" + spoiler(desc)
             embed = discord.Embed(
                 title=unescape(title),
                 url=unescape(link),
                 description=desc,
                 color=channel.guild.me.color,
-                timestamp=datetime.utcfromtimestamp(feed["created_utc"]),
+                timestamp=datetime.utcfromtimestamp(feed.created_utc),
             )
-            embed.set_author(name=f"New post on r/{unescape(feed['subreddit'])}")
-            embed.set_footer(text=f"Submitted by /u/{unescape(feed['author'])}")
-            if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.get("spoiler", False):
+            embed.set_author(name=f"New post on r/{unescape(subreddit)}")
+            embed.set_footer(text=f"Submitted by /u/{unescape(feed.author.name)}")
+            if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.spoiler:
                 embed.set_image(url=unescape(image))
             else:
-                if feed["permalink"] not in image and validators.url(image):
+                if feed.permalink not in image and validators.url(image):
                     embed.add_field(name="Attachment", value=unescape(image))
             embeds.append(embed)
         if timestamps:
@@ -369,7 +389,7 @@ class RedditPost(commands.Cog):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
                             await webhook.send(
-                                username=f"r/{feed['subreddit']}", avatar_url=icon, embed=emb
+                                username=f"r/{feed.subreddit}", avatar_url=icon, embed=emb
                             )
                 except discord.HTTPException as exc:
                     log.error("Exception in bg_loop while sending message: ", exc_info=exc)
