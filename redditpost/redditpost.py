@@ -328,7 +328,7 @@ class RedditPost(commands.Cog):
         try:
             subreddit = await self.client.subreddit(subreddit)
             resp = [submission async for submission in subreddit.new(limit=20)]
-            return resp
+            return resp if resp else None
         except Exception:
             return None
 
