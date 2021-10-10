@@ -1,16 +1,18 @@
 {
-  "author": [
-    "flare(flare#0001)"
-  ],
-  "install_msg": "Get stick bugged lol. This cog may be usage intensive and not recommender for smaller hosts.",
-  "name": "StickBugged",
-  "disabled": false,
-  "short": "Get stickbugged.",
-  "description": "Get stickbugged.",
-  "tags": [
-    "stickbugged"
-  ],
-  "requirements": ["get-stick-bugged-lol"],
-  "min_bot_version": "3.4.0",
-  "hidden": false
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Get stick bugged lol. This cog may be usage intensive and not recommender for smaller hosts.",
+    "name": "StickBugged",
+    "disabled": false,
+    "short": "Get stickbugged.",
+    "description": "Get stickbugged.",
+    "tags": [
+        "stickbugged"
+    ],
+    "requirements": [
+        "get-stick-bugged-lol"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
 }

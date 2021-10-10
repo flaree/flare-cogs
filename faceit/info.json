@@ -1,10 +1,16 @@
 {
-    "author": ["flare(flare#0001)"],
+    "author": [
+        "flare(flare#0001)"
+    ],
     "install_msg": "Faceit Stats - Use [p]help faceitset for information on setting up.",
     "name": "Faceit",
     "disabled": false,
     "short": "List stats of faceit users, game history or specific games and even ongoing games!",
     "description": "List stats of faceit users, game history or specific games and even ongoing games!",
-    "tags": ["faceit", "csgo", "games"],
+    "tags": [
+        "faceit",
+        "csgo",
+        "games"
+    ],
     "min_bot_version": "3.4.0"
 }

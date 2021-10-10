@@ -1,19 +1,19 @@
 {
-  "author": [
-    "flare(flare#0001)"
-  ],
-  "install_msg": "This cog will perform basic GET/POST requests.",
-  "name": "ApiTools",
-  "disabled": false,
-  "short": "Simple GET/POST requests via the bot.",
-  "description": "Simple GET/POST requests via the bot.",
-  "tags": [
-    "http",
-    "api",
-    "api requests",
-    "get",
-    "post"
-  ],
-  "hidden": false,
-  "min_bot_version": "3.4.0"
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "This cog will perform basic GET/POST requests.",
+    "name": "ApiTools",
+    "disabled": false,
+    "short": "Simple GET/POST requests via the bot.",
+    "description": "Simple GET/POST requests via the bot.",
+    "tags": [
+        "http",
+        "api",
+        "api requests",
+        "get",
+        "post"
+    ],
+    "hidden": false,
+    "min_bot_version": "3.4.0"
 }

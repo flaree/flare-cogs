@@ -18,11 +18,11 @@ class ThreadBumper(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}\nAuthor: {self.__author__}"
 
     async def red_get_data_for_user(self, *, user_id: int):
-        # this cog does not story any data
+        # this cog does not store any data
         return {}
 
     async def red_delete_data_for_user(self, *, requester, user_id: int) -> None:
-        # this cog does not story any data
+        # this cog does not store any data
         pass
 
     @tasks.loop(hours=12)

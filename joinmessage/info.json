@@ -1,15 +1,15 @@
 {
-  "author": [
-    "flare (flare#0001)"
-  ],
-  "install_msg": "Send a message to a guilds general chat, system channel or first available channel. This features multi language support. If a language is missing, contact flare#0001 or feel free to create a PR/issue.",
-  "name": "JoinMessage",
-  "disabled": false,
-  "short": "Send a message to a guilds general chat, system channel or first available channel.",
-  "description": "Send a message to a guilds general chat, system channel or first available channel.",
-  "tags": [
-    "Join Message"
-  ],
-  "min_bot_version": "3.4.0",
-  "hidden": false
+    "author": [
+        "flare (flare#0001)"
+    ],
+    "install_msg": "Send a message to a guilds general chat, system channel or first available channel. This features multi language support. If a language is missing, contact flare#0001 or feel free to create a PR/issue.",
+    "name": "JoinMessage",
+    "disabled": false,
+    "short": "Send a message to a guilds general chat, system channel or first available channel.",
+    "description": "Send a message to a guilds general chat, system channel or first available channel.",
+    "tags": [
+        "Join Message"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
 }

@@ -7,7 +7,6 @@ from typing import Literal, Optional
 import discord
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
-from redbot.core.utils.chat_formatting import pagify
 
 log = logging.getLogger("red.flare.snipe")
 
@@ -172,21 +171,19 @@ class Snipe(commands.Cog):
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
         author = ctx.guild.get_member(channelsnipe["author"])
-        content = list(pagify(channelsnipe["content"]))
-        if content:
-            description = content[0]
-        else:
+        content = channelsnipe["content"]
+        if content == "":
             description = (
                 "No message content.\nThe deleted message may have been an image or an embed."
             )
+        else:
+            description = content
+
         embed = discord.Embed(
             description=description,
             timestamp=channelsnipe["timestamp"],
             color=ctx.author.color,
         )
-        if len(content) > 1:
-            for page in content:
-                embed.add_field(name="Message Continued", value=page)
         embed.set_footer(text=f"Sniped by: {ctx.author}")
         if author:
             embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)

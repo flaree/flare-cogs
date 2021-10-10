@@ -1,12 +1,20 @@
 {
-    "author": ["flare(flare#0001)"],
+    "author": [
+        "flare(flare#0001)"
+    ],
     "install_msg": "Server lockdown. Lock the @everyone role in all channels. Use [p]help lockdown",
     "name": "serverlock",
     "disabled": false,
     "hidden": false,
     "short": "Lock down the @everyone role from speaking.",
     "description": "Lock the @everyone role from speaking, reacting etc. Will restore previous permissions.",
-    "tags": ["lockdown", "raids", "serverlock"],
+    "tags": [
+        "lockdown",
+        "raids",
+        "serverlock"
+    ],
     "min_bot_version": "3.4.0",
-    "requirements": ["jsonpickle"]
+    "requirements": [
+        "jsonpickle"
+    ]
 }
