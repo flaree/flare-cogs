@@ -130,8 +130,8 @@ class RedditPost(commands.Cog):
                     url,
                 )
                 if time is not None:
-                    async with self.config.channel(channel).reddits() as feeds:
-                        feeds[sub]["last_post"] = time
+                    async with self.config.channel(channel).reddits() as feeds_data:
+                        feeds_data[sub]["last_post"] = time
 
     @staticmethod
     def _clean_subreddit(subreddit: str):
