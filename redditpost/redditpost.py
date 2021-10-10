@@ -56,7 +56,10 @@ class RedditPost(commands.Cog):
             for channel, _ in data.items():
                 async with self.config.channel_from_id(channel).reddits() as sub_data:
                     for feed in sub_data:
-                        sub_data[feed]["subreddit"] = sub_data[feed]["url"].split("/")[4]
+                        try:
+                            sub_data[feed]["subreddit"] = sub_data[feed]["url"].split("/")[4]
+                        except IndexError:
+                            sub_data[feed]["subreddit"] = None
             await self.bot.send_to_owners(
                 "Hi there.\nRedditPost has now been given an update to accomodate the new reddit ratelimits. This cog now requires authenthication.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`\nOnce this is complete please reload the cog."
             )
