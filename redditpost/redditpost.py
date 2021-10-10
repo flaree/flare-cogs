@@ -7,6 +7,7 @@ from typing import Optional
 
 import aiohttp
 import asyncpraw
+import asyncprawcore
 import discord
 import tabulate
 import validators
@@ -185,7 +186,14 @@ class RedditPost(commands.Cog):
             )
             return
         async with ctx.typing():
-            subreddit_info = await self.client.subreddit(subreddit, fetch=True)
+            try:
+                subreddit_info = await self.client.subreddit(subreddit, fetch=True)
+            except asyncprawcore.Forbidden:
+                return await ctx.send("I can't view private subreddits.")
+            except asyncprawcore.NotFound:
+                return await ctx.send("This subreddit doesn't exist.")
+            except Exception:
+                return await ctx.send(f"Something went wrong while searching for this subreddit.")
         if subreddit_info.over18 and not channel.is_nsfw():
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
