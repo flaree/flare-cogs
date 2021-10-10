@@ -202,7 +202,7 @@ class RedditPost(commands.Cog):
                 return await ctx.send(f"That didn't seem to be a valid reddit feed.")
 
             feeds[subreddit] = {
-                "url": subreddit,
+                "subreddit": subreddit,
                 "last_post": datetime.now().timestamp(),
                 "latest": True,
                 "logo": logo,
