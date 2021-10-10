@@ -1,12 +1,11 @@
-from jishaku.cog import JishakuBase, jsk
-from jishaku.metacog import GroupCogMeta
+from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 
 
-class Jishaku(JishakuBase, metaclass=GroupCogMeta, command_parent=jsk):
+class Jishaku(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     """Jishaku ported to Red"""
 
     __version__ = "0.0.1"
-    __author__ = "flare#0001"
+    __author__ = "flare#0001, Gorialis"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
