@@ -184,7 +184,8 @@ class RedditPost(commands.Cog):
                 f"Please setup the client correctly, `{ctx.clean_prefix}redditpost setup` for more information"
             )
             return
-        subreddit_info = await self.client.subreddit(subreddit, fetch=True)
+        async with ctx.typing():
+            subreddit_info = await self.client.subreddit(subreddit, fetch=True)
         if subreddit_info.over18 and not channel.is_nsfw():
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
