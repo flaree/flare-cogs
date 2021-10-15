@@ -42,6 +42,7 @@ class RedditPost(commands.Cog):
         self.bg_loop_task: Optional[asyncio.Task] = None
         self.notified = False
         self.client = None
+        self.bot.loop.create_task(self.init())
 
     async def red_get_data_for_user(self, *, user_id: int):
         # this cog does not story any data
@@ -52,6 +53,7 @@ class RedditPost(commands.Cog):
         pass
 
     async def init(self):
+        await self.bot.wait_until_red_ready()
         if await self.config.SCHEMA_VERSION() == 1:
             data = await self.config.all_channels()
             for channel, _ in data.items():
