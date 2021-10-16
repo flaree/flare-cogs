@@ -26,7 +26,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -64,7 +64,7 @@ class RedditPost(commands.Cog):
                         except IndexError:
                             sub_data[feed]["subreddit"] = None
             await self.bot.send_to_owners(
-                "Hi there.\nRedditPost has now been given an update to accomodate the new reddit ratelimits. This cog now requires authenthication.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`\nOnce this is complete please reload the cog."
+                "Hi there.\nRedditPost has now been given an update to accomodate the new reddit ratelimits. This cog now requires authenthication.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`\n"
             )
             await self.config.SCHEMA_VERSION.set(2)
 
@@ -87,6 +87,22 @@ class RedditPost(commands.Cog):
         if self.bg_loop_task:
             self.bg_loop_task.cancel()
         self.bot.loop.create_task(self.session.close())
+        self.bot.loop.create_task(self.client.close())
+
+    @commands.Cog.listener()
+    async def on_red_api_tokens_update(self, service_name, api_tokens):
+        if service_name == "redditpost":
+            try:
+                self.client = asyncpraw.Reddit(
+                    client_id=api_tokens.get("clientid", None),
+                    client_secret=api_tokens.get("clientsecret", None),
+                    user_agent=f"{self.bot.user.name} Discord Bot",
+                )
+            except Exception as exc:
+                log.error("Exception in init: ", exc_info=exc)
+                await self.bot.send_to_owners(
+                    "An exception occured in the authenthication. Please ensure the client id and secret are set correctly.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`"
+                )
 
     async def bg_loop(self):
         await self.bot.wait_until_ready()
