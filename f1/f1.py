@@ -1,19 +1,24 @@
+import asyncio
 import datetime
+import logging
 
 import aiohttp
 import discord
 import tabulate
-from redbot.core import commands
+from discord.mentions import AllowedMentions
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, pagify
 
 API_URL = "http://ergast.com/api/f1"
 DATE_SUFFIX = {1: "st", 2: "nd", 3: "rd"}
 
+log = logging.getLogger("red.flare.f1")
+
 
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.0.5"
+    __version__ = "0.1.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -24,6 +29,56 @@ class F1(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
+        self.config = Config.get_conf(self, identifier=95932766180343808)
+        self.config.register_guild(channel=None, role=None)
+        self.loop = self.bot.loop.create_task(self.race_loop())
+
+    def cog_unload(self):
+        self.loop.cancel()
+
+    async def race_loop(self):
+        await self.bot.wait_until_ready()
+        while True:
+            now = datetime.datetime.utcnow()
+            tomorrow = (now + datetime.timedelta(days=1)).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            await asyncio.sleep((tomorrow - now).total_seconds())
+            await self.raceday_loop()
+
+    async def raceday_loop(self):
+        year = datetime.datetime.now().year
+        data = await self.get(f"/{year}.json")
+        if data.get("failed"):
+            return
+        circuits = data["MRData"]["RaceTable"]["Races"]
+        if not circuits:
+            return
+        for circuit in circuits:
+            time = datetime.datetime.fromisoformat(
+                circuit["date"] + "T" + circuit["time"].replace("Z", "")
+            ).replace(tzinfo=datetime.timezone.utc)
+            if time.date() == datetime.datetime.now().date():
+                data = await self.config.all_guilds()
+                for guild_id in data:
+                    try:
+                        guild = self.bot.get_guild(int(guild_id))
+                        if guild is None:
+                            log.debug("Guild %d not found", guild)
+                            continue
+                        channel = guild.get_channel(data[guild_id]["channel"])
+                        if channel is None:
+                            log.debug("Channel %d not found", channel)
+                            continue
+                        msg = ""
+                        if data[guild_id]["role"] is not None:
+                            role = guild.get_role(data[guild_id]["role"])
+                            if role is not None:
+                                msg += f"{role.mention}, "
+                        msg += f"**Race Day**!\n**{circuit['raceName']}** (Round {circuit['round']}) at **{circuit['Circuit']['circuitName']}** is starting today!\n**Race Start**: <t:{int(time.timestamp())}:F>"
+                        await channel.send(msg, allowed_mentions=AllowedMentions.all())
+                    except Exception as e:
+                        log.exception(e)
 
     async def get(self, endpoint):
         async with self.session.get(API_URL + endpoint) as response:
@@ -66,13 +121,12 @@ class F1(commands.Cog):
         if not drivers:
             await ctx.send("No data available.")
             return
-
         embed = discord.Embed(
             color=await ctx.embed_colour(), title=f"F1 Driver Information - {year}"
         )
         msg = "".join(
-            f'[{driver["givenName"]} {driver["familyName"]}]({driver["url"]}) - No. {driver["permanentNumber"]} - {driver["nationality"]}\n'
-            for driver in sorted(drivers, key=lambda x: int(x["permanentNumber"]))
+            f'[{driver["givenName"]} {driver["familyName"]}]({driver["url"]}) - No. {driver.get("permanentNumber", "N/A")} - {driver["nationality"]}\n'
+            for driver in sorted(drivers, key=lambda x: int(x.get("permanentNumber", 101)))
         )
 
         embed.description = msg
@@ -180,16 +234,16 @@ class F1(commands.Cog):
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
-        results = data["MRData"]["RaceTable"]["Races"]
+        results = data["MRData"]["RaceTable"]["Races"][0]
         if not results:
             await ctx.send("No data available.")
             return
-        standings = results[0]["Results"]
+        standings = results["Results"]
 
         embed = discord.Embed(
             color=await ctx.embed_colour(),
             title=f"F1 Race Information - {results['raceName']}",
-            url=results["url"],
+            url=results.get("url", ""),
         )
         msg = "".join(
             f'**{driver["position"]}**. {driver["Constructor"]["name"]} {driver["Driver"]["givenName"]} {driver["Driver"]["familyName"]} - {driver["status"]}\n'
@@ -225,9 +279,8 @@ class F1(commands.Cog):
         for circuit in circuits:
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
-            )
-            date = time.strftime(f"%B {self.ord(time.day)} - %I:%M %p")
-            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **{date}**\n'
+            ).replace(tzinfo=datetime.timezone.utc)
+            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **<t:{int(time.timestamp())}:F>**\n'
         if len(msg) > 2048:
             for page in pagify(msg, page_length=1024):
                 embed.add_field(name="-", value=page, inline=False)
@@ -356,20 +409,47 @@ class F1(commands.Cog):
             return await ctx.send("I couldn't find the next F1 race available.")
         for circuit in circuits:
             if circuit["datetime"] == next_date:
+                time = datetime.datetime.fromisoformat(
+                    circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                ).replace(tzinfo=datetime.timezone.utc)
                 embed = discord.Embed(
                     color=await ctx.embed_colour(),
                     title=f"F1 Next Race - {circuit['raceName']}",
-                    timestamp=datetime.datetime.fromisoformat(
-                        circuit["date"] + "T" + circuit["time"].replace("Z", "")
-                    ),
+                    timestamp=time,
                 )
                 embed.set_footer(text="Race Date:")
                 embed.add_field(
                     name="Information",
-                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}',
+                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n**Start**: <t:{int(time.timestamp())}:F>',
                 )
                 await ctx.send(embed=embed)
                 return
+
+    @f1.command()
+    @commands.admin_or_permissions(manage_guild=True)
+    async def subscribe(self, ctx, channel: discord.TextChannel = None):
+        """Subscribe a channel to F1 Race Day notifications."""
+        if channel is None:
+            await self.config.guild(ctx.guild).channel.set(None)
+            await ctx.send(
+                "Your F1 race day notification channel has been reset. It will no longer post updates."
+            )
+            return
+        await self.config.guild(ctx.guild).channel.set(channel.id)
+        await ctx.send(f"Your F1 race day notification channel has been set to {channel.mention}.")
+
+    @f1.command()
+    @commands.admin_or_permissions(manage_guild=True)
+    async def notify(self, ctx, role: discord.Role = None):
+        """Optionally, ping a role during the Race Day notifications."""
+        if role is None:
+            await self.config.guild(ctx.guild).role.set(None)
+            await ctx.send(
+                "You have reset the role ping, it will no longer ping a role during the notification."
+            )
+            return
+        await self.config.guild(ctx.guild).role.set(role.id)
+        await ctx.send(f"Your F1 race day notification ping role has been set to {role}.")
 
     def ord(self, n):
         return str(n) + (
