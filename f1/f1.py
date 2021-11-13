@@ -286,7 +286,6 @@ class F1(commands.Cog):
                 embed.add_field(name="-", value=page, inline=False)
         else:
             embed.description = msg
-        embed.set_footer(text="Times displayed are in UTC.")
 
         await ctx.send(embed=embed)
 
