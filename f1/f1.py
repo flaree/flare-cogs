@@ -397,13 +397,13 @@ class F1(commands.Cog):
 
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
-            ).date()
+            ).replace(tzinfo=datetime.timezone.utc)
             circuit["datetime"] = time
             datetimes.append(time)
         try:
             next_date = min(
                 [d for d in datetimes if str(d) > str(datetime.date.today())],
-                key=lambda s: s - datetime.date.today(),
+                key=lambda s: s - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc),
             )
         except ValueError:
             return await ctx.send("I couldn't find the next F1 race available.")
