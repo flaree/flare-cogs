@@ -64,7 +64,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.5.1"
+    __version__ = "1.5.2"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -129,7 +129,9 @@ class Highlight(commands.Cog):
             if int(user) == message.author.id:
                 continue
             if self.cooldowns.get(int(user)):
-                seconds = (datetime.utcnow() - self.cooldowns[int(user)]).seconds
+                seconds = (
+                    datetime.now(tz=datetime.timezone.utc) - self.cooldowns[int(user)]
+                ).seconds
                 if int(user) in self.member_cache.get(message.guild.id, {}):
                     if seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]:
                         continue
