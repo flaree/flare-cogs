@@ -129,7 +129,7 @@ class Highlight(commands.Cog):
             if int(user) == message.author.id:
                 continue
             if self.cooldowns.get(int(user)):
-                seconds = datetime.now(tz=timezone.utc) - self.cooldowns[int(user)]
+                seconds = datetime.now(tz=timezone.utc) - self.cooldowns[int(user)].seconds
                 if int(user) in self.member_cache.get(message.guild.id, {}):
                     if seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]:
                         continue
