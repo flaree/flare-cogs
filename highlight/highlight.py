@@ -129,7 +129,7 @@ class Highlight(commands.Cog):
             if int(user) == message.author.id:
                 continue
             if self.cooldowns.get(int(user)):
-                seconds = (datetime.now(tz=timezone.utc) - self.cooldowns[int(user)]).seconds
+                seconds = datetime.now(tz=timezone.utc) - self.cooldowns[int(user)]
                 if int(user) in self.member_cache.get(message.guild.id, {}):
                     if seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]:
                         continue
@@ -193,7 +193,7 @@ class Highlight(commands.Cog):
                     f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
                     embed=embed,
                 )
-                self.cooldowns[highlighted_usr.id] = msg.created_at
+                self.cooldowns[highlighted_usr.id] = msg.created_at.replace(tzinfo=timezone.utc)
 
     def channel_check(self, ctx: commands.Context, channel: discord.TextChannel):
         return (
