@@ -41,7 +41,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -202,9 +202,9 @@ class Faceit(commands.Cog):
         embed.add_field(name="Account Information", value=accinfo)
         steaminfo = f"**Steam Nickname**: {profilestats['steam_nickname']}\n**Steam ID 64**: {profilestats['steam_id_64']}\n**New Steam ID**: {profilestats['new_steam_id']}"
         embed.add_field(name="Steam Information", value=steaminfo)
-        infractioninfo = f"**AFK(s)**: {profilestats['infractions']['afk']}\n**Leaves**: {profilestats['infractions']['leaver']}\n**Not Checked In**: {profilestats['infractions']['qm_not_checkedin']}\n**Not Voted**: {profilestats['infractions']['qm_not_voted']}"
-        if profilestats["infractions"]["last_infraction_date"] != "":
-            infractioninfo += f"\n**Last Infraction Date**: {profilestats['infractions']['last_infraction_date']}"
+        infractioninfo = f"**AFK(s)**: {profilestats['infractions'].get('afk',0)}\n**Leaves**: {profilestats['infractions'].get('leaver', 0)}\n**Not Checked In**: {profilestats['infractions'].get('qm_not_checkedin', 0)}\n**Not Voted**: {profilestats['infractions'].get('qm_not_voted', 0)}"
+        if profilestats["infractions"].get("last_infraction_date", "") != "":
+            infractioninfo += f"\n**Last Infraction Date**: {profilestats['infractions'].get('last_infraction_date', 'N/A')}"
         embed.add_field(name="Infraction Information", value=infractioninfo)
         for game in profilestats["games"]:
             embed.add_field(
@@ -235,7 +235,7 @@ class Faceit(commands.Cog):
             }
             embed = discord.Embed(
                 title=f"{game['competition_name']} - {teams['faction1']} vs {teams['faction2']}",
-                description=f"Winner: **{teams[game['results']['winner']]}**\n[Match Room - Click Here]({game['faceit_url']})\n\nClick on the \N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16} button below for more detailed statistics.",
+                description=f"Winner: **{teams[game['results']['winner']]}**\n[Match Room - Click Here]({game['faceit_url'].format(lang='en')})\n\nClick on the \N{INFORMATION SOURCE}\N{VARIATION SELECTOR-16} button below for more detailed statistics.",
                 timestamp=datetime.fromtimestamp(game["started_at"]),
             )
             embed.add_field(name="Match ID", value=game["match_id"], inline=False)
@@ -367,6 +367,7 @@ class Faceit(commands.Cog):
         embed = discord.Embed(
             title=f"{team1['name']} vs {team2['name']}",
             timestamp=datetime.strptime(ongoing["createdAt"], "%Y-%m-%dT%H:%M:%S%z"),
+            description=f"[Match Room](https://www.faceit.com/en/csgo/room/{ongoing['id']})",
         )
         embed.set_author(name=f"Ongoing {ongoing['entity']['name']}")
         embed.set_footer(text="Started:")
