@@ -1,12 +1,15 @@
 import asyncio
 import logging
-from collections import defaultdict
-from datetime import datetime, timedelta
+from collections import defaultdict, deque
+from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
 import discord
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
+from redbot.core.utils.menus import DEFAULT_CONTROLS
+
+from .menus import menu
 
 log = logging.getLogger("red.flare.snipe")
 
@@ -16,7 +19,7 @@ CacheType = Literal["edit", "delete"]
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -24,7 +27,7 @@ class Snipe(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
-        defaults_guild = {"toggle": False, "timeout": 30}
+        defaults_guild = {"toggle": False, "timeout": 30, "max": 1}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(**defaults_guild)
         self.config.register_global(timer=60)
@@ -51,15 +54,20 @@ class Snipe(commands.Cog):
 
     def clear_cache(self, cache_type: CacheType):
         cache = getattr(self, f"{cache_type}_cache")
-        to_delete = []
         for guild_id, channels in cache.items():
-            for channel_id, cached_message in channels.items():
-                if datetime.utcnow() - cached_message["timestamp"] > timedelta(
-                    seconds=self.config_cache[guild_id]["timeout"]
-                ):
-                    to_delete.append([guild_id, channel_id])
-        for guild_id, channel_id in to_delete:
-            del cache[guild_id][channel_id]
+            for _, queue in channels.items():
+                i = 0
+                for message in queue:
+                    if (
+                        datetime.now(tz=timezone.utc) - message["timestamp"]
+                    ).total_seconds() > self.config_cache[guild_id]["timeout"]:
+                        i += 1
+                if i > 0:
+                    for _ in range(i):
+                        try:
+                            queue.popleft()
+                        except IndexError:
+                            pass
 
     async def snipe_loop(self):
         await self.bot.wait_until_ready()
@@ -76,19 +84,31 @@ class Snipe(commands.Cog):
         self.config_cache = await self.config.all_guilds()
 
     def add_delete_cache_entry(self, message: discord.Message):
-        self.delete_cache[message.guild.id][message.channel.id] = {
-            "content": message.content,
-            "author": message.author.id,
-            "timestamp": message.created_at,
-        }
+        if self.delete_cache[message.guild.id].get(message.channel.id) is None:
+            self.delete_cache[message.guild.id][message.channel.id] = deque(
+                maxlen=self.config_cache[message.guild.id].get("max", 1)
+            )
+        self.delete_cache[message.guild.id][message.channel.id].append(
+            {
+                "content": message.content,
+                "author": message.author.id,
+                "timestamp": datetime.now(tz=timezone.utc),
+            }
+        )
 
     def add_edit_cache_entry(self, before: discord.Message, after: discord.Message):
-        self.edit_cache[after.guild.id][after.channel.id] = {
-            "old_content": before.content,
-            "new_content": after.content,
-            "author": after.author.id,
-            "timestamp": after.created_at,
-        }
+        if self.edit_cache[after.guild.id].get(after.channel.id) is None:
+            self.edit_cache[after.guild.id][after.channel.id] = deque(
+                maxlen=self.config_cache[after.guild.id].get("max", 1)
+            )
+        self.edit_cache[after.guild.id][after.channel.id].append(
+            {
+                "old_content": before.content,
+                "new_content": after.content,
+                "author": after.author.id,
+                "timestamp": datetime.now(tz=timezone.utc),
+            }
+        )
 
     def _listener_should_return(self, message: discord.Message) -> bool:
         guild = message.guild
@@ -114,13 +134,23 @@ class Snipe(commands.Cog):
         self.add_edit_cache_entry(before, after)
 
     @staticmethod
-    async def reply(ctx: commands.Context, content: str = None, **kwargs) -> discord.Message:
+    async def reply(
+        ctx: commands.Context, content: str = None, embeds: list = None, **kwargs
+    ) -> discord.Message:
         ref = ctx.message.to_reference(fail_if_not_exists=False)
         kwargs["reference"] = ref
-        return await ctx.send(content, **kwargs)
+        if content is not None:
+            return await ctx.send(content, **kwargs)
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0], **kwargs)
+        return await menu(ctx, embeds, DEFAULT_CONTROLS, **kwargs)
 
     async def get_snipe(
-        self, snipe_type: CacheType, ctx: commands.Context, channel: discord.TextChannel = None
+        self,
+        snipe_type: CacheType,
+        ctx: commands.Context,
+        channel: discord.TextChannel = None,
+        amount: int = 1,
     ):
         cache = getattr(self, f"{snipe_type}_cache")
         channel = channel or ctx.channel
@@ -136,60 +166,64 @@ class Snipe(commands.Cog):
                 f"Sniping is not allowed in this server! An admin may turn it on by typing `{ctx.clean_prefix}snipeset enable true`.",
             )
             return False
-
-        try:
-            channelsnipe = cache[guild.id][channel.id]
-        except KeyError:
-            return
-        if datetime.utcnow() - channelsnipe["timestamp"] > timedelta(
-            seconds=await self.config.guild(guild).timeout()
-        ):
+        snipes = []
+        for _ in range(amount):
             try:
-                del cache[guild.id][channel.id]
-            except KeyError:
-                pass
+                snipe = cache[guild.id][channel.id].pop()
+                if datetime.now(tz=timezone.utc) - snipe["timestamp"] > timedelta(
+                    seconds=await self.config.guild(guild).timeout()
+                ):
+                    continue
+                snipes.append(snipe)
+            except (IndexError, KeyError):
+                return snipes
+        if not snipes:
             return
-        try:
-            del cache[guild.id][channel.id]
-        except KeyError:
-            pass
-        return channelsnipe
+        return snipes
 
     @commands.guild_only()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.channel)
     @commands.bot_has_permissions(embed_links=True)
     @commands.command()
-    async def snipe(self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None):
+    async def snipe(
+        self,
+        ctx: commands.Context,
+        amount: Optional[int] = 1,
+        channel: Optional[discord.TextChannel] = None,
+    ):
         """Shows the last deleted message from a specified channel."""
-        channelsnipe = await self.get_snipe("delete", ctx)
-        if not channelsnipe:
-            if channelsnipe is False:
+        channelsnipes = await self.get_snipe("delete", ctx, channe=channel, amount=amount)
+        if not channelsnipes:
+            if channelsnipes is False:
                 return
             await self.reply(ctx, "There's nothing to snipe!")
             return
 
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
-        author = ctx.guild.get_member(channelsnipe["author"])
-        content = channelsnipe["content"]
-        if content == "":
-            description = (
-                "No message content.\nThe deleted message may have been an image or an embed."
-            )
-        else:
-            description = content
+        embeds = []
+        for snipe in channelsnipes:
+            author = ctx.guild.get_member(snipe["author"])
+            content = snipe["content"]
+            if content == "":
+                description = (
+                    "No message content.\nThe deleted message may have been an image or an embed."
+                )
+            else:
+                description = content
 
-        embed = discord.Embed(
-            description=description,
-            timestamp=channelsnipe["timestamp"],
-            color=ctx.author.color,
-        )
-        embed.set_footer(text=f"Sniped by: {ctx.author}")
-        if author:
-            embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
-        else:
-            embed.set_author(name="Removed Member")
-        await self.reply(ctx, embed=embed)
+            embed = discord.Embed(
+                description=description,
+                timestamp=snipe["timestamp"],
+                color=ctx.author.color,
+            )
+            embed.set_footer(text=f"Sniped by: {ctx.author}")
+            if author:
+                embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
+            else:
+                embed.set_author(name="Removed Member")
+            embeds.append(embed)
+        await self.reply(ctx, embeds=embeds)
 
     @staticmethod
     def get_content(content: str, limit: int = 1024):
@@ -200,43 +234,49 @@ class Snipe(commands.Cog):
     @commands.bot_has_permissions(embed_links=True)
     @commands.command(aliases=["esnipe"])
     async def editsnipe(
-        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None
+        self,
+        ctx: commands.Context,
+        amount: Optional[int] = 1,
+        channel: Optional[discord.TextChannel] = None,
     ):
         """Shows the last deleted message from a specified channel."""
-        channelsnipe = await self.get_snipe("edit", ctx)
-        if not channelsnipe:
-            if channelsnipe is False:
+        channelsnipes = await self.get_snipe("edit", ctx, channel=channel, amount=amount)
+        if not channelsnipes:
+            if channelsnipes is False:
                 return
             await self.reply(ctx, "There's nothing to snipe!")
             return
 
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
-        author = ctx.guild.get_member(channelsnipe["author"])
+        embeds = []
+        for snipe in channelsnipes:
+            author = ctx.guild.get_member(snipe["author"])
 
-        embed = discord.Embed(
-            timestamp=channelsnipe["timestamp"],
-            color=ctx.author.color,
-        )
-        old_content = self.get_content(channelsnipe["old_content"])
-        new_content = self.get_content(channelsnipe["new_content"])
-        embed.add_field(name="Old Content:", value=old_content)
-        embed.add_field(name="New Content:", value=new_content)
-        embed.set_footer(text=f"Sniped by: {str(ctx.author)}")
-        if author is None:
-            embed.set_author(name="Removed Member")
-        else:
-            embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
-        await self.reply(ctx, embed=embed)
+            embed = discord.Embed(
+                timestamp=snipe["timestamp"],
+                color=ctx.author.color,
+            )
+            old_content = self.get_content(snipe["old_content"])
+            new_content = self.get_content(snipe["new_content"])
+            embed.add_field(name="Old Content:", value=old_content)
+            embed.add_field(name="New Content:", value=new_content)
+            embed.set_footer(text=f"Sniped by: {str(ctx.author)}")
+            if author is None:
+                embed.set_author(name="Removed Member")
+            else:
+                embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
+            embeds.append(embed)
+        await self.reply(ctx, embeds=embeds)
 
     @commands.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
     @commands.group()
-    async def snipeset(self, ctx):
+    async def snipeset(self, ctx: commands.Context):
         """Group Command for Snipe Settings."""
 
     @snipeset.command()
-    async def enable(self, ctx, state: bool):
+    async def enable(self, ctx: commands.Context, state: bool):
         """Enable or disable sniping.
 
         State must be a bool or one of the following: True/False, On/Off, Y/N"""
@@ -251,7 +291,7 @@ class Snipe(commands.Cog):
     @snipeset.command()
     async def time(
         self,
-        ctx,
+        ctx: commands.Context,
         *,
         time: TimedeltaConverter(
             minimum=timedelta(),
@@ -271,11 +311,22 @@ class Snipe(commands.Cog):
         await ctx.tick()
         await self.generate_cache()
 
+    @snipeset.command(name="max")
+    async def _max(self, ctx: commands.Context, amount: int):
+        """Set the max amount of snipes to store per channel."""
+        if amount < 1 or amount > 10:
+            await self.reply(ctx, "The max amount must be between 1 and 10.")
+            return
+        await self.config.guild(ctx.guild).max.set(amount)
+        self.edit_cache[ctx.guild.id][ctx.channel.id] = deque(maxlen=amount)
+        self.delete_cache[ctx.guild.id][ctx.channel.id] = deque(maxlen=amount)
+        await ctx.tick()
+
     @snipeset.command()
     @commands.is_owner()
     async def deletetime(
         self,
-        ctx,
+        ctx: commands.Context,
         *,
         time: TimedeltaConverter(
             minimum=timedelta(),
