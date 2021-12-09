@@ -26,8 +26,8 @@ class VoiceTracker(commands.Cog):
         self.bot = bot
         self.tracking = {}
         self.config = Config.get_conf(self, identifier=95932766180343808)
-        default_guild = {"voice_channels": {}, "enabled": True, "tracking": []}
-        default_member = {"enabled": True}
+        default_guild = {"voice_channels": {}, "enabled": False, "tracking": []}
+        default_member = {"enabled": False}
         self.config.register_guild(**default_guild)
         self.config.register_member(**default_member)
         self.config_guild_cache = {}
