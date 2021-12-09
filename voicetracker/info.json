@@ -1,0 +1,18 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Track the voice chat of yourself or those in your server.",
+    "name": "VoiceTracker",
+    "hidden": false,
+    "short": "Track the voice chat of yourself or those in your server.",
+    "description": "Track the voice chat of yourself or those in your server.",
+    "tags": [
+        "voice tracking",
+        "voice chat",
+        "voice",
+        "tracking",
+        "voice chat"
+    ],
+    "min_bot_version": "3.4.0"
+}

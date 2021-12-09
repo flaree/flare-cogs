@@ -50,6 +50,7 @@ You can contact me in the Red 3rd party server in #support_flare-cogs
 | Tips          | 0.0.2            | <details><summary>Append a message to a bot message.</summary>Randomly apply a tip message to a bot message randomly.</details>                                                                   | flare(flare#0001)                       |
 | Unbelievaboat | 0.5.8            | <details><summary>Unbelievaboat economy commands converted for Red use.</summary>Unbelievaboat economy commands converted for Red use..</details>                                                 | flare(flare#0001)                       |
 | Userinfo      | 0.2.1            | <details><summary>Userinfo with user badges and economy details.</summary>Show a users normal userinfo + their badges and shared servers and bank stuff.</details>                                | flare(flare#0001)                       |
+| VoiceTracker  | 0.0.1            | <details><summary>Track the voice chat of yourself or those in your server.</summary></details>                                                                                                   | flare(flare#0001)                       |
 ---
 
 
