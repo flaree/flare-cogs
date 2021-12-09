@@ -41,7 +41,7 @@ class VoiceTracker(commands.Cog):
         while True:
             try:
                 await self.save_config()
-                await asyncio.sleep(10)
+                await asyncio.sleep(60)
             except Exception as exc:
                 log.error("Exception in bg_loop: ", exc_info=exc)
                 self.bg_loop_task.cancel()
