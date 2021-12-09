@@ -192,7 +192,7 @@ class Snipe(commands.Cog):
         channel: Optional[discord.TextChannel] = None,
     ):
         """Shows the last deleted message from a specified channel."""
-        channelsnipes = await self.get_snipe("delete", ctx, channe=channel, amount=amount)
+        channelsnipes = await self.get_snipe("delete", ctx, channel=channel, amount=amount)
         if not channelsnipes:
             if channelsnipes is False:
                 return
