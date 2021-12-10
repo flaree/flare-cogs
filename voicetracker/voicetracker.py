@@ -14,7 +14,7 @@ log = logging.getLogger("red.flare.voicetracker")
 
 class VoiceTracker(commands.Cog):
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -70,7 +70,7 @@ class VoiceTracker(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        channel = before.channel if before.channel else after.channel
+        channel = after.channel if after.channel else before.channel
         if self.config_guild_cache.get(member.guild.id, {}).get(
             "enabled", False
         ) is False or channel.id not in self.config_guild_cache.get(member.guild.id, {}).get(
@@ -106,6 +106,28 @@ class VoiceTracker(commands.Cog):
                         member.id
                     ] += seconds
                 del self.tracking[member.id]
+        elif before.channel is not None and after.channel is not None:
+            if member.id in self.tracking:
+                time = datetime.now(tz=timezone.utc) - self.tracking[member.id]["time"]
+                seconds = time.total_seconds()
+                if (
+                    self.update_cache_dict[member.guild.id]
+                    .get(before.channel.id, {})
+                    .get(member.id)
+                    is None
+                ):
+                    self.update_cache_dict[member.guild.id] = {
+                        before.channel.id: {member.id: seconds}
+                    }
+                else:
+                    self.update_cache_dict[member.guild.id][before.channel.id][
+                        member.id
+                    ] += seconds
+                del self.tracking[member.id]
+            self.tracking[member.id] = {
+                "channel": after.channel.id,
+                "time": datetime.now(tz=timezone.utc),
+            }
 
     @commands.group(aliases=["vc"])
     @commands.guild_only()
@@ -168,7 +190,7 @@ class VoiceTracker(commands.Cog):
                 channel_obj = ctx.guild.get_channel(int(channel))
                 msg += f"{channel_obj.mention if channel_obj else 'Deleted Channel'} - {humanize_timedelta(seconds=ceil(data[channel][userid]))}\n"
         if msg == "":
-            msg = "No data found"
+            msg = f"No data found. Ensure you've toggled tracking on via `{ctx.prefix}vc toggle`."
         lst = list(pagify(msg, delims=["\n"]))
         embeds = []
         for i, page in enumerate(lst):
