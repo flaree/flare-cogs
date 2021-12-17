@@ -498,6 +498,5 @@ class Covid(commands.Cog):
                 for day in data["timeline"]
             )
 
-
         embed.description = f"```{msg}```"
         await ctx.send(embed=embed)

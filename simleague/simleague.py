@@ -227,7 +227,6 @@ class SimLeague(
                 role = teams[team]["role"]
                 msg += f'{team} {lvl} {captain} {role.name if role is not None else non}{", ".join(list(teams[team]["members"].values()))} \n'
 
-
             msg = await ctx.send(box(msg, lang="ini"))
 
     @commands.command()
@@ -1111,9 +1110,7 @@ class SimLeague(
             self.bets[ctx.guild.id][ctx.author] = {"Bets": [(team, bet)]}
             currency = await bank.get_currency_name(ctx.guild)
             await bank.withdraw_credits(ctx.author, bet)
-            await ctx.send(
-                f'{ctx.author.mention} placed a {bet} {currency} bet on {team}.'
-            )
+            await ctx.send(f"{ctx.author.mention} placed a {bet} {currency} bet on {team}.")
 
     async def payout(self, guild, winner, odds):
         if winner is None:

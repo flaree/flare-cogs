@@ -196,7 +196,7 @@ class F1(commands.Cog):
     @f1.command()
     async def recent(self, ctx: commands.Context):
         """F1 most recent race result."""
-        data = await self.get('/current/last/results.json')
+        data = await self.get("/current/last/results.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -290,7 +290,7 @@ class F1(commands.Cog):
 
     @standings.command(name="drivers")
     async def drivers_standings(self, ctx):
-        data = await self.get('/current/driverStandings.json')
+        data = await self.get("/current/driverStandings.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -319,7 +319,7 @@ class F1(commands.Cog):
 
     @standings.command(name="constructors")
     async def constructors_standings(self, ctx):
-        data = await self.get('/current/constructorStandings.json')
+        data = await self.get("/current/constructorStandings.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -397,8 +397,7 @@ class F1(commands.Cog):
         try:
             next_date = min(
                 (d for d in datetimes if str(d) > str(datetime.date.today())),
-                key=lambda s: s
-                - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc),
+                key=lambda s: s - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc),
             )
 
         except ValueError:

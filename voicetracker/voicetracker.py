@@ -72,12 +72,9 @@ class VoiceTracker(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         channel = after.channel or before.channel
         if (
-            self.config_guild_cache.get(member.guild.id, {}).get("enabled", False)
-            is False
+            self.config_guild_cache.get(member.guild.id, {}).get("enabled", False) is False
             or channel.id
-            not in self.config_guild_cache.get(member.guild.id, {}).get(
-                "tracking", []
-            )
+            not in self.config_guild_cache.get(member.guild.id, {}).get("tracking", [])
         ) and (
             self.config_member_cache.get(member.guild.id, {})
             .get(member.id, {})

@@ -320,7 +320,7 @@ class Userinfo(commands.Cog):
                 data.add_field(name="Badges" if badge_count > 1 else "Badge", value=badges)
             if "Economy" in self.bot.cogs:
                 balance_count = 1
-                bankstat = f'**Bank**: {humanize_number(await bank.get_balance(user))} {await bank.get_currency_name(ctx.guild)}\n'
+                bankstat = f"**Bank**: {humanize_number(await bank.get_balance(user))} {await bank.get_currency_name(ctx.guild)}\n"
 
                 if "Unbelievaboat" in self.bot.cogs:
                     cog = self.bot.get_cog("Unbelievaboat")
@@ -328,7 +328,7 @@ class Userinfo(commands.Cog):
                     if not state:
                         balance_count += 1
                         balance = await cog.walletbalance(user)
-                        bankstat += f'**Wallet**: {humanize_number(balance)} {await bank.get_currency_name(ctx.guild)}\n'
+                        bankstat += f"**Wallet**: {humanize_number(balance)} {await bank.get_currency_name(ctx.guild)}\n"
 
                 if "Adventure" in self.bot.cogs:
                     cog = self.bot.get_cog("Adventure")
@@ -342,7 +342,7 @@ class Userinfo(commands.Cog):
                         if adventure_bank:
                             adventure_currency = await adventure_bank.get_balance(user)
                             balance_count += 1
-                            bankstat += f'**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}'
+                            bankstat += f"**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}"
 
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
             await ctx.send(embed=data)

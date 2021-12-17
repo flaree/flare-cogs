@@ -43,7 +43,7 @@ class EmbedGlobal(MixinMeta):
             msg += f"{embed} - Created by: {user if user is not None else '<unknown user>'}\n"
         embeds = [
             discord.Embed(
-                title='Global Embeds',
+                title="Global Embeds",
                 description=page,
                 color=await ctx.embed_colour(),
             )

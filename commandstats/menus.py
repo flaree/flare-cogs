@@ -171,7 +171,7 @@ class LeaderboardSource(menus.ListPageSource):
 
             balance = data[1]
             balance = humanize_number(balance)
-            msg += f'{humanize_number(i)}. {balance: <{bal_len + 5}} {name}\n'
+            msg += f"{humanize_number(i)}. {balance: <{bal_len + 5}} {name}\n"
 
         bank_name = "Guild Command Leaderboard."
         page = discord.Embed(

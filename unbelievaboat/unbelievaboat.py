@@ -409,8 +409,6 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             await self.walletdeposit(ctx, ctx.author, stolen)
             await self.walletremove(user, stolen)
         except ValueError:
-            embed.description += (
-                '\nAfter stealing the cash, you notice your wallet is now full!'
-            )
+            embed.description += "\nAfter stealing the cash, you notice your wallet is now full!"
 
         await ctx.send(embed=embed)

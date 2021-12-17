@@ -211,9 +211,7 @@ class RedditPost(commands.Cog):
             except asyncprawcore.NotFound:
                 return await ctx.send("This subreddit doesn't exist.")
             except Exception:
-                return await ctx.send(
-                    'Something went wrong while searching for this subreddit.'
-                )
+                return await ctx.send("Something went wrong while searching for this subreddit.")
 
         if subreddit_info.over18 and not channel.is_nsfw():
             return await ctx.send(

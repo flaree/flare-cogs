@@ -134,8 +134,7 @@ class Highlight(commands.Cog):
                 ).total_seconds()
                 if (
                     int(user) in self.member_cache.get(message.guild.id, {})
-                    and seconds
-                    < self.member_cache[message.guild.id][int(user)]["cooldown"]
+                    and seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]
                 ):
                     continue
             if self.member_cache.get(message.guild.id, False) and self.member_cache[

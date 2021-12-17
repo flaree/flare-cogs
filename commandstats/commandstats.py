@@ -271,7 +271,7 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send('No commands used from any cog as of yet.')
+                await ctx.send("No commands used from any cog as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
@@ -316,7 +316,7 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send('No commands used from any cog as of yet.')
+                await ctx.send("No commands used from any cog as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
@@ -402,11 +402,11 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[repo] += sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send('No commands used from any repos as of yet.')
+                await ctx.send("No commands used from any repos as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title='Repo Statistics',
+                title="Repo Statistics",
                 _type="Repo",
                 ctx=ctx,
             ).start(ctx=ctx, wait=False)

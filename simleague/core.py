@@ -899,8 +899,8 @@ class SimHelper(MixinMeta):
             fill=(255, 255, 255, 255),
         )
         draw.text(
-            (self._center(0, width, 'Draw:', general_info_fnt), 120),
-            'Draw:',
+            (self._center(0, width, "Draw:", general_info_fnt), 120),
+            "Draw:",
             font=general_info_fnt,
             fill=(255, 255, 255, 255),
         )

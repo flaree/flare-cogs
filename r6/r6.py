@@ -405,7 +405,9 @@ class R6(commands.Cog):
 
                 accstats = f'**Rank**: {seasondata["rank_text"]}\n**MMR**: {seasondata["mmr"]}\n**Max Rank**: {list(ranks)[seasondata["max_rank"]]}\n**Max MMR**: {seasondata["max_mmr"]}'
                 if seasondata["rank_text"] == "Champions":
-                    accstats += f'\n**Champions Position**: #{seasondata["champions_rank_position"]}'
+                    accstats += (
+                        f'\n**Champions Position**: #{seasondata["champions_rank_position"]}'
+                    )
 
                 try:
                     wlr = (

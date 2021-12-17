@@ -57,9 +57,7 @@ class Snipe(commands.Cog):
         for guild_id, channels in cache.items():
             for _, queue in channels.items():
                 i = sum(
-                    (
-                        datetime.now(tz=timezone.utc) - message["timestamp"]
-                    ).total_seconds()
+                    (datetime.now(tz=timezone.utc) - message["timestamp"]).total_seconds()
                     > self.config_cache[guild_id]["timeout"]
                     for message in queue
                 )
@@ -263,7 +261,7 @@ class Snipe(commands.Cog):
             new_content = self.get_content(snipe["new_content"])
             embed.add_field(name="Old Content:", value=old_content)
             embed.add_field(name="New Content:", value=new_content)
-            embed.set_footer(text=f'Sniped by: {ctx.author}')
+            embed.set_footer(text=f"Sniped by: {ctx.author}")
             if author is None:
                 embed.set_author(name="Removed Member")
             else:
