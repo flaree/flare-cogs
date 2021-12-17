@@ -212,41 +212,17 @@ class Userinfo(commands.Cog):
                 user_joined, since_joined, "" if since_joined == 1 else "s"
             )
             if user.is_on_mobile():
-                statusemoji = (
-                    self.status_emojis["mobile"]
-                    if self.status_emojis["mobile"]
-                    else "\N{MOBILE PHONE}"
-                )
+                statusemoji = self.status_emojis["mobile"] or "\N{MOBILE PHONE}"
             elif any(a.type is discord.ActivityType.streaming for a in user.activities):
-                statusemoji = (
-                    self.status_emojis["streaming"]
-                    if self.status_emojis["streaming"]
-                    else "\N{LARGE PURPLE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["streaming"] or "\N{LARGE PURPLE CIRCLE}"
             elif user.status.name == "online":
-                statusemoji = (
-                    self.status_emojis["online"]
-                    if self.status_emojis["online"]
-                    else "\N{LARGE GREEN CIRCLE}"
-                )
+                statusemoji = self.status_emojis["online"] or "\N{LARGE GREEN CIRCLE}"
             elif user.status.name == "offline":
-                statusemoji = (
-                    self.status_emojis["offline"]
-                    if self.status_emojis["offline"]
-                    else "\N{MEDIUM WHITE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["offline"] or "\N{MEDIUM WHITE CIRCLE}"
             elif user.status.name == "dnd":
-                statusemoji = (
-                    self.status_emojis["dnd"]
-                    if self.status_emojis["dnd"]
-                    else "\N{LARGE RED CIRCLE}"
-                )
+                statusemoji = self.status_emojis["dnd"] or "\N{LARGE RED CIRCLE}"
             elif user.status.name == "idle":
-                statusemoji = (
-                    self.status_emojis["away"]
-                    if self.status_emojis["away"]
-                    else "\N{LARGE ORANGE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["away"] or "\N{LARGE ORANGE CIRCLE}"
             else:
                 statusemoji = "\N{MEDIUM BLACK CIRCLE}\N{VARIATION SELECTOR-16}"
             activity = "Chilling in {} status".format(user.status)
@@ -332,10 +308,7 @@ class Userinfo(commands.Cog):
                     if badge == "verified_bot":
                         emoji1 = self.badge_emojis["verified_bot"]
                         emoji2 = self.badge_emojis["verified_bot2"]
-                        if emoji1:
-                            emoji = f"{emoji1}{emoji2}"
-                        else:
-                            emoji = None
+                        emoji = f"{emoji1}{emoji2}" if emoji1 else None
                     else:
                         emoji = self.badge_emojis[badge]
                     if emoji:
@@ -347,14 +320,16 @@ class Userinfo(commands.Cog):
                 data.add_field(name="Badges" if badge_count > 1 else "Badge", value=badges)
             if "Economy" in self.bot.cogs:
                 balance_count = 1
-                bankstat = f"**Bank**: {str(humanize_number(await bank.get_balance(user)))} {await bank.get_currency_name(ctx.guild)}\n"
+                bankstat = f'**Bank**: {humanize_number(await bank.get_balance(user))} {await bank.get_currency_name(ctx.guild)}\n'
+
                 if "Unbelievaboat" in self.bot.cogs:
                     cog = self.bot.get_cog("Unbelievaboat")
                     state = await cog.walletdisabledcheck(ctx)
                     if not state:
                         balance_count += 1
                         balance = await cog.walletbalance(user)
-                        bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}\n"
+                        bankstat += f'**Wallet**: {humanize_number(balance)} {await bank.get_currency_name(ctx.guild)}\n'
+
                 if "Adventure" in self.bot.cogs:
                     cog = self.bot.get_cog("Adventure")
                     if getattr(cog, "_separate_economy", False):
@@ -367,7 +342,8 @@ class Userinfo(commands.Cog):
                         if adventure_bank:
                             adventure_currency = await adventure_bank.get_balance(user)
                             balance_count += 1
-                            bankstat += f"**Adventure**: {str(humanize_number(adventure_currency))} {await adventure_bank.get_currency_name(ctx.guild)}"
+                            bankstat += f'**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}'
+
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
             await ctx.send(embed=data)
 

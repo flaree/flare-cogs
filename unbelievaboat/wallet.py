@@ -142,21 +142,15 @@ class Wallet(MixinMeta):
             try:
                 name = guild.get_member(acc[0]).display_name
             except AttributeError:
-                user_id = ""
-                if await ctx.bot.is_owner(ctx.author):
-                    user_id = f"({str(acc[0])})"
+                user_id = f'({acc[0]})' if await ctx.bot.is_owner(ctx.author) else ""
                 name = f"{user_id}"
             balance = acc[1]["wallet"]
 
             if acc[0] != ctx.author.id:
-                temp_msg += f"{f'{pos}.': <{pound_len+2}} {balance: <{bal_len + 5}} {name}\n"
+                temp_msg += f'{pos}. {balance: <{bal_len + 5}} {name}\n'
 
             else:
-                temp_msg += (
-                    f"{f'{pos}.': <{pound_len+2}} "
-                    f"{balance: <{bal_len + 5}} "
-                    f"<<{ctx.author.display_name}>>\n"
-                )
+                temp_msg += f'{pos}. {balance: <{bal_len + 5}} <<{ctx.author.display_name}>>\n'
             if pos % 10 == 0:
                 highscores.append(box(temp_msg, lang="md"))
                 temp_msg = header

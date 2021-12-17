@@ -246,17 +246,16 @@ class SettingsMixin(MixinMeta):
                 crimecd = humanize_timedelta(seconds=jobcd["crimecd"] - time)
             else:
                 crimecd = "Ready to use."
-        if not await self.walletdisabledcheck(ctx):
-            if cd["robcd"] is None:
-                robcd = "Ready to use."
-            else:
-                time = int(datetime.datetime.utcnow().timestamp()) - cd["robcd"]
-                if time < jobcd["robcd"]:
-                    robcd = humanize_timedelta(seconds=jobcd["robcd"] - time)
-                else:
-                    robcd = "Ready to use."
-        else:
+        if await self.walletdisabledcheck(ctx):
             robcd = "Disabled."
+        elif cd["robcd"] is None:
+            robcd = "Ready to use."
+        else:
+            time = int(datetime.datetime.utcnow().timestamp()) - cd["robcd"]
+            if time < jobcd["robcd"]:
+                robcd = humanize_timedelta(seconds=jobcd["robcd"] - time)
+            else:
+                robcd = "Ready to use."
         msg = "Work Cooldown: `{}`\nCrime Cooldown: `{}`\nRob Cooldown: `{}`".format(
             workcd, crimecd, robcd
         )

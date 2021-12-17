@@ -102,11 +102,10 @@ class SimLeague(
     @commands.command()
     async def notify(self, ctx, toggle: bool):
         """Set wheter to recieve notifications of matches and results."""
+        await self.config.user(ctx.author).notify.set(toggle)
         if toggle:
-            await self.config.user(ctx.author).notify.set(toggle)
             await ctx.send("You will recieve a notification on matches and results.")
         else:
-            await self.config.user(ctx.author).notify.set(toggle)
             await ctx.send("You will no longer recieve a notification on matches and results.")
 
     @checks.admin_or_permissions(manage_guild=True)
@@ -190,7 +189,7 @@ class SimLeague(
                 self.cache = time.time()
             async with ctx.typing():
                 for team in teams:
-                    mems = [x for x in teams[team]["members"].values()]
+                    mems = list(teams[team]["members"].values())
                     lvl = teams[team]["cachedlevel"]
                     embed.add_field(
                         name="Team {}".format(team),
@@ -219,19 +218,15 @@ class SimLeague(
             caplen = max(*[len(list(teams[i]["captain"].values())[0]) for i in teams], 5) + 3
             lvllen = 6
 
-            msg = f"{'Team':{teamlen}} {'Level':{lvllen}} {'Captain':{caplen}} {'Role':{rolelen}} {'Members'}\n"
+            msg = f'{"Team":{teamlen}} {"Level":{lvllen}} {"Captain":{caplen}} {"Role":{rolelen}} Members\n'
+
             non = "None"
             for team in teams:
                 lvl = teams[team]["cachedlevel"]
                 captain = list(teams[team]["captain"].values())[0]
                 role = teams[team]["role"]
-                msg += (
-                    f"{f'{team}': <{teamlen}} "
-                    f"{f'{lvl}': <{lvllen}} "
-                    f"{f'{captain}': <{caplen}} "
-                    f"{f'{role.name if role is not None else non}': <{rolelen}}"
-                    f"{', '.join(list(teams[team]['members'].values()))} \n"
-                )
+                msg += f'{team} {lvl} {captain} {role.name if role is not None else non}{", ".join(list(teams[team]["members"].values()))} \n'
+
 
             msg = await ctx.send(box(msg, lang="ini"))
 
@@ -1116,7 +1111,9 @@ class SimLeague(
             self.bets[ctx.guild.id][ctx.author] = {"Bets": [(team, bet)]}
             currency = await bank.get_currency_name(ctx.guild)
             await bank.withdraw_credits(ctx.author, bet)
-            await ctx.send(f"{ctx.author.mention} placed a {bet} {currency} bet on {str(team)}.")
+            await ctx.send(
+                f'{ctx.author.mention} placed a {bet} {currency} bet on {team}.'
+            )
 
     async def payout(self, guild, winner, odds):
         if winner is None:

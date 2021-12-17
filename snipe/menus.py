@@ -103,7 +103,7 @@ async def menu(
             else:
                 raise RuntimeError
         except (discord.Forbidden, RuntimeError):  # cannot remove all reactions
-            for key in controls.keys():
+            for key in controls:
                 try:
                     await message.remove_reaction(key, ctx.bot.user)
                 except discord.Forbidden:

@@ -172,19 +172,18 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                         colour=discord.Color.red(),
                         description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
                     )
+        elif await bank.can_spend(ctx.author, randint):
+            await bank.withdraw_credits(ctx.author, randint)
+            embed = discord.Embed(
+                colour=discord.Color.red(),
+                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
+            )
         else:
-            if await bank.can_spend(ctx.author, randint):
-                await bank.withdraw_credits(ctx.author, randint)
-                embed = discord.Embed(
-                    colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}.",
-                )
-            else:
-                await bank.set_balance(ctx.author, 0)
-                embed = discord.Embed(
-                    colour=discord.Color.red(),
-                    description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
-                )
+            await bank.set_balance(ctx.author, 0)
+            embed = discord.Embed(
+                colour=discord.Color.red(),
+                description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
+            )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
@@ -410,5 +409,8 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             await self.walletdeposit(ctx, ctx.author, stolen)
             await self.walletremove(user, stolen)
         except ValueError:
-            embed.description += f"\nAfter stealing the cash, you notice your wallet is now full!"
+            embed.description += (
+                '\nAfter stealing the cash, you notice your wallet is now full!'
+            )
+
         await ctx.send(embed=embed)
