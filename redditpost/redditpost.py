@@ -211,7 +211,8 @@ class RedditPost(commands.Cog):
             except asyncprawcore.NotFound:
                 return await ctx.send("This subreddit doesn't exist.")
             except Exception:
-                return await ctx.send(f"Something went wrong while searching for this subreddit.")
+                return await ctx.send("Something went wrong while searching for this subreddit.")
+
         if subreddit_info.over18 and not channel.is_nsfw():
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
@@ -225,7 +226,7 @@ class RedditPost(commands.Cog):
             response = await self.fetch_feed(subreddit)
 
             if response is None:
-                return await ctx.send(f"That didn't seem to be a valid reddit feed.")
+                return await ctx.send("That didn't seem to be a valid reddit feed.")
 
             feeds[subreddit] = {
                 "subreddit": subreddit,
@@ -355,7 +356,7 @@ class RedditPost(commands.Cog):
         try:
             subreddit = await self.client.subreddit(subreddit)
             resp = [submission async for submission in subreddit.new(limit=20)]
-            return resp if resp else None
+            return resp or None
         except Exception:
             return None
 
@@ -402,9 +403,8 @@ class RedditPost(commands.Cog):
             embed.set_footer(text=f"Submitted by /u/{unescape(feed.author.name)}")
             if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.spoiler:
                 embed.set_image(url=unescape(image))
-            else:
-                if feed.permalink not in image and validators.url(image):
-                    embed.add_field(name="Attachment", value=unescape(image))
+            elif feed.permalink not in image and validators.url(image):
+                embed.add_field(name="Attachment", value=unescape(image))
             embeds.append(embed)
         if timestamps:
             if embeds:

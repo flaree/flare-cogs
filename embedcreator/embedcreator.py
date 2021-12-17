@@ -132,9 +132,7 @@ class EmbedCreator(
         if not isinstance(data, dict):
             await ctx.send("The JSON provided is not in a dictionary format.")
             return False, None
-        content = None
-        if data.get("content"):
-            content = data["content"]
+        content = data["content"] if data.get("content") else None
         if data.get("embed"):
             data = data["embed"]
         if data.get("embeds"):

@@ -104,8 +104,7 @@ class Crypto(commands.Cog):
             else float(coin_data["quote"]["USD"]["price"]) * amount
         )
         inflate_price = price * 10
-        if inflate_price < 1:
-            inflate_price = 1
+        inflate_price = max(inflate_price, 1)
         currency = await bank.get_currency_name(ctx.guild)
         try:
             bal = await bank.withdraw_credits(ctx.author, int(inflate_price))
@@ -180,9 +179,7 @@ class Crypto(commands.Cog):
         coin_data = await self.all_coins()
         if coin_data == {}:
             return await ctx.send("Failed to fetch all coin data.")
-        coin_list = {}
-        for coin in coin_data["data"]:
-            coin_list[coin["name"]] = coin
+        coin_list = {coin["name"]: coin for coin in coin_data["data"]}
         data = await self.config.user(ctx.author).crypto()
         if not data:
             return await ctx.send("You do not have any crypto bought.")

@@ -70,19 +70,18 @@ class VoiceTracker(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        channel = after.channel if after.channel else before.channel
-        if self.config_guild_cache.get(member.guild.id, {}).get(
-            "enabled", False
-        ) is False or channel.id not in self.config_guild_cache.get(member.guild.id, {}).get(
-            "tracking", []
+        channel = after.channel or before.channel
+        if (
+            self.config_guild_cache.get(member.guild.id, {}).get("enabled", False) is False
+            or channel.id
+            not in self.config_guild_cache.get(member.guild.id, {}).get("tracking", [])
+        ) and (
+            self.config_member_cache.get(member.guild.id, {})
+            .get(member.id, {})
+            .get("enabled", False)
+            is False
         ):
-            if (
-                self.config_member_cache.get(member.guild.id, {})
-                .get(member.id, {})
-                .get("enabled", False)
-                is False
-            ):
-                return
+            return
         if before.channel is None and after.channel is not None:
             self.tracking[member.id] = {
                 "channel": after.channel.id,
@@ -106,7 +105,7 @@ class VoiceTracker(commands.Cog):
                         member.id
                     ] += seconds
                 del self.tracking[member.id]
-        elif before.channel is not None and after.channel is not None:
+        elif before.channel is not None:
             if member.id in self.tracking:
                 time = datetime.now(tz=timezone.utc) - self.tracking[member.id]["time"]
                 seconds = time.total_seconds()

@@ -151,11 +151,10 @@ class CommandStats(commands.Cog):
                 wait=False,
             )
 
+        elif command in data:
+            await ctx.send(f"`{command}` has been used {data[command]} times!")
         else:
-            if command in data:
-                await ctx.send(f"`{command}` has been used {data[command]} times!")
-            else:
-                await ctx.send(f"`{command}` hasn't been used yet!")
+            await ctx.send(f"`{command}` hasn't been used yet!")
 
     @cmd.command()
     async def automated(self, ctx):
@@ -204,13 +203,12 @@ class CommandStats(commands.Cog):
                 wait=False,
             )
 
+        elif command in data:
+            await ctx.send(
+                f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {server.name}!"
+            )
         else:
-            if command in data:
-                await ctx.send(
-                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in {server.name}!"
-                )
-            else:
-                await ctx.send(f"`{command}` hasn't been used in {server.name}!")
+            await ctx.send(f"`{command}` hasn't been used in {server.name}!")
 
     @cmd.command()
     async def session(self, ctx, *, command: str = None):
@@ -234,13 +232,12 @@ class CommandStats(commands.Cog):
                 wait=False,
             )
 
+        elif command in data:
+            await ctx.send(
+                f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in this session!"
+            )
         else:
-            if command in data:
-                await ctx.send(
-                    f"`{command}` has been used {data[command]} time{'s' if data[command] > 1 else ''} in this session!"
-                )
-            else:
-                await ctx.send(f"`{command}` hasn't been used in this session!")
+            await ctx.send(f"`{command}` hasn't been used in this session!")
 
     @cmd.group(invoke_without_command=True)
     async def cogstats(self, ctx, *, cogname: str = None):
@@ -274,7 +271,7 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send(f"No commands used from any cog as of yet.")
+                await ctx.send("No commands used from any cog as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
@@ -319,7 +316,7 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[cogn] = sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send(f"No commands used from any cog as of yet.")
+                await ctx.send("No commands used from any cog as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
@@ -405,17 +402,14 @@ class CommandStats(commands.Cog):
                 commands = {x.qualified_name for x in cog.walk_commands()}
                 a[repo] += sum(data[command] for command in data if command in commands)
             if not a:
-                await ctx.send(f"No commands used from any repos as of yet.")
+                await ctx.send("No commands used from any repos as of yet.")
                 return
             await GenericMenu(
                 source=EmbedFormat(self.build_data(a)),
-                title=f"Repo Statistics",
+                title="Repo Statistics",
                 _type="Repo",
                 ctx=ctx,
-            ).start(
-                ctx=ctx,
-                wait=False,
-            )
+            ).start(ctx=ctx, wait=False)
 
     @cmd.command()
     async def search(self, ctx, *, command: str):

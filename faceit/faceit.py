@@ -274,7 +274,7 @@ class Faceit(commands.Cog):
             title=" vs ".join(teams.values()) + " Statistics",
             description=f"**Winner**: {teams[match[0]['round_stats']['Winner']]}\n**Map**: {match[0]['round_stats']['Map']}\n**Score**: {match[0]['round_stats']['Score']}",
         )
-        team1, team2 = [team for team in teams.values()]
+        team1, team2 = list(teams.values())
         team1stats = sorted(match[0]["teams"][0]["team_stats"].items())
         team2stats = sorted(match[0]["teams"][1]["team_stats"].items())
         embed.add_field(
@@ -452,9 +452,11 @@ class Faceit(commands.Cog):
                 value=f"**Name**: {player['nickname']}\n**Country**: {player['country']}\n**Verified**: {player['verified']}",
             )
             if player.get("games"):
-                msg = ""
-                for game in player["games"]:
-                    msg += f"**{game['name'].title()}**: Level {game['skill_level']}\n"
+                msg = "".join(
+                    f"**{game['name'].title()}**: Level {game['skill_level']}\n"
+                    for game in player["games"]
+                )
+
                 embed.add_field(name="Game Information", value=msg)
             embed.set_footer(text=f"ID: {player['player_id']} | Page: {i}/{len(data['items'])}")
             embeds.append(embed)

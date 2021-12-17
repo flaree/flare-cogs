@@ -125,7 +125,7 @@ class EmbedFormat(menus.ListPageSource):
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu: GenericMenu, data) -> str:
-        stats = [item for item in data]
+        stats = list(data)
         embed = discord.Embed(
             title=menu.title,
             colour=await menu.ctx.embed_color(),
@@ -171,11 +171,7 @@ class LeaderboardSource(menus.ListPageSource):
 
             balance = data[1]
             balance = humanize_number(balance)
-            msg += (
-                f"{f'{humanize_number(i)}.': <{pound_len + 2}} "
-                f"{balance: <{bal_len + 5}} "
-                f"{name}\n"
-            )
+            msg += f"{humanize_number(i)}. {balance: <{bal_len + 5}} {name}\n"
 
         bank_name = "Guild Command Leaderboard."
         page = discord.Embed(
