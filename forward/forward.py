@@ -84,7 +84,8 @@ class Forward(commands.Cog):
         else:
             embeds = [discord.Embed(description=message.content)]
             embeds[0].set_author(
-                name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
+                name=f"{message.author} | {message.author.id}",
+                icon_url=message.author.display_avatar.url,
             )
             embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
@@ -166,10 +167,10 @@ class Forward(commands.Cog):
         """
         em = discord.Embed(colour=discord.Colour.red(), description=message)
 
-        if ctx.bot.user.avatar_url:
+        if ctx.bot.user.display_avatar:
             em.set_author(
                 name=f"Message from {ctx.author} | {ctx.author.id}",
-                icon_url=ctx.bot.user.avatar_url,
+                icon_url=ctx.bot.user.display_avatar,
             )
         else:
             em.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")

@@ -219,7 +219,9 @@ class Snipe(commands.Cog):
             )
             embed.set_footer(text=f"Sniped by: {ctx.author}")
             if author:
-                embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
+                embed.set_author(
+                    name=f"{author} ({author.id})", icon_url=author.display_avatar.url
+                )
             else:
                 embed.set_author(name="Removed Member")
             embeds.append(embed)
@@ -265,7 +267,9 @@ class Snipe(commands.Cog):
             if author is None:
                 embed.set_author(name="Removed Member")
             else:
-                embed.set_author(name=f"{author} ({author.id})", icon_url=author.avatar_url)
+                embed.set_author(
+                    name=f"{author} ({author.id})", icon_url=author.display_avatar.url
+                )
             embeds.append(embed)
         await self.reply(ctx, embeds=embeds)
 

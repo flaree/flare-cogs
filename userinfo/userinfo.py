@@ -320,7 +320,7 @@ class Userinfo(commands.Cog):
             name = " ~ ".join((name, user.nick)) if user.nick else name
             name = filter_invites(name)
 
-            avatar = user.avatar_url_as(static_format="png")
+            avatar = user.display_avatar.replace(static_format="png").url
             data.title = f"{statusemoji} {name}"
             data.set_thumbnail(url=avatar)
 
