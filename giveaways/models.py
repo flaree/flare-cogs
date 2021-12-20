@@ -48,14 +48,14 @@ class Giveaway:
             int(role) in [x.id for x in user.roles] for role in self.kwargs.get("exclusive", [])
         ):
             return False, StatusMessage.UserNotInRole
-        if self.kwargs.get("levelreq", None) is not None:
-            cog = self.bot.get_cog("Leveler")
-            if cog is None:
-                return False, StatusMessage.LevelCogNotFound
-            userinfo = await cog.db.users.find_one({"user_id": str(user.id)})
-            lvl = userinfo.get("servers", {}).get(str(self.guildid), {}).get("level", 0)
-            if lvl < self.kwargs.get("levelreq", 0):
-                return False, StatusMessage.UserDoesntMeetLevel
+        # if self.kwargs.get("levelreq", None) is not None:
+        #     cog = self.bot.get_cog("Leveler")
+        #     if cog is None:
+        #         return False, StatusMessage.LevelCogNotFound
+        #     userinfo = await cog.db.users.find_one({"user_id": str(user.id)})
+        #     lvl = userinfo.get("servers", {}).get(str(self.guildid), {}).get("level", 0)
+        #     if lvl < self.kwargs.get("levelreq", 0):
+        #         return False, StatusMessage.UserDoesntMeetLevel
 
         self.entrants.append(user.id)
         if self.kwargs.get("multi", None) is not None and any(
