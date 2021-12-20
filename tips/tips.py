@@ -35,8 +35,13 @@ async def send(self, content=None, **kwargs):
         tips = cog.message_cache or ["No tips configured."]
         tip_msg = random.choice(tips).replace("{prefix}", self.clean_prefix)
         new_content = cog.tip_format.format_map(
-            Default(content=content if content else "", tip_msg=tip_msg, prefix=self.clean_prefix)
+            Default(
+                content=content or "",
+                tip_msg=tip_msg,
+                prefix=self.clean_prefix,
+            )
         )
+
         if len(new_content) <= 2000:
             content = new_content
     return await real_send(self, content, **kwargs)
