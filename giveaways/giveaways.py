@@ -193,6 +193,12 @@ class Giveaways(commands.Cog):
         `--multiplier`: Multiplier for those in specified roles.
         `--multi-roles`: Roles that will receive the multiplier. Must be IDs.
 
+        3rd party arguments:
+        `--level-req`: The level requirement for the giveaway. Uses Fixator's leveler cog.
+
+        Examples:
+        gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2
+
 
         """
         prize = arguments["prize"]
@@ -225,13 +231,19 @@ class Giveaways(commands.Cog):
         if payload.user_id == self.bot.user.id:
             return
         if payload.message_id in self.giveaways:
-            status, msg = self.giveaways[payload.message_id].add_entrant(payload.member)
+            status, msg = await self.giveaways[payload.message_id].add_entrant(
+                payload.member, self.bot
+            )
             if not status:
                 if msg == StatusMessage.UserAlreadyEntered:
                     await payload.member.send(f"You have already entered this giveaway")
                 elif msg == StatusMessage.UserNotInRole:
                     await payload.member.send(
                         f"You are not in the required role(s) for this giveaway."
+                    )
+                elif msg == StatusMessage.UserDoesntMeetLevel:
+                    await payload.member.send(
+                        f"You do not meet the level requirement for this giveaway."
                     )
                 return
             await self.config.custom(

@@ -9,11 +9,6 @@ class NoExitParser(argparse.ArgumentParser):
         raise BadArgument()
 
 
-import logging
-
-log = logging.getLogger("red.flare.giveaways")
-
-
 class Args(Converter):
     async def convert(self, ctx, argument):
         argument = argument.replace("—", "--")
@@ -28,10 +23,13 @@ class Args(Converter):
         parser.add_argument("--multiplier", "--m", dest="multi", default=None, type=int, nargs="?")
         parser.add_argument("--multi-roles", "--mr", nargs="*", dest="multi-roles", default=[])
 
+        parser.add_argument(
+            "--level-req", "--lq", dest="levelreq", default=None, type=int, nargs="?"
+        )
+
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as error:
-            log.error("Error in Args: ", exc_info=error)
             raise BadArgument() from error
 
         if not vals["prize"]:
@@ -44,6 +42,15 @@ class Args(Converter):
             channel = ctx.guild.get_channel(vals["channel"])
             if not channel:
                 raise BadArgument("Invalid channel.")
+
+        if vals["levelreq"]:
+            cog = ctx.bot.get_cog("Leveler")
+            if not cog:
+                raise BadArgument("Leveler cog not loaded.")
+            if not hasattr(cog, "db"):
+                raise BadArgument(
+                    "This may be the wrong leveling cog. Ensure you are using Fixators."
+                )
 
         if vals["multi"] or vals["multi-roles"]:
             if not (vals["multi"] and vals["multi-roles"]):

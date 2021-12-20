@@ -17,6 +17,8 @@ class StatusMessage(Enum):
     MessageNotFound = 7
     UserNotFound = 8
     WinnerDrawn = 9
+    LevelCogNotFound = 10
+    UserDoesntMeetLevel = 11
 
 
 class Giveaway:
@@ -39,13 +41,22 @@ class Giveaway:
         self.entrants = entrants or []
         self.kwargs = kwargs
 
-    def add_entrant(self, user: discord.Member) -> Tuple[bool, StatusMessage]:
-        if user in self.entrants:
+    async def add_entrant(self, user: discord.Member, *, bot) -> Tuple[bool, StatusMessage]:
+        if user.id in self.entrants:
             return False, StatusMessage.UserAlreadyEntered
         if self.kwargs.get("exclusive", []) and not any(
             int(role) in [x.id for x in user.roles] for role in self.kwargs.get("exclusive", [])
         ):
             return False, StatusMessage.UserNotInRole
+        if self.kwargs.get("levelreq", None) is not None:
+            cog = self.bot.get_cog("Leveler")
+            if cog is None:
+                return False, StatusMessage.LevelCogNotFound
+            userinfo = await cog.db.users.find_one({"user_id": str(user.id)})
+            lvl = userinfo.get("servers", {}).get(str(self.guildid), {}).get("level", 0)
+            if lvl < self.kwargs.get("levelreq", 0):
+                return False, StatusMessage.UserDoesntMeetLevel
+
         self.entrants.append(user.id)
         if self.kwargs.get("multi", None) is not None and any(
             int(role) in [x.id for x in user.roles] for role in self.kwargs.get("multi-roles", [])
