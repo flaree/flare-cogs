@@ -14,11 +14,13 @@ from .models import Giveaway, StatusMessage
 log = logging.getLogger("red.flare.giveaways")
 GIVEAWAY_KEY = "giveaways"
 
+# TODO: Add a way to delete giveaways that have ended from the config
+
 
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -192,6 +194,14 @@ class Giveaways(commands.Cog):
         `--restrict`: Roles that the giveaway will be restricted to. Must be IDs.
         `--multiplier`: Multiplier for those in specified roles.
         `--multi-roles`: Roles that will receive the multiplier. Must be IDs.
+        `--cost`: Cost of credits to enter the giveaway.
+        `--joined`: How long the user must be a member of the server for to enter the giveaway.
+        `--created`: How long the user has been on discord for to enter the giveaway.
+        `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be IDs.
+
+
+        3rd party integrations:
+        `--level-req`: The level required to enter the giveaway. Must be Fixator's leveler cog.
 
         Examples:
         gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2
@@ -232,7 +242,7 @@ class Giveaways(commands.Cog):
             status, msg = await giveaway.add_entrant(payload.member, bot=self.bot)
             if not status:
                 if msg == StatusMessage.UserAlreadyEntered:
-                    await payload.member.send(f"You have already entered this giveaway")
+                    await payload.member.send(f"You have already entered this giveaway.")
                 elif msg == StatusMessage.UserNotInRole:
                     await payload.member.send(
                         f"You are not in the required role(s) for this giveaway."
@@ -240,6 +250,22 @@ class Giveaways(commands.Cog):
                 elif msg == StatusMessage.UserDoesntMeetLevel:
                     await payload.member.send(
                         f"You do not meet the level requirement for this giveaway."
+                    )
+                elif msg == StatusMessage.UserNotEnoughCredits:
+                    await payload.member.send(
+                        f"You do not have enough credits to enter this giveaway."
+                    )
+                elif msg == StatusMessage.UserAccountTooYoung:
+                    await payload.member.send(
+                        f"Your account does not meet the age critera for this giveaway."
+                    )
+                elif msg == StatusMessage.UserNotMemberLongEnough:
+                    await payload.member.send(
+                        f"You have not been a member of the server long enough for this giveaway."
+                    )
+                elif msg == StatusMessage.UserInBlacklistedRole:
+                    await payload.member.send(
+                        f"You are in a blacklisted role for this giveaway and thus cannot enter."
                     )
                 return
             await self.config.custom(
