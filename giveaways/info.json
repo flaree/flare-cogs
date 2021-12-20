@@ -1,0 +1,17 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Giveaway cog. Currently not fully finished, report any bugs in the 3rd party cog server.",
+    "name": "Giveaways",
+    "disabled": false,
+    "short": "Giveaway cog with features such as multipliers, exclusive roles etc.",
+    "description": "Giveaway cog with features such as multipliers, exclusive roles etc.",
+    "tags": [
+        "giveaway",
+        "giveaways",
+        "raffle"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": false
+}
