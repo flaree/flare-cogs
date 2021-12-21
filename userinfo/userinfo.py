@@ -345,6 +345,15 @@ class Userinfo(commands.Cog):
                             bankstat += f"**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}"
 
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
+            banner = (
+                await self.bot.http.request(discord.http.Route("GET", f"/users/{user.id}"))
+            ).get("banner", None)
+            if banner is not None:
+                ext = ".gif" if banner.startswith("a_") else ".png"
+                banner_url = (
+                    f"https://cdn.discordapp.com/banners/{user.id}/{banner}{ext}?size=4096"
+                )
+                data.set_image(url=banner_url)
             await ctx.send(embed=data)
 
 
