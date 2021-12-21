@@ -21,7 +21,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -201,11 +201,13 @@ class Giveaways(commands.Cog):
         """Advanced creation of Giveaways.
 
 
-        Required arguments:
+        `[p]gw explain` for a further full listing of the arguments.
+
+        **Required arguments**:
         `--prize`: The prize to be won.
         `--duration`: The duration of the giveaway.
 
-        Optional arguments:
+        **Optional arguments**:
         `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
         `--restrict`: Roles that the giveaway will be restricted to. Must be IDs.
         `--multiplier`: Multiplier for those in specified roles.
@@ -215,17 +217,16 @@ class Giveaways(commands.Cog):
         `--created`: How long the user has been on discord for to enter the giveaway.
         `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be IDs.
 
-        Setting Arguments:
+        **Setting Arguments**:
         `--congratulate`: Whether or not to congratulate the winner.
         `--notify`: Whether or not to notify a user if they failed to enter the giveaway.
         `--multientry`: Whether or not to allow multiple entries.
 
-
-        3rd party integrations:
-        `--level-req`: The level required to enter the giveaway. Must be Fixator's leveler cog.
+        **3rd party integrations**:
+        `[p]gw explain` for a full listing of the integrations.
 
         Examples:
-        gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2
+        [p]gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2
 
 
         """
@@ -253,6 +254,49 @@ class Giveaways(commands.Cog):
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
+
+    @giveaway.command()
+    async def explain(self, ctx: commands.Context):
+        """Explanation of giveaway advanced and the arguements it supports."""
+
+        msg = """
+        Giveaway advanced creation.
+
+        Giveaway advanced contains many different flags that can be used to customize the giveaway.
+        The flags are as follows:
+
+        Required arguments:
+        `--prize`: The prize to be won.
+        `--duration`: The duration of the giveaway. Must be in format such as `2d3h30m`.
+
+        Optional arguments:
+        `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
+        `--restrict`: Roles that the giveaway will be restricted to. Must be Role IDs.
+        `--multiplier`: Multiplier for those in specified roles. Must be a positive number.
+        `--multi-roles`: Roles that will receive the multiplier. Must be Role IDs.
+        `--cost`: Cost of credits to enter the giveaway. Must be a positive number.
+        `--joined`: How long the user must be a member of the server for to enter the giveaway. Must be a positive number of days.
+        `--created`: How long the user has been on discord for to enter the giveaway. Must be a positive number of days.
+        `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be Role IDs.
+
+        Setting Arguments:
+        `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
+        `--notify`: Whether or not to notify a user if they failed to enter the giveaway. Not passing will default to off.
+        `--multientry`: Whether or not to allow multiple entries. Not passing will default to off.
+
+
+        3rd party integrations:
+        `--level-req`: The level required to enter the giveaway. Must be Fixator's leveler cog. Must be a positive number.
+
+        Examples:
+        `{prefix}gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2`
+        `{prefix}gw advanced --prize A better sword --duration 2h3h30m --channel channel-name --cost 250 --joined 50 --congratulate --notify --multientry --level-req 100`""".format(
+            prefix=ctx.clean_prefix
+        )
+        embed = discord.Embed(
+            title="Giveaway Advanced Explanation", description=msg, color=await ctx.embed_color()
+        )
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
