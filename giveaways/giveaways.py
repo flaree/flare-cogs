@@ -176,6 +176,12 @@ class Giveaways(commands.Cog):
             return await ctx.send(
                 f"Giveaway already running. Please wait for it to end or end it via `{ctx.clean_prefix}gw end {msgid}`."
             )
+        giveaway_dict = data[str(msgid)]
+        giveaway_dict["endtime"] = datetime.fromtimestamp(giveaway_dict["endtime"]).replace(
+            tzinfo=timezone.utc
+        )
+        giveaway_obj = Giveaway(**giveaway_dict)
+        await self.draw_winner(giveaway_obj)
         giveaway = Giveaway(**data[str(msgid)])
         status = await self.draw_winner(giveaway)
         if status == StatusMessage.WinnerDrawn:
