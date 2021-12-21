@@ -111,7 +111,8 @@ class Giveaways(commands.Cog):
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
         )
         await msg.edit(content=winner_obj.mention if winner_obj is not None else "", embed=embed)
-        await msg.clear_reactions()
+        if channel_obj.permissions_for(guild.me).manage_messages:
+            await msg.clear_reactions()
         if winner_obj is not None:
             if giveaway.kwargs.get("congratulate", False):  # TODO: Add a way to disable this
                 try:
@@ -127,7 +128,7 @@ class Giveaways(commands.Cog):
         return StatusMessage.WinnerDrawn
 
     @commands.group(aliases=["gw"])
-    @commands.bot_has_permissions(add_reactions=True, manage_messages=True)
+    @commands.bot_has_permissions(add_reactions=True)
     @commands.has_permissions(manage_guild=True)
     async def giveaway(self, ctx: commands.Context):
         """
