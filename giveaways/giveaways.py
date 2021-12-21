@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -20,7 +21,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -33,6 +34,8 @@ class Giveaways(commands.Cog):
         self.config.init_custom(GIVEAWAY_KEY, 2)
         self.giveaways = {}
         self.giveaway_bgloop = asyncio.create_task(self.init())
+        with contextlib.suppress(Exception):
+            self.bot.add_dev_env_value("giveaways", lambda x: self)
 
     async def init(self) -> None:
         await self.bot.wait_until_ready()
@@ -62,6 +65,8 @@ class Giveaways(commands.Cog):
             await asyncio.sleep(60)
 
     def cog_unload(self) -> None:
+        with contextlib.suppress(Exception):
+            self.bot.remove_dev_env_value("giveaways")
         self.giveaway_bgloop.cancel()
 
     async def check_giveaways(self) -> None:
@@ -108,6 +113,13 @@ class Giveaways(commands.Cog):
         await msg.edit(content=winner_obj.mention if winner_obj is not None else "", embed=embed)
         await msg.clear_reactions()
         if winner_obj is not None:
+            if giveaway.kwargs.get("notify", True):  # TODO: Add a way to disable this
+                try:
+                    await winner_obj.send(
+                        f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
+                    )
+                except discord.Forbidden:
+                    pass
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:

@@ -14,21 +14,23 @@ class Args(Converter):
         argument = argument.replace("—", "--")
         parser = NoExitParser(description="Giveaway Created", add_help=False)
 
+        # Required Arguments
+
         parser.add_argument("--prize", "--p", dest="prize", nargs="*", default=[])
         parser.add_argument("--duration", "--d", dest="duration", nargs="*", default=[])
+
+        # Optional Arguments
         parser.add_argument("--channel", dest="channel", default=None, type=int, nargs="?")
-
         parser.add_argument("--restrict", "--r", dest="exclusive", nargs="*", default=[])
-
         parser.add_argument("--multiplier", "--m", dest="multi", default=None, type=int, nargs="?")
         parser.add_argument("--multi-roles", "--mr", nargs="*", dest="multi-roles", default=[])
-
         parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
         parser.add_argument("--joined", dest="joined", default=None, type=int, nargs="?")
         parser.add_argument("--created", dest="created", default=None, type=int, nargs="?")
+        parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
+        # parser.add_argument('--notify', action=argparse.BooleanOptionalAction)
 
-        parser.add_argument("--blacklist", dest="blacklist", default=None, type=int, nargs="?")
-
+        # 3rd party arguments
         parser.add_argument(
             "--level-req", "--lq", dest="levelreq", default=None, type=int, nargs="?"
         )
