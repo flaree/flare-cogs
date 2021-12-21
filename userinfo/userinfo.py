@@ -15,7 +15,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -26,6 +26,7 @@ class Userinfo(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         default_global = {
+            "banner": False,
             "status_emojis": {
                 "mobile": 749067110931759185,
                 "online": 749221433552404581,
@@ -162,6 +163,12 @@ class Userinfo(commands.Cog):
         """Reset emojis to default."""
         await self.config.clear_all()
         await self.gen_emojis()
+        await ctx.tick()
+
+    @uinfoset.command()
+    async def banner(self, ctx):
+        """Toggle banner on userinfo."""
+        await self.config.banner.set(not await self.config.banner())
         await ctx.tick()
 
     @commands.command()
@@ -345,15 +352,16 @@ class Userinfo(commands.Cog):
                             bankstat += f"**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}"
 
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
-            banner = (
-                await self.bot.http.request(discord.http.Route("GET", f"/users/{user.id}"))
-            ).get("banner", None)
-            if banner is not None:
-                ext = ".gif" if banner.startswith("a_") else ".png"
-                banner_url = (
-                    f"https://cdn.discordapp.com/banners/{user.id}/{banner}{ext}?size=4096"
-                )
-                data.set_image(url=banner_url)
+            if await self.config.banner():
+                banner = (
+                    await self.bot.http.request(discord.http.Route("GET", f"/users/{user.id}"))
+                ).get("banner", None)
+                if banner is not None:
+                    ext = ".gif" if banner.startswith("a_") else ".png"
+                    banner_url = (
+                        f"https://cdn.discordapp.com/banners/{user.id}/{banner}{ext}?size=4096"
+                    )
+                    data.set_image(url=banner_url)
             await ctx.send(embed=data)
 
 
