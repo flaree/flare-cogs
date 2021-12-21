@@ -21,7 +21,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -113,7 +113,7 @@ class Giveaways(commands.Cog):
         await msg.edit(content=winner_obj.mention if winner_obj is not None else "", embed=embed)
         await msg.clear_reactions()
         if winner_obj is not None:
-            if giveaway.kwargs.get("notify", True):  # TODO: Add a way to disable this
+            if giveaway.kwargs.get("congratulate", False):  # TODO: Add a way to disable this
                 try:
                     await winner_obj.send(
                         f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
@@ -144,7 +144,9 @@ class Giveaways(commands.Cog):
         prize: str,
     ):
         """
-        Start a giveaway
+        Start a giveaway.
+
+        This by default will DM the winner and also DM a user if they cannot enter the giveaway.
         """
         channel = channel or ctx.channel
         end = datetime.now(timezone.utc) + time
@@ -154,7 +156,9 @@ class Giveaways(commands.Cog):
             color=await ctx.embed_color(),
         )
         msg = await channel.send(embed=embed)
-        giveaway_obj = Giveaway(ctx.guild.id, channel.id, msg.id, end, prize)
+        giveaway_obj = Giveaway(
+            ctx.guild.id, channel.id, msg.id, end, prize, **{"congratulate": True, "notify": True}
+        )
         self.giveaways[msg.id] = giveaway_obj
         await msg.add_reaction("🎉")
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
@@ -202,7 +206,7 @@ class Giveaways(commands.Cog):
         `--duration`: The duration of the giveaway.
 
         Optional arguments:
-        `--channel`: The channel ID to post the giveaway in. Will default to this channel if not specified.
+        `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
         `--restrict`: Roles that the giveaway will be restricted to. Must be IDs.
         `--multiplier`: Multiplier for those in specified roles.
         `--multi-roles`: Roles that will receive the multiplier. Must be IDs.
@@ -210,6 +214,11 @@ class Giveaways(commands.Cog):
         `--joined`: How long the user must be a member of the server for to enter the giveaway.
         `--created`: How long the user has been on discord for to enter the giveaway.
         `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be IDs.
+
+        Setting Arguments:
+        `--congratulate`: Whether or not to congratulate the winner.
+        `--notify`: Whether or not to notify a user if they failed to enter the giveaway.
+        `--multientry`: Whether or not to allow multiple entries.
 
 
         3rd party integrations:
@@ -252,7 +261,7 @@ class Giveaways(commands.Cog):
         if payload.message_id in self.giveaways:
             giveaway = self.giveaways[payload.message_id]
             status, msg = await giveaway.add_entrant(payload.member, bot=self.bot)
-            if not status:
+            if not status and giveaway.kwargs.get("notify", False):
                 if msg == StatusMessage.UserAlreadyEntered:
                     await payload.member.send(f"You have already entered this giveaway.")
                 elif msg == StatusMessage.UserNotInRole:

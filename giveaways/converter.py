@@ -1,5 +1,6 @@
 import argparse
 
+from discord.ext.commands.converter import TextChannelConverter
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
 
@@ -20,7 +21,7 @@ class Args(Converter):
         parser.add_argument("--duration", "--d", dest="duration", nargs="*", default=[])
 
         # Optional Arguments
-        parser.add_argument("--channel", dest="channel", default=None, type=int, nargs="?")
+        parser.add_argument("--channel", dest="channel", default=None, nargs="?")
         parser.add_argument("--restrict", "--r", dest="exclusive", nargs="*", default=[])
         parser.add_argument("--multiplier", "--m", dest="multi", default=None, type=int, nargs="?")
         parser.add_argument("--multi-roles", "--mr", nargs="*", dest="multi-roles", default=[])
@@ -28,7 +29,9 @@ class Args(Converter):
         parser.add_argument("--joined", dest="joined", default=None, type=int, nargs="?")
         parser.add_argument("--created", dest="created", default=None, type=int, nargs="?")
         parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
-        # parser.add_argument('--notify', action=argparse.BooleanOptionalAction)
+        parser.add_argument("--multientry", action="store_true")
+        parser.add_argument("--notify", action="store_true")
+        parser.add_argument("--congratulate", action="store_true")
 
         # 3rd party arguments
         parser.add_argument(
@@ -47,8 +50,9 @@ class Args(Converter):
             raise BadArgument("You must specify a duration. Use `--duration` or `-d`")
 
         if vals["channel"]:
-            channel = ctx.guild.get_channel(vals["channel"])
-            if not channel:
+            try:
+                vals["channel"] = await TextChannelConverter().convert(ctx, vals["channel"])
+            except BadArgument:
                 raise BadArgument("Invalid channel.")
 
         if vals["levelreq"]:

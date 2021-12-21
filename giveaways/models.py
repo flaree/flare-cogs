@@ -47,7 +47,7 @@ class Giveaway:
         self.kwargs = kwargs
 
     async def add_entrant(self, user: discord.Member, *, bot) -> Tuple[bool, StatusMessage]:
-        if user.id in self.entrants:
+        if not self.kwargs.get("multientry", False) and user.id in self.entrants:
             return False, StatusMessage.UserAlreadyEntered
         if self.kwargs.get("exclusive", []) and not any(
             int(role) in [x.id for x in user.roles] for role in self.kwargs.get("exclusive", [])
