@@ -1,5 +1,7 @@
 import argparse
+from datetime import datetime, timezone
 
+import dateparser
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
@@ -18,7 +20,10 @@ class Args(Converter):
         # Required Arguments
 
         parser.add_argument("--prize", "--p", dest="prize", nargs="*", default=[])
-        parser.add_argument("--duration", "--d", dest="duration", nargs="*", default=[])
+
+        timer = parser.add_mutually_exclusive_group()
+        timer.add_argument("--duration", "--d", dest="duration", nargs="*", default=[])
+        timer.add_argument("--end", "--e", dest="end", nargs="*", default=[])
 
         # Optional Arguments
         parser.add_argument("--channel", dest="channel", default=None, nargs="?")
@@ -45,6 +50,14 @@ class Args(Converter):
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as error:
             raise BadArgument() from error
+
+        if not vals["prize"]:
+            raise BadArgument("You must specify a prize. Use `--prize` or `-p`")  #
+
+        if not any([vals["duration"], vals["end"]]):
+            raise BadArgument(
+                "You must specify a duration or end date. Use `--duration` or `-d` or `--end` or `-e`"
+            )
 
         nums = [vals["cost"], vals["joined"], vals["created"], vals["winners"]]
         for val in nums:
@@ -80,12 +93,6 @@ class Args(Converter):
                 raise BadArgument(f"The role {role} does not exist within this server.")
         vals["blacklist"] = valid_blacklist_roles = []
 
-        if not vals["prize"]:
-            raise BadArgument("You must specify a prize. Use `--prize` or `-p`")  #
-
-        if not vals["duration"]:
-            raise BadArgument("You must specify a duration. Use `--duration` or `-d`")
-
         if vals["channel"]:
             try:
                 vals["channel"] = await TextChannelConverter().convert(ctx, vals["channel"])
@@ -108,10 +115,24 @@ class Args(Converter):
                 )
 
         vals["prize"] = " ".join(vals["prize"])
-        tc = TimedeltaConverter()
-        try:
-            vals["duration"] = await tc.convert(ctx, " ".join(vals["duration"]))
-        except BadArgument:
-            raise BadArgument("Invalid duration. Use `--duration` or `-d`")
+        if vals["duration"]:
+            tc = TimedeltaConverter()
+            try:
+                vals["duration"] = await tc.convert(ctx, " ".join(vals["duration"]))
+            except BadArgument:
+                raise BadArgument("Invalid duration. Use `--duration` or `-d`")
+        else:
+            try:
+                time = dateparser.parse(" ".join(vals["end"]))
+                if time.tzinfo is None:
+                    time = time.replace(tzinfo=timezone.utc)
+                if datetime.now(timezone.utc) > time:
+                    raise BadArgument("End date must be in the future.")
+                time = time - datetime.now(timezone.utc)
+                vals["duration"] = time
+            except Exception:
+                raise BadArgument(
+                    "Invalid end date. Use `--end` or `-e`. Ensure to pass a timezone, otherwise it defaults to UTC."
+                )
 
         return vals

@@ -21,7 +21,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.4.0"
+    __version__ = "0.5.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -105,7 +105,7 @@ class Giveaways(commands.Cog):
         msg = channel_obj.get_partial_message(giveaway.messageid)
         if msg is None:
             return StatusMessage.MessageNotFound
-        winners = giveaway.kwargs.get("winners", 1)
+        winners = giveaway.kwargs.get("winners", 1) or 1
         embed = discord.Embed(
             title="Giveaway",
             description=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}\n\n{txt}",
@@ -122,7 +122,7 @@ class Giveaways(commands.Cog):
         if channel_obj.permissions_for(guild.me).manage_messages:
             await msg.clear_reactions()
         if winner_objs is not None:
-            if giveaway.kwargs.get("congratulate", False):  # TODO: Add a way to disable this
+            if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
                     try:
                         await winner.send(
@@ -221,7 +221,7 @@ class Giveaways(commands.Cog):
         duration = arguments["duration"]
         channel = arguments["channel"] or ctx.channel
 
-        winners = arguments.get("winners", 1)
+        winners = arguments.get("winners", 1) or 1
         end = datetime.now(timezone.utc) + duration
         embed = discord.Embed(
             title="Giveaway",
@@ -255,7 +255,11 @@ class Giveaways(commands.Cog):
 
         Required arguments:
         `--prize`: The prize to be won.
+
+        Required Mutual Exclusive Arguments:
+        You must one ONE of these, but not both:
         `--duration`: The duration of the giveaway. Must be in format such as `2d3h30m`.
+        `--end`: The end time of the giveaway. Must be in format such as `2021-12-23T30:00:00.000Z`, `tomorrow at 3am`, `in 4 hours`. Defaults to UTC if no timezone is provided.
 
         Optional arguments:
         `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.

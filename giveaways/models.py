@@ -93,7 +93,7 @@ class Giveaway:
         self.entrants = [x for x in self.entrants if x != userid]
 
     def draw_winner(self) -> Tuple[Optional[List[discord.Member]], StatusMessage]:
-        winners = self.kwargs.get("winners", 1)
+        winners = self.kwargs.get("winners") or 1
         if len(self.entrants) < winners:
             return None, StatusMessage.NotEnoughEntries
         winner = random.sample(self.entrants, winners)

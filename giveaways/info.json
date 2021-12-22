@@ -12,6 +12,9 @@
         "giveaways",
         "raffle"
     ],
+    "requirements": [
+        "dateparser"
+    ],
     "min_bot_version": "3.4.0",
     "hidden": false
 }
