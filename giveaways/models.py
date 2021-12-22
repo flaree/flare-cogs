@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import discord
 from redbot.core import bank
@@ -92,10 +92,11 @@ class Giveaway:
     def remove_entrant(self, userid: int) -> None:
         self.entrants = [x for x in self.entrants if x != userid]
 
-    def draw_winner(self) -> Tuple[Optional[discord.Member], StatusMessage]:
-        if len(self.entrants) == 0:
+    def draw_winner(self) -> Tuple[Optional[List[discord.Member]], StatusMessage]:
+        winners = self.kwargs.get("winners", 1)
+        if len(self.entrants) < winners:
             return None, StatusMessage.NotEnoughEntries
-        winner = random.choice(self.entrants)
+        winner = random.sample(self.entrants, winners)
         self.remove_entrant(winner)
         return winner, StatusMessage.WinningUser
 

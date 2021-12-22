@@ -1,6 +1,6 @@
 import argparse
 
-from discord.ext.commands.converter import TextChannelConverter
+from discord.ext.commands.converter import RoleConverter, TextChannelConverter
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
 
@@ -29,6 +29,9 @@ class Args(Converter):
         parser.add_argument("--joined", dest="joined", default=None, type=int, nargs="?")
         parser.add_argument("--created", dest="created", default=None, type=int, nargs="?")
         parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
+        parser.add_argument("--winners", dest="winners", default=None, type=int, nargs="?")
+
+        # Setting arguments
         parser.add_argument("--multientry", action="store_true")
         parser.add_argument("--notify", action="store_true")
         parser.add_argument("--congratulate", action="store_true")
@@ -42,6 +45,40 @@ class Args(Converter):
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as error:
             raise BadArgument() from error
+
+        nums = [vals["cost"], vals["joined"], vals["created"], vals["winners"]]
+        for val in nums:
+            if val is None:
+                continue
+            if val < 1:
+                raise BadArgument("Number must be greater than 0")
+
+        valid_multi_roles = []
+        for role in vals["multi-roles"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_multi_roles.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["multi-roles"] = valid_multi_roles
+
+        valid_exclusive_roles = []
+        for role in vals["exclusive"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_exclusive_roles.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["multi-exclusive"] = valid_exclusive_roles
+
+        valid_blacklist_roles = []
+        for role in vals["blacklist"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_blacklist_roles.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["blacklist"] = valid_blacklist_roles = []
 
         if not vals["prize"]:
             raise BadArgument("You must specify a prize. Use `--prize` or `-p`")  #

@@ -21,7 +21,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.3.1"
+    __version__ = "0.4.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -86,41 +86,50 @@ class Giveaways(commands.Cog):
         if channel_obj is None:
             return StatusMessage.ChannelNotFound
 
-        winner, status = giveaway.draw_winner()
-        if winner is None:
-            winner_obj = None
+        winners, status = giveaway.draw_winner()
+        winner_objs = None
+        if winners is None:
             if status == StatusMessage.NotEnoughEntries:
                 txt = "Not enough entries to roll the giveaway."
         else:
-            winner_obj = guild.get_member(winner)
-            if winner_obj is None:
-                txt = f"Winner: {winner} (Not Found)"
-            else:
-                txt = f"Winner: {winner_obj.mention}!"
+            winner_objs = []
+            txt = "Winner(s):\n"
+            for winner in winners:
+                winner_obj = guild.get_member(winner)
+                if winner_obj is None:
+                    txt += f"{winner} (Not Found)\n"
+                else:
+                    txt += f"{winner_obj.mention}\n"
+                    winner_objs.append(winner_obj)
 
         msg = channel_obj.get_partial_message(giveaway.messageid)
         if msg is None:
             return StatusMessage.MessageNotFound
+        winners = giveaway.kwargs.get("winners", 1)
         embed = discord.Embed(
             title="Giveaway",
-            description=f"{giveaway.prize}\n\n{txt}",
+            description=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}\n\n{txt}",
             color=await self.bot.get_embed_color(channel_obj),
             timestamp=giveaway.endtime,
         )
         embed.set_footer(
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
         )
-        await msg.edit(content=winner_obj.mention if winner_obj is not None else "", embed=embed)
+        await msg.edit(
+            content=",".join([x.mention for x in winner_objs]) if winner_objs is not None else "",
+            embed=embed,
+        )
         if channel_obj.permissions_for(guild.me).manage_messages:
             await msg.clear_reactions()
-        if winner_obj is not None:
+        if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):  # TODO: Add a way to disable this
-                try:
-                    await winner_obj.send(
-                        f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
-                    )
-                except discord.Forbidden:
-                    pass
+                for winner in winner_objs:
+                    try:
+                        await winner.send(
+                            f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
+                        )
+                    except discord.Forbidden:
+                        pass
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
@@ -180,9 +189,7 @@ class Giveaways(commands.Cog):
         giveaway_dict["endtime"] = datetime.fromtimestamp(giveaway_dict["endtime"]).replace(
             tzinfo=timezone.utc
         )
-        giveaway_obj = Giveaway(**giveaway_dict)
-        await self.draw_winner(giveaway_obj)
-        giveaway = Giveaway(**data[str(msgid)])
+        giveaway = Giveaway(**giveaway_dict)
         status = await self.draw_winner(giveaway)
         if status == StatusMessage.WinnerDrawn:
             await ctx.tick()
@@ -209,42 +216,16 @@ class Giveaways(commands.Cog):
 
 
         `[p]gw explain` for a further full listing of the arguments.
-
-        **Required arguments**:
-        `--prize`: The prize to be won.
-        `--duration`: The duration of the giveaway.
-
-        **Optional arguments**:
-        `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
-        `--restrict`: Roles that the giveaway will be restricted to. Must be IDs.
-        `--multiplier`: Multiplier for those in specified roles.
-        `--multi-roles`: Roles that will receive the multiplier. Must be IDs.
-        `--cost`: Cost of credits to enter the giveaway.
-        `--joined`: How long the user must be a member of the server for to enter the giveaway.
-        `--created`: How long the user has been on discord for to enter the giveaway.
-        `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be IDs.
-
-        **Setting Arguments**:
-        `--congratulate`: Whether or not to congratulate the winner.
-        `--notify`: Whether or not to notify a user if they failed to enter the giveaway.
-        `--multientry`: Whether or not to allow multiple entries.
-
-        **3rd party integrations**:
-        `[p]gw explain` for a full listing of the integrations.
-
-        Examples:
-        [p]gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2
-
-
         """
         prize = arguments["prize"]
         duration = arguments["duration"]
         channel = arguments["channel"] or ctx.channel
 
+        winners = arguments.get("winners", 1)
         end = datetime.now(timezone.utc) + duration
         embed = discord.Embed(
             title="Giveaway",
-            description=f"{prize}\n\nReact with 🎉 to enter\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"{f'{winners}x ' if winners > 1 else ''}{prize}\n\nReact with 🎉 to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         msg = await channel.send(embed=embed)
@@ -278,13 +259,14 @@ class Giveaways(commands.Cog):
 
         Optional arguments:
         `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
-        `--restrict`: Roles that the giveaway will be restricted to. Must be Role IDs.
+        `--restrict`: Roles that the giveaway will be restricted to. If the role contains a space, use their ID.
         `--multiplier`: Multiplier for those in specified roles. Must be a positive number.
-        `--multi-roles`: Roles that will receive the multiplier. Must be Role IDs.
+        `--multi-roles`: Roles that will receive the multiplier. If the role contains a space, use their ID.
         `--cost`: Cost of credits to enter the giveaway. Must be a positive number.
         `--joined`: How long the user must be a member of the server for to enter the giveaway. Must be a positive number of days.
         `--created`: How long the user has been on discord for to enter the giveaway. Must be a positive number of days.
-        `--blacklist`: Blacklisted roles that cannot enter the giveaway. Must be Role IDs.
+        `--blacklist`: Blacklisted roles that cannot enter the giveaway. If the role contains a space, use their ID.
+        `--winners`: How many winners to draw. Must be a positive number.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
