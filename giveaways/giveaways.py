@@ -110,7 +110,7 @@ class Giveaways(commands.Cog):
             title="Giveaway",
             description=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}\n\n{txt}",
             color=await self.bot.get_embed_color(channel_obj),
-            timestamp=giveaway.endtime,
+            timestamp=datetime.now(timezone.utc),
         )
         embed.set_footer(
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
