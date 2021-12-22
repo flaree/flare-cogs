@@ -5,8 +5,8 @@
     "install_msg": "Giveaway cog. Currently not fully finished, report any bugs in the 3rd party cog server.",
     "name": "Giveaways",
     "disabled": false,
-    "short": "Giveaway cog with features such as multipliers, exclusive roles etc.",
-    "description": "Giveaway cog with features such as multipliers, exclusive roles etc.",
+    "short": "Giveaway cog with features such duration or end timing, multipliers, role only acces, bank integration etc.",
+    "description": "Giveaway cog with features such duration or end timing, multipliers, role only acces, bank integration etc.",
     "tags": [
         "giveaway",
         "giveaways",
