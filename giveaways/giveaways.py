@@ -8,6 +8,8 @@ from typing import Optional
 import discord
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
+from redbot.core.utils.chat_formatting import pagify
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .converter import Args
 from .models import Giveaway, StatusMessage
@@ -21,7 +23,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.5.1"
+    __version__ = "0.6.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -107,7 +109,7 @@ class Giveaways(commands.Cog):
             return StatusMessage.MessageNotFound
         winners = giveaway.kwargs.get("winners", 1) or 1
         embed = discord.Embed(
-            title="Giveaway",
+            title="Giveaway Ended",
             description=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}\n\n{txt}",
             color=await self.bot.get_embed_color(channel_obj),
             timestamp=datetime.now(timezone.utc),
@@ -161,8 +163,8 @@ class Giveaways(commands.Cog):
         channel = channel or ctx.channel
         end = datetime.now(timezone.utc) + time
         embed = discord.Embed(
-            title="Giveaway",
-            description=f"{prize}\n\nReact with 🎉 to enter\nEnds: <t:{int(end.timestamp())}:R>",
+            title=f"{prize}",
+            description=f"\nReact with 🎉 to enter\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         msg = await channel.send(embed=embed)
@@ -224,11 +226,11 @@ class Giveaways(commands.Cog):
         winners = arguments.get("winners", 1) or 1
         end = datetime.now(timezone.utc) + duration
         embed = discord.Embed(
-            title="Giveaway",
-            description=f"{f'{winners}x ' if winners > 1 else ''}{prize}\n\nReact with 🎉 to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
+            title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
+            description=f"\n\nReact with 🎉 to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
-        msg = await channel.send(embed=embed)
+        msg = await channel.send(content="🎉 Giveaway 🎉", embed=embed)
         giveaway_obj = Giveaway(
             ctx.guild.id,
             channel.id,
@@ -242,6 +244,83 @@ class Giveaways(commands.Cog):
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
+
+    @giveaway.command()
+    async def entrants(self, ctx: commands.Context, msgid: int):
+        """List all entrants for a giveaway."""
+        if msgid not in self.giveaways:
+            return await ctx.send("Giveaway not found.")
+        giveaway = self.giveaways[msgid]
+        if not giveaway.entrants:
+            return await ctx.send("No entrants.")
+        count = {}
+        for entrant in giveaway.entrants:
+            if entrant not in count:
+                count[entrant] = 1
+            else:
+                count[entrant] += 1
+        msg = ""
+        for userid, count in count.items():
+            user = ctx.guild.get_member(userid)
+            if user:
+                msg += f"{user.mention} ({count})\n"
+            else:
+                msg += f"<{userid}> ({count})\n"
+        embeds = []
+        for page in pagify(msg, delims=["\n"]):
+            embed = discord.Embed(
+                title="Entrants", description=page, color=await ctx.embed_color()
+            )
+            embeds.append(embed)
+
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        return await menu(ctx, embeds, DEFAULT_CONTROLS)
+
+    @giveaway.command()
+    async def info(self, ctx: commands.Context, msgid: int):
+        """Information about a giveaway."""
+        if msgid not in self.giveaways:
+            return await ctx.send("Giveaway not found.")
+
+        giveaway = self.giveaways[msgid]
+        winners = giveaway.kwargs.get("winners", 1) or 1
+        msg = f"**Entrants:**: {len(giveaway.entrants)}\n**End**: <t:{int(giveaway.endtime.timestamp())}:R>\n"
+        for kwarg in giveaway.kwargs:
+            if giveaway.kwargs[kwarg]:
+                msg += f"**{kwarg.title()}:** {giveaway.kwargs[kwarg]}\n"
+        embed = discord.Embed(
+            title=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}",
+            color=await ctx.embed_color(),
+            description=msg,
+        )
+        embed.set_footer(text=f"Giveaway ID #{msgid}")
+        await ctx.send(embed=embed)
+
+    @giveaway.command(name="list")
+    async def _list(self, ctx: commands.Context):
+        """List all giveaways in the server."""
+        if not self.giveaways:
+            return await ctx.send("No giveaways are running.")
+        giveaways = {
+            x: self.giveaways[x]
+            for x in self.giveaways
+            if self.giveaways[x].guildid == ctx.guild.id
+        }
+        if not giveaways:
+            return await ctx.send("No giveaways are running.")
+        msg = ""
+        for msgid in giveaways:
+            msg += f"{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{giveaways[msgid].guildid}/{giveaways[msgid].channelid}/{msgid})\n"
+        embeds = []
+        for page in pagify(msg, delims=["\n"]):
+            embed = discord.Embed(
+                title=f"Giveaways in {ctx.guild}", description=page, color=await ctx.embed_color()
+            )
+            embeds.append(embed)
+        if len(embeds) == 1:
+            return await ctx.send(embed=embeds[0])
+        return await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @giveaway.command()
     async def explain(self, ctx: commands.Context):

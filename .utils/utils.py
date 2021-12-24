@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import string
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Mapping, Optional
@@ -199,7 +200,9 @@ def makereadme():
     )
     file_content = HEADER.format(body=body)
     with open(f"{ROOT}/README.md", "r") as outfile:
-        if re.sub(" +", " ", outfile.read()) == re.sub(" +", " ", file_content):
+        remove = string.punctuation + string.whitespace
+        mapping = {ord(c): None for c in remove}
+        if outfile.read().rstrip().translate(mapping) == file_content.rstrip().translate(mapping):
             return 1
     with open(f"{ROOT}/README.md", "w") as outfile:
         outfile.write(file_content)
