@@ -23,7 +23,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.6.0"
+    __version__ = "0.7.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -95,7 +95,7 @@ class Giveaways(commands.Cog):
                 txt = "Not enough entries to roll the giveaway."
         else:
             winner_objs = []
-            txt = "Winner(s):\n"
+            txt = ""
             for winner in winners:
                 winner_obj = guild.get_member(winner)
                 if winner_obj is None:
@@ -109,8 +109,8 @@ class Giveaways(commands.Cog):
             return StatusMessage.MessageNotFound
         winners = giveaway.kwargs.get("winners", 1) or 1
         embed = discord.Embed(
-            title="Giveaway Ended",
-            description=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}\n\n{txt}",
+            title=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}",
+            description=f"Winner(s):\n{txt}",
             color=await self.bot.get_embed_color(channel_obj),
             timestamp=datetime.now(timezone.utc),
         )
@@ -118,9 +118,24 @@ class Giveaways(commands.Cog):
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
         )
         await msg.edit(
-            content=",".join([x.mention for x in winner_objs]) if winner_objs is not None else "",
+            content="🎉 Giveaway Ended 🎉",
             embed=embed,
         )
+        if giveaway.kwargs.get("announce"):
+            announce_embed = discord.Embed(
+                title="Giveaway Ended",
+                description=f"Congratulations to the {winners + ' ' if winners > 1 else ''}winner{'s' if winner > 1 else ''} of [{giveaway.prize}]((https://discord.com/channels/{giveaway.guildid}/{giveaway.channelid}/{msg.id})).\n{txt}",
+                color=await self.bot.get_embed_color(channel_obj),
+            )
+            announce_embed.set_footer(
+                text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid}"
+            )
+            await channel_obj.send(
+                content="Congratulations " + ",".join([x.mention for x in winner_objs])
+                if winner_objs is not None
+                else "",
+                embed=announce_embed,
+            )
         if channel_obj.permissions_for(guild.me).manage_messages:
             await msg.clear_reactions()
         if winner_objs is not None:
@@ -355,6 +370,7 @@ class Giveaways(commands.Cog):
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
         `--notify`: Whether or not to notify a user if they failed to enter the giveaway. Not passing will default to off.
         `--multientry`: Whether or not to allow multiple entries. Not passing will default to off.
+        `--announce`: Whether to post a seperate message when the giveaway ends. Not passing will default to off.
 
 
         3rd party integrations:

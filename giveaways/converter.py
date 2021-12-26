@@ -40,6 +40,7 @@ class Args(Converter):
         parser.add_argument("--multientry", action="store_true")
         parser.add_argument("--notify", action="store_true")
         parser.add_argument("--congratulate", action="store_true")
+        parser.add_argument("--announce", action="store_true")
 
         # 3rd party arguments
         parser.add_argument(
