@@ -35,12 +35,14 @@ class Args(Converter):
         parser.add_argument("--created", dest="created", default=None, type=int, nargs="?")
         parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
         parser.add_argument("--winners", dest="winners", default=None, type=int, nargs="?")
+        parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
 
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
         parser.add_argument("--notify", action="store_true")
         parser.add_argument("--congratulate", action="store_true")
         parser.add_argument("--announce", action="store_true")
+        parser.add_argument("--ateveryone", action="store_true")
 
         # 3rd party arguments
         parser.add_argument(
@@ -93,6 +95,15 @@ class Args(Converter):
             except BadArgument:
                 raise BadArgument(f"The role {role} does not exist within this server.")
         vals["blacklist"] = valid_blacklist_roles = []
+
+        valid_mentions = []
+        for role in vals["mentions"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_mentions.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["mentions"] = valid_mentions
 
         if vals["channel"]:
             try:

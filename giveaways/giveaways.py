@@ -23,7 +23,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.7.0"
+    __version__ = "0.8.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -245,7 +245,22 @@ class Giveaways(commands.Cog):
             description=f"\n\nReact with 🎉 to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
-        msg = await channel.send(content="🎉 Giveaway 🎉", embed=embed)
+        txt = "\n"
+        if arguments["ateveryone"]:
+            txt += f"@everyone "
+        if arguments["mentions"]:
+            for mention in arguments["mentions"]:
+                role = ctx.guild.get_role(mention)
+                if role is not None:
+                    txt += f"{role.mention} "
+        msg = await channel.send(
+            content="🎉 Giveaway 🎉" + txt,
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(
+                roles=True if arguments["mentions"] else False,
+                everyone=True if arguments["ateveryone"] else False,
+            ),
+        )
         giveaway_obj = Giveaway(
             ctx.guild.id,
             channel.id,
@@ -365,12 +380,14 @@ class Giveaways(commands.Cog):
         `--created`: How long the user has been on discord for to enter the giveaway. Must be a positive number of days.
         `--blacklist`: Blacklisted roles that cannot enter the giveaway. If the role contains a space, use their ID.
         `--winners`: How many winners to draw. Must be a positive number.
+        `--mentions`: Roles to mention in the giveaway notice.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
         `--notify`: Whether or not to notify a user if they failed to enter the giveaway. Not passing will default to off.
         `--multientry`: Whether or not to allow multiple entries. Not passing will default to off.
         `--announce`: Whether to post a seperate message when the giveaway ends. Not passing will default to off.
+        `--ateveryone`: Whether to tag @everyone in the giveaway notice.
 
 
         3rd party integrations:
