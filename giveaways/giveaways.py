@@ -248,7 +248,7 @@ class Giveaways(commands.Cog):
         )
         txt = "\n"
         if arguments["ateveryone"]:
-            txt += '@everyone '
+            txt += "@everyone "
         if arguments["mentions"]:
             for mention in arguments["mentions"]:
                 role = ctx.guild.get_role(mention)
@@ -339,7 +339,7 @@ class Giveaways(commands.Cog):
         if not giveaways:
             return await ctx.send("No giveaways are running.")
         msg = "".join(
-            f'{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{value.guildid}/{giveaways[msgid].channelid}/{msgid})\n'
+            f"{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{value.guildid}/{giveaways[msgid].channelid}/{msgid})\n"
             for msgid, value in giveaways.items()
         )
 
@@ -413,35 +413,35 @@ class Giveaways(commands.Cog):
             status, msg = await giveaway.add_entrant(payload.member, bot=self.bot)
             if not status and giveaway.kwargs.get("notify", False):
                 if msg == StatusMessage.UserAlreadyEntered:
-                    await payload.member.send('You have already entered this giveaway.')
+                    await payload.member.send("You have already entered this giveaway.")
                 elif msg == StatusMessage.UserNotInRole:
                     await payload.member.send(
-                        'You are not in the required role(s) for this giveaway.'
+                        "You are not in the required role(s) for this giveaway."
                     )
 
                 elif msg == StatusMessage.UserDoesntMeetLevel:
                     await payload.member.send(
-                        'You do not meet the level requirement for this giveaway.'
+                        "You do not meet the level requirement for this giveaway."
                     )
 
                 elif msg == StatusMessage.UserNotEnoughCredits:
                     await payload.member.send(
-                        'You do not have enough credits to enter this giveaway.'
+                        "You do not have enough credits to enter this giveaway."
                     )
 
                 elif msg == StatusMessage.UserAccountTooYoung:
                     await payload.member.send(
-                        'Your account does not meet the age critera for this giveaway.'
+                        "Your account does not meet the age critera for this giveaway."
                     )
 
                 elif msg == StatusMessage.UserNotMemberLongEnough:
                     await payload.member.send(
-                        'You have not been a member of the server long enough for this giveaway.'
+                        "You have not been a member of the server long enough for this giveaway."
                     )
 
                 elif msg == StatusMessage.UserInBlacklistedRole:
                     await payload.member.send(
-                        'You are in a blacklisted role for this giveaway and thus cannot enter.'
+                        "You are in a blacklisted role for this giveaway and thus cannot enter."
                     )
 
                 return
