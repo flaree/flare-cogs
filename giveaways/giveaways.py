@@ -105,8 +105,6 @@ class Giveaways(commands.Cog):
                     winner_objs.append(winner_obj)
 
         msg = channel_obj.get_partial_message(giveaway.messageid)
-        if msg is None:
-            return StatusMessage.MessageNotFound
         winners = giveaway.kwargs.get("winners", 1) or 1
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}",
@@ -117,10 +115,13 @@ class Giveaways(commands.Cog):
         embed.set_footer(
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
         )
-        await msg.edit(
-            content="🎉 Giveaway Ended 🎉",
-            embed=embed,
-        )
+        try:
+            await msg.edit(
+                content="🎉 Giveaway Ended 🎉",
+                embed=embed,
+            )
+        except discord.NotFound:
+            return StatusMessage.MessageNotFound
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
