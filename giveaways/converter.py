@@ -30,7 +30,6 @@ class Args(Converter):
         parser.add_argument("--restrict", "--r", dest="exclusive", nargs="*", default=[])
         parser.add_argument("--multiplier", "--m", dest="multi", default=None, type=int, nargs="?")
         parser.add_argument("--multi-roles", "--mr", nargs="*", dest="multi-roles", default=[])
-        parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
         parser.add_argument("--joined", dest="joined", default=None, type=int, nargs="?")
         parser.add_argument("--created", dest="created", default=None, type=int, nargs="?")
         parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
@@ -44,15 +43,23 @@ class Args(Converter):
         parser.add_argument("--announce", action="store_true")
         parser.add_argument("--ateveryone", action="store_true")
 
-        # 3rd party arguments
-        parser.add_argument(
-            "--level-req", "--lq", dest="levelreq", default=None, type=int, nargs="?"
-        )
+        # Integrations
+        parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
+        parser.add_argument("--level-req", dest="levelreq", default=None, type=int, nargs="?")
+        parser.add_argument("--rep-req", dest="repreq", default=None, type=int, nargs="?")
+        parser.add_argument("--tatsu-level", default=None, type=int, nargs="?")
+        parser.add_argument("--tatsu-rep", default=None, type=int, nargs="?")
+        parser.add_argument("--mee6-level", default=None, type=int, nargs="?")
+        # parser.add_argument(
+        #     "--amari-level", default=None, type=int, nargs="?"
+        # )
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as error:
-            raise BadArgument() from error
+            raise BadArgument(
+                "Could not parse flags correctly, ensure flags are correctly used."
+            ) from error
 
         if not vals["prize"]:
             raise BadArgument("You must specify a prize. Use `--prize` or `-p`")  #
@@ -111,13 +118,20 @@ class Args(Converter):
             except BadArgument:
                 raise BadArgument("Invalid channel.")
 
-        if vals["levelreq"]:
+        if vals["levelreq"] or vals["repreq"]:
             cog = ctx.bot.get_cog("Leveler")
             if not cog:
                 raise BadArgument("Leveler cog not loaded.")
             if not hasattr(cog, "db"):
                 raise BadArgument(
                     "This may be the wrong leveling cog. Ensure you are using Fixators."
+                )
+
+        if vals["tatsu_level"] or vals["tatsu_rep"]:
+            token = await ctx.bot.get_shared_api_tokens("tatsumaki")
+            if not token.get("authorization"):
+                raise BadArgument(
+                    f"You do not have a valid Tatsumaki API token. Check `{ctx.clean_prefix}gw integrations` for more info."
                 )
 
         if vals["multi"] or vals["multi-roles"]:

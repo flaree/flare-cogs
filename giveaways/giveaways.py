@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Optional
 
+import aiohttp
 import discord
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
@@ -12,7 +13,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .converter import Args
-from .models import Giveaway, StatusMessage
+from .objects import Giveaway, GiveawayEnterError, GiveawayExecError
 
 log = logging.getLogger("red.flare.giveaways")
 GIVEAWAY_KEY = "giveaways"
@@ -23,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.8.0"
+    __version__ = "0.9.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -36,6 +37,7 @@ class Giveaways(commands.Cog):
         self.config.init_custom(GIVEAWAY_KEY, 2)
         self.giveaways = {}
         self.giveaway_bgloop = asyncio.create_task(self.init())
+        self.session = aiohttp.ClientSession()
         with contextlib.suppress(Exception):
             self.bot.add_dev_env_value("giveaways", lambda x: self)
 
@@ -70,6 +72,7 @@ class Giveaways(commands.Cog):
         with contextlib.suppress(Exception):
             self.bot.remove_dev_env_value("giveaways")
         self.giveaway_bgloop.cancel()
+        asyncio.create_task(self.session.close())
 
     async def check_giveaways(self) -> None:
         to_clear = []
@@ -80,19 +83,18 @@ class Giveaways(commands.Cog):
         for msgid in to_clear:
             del self.giveaways[msgid]
 
-    async def draw_winner(self, giveaway: Giveaway) -> StatusMessage:
+    async def draw_winner(self, giveaway: Giveaway):
         guild = self.bot.get_guild(giveaway.guildid)
         if guild is None:
-            return StatusMessage.GuildNotFound
+            return
         channel_obj = guild.get_channel(giveaway.channelid)
         if channel_obj is None:
-            return StatusMessage.ChannelNotFound
+            return
 
-        winners, status = giveaway.draw_winner()
+        winners = giveaway.draw_winner()
         winner_objs = None
         if winners is None:
-            if status == StatusMessage.NotEnoughEntries:
-                txt = "Not enough entries to roll the giveaway."
+            txt = "Not enough entries to roll the giveaway."
         else:
             winner_objs = []
             txt = ""
@@ -121,7 +123,7 @@ class Giveaways(commands.Cog):
                 embed=embed,
             )
         except discord.NotFound:
-            return StatusMessage.MessageNotFound
+            return
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
@@ -152,7 +154,7 @@ class Giveaways(commands.Cog):
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
                 entrants = [x for x in entrants if x != winner]
-        return StatusMessage.WinnerDrawn
+        return
 
     @commands.group(aliases=["gw"])
     @commands.bot_has_permissions(add_reactions=True)
@@ -208,15 +210,12 @@ class Giveaways(commands.Cog):
             tzinfo=timezone.utc
         )
         giveaway = Giveaway(**giveaway_dict)
-        status = await self.draw_winner(giveaway)
-        if status == StatusMessage.WinnerDrawn:
+        try:
+            await self.draw_winner(giveaway)
+        except GiveawayExecError as e:
+            await ctx.send(e.message)
+        else:
             await ctx.tick()
-        elif status == StatusMessage.GuildNotFound:
-            await ctx.send("Giveaway guild not found.")
-        elif status == StatusMessage.ChannelNotFound:
-            await ctx.send("Giveaway channel not found.")
-        elif status == StatusMessage.MessageNotFound:
-            await ctx.send("Giveaway message not found.")
 
     @giveaway.command()
     async def end(self, ctx: commands.Context, msgid: int):
@@ -392,7 +391,7 @@ class Giveaways(commands.Cog):
 
 
         3rd party integrations:
-        `--level-req`: The level required to enter the giveaway. Must be Fixator's leveler cog. Must be a positive number.
+        See `[p]gw integrations` for more information.
 
         Examples:
         `{prefix}gw advanced --prize A new sword --duration 1h30m --restrict Role ID --multiplier 2 --multi-roles RoleID RoleID2`
@@ -404,40 +403,49 @@ class Giveaways(commands.Cog):
         )
         await ctx.send(embed=embed)
 
+    @giveaway.command()
+    async def integrations(self, ctx: commands.Context):
+        """Various 3rd party integrations for giveaways."""
+
+        msg = """
+        3rd party integrations for giveaways.
+
+        You can use these integrations to integrate giveaways with other 3rd party services.
+
+        `--level-req`: Integrate with the Red Level system Must be Fixator's leveler.
+        `--rep-req`: Integrate with the Red Level Rep system Must be Fixator's leveler.
+        `--tatsu-level`: Integrate with the Tatsumaki's levelling system, must have a valid Tatsumaki API key set.
+        `--tatsu-rep`: Integrate with the Tatsumaki's rep system, must have a valid Tatsumaki API key set.
+        `--mee6-level`: Integrate with the MEE6 levelling system.
+
+
+        **API Keys**
+        Tatsu's API key can be set with the following command (You must find where this key is yourself): `{prefix}set api tatsumaki authorization <key>`
+
+
+        For any integration suggestions, suggest them via the [#support-flare-cogs](https://discord.gg/GET4DVk) channel on the support server or [flare-cogs](https://github.com/flaree/flare-cogs/issues/new/choose) github.""".format(
+            prefix=ctx.clean_prefix
+        )
+
+        embed = discord.Embed(
+            title="3rd Party Integrations", description=msg, color=await ctx.embed_color()
+        )
+        await ctx.send(embed=embed)
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == self.bot.user.id:
             return
         if payload.message_id in self.giveaways:
             giveaway = self.giveaways[payload.message_id]
-            status, msg = await giveaway.add_entrant(payload.member, bot=self.bot)
-            if not status and giveaway.kwargs.get("notify", False):
-                if msg == StatusMessage.UserAlreadyEntered:
-                    await payload.member.send(f"You have already entered this giveaway.")
-                elif msg == StatusMessage.UserNotInRole:
-                    await payload.member.send(
-                        f"You are not in the required role(s) for this giveaway."
-                    )
-                elif msg == StatusMessage.UserDoesntMeetLevel:
-                    await payload.member.send(
-                        f"You do not meet the level requirement for this giveaway."
-                    )
-                elif msg == StatusMessage.UserNotEnoughCredits:
-                    await payload.member.send(
-                        f"You do not have enough credits to enter this giveaway."
-                    )
-                elif msg == StatusMessage.UserAccountTooYoung:
-                    await payload.member.send(
-                        f"Your account does not meet the age critera for this giveaway."
-                    )
-                elif msg == StatusMessage.UserNotMemberLongEnough:
-                    await payload.member.send(
-                        f"You have not been a member of the server long enough for this giveaway."
-                    )
-                elif msg == StatusMessage.UserInBlacklistedRole:
-                    await payload.member.send(
-                        f"You are in a blacklisted role for this giveaway and thus cannot enter."
-                    )
+            try:
+                await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
+            except GiveawayEnterError as e:
+                if giveaway.kwargs.get("notify", False):
+                    await payload.member.send(e.message)
+                return
+            except GiveawayExecError as e:
+                log.exception("Error while adding user to giveaway", exc_info=e)
                 return
             await self.config.custom(
                 GIVEAWAY_KEY, payload.guild_id, payload.message_id
