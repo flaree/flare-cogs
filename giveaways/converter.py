@@ -134,11 +134,10 @@ class Args(Converter):
                     f"You do not have a valid Tatsumaki API token. Check `{ctx.clean_prefix}gw integrations` for more info."
                 )
 
-        if vals["multi"] or vals["multi-roles"]:
-            if not (vals["multi"] and vals["multi-roles"]):
-                raise BadArgument(
-                    "You must specify a multiplier and roles. Use `--multiplier` or `-m` and `--multi-roles` or `-mr`"
-                )
+        if (vals["multi"] or vals["multi-roles"]) and not (vals["multi"] and vals["multi-roles"]):
+            raise BadArgument(
+                "You must specify a multiplier and roles. Use `--multiplier` or `-m` and `--multi-roles` or `-mr`"
+            )
 
         vals["prize"] = " ".join(vals["prize"])
         if vals["duration"]:

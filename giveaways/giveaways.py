@@ -247,7 +247,7 @@ class Giveaways(commands.Cog):
         )
         txt = "\n"
         if arguments["ateveryone"]:
-            txt += f"@everyone "
+            txt += "@everyone "
         if arguments["mentions"]:
             for mention in arguments["mentions"]:
                 role = ctx.guild.get_role(mention)
@@ -257,10 +257,11 @@ class Giveaways(commands.Cog):
             content="🎉 Giveaway 🎉" + txt,
             embed=embed,
             allowed_mentions=discord.AllowedMentions(
-                roles=True if arguments["mentions"] else False,
-                everyone=True if arguments["ateveryone"] else False,
+                roles=bool(arguments["mentions"]),
+                everyone=bool(arguments["ateveryone"]),
             ),
         )
+
         giveaway_obj = Giveaway(
             ctx.guild.id,
             channel.id,
@@ -292,10 +293,7 @@ class Giveaways(commands.Cog):
         msg = ""
         for userid, count in count.items():
             user = ctx.guild.get_member(userid)
-            if user:
-                msg += f"{user.mention} ({count})\n"
-            else:
-                msg += f"<{userid}> ({count})\n"
+            msg += f"{user.mention} ({count})\n" if user else f"<{userid}> ({count})\n"
         embeds = []
         for page in pagify(msg, delims=["\n"]):
             embed = discord.Embed(
@@ -339,9 +337,11 @@ class Giveaways(commands.Cog):
         }
         if not giveaways:
             return await ctx.send("No giveaways are running.")
-        msg = ""
-        for msgid in giveaways:
-            msg += f"{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{giveaways[msgid].guildid}/{giveaways[msgid].channelid}/{msgid})\n"
+        msg = "".join(
+            f"{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{value.guildid}/{giveaways[msgid].channelid}/{msgid})\n"
+            for msgid, value in giveaways.items()
+        )
+
         embeds = []
         for page in pagify(msg, delims=["\n"]):
             embed = discord.Embed(
