@@ -44,29 +44,44 @@ class Giveaway:
         self, user: discord.Member, *, bot, session
     ) -> Tuple[bool, GiveawayError]:
         if not self.kwargs.get("multientry", False) and user.id in self.entrants:
-            raise GiveawayEnterError(f"You have already entered this giveaway.")
-        if self.kwargs.get("exclusive", []) and not any(
-            int(role) in [x.id for x in user.roles] for role in self.kwargs.get("exclusive", [])
+            raise GiveawayEnterError('You have already entered this giveaway.')
+        if self.kwargs.get("exclusive", []) and all(
+            int(role) not in [x.id for x in user.roles]
+            for role in self.kwargs.get("exclusive", [])
         ):
-            raise GiveawayEnterError(f"You do not have the required roles to join this giveaway.")
+            raise GiveawayEnterError(
+                'You do not have the required roles to join this giveaway.'
+            )
+
 
         if self.kwargs.get("blacklist", []) and any(
             int(role) in [x.id for x in user.roles] for role in self.kwargs.get("blacklist", [])
         ):
-            raise GiveawayEnterError(f"Your role is blacklisted from this giveaway.")
-        if self.kwargs.get("joined", None) is not None:
-            if (
-                datetime.now(timezone.utc) - user.joined_at.replace(tzinfo=timezone.utc)
-            ).days <= self.kwargs["joined"]:
-                raise GiveawayEnterError(f"Your account is too new to join this giveaway.")
-        if self.kwargs.get("created", None) is not None:
-            if (
-                datetime.now(timezone.utc) - user.created_at.replace(tzinfo=timezone.utc)
-            ).days <= self.kwargs["created"]:
-                raise GiveawayEnterError(f"Your account is too new to join this giveaway.")
+            raise GiveawayEnterError('Your role is blacklisted from this giveaway.')
+        if (
+            self.kwargs.get("joined", None) is not None
+            and (
+                datetime.now(timezone.utc)
+                - user.joined_at.replace(tzinfo=timezone.utc)
+            ).days
+            <= self.kwargs["joined"]
+        ):
+            raise GiveawayEnterError('Your account is too new to join this giveaway.')
+        if (
+            self.kwargs.get("created", None) is not None
+            and (
+                datetime.now(timezone.utc)
+                - user.created_at.replace(tzinfo=timezone.utc)
+            ).days
+            <= self.kwargs["created"]
+        ):
+            raise GiveawayEnterError('Your account is too new to join this giveaway.')
         if self.kwargs.get("cost", None) is not None:
             if not await bank.can_spend(user, self.kwargs["cost"]):
-                raise GiveawayEnterError(f"You do not have enough credits to join this giveaway.")
+                raise GiveawayEnterError(
+                    'You do not have enough credits to join this giveaway.'
+                )
+
             await bank.withdraw_credits(user, self.kwargs["cost"])
         if self.kwargs.get("levelreq", None) is not None:
             cog = bot.get_cog("Leveler")
@@ -76,8 +91,9 @@ class Giveaway:
             lvl = userinfo.get("servers", {}).get(str(self.guildid), {}).get("level", 0)
             if lvl <= self.kwargs.get("levelreq", 0):
                 raise GiveawayEnterError(
-                    f"You do not meet the required level to join this giveaway."
+                    'You do not meet the required level to join this giveaway.'
                 )
+
         if self.kwargs.get("repreq", None) is not None:
             cog = bot.get_cog("Leveler")
             if cog is None:
@@ -86,18 +102,21 @@ class Giveaway:
             lvl = userinfo.get("servers", {}).get(str(self.guildid), {}).get("rep", 0)
             if lvl <= self.kwargs.get("levelreq", 0):
                 raise GiveawayEnterError(
-                    f"You do not meet the required rep to join this giveaway."
+                    'You do not meet the required rep to join this giveaway.'
                 )
+
         if self.kwargs.get("mee6_level", None) is not None:
             lb = await get_mee6lb(session, self.guildid)
             if lb is None:
                 raise GiveawayExecError("The MEE6 Leaderboard is not available.")
             for user in lb:
-                if user["id"] == str(user.id):
-                    if user["level"] < self.kwargs.get("mee6-level", 0):
-                        raise GiveawayEnterError(
-                            f"You do not meet the required MEE6 level to join this giveaway."
-                        )
+                if user["id"] == str(user.id) and user["level"] < self.kwargs.get(
+                    "mee6-level", 0
+                ):
+                    raise GiveawayEnterError(
+                        'You do not meet the required MEE6 level to join this giveaway.'
+                    )
+
         if self.kwargs.get("tatsu_level", None) is not None:
             token = await bot.get_shared_api_tokens("tatsumaki")
             if token.get("authorization") is None:
@@ -111,8 +130,9 @@ class Giveaway:
                 "tatsu_level", 0
             ):
                 raise GiveawayEnterError(
-                    f"You do not meet the required Tatsu level to join this giveaway."
+                    'You do not meet the required Tatsu level to join this giveaway.'
                 )
+
         if self.kwargs.get("tatsu_rep", None) is not None:
             token = bot.get_shared_api_tokens("tatsumaki")
             if token.get("authorization") is None:
@@ -124,8 +144,9 @@ class Giveaway:
                 )
             if uinfo["reputation"] < self.kwargs.get("tatsu-rep", 0):
                 raise GiveawayEnterError(
-                    f"You do not meet the required Tatsu rep to join this giveaway."
+                    'You do not meet the required Tatsu rep to join this giveaway.'
                 )
+
 
         self.entrants.append(user.id)
         if self.kwargs.get("multi", None) is not None and any(
@@ -152,21 +173,19 @@ class Giveaway:
 
 async def get_mee6lb(session, guild):
     async with session.get(
-        f"https://mee6.xyz/api/plugins/leaderboard/leaderboard?guild={guild}&limit=1000"
-    ) as r:
-        if r.status == 200:
-            data = await r.json()
-            return data["players"]
-        else:
+            f"https://mee6.xyz/api/plugins/leaderboard/leaderboard?guild={guild}&limit=1000"
+        ) as r:
+        if r.status != 200:
             return None
+        data = await r.json()
+        return data["players"]
 
 
 async def get_tatsuinfo(session, token, userid):
     async with session.get(
-        f"https://api.tatsu.gg/v1/users/{userid}/profile", headers={"Authorization": token}
-    ) as r:
-        if r.status == 200:
-            data = await r.json()
-            return data
-        else:
+            f"https://api.tatsu.gg/v1/users/{userid}/profile", headers={"Authorization": token}
+        ) as r:
+        if r.status != 200:
             return None
+        data = await r.json()
+        return data
