@@ -247,7 +247,7 @@ class Giveaways(commands.Cog):
         )
         txt = "\n"
         if arguments["ateveryone"]:
-            txt += '@everyone '
+            txt += "@everyone "
         if arguments["mentions"]:
             for mention in arguments["mentions"]:
                 role = ctx.guild.get_role(mention)
@@ -338,7 +338,7 @@ class Giveaways(commands.Cog):
         if not giveaways:
             return await ctx.send("No giveaways are running.")
         msg = "".join(
-            f'{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{value.guildid}/{giveaways[msgid].channelid}/{msgid})\n'
+            f"{msgid}: [{giveaways[msgid].prize}](https://discord.com/channels/{value.guildid}/{giveaways[msgid].channelid}/{msgid})\n"
             for msgid, value in giveaways.items()
         )
 
