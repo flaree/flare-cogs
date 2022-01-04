@@ -47,7 +47,6 @@ class Trigger(commands.Cog):
             for trigger in triggers:
                 guild_triggers[trigger] = deepcopy(triggers[trigger].__dict__)
                 del guild_triggers[trigger]["timestamp"]
-                print(guild_triggers[trigger])
             await self.config.guild_from_id(guild_id).triggers.set(guild_triggers)
 
     async def init_loop(self):
