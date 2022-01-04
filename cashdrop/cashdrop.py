@@ -9,7 +9,7 @@ from redbot.core.utils.predicates import MessagePredicate
 
 class Cashdrop(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -121,6 +121,7 @@ class Cashdrop(commands.Cog):
                     content=f"You picked up {creds} {await bank.get_currency_name(guild=message.guild)}!"
                 )
                 await bank.deposit_credits(message.author, creds)
+        self.cache[message.guild.id]["timestamp"] = datetime.datetime.now(tz=datetime.timezone.utc)
 
     @commands.group(name="cashdrop", aliases=["cd"])
     async def _cashdrop(self, ctx):
