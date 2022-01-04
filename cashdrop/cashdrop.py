@@ -79,6 +79,7 @@ class Cashdrop(commands.Cog):
             - self.cache[message.guild.id]["timestamp"]
         ).total_seconds() < self.cache[message.guild.id]["interval"]:
             return
+        self.cache[message.guild.id]["timestamp"] = datetime.datetime.now(tz=datetime.timezone.utc)
         if self.cache[message.guild.id]["maths"]:
             string, answer = self.random_calc()
             msg = await message.channel.send(string)
@@ -121,7 +122,6 @@ class Cashdrop(commands.Cog):
                     content=f"You picked up {creds} {await bank.get_currency_name(guild=message.guild)}!"
                 )
                 await bank.deposit_credits(message.author, creds)
-        self.cache[message.guild.id]["timestamp"] = datetime.datetime.now(tz=datetime.timezone.utc)
 
     @commands.group(name="cashdrop", aliases=["cd"])
     async def _cashdrop(self, ctx):
