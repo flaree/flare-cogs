@@ -139,6 +139,15 @@ class Args(Converter):
                 "You must specify a multiplier and roles. Use `--multiplier` or `-m` and `--multi-roles` or `-mr`"
             )
 
+        if (
+            vals["ateveryone"]
+            and not ctx.channel.permissions_for(ctx.me).mention_everyone
+            and not ctx.channel.permissions_for(ctx.author).mention_everyone
+        ):
+            raise BadArgument(
+                "You do not have permission to mention everyone. Please ensure the bot and you have `Mention Everyone` permission."
+            )
+
         vals["prize"] = " ".join(vals["prize"])
         if vals["duration"]:
             tc = TimedeltaConverter()
