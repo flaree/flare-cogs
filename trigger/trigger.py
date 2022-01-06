@@ -12,7 +12,7 @@ from .objects import TriggerObject
 
 class Trigger(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -136,6 +136,8 @@ class Trigger(commands.Cog):
                 await ctx.send("Trigger does not exist.")
                 return
             del triggers[trigger_name]
+        if trigger_name in self.triggers.get(ctx.guild.id, {}):
+            del self.triggers[ctx.guild.id][trigger_name]
         await ctx.send("Trigger deleted.")
 
     @trigger.command(name="list")
@@ -264,4 +266,6 @@ class Trigger(commands.Cog):
         await ctx.tick()
 
     async def update_trigger(self, guild, trigger_name, trigger_data):
+        if guild.id not in self.triggers:
+            self.triggers[guild.id] = {}
         self.triggers[guild.id][trigger_name] = TriggerObject(**trigger_data)
