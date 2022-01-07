@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.10.0"
+    __version__ = "0.10.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -128,7 +128,7 @@ class Giveaways(commands.Cog):
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
-                description=f"Congratulations to the {winners + ' ' if winners > 1 else ''}winner{'s' if winner > 1 else ''} of [{giveaway.prize}]((https://discord.com/channels/{giveaway.guildid}/{giveaway.channelid}/{msg.id})).\n{txt}",
+                description=f"Congratulations to the {winners + ' ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}](({msg.jump_url})).\n{txt}",
                 color=await self.bot.get_embed_color(channel_obj),
             )
             announce_embed.set_footer(
@@ -406,7 +406,7 @@ class Giveaways(commands.Cog):
         Optional arguments:
         `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
         `--emoji`: The emoji to use for the giveaway.
-        `--restrict`: Roles that the giveaway will be restricted to. If the role contains a space, use their ID.
+        `--roles`: Roles that the giveaway will be restricted to. If the role contains a space, use their ID.
         `--multiplier`: Multiplier for those in specified roles. Must be a positive number.
         `--multi-roles`: Roles that will receive the multiplier. If the role contains a space, use their ID.
         `--cost`: Cost of credits to enter the giveaway. Must be a positive number.

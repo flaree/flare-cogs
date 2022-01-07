@@ -27,7 +27,7 @@ class Args(Converter):
 
         # Optional Arguments
         parser.add_argument("--channel", dest="channel", default=None, nargs="?")
-        parser.add_argument("--restrict", "--r", dest="exclusive", nargs="*", default=[])
+        parser.add_argument("--roles", "--r", "--restrict", dest="roles", nargs="*", default=[])
         parser.add_argument("--multiplier", "--m", dest="multi", default=None, type=int, nargs="?")
         parser.add_argument("--multi-roles", "--mr", nargs="*", dest="multi-roles", default=[])
         parser.add_argument("--joined", dest="joined", default=None, type=int, nargs="?")
@@ -89,13 +89,13 @@ class Args(Converter):
         vals["multi-roles"] = valid_multi_roles
 
         valid_exclusive_roles = []
-        for role in vals["exclusive"]:
+        for role in vals["roles"]:
             try:
                 role = await RoleConverter().convert(ctx, role)
                 valid_exclusive_roles.append(role.id)
             except BadArgument:
                 raise BadArgument(f"The role {role} does not exist within this server.")
-        vals["multi-exclusive"] = valid_exclusive_roles
+        vals["roles"] = valid_exclusive_roles
 
         valid_blacklist_roles = []
         for role in vals["blacklist"]:
@@ -157,7 +157,7 @@ class Args(Converter):
                 raise BadArgument("Description must be less than 1000 characters.")
 
         if vals["emoji"]:
-            vals["emoji"] = " ".join(vals["emoji"])
+            vals["emoji"] = " ".join(vals["emoji"]).rstrip().lstrip()
             custom = False
             try:
                 vals["emoji"] = await EmojiConverter().convert(ctx, vals["emoji"])

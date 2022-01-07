@@ -47,9 +47,8 @@ class Giveaway:
     ) -> Tuple[bool, GiveawayError]:
         if not self.kwargs.get("multientry", False) and user.id in self.entrants:
             raise GiveawayEnterError("You have already entered this giveaway.")
-        if self.kwargs.get("exclusive", []) and all(
-            int(role) not in [x.id for x in user.roles]
-            for role in self.kwargs.get("exclusive", [])
+        if self.kwargs.get("roles", []) and all(
+            int(role) not in [x.id for x in user.roles] for role in self.kwargs.get("roles", [])
         ):
             raise GiveawayEnterError("You do not have the required roles to join this giveaway.")
 
