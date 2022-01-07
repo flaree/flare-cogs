@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.9.2"
+    __version__ = "0.10.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -58,6 +58,7 @@ class Giveaways(commands.Cog):
                         tzinfo=timezone.utc
                     ),
                     prize=giveaway["prize"],
+                    emoji=giveaway.get("emoji", "🎉"),
                     entrants=giveaway["entrants"],
                     **giveaway["kwargs"],
                 )
@@ -187,7 +188,13 @@ class Giveaways(commands.Cog):
         )
         msg = await channel.send(embed=embed)
         giveaway_obj = Giveaway(
-            ctx.guild.id, channel.id, msg.id, end, prize, **{"congratulate": True, "notify": True}
+            ctx.guild.id,
+            channel.id,
+            msg.id,
+            end,
+            prize,
+            "🎉",
+            **{"congratulate": True, "notify": True},
         )
         self.giveaways[msg.id] = giveaway_obj
         await msg.add_reaction("🎉")
@@ -240,9 +247,30 @@ class Giveaways(commands.Cog):
 
         winners = arguments.get("winners", 1) or 1
         end = datetime.now(timezone.utc) + duration
+        description = arguments["description"] or ""
+        if arguments["show_requirements"]:
+            description += "\n\n**Requirements**:"
+            for kwarg in set(arguments) - {
+                "show_requirements",
+                "prize",
+                "duration",
+                "channel",
+                "winners",
+                "description",
+                "congratulate",
+                "notify",
+                "announce",
+                "emoji",
+            }:
+                if arguments[kwarg]:
+                    description += f"\n**{kwarg.title()}:** {arguments[kwarg]}"
+
+        emoji = arguments["emoji"] or "🎉"
+        if isinstance(emoji, int):
+            emoji = self.bot.get_emoji(emoji)
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"\n\nReact with 🎉 to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"{description}\n\nReact with {emoji} to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         txt = "\n"
@@ -268,10 +296,15 @@ class Giveaways(commands.Cog):
             msg.id,
             end,
             prize,
-            **{k: v for k, v in arguments.items() if k not in ["prize", "duration", "channel"]},
+            str(emoji),
+            **{
+                k: v
+                for k, v in arguments.items()
+                if k not in ["prize", "duration", "channel", "emoji"]
+            },
         )
         self.giveaways[msg.id] = giveaway_obj
-        await msg.add_reaction("🎉")
+        await msg.add_reaction(emoji)
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
@@ -372,6 +405,7 @@ class Giveaways(commands.Cog):
 
         Optional arguments:
         `--channel`: The channel to post the giveaway in. Will default to this channel if not specified.
+        `--emoji`: The emoji to use for the giveaway.
         `--restrict`: Roles that the giveaway will be restricted to. If the role contains a space, use their ID.
         `--multiplier`: Multiplier for those in specified roles. Must be a positive number.
         `--multi-roles`: Roles that will receive the multiplier. If the role contains a space, use their ID.
@@ -381,6 +415,7 @@ class Giveaways(commands.Cog):
         `--blacklist`: Blacklisted roles that cannot enter the giveaway. If the role contains a space, use their ID.
         `--winners`: How many winners to draw. Must be a positive number.
         `--mentions`: Roles to mention in the giveaway notice.
+        `--description`: Description of the giveaway.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
@@ -388,6 +423,7 @@ class Giveaways(commands.Cog):
         `--multientry`: Whether or not to allow multiple entries. Not passing will default to off.
         `--announce`: Whether to post a seperate message when the giveaway ends. Not passing will default to off.
         `--ateveryone`: Whether to tag @everyone in the giveaway notice.
+        `--show-requirements`: Whether to show the requirements of the giveaway.
 
 
         3rd party integrations:
@@ -438,6 +474,10 @@ class Giveaways(commands.Cog):
             return
         if payload.message_id in self.giveaways:
             giveaway = self.giveaways[payload.message_id]
+            if payload.emoji.is_custom_emoji() and str(payload.emoji) != giveaway.emoji:
+                return
+            elif payload.emoji.is_unicode_emoji() and str(payload.emoji) != giveaway.emoji:
+                return
             try:
                 await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
             except GiveawayEnterError as e:

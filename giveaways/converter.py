@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime, timezone
 
 import dateparser
-from discord.ext.commands.converter import RoleConverter, TextChannelConverter
+from discord.ext.commands.converter import EmojiConverter, RoleConverter, TextChannelConverter
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
 
@@ -35,6 +35,8 @@ class Args(Converter):
         parser.add_argument("--blacklist", dest="blacklist", nargs="*", default=[])
         parser.add_argument("--winners", dest="winners", default=None, type=int, nargs="?")
         parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
+        parser.add_argument("--description", dest="description", default=[], nargs="*")
+        parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
 
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
@@ -42,6 +44,7 @@ class Args(Converter):
         parser.add_argument("--congratulate", action="store_true")
         parser.add_argument("--announce", action="store_true")
         parser.add_argument("--ateveryone", action="store_true")
+        parser.add_argument("--show-requirements", action="store_true")
 
         # Integrations
         parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
@@ -147,6 +150,27 @@ class Args(Converter):
             raise BadArgument(
                 "You do not have permission to mention everyone. Please ensure the bot and you have `Mention Everyone` permission."
             )
+
+        if vals["description"]:
+            vals["description"] = " ".join(vals["description"])
+            if len(vals["description"]) > 1000:
+                raise BadArgument("Description must be less than 1000 characters.")
+
+        if vals["emoji"]:
+            vals["emoji"] = " ".join(vals["emoji"])
+            custom = False
+            try:
+                vals["emoji"] = await EmojiConverter().convert(ctx, vals["emoji"])
+                custom = True
+            except Exception:
+                vals["emoji"] = str(vals["emoji"]).replace("\N{VARIATION SELECTOR-16}", "")
+            try:
+                await ctx.message.add_reaction(vals["emoji"])
+                await ctx.message.remove_reaction(vals["emoji"], ctx.me)
+            except Exception:
+                raise BadArgument("Invalid emoji.")
+            if custom:
+                vals["emoji"] = vals["emoji"].id
 
         vals["prize"] = " ".join(vals["prize"])
         if vals["duration"]:

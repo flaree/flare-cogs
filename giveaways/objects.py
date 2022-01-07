@@ -28,6 +28,7 @@ class Giveaway:
         messageid: int,
         endtime: datetime,
         prize: str = None,
+        emoji: str = "🎉",
         *,
         entrants=None,
         **kwargs,
@@ -38,6 +39,7 @@ class Giveaway:
         self.endtime = endtime
         self.prize = prize
         self.entrants = entrants or []
+        self.emoji = emoji
         self.kwargs = kwargs
 
     async def add_entrant(
