@@ -128,9 +128,41 @@ class Giveaway:
                 raise GiveawayEnterError(
                     "The Tatsu API did not return any data therefore you have not been entered."
                 )
-            if uinfo["reputation"] < self.kwargs.get("tatsu-rep", 0):
+            if uinfo["reputation"] < self.kwargs.get("tatsu_rep", 0):
                 raise GiveawayEnterError(
                     "You do not meet the required Tatsu rep to join this giveaway."
+                )
+
+        if self.kwargs.get("amari_level", None) is not None:
+            token = bot.get_shared_api_tokens("amari")
+            if token.get("authorization") is None:
+                raise GiveawayExecError("The Amari token is not set.")
+            uinfo = await get_amari_info(
+                session, token.get("authorization"), user.id, self.guildid
+            )
+            if uinfo is None:
+                raise GiveawayEnterError(
+                    "The Amari API did not return any data therefore you have not been entered."
+                )
+            if uinfo["level"] < self.kwargs.get("amari_level", 0):
+                raise GiveawayEnterError(
+                    "You do not meet the required Amari level to join this giveaway."
+                )
+
+        if self.kwargs.get("amari_weekly_xp", None) is not None:
+            token = bot.get_shared_api_tokens("amari")
+            if token.get("authorization") is None:
+                raise GiveawayExecError("The Amari token is not set.")
+            uinfo = await get_amari_info(
+                session, token.get("authorization"), user.id, self.guildid
+            )
+            if uinfo is None:
+                raise GiveawayEnterError(
+                    "The Amari API did not return any data therefore you have not been entered."
+                )
+            if uinfo["level"] < self.kwargs.get("amari_weekly_xp", 0):
+                raise GiveawayEnterError(
+                    "You do not meet the required Amari weekly XP to join this giveaway."
                 )
 
         self.entrants.append(user.id)
@@ -169,6 +201,17 @@ async def get_mee6lb(session, guild):
 async def get_tatsuinfo(session, token, userid):
     async with session.get(
         f"https://api.tatsu.gg/v1/users/{userid}/profile", headers={"Authorization": token}
+    ) as r:
+        if r.status != 200:
+            return None
+        data = await r.json()
+        return data
+
+
+async def get_amari_info(session, token, userid, guildid):
+    async with session.get(
+        f"https://amaribot.com/api/v1/guild/{guildid}/member/{userid}",
+        headers={"Authorization": token},
     ) as r:
         if r.status != 200:
             return None

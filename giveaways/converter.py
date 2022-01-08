@@ -53,9 +53,8 @@ class Args(Converter):
         parser.add_argument("--tatsu-level", default=None, type=int, nargs="?")
         parser.add_argument("--tatsu-rep", default=None, type=int, nargs="?")
         parser.add_argument("--mee6-level", default=None, type=int, nargs="?")
-        # parser.add_argument(
-        #     "--amari-level", default=None, type=int, nargs="?"
-        # )
+        parser.add_argument("--amari-level", default=None, type=int, nargs="?")
+        parser.add_argument("--amari-weekly-xp", default=None, type=int, nargs="?")
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
@@ -135,6 +134,13 @@ class Args(Converter):
             if not token.get("authorization"):
                 raise BadArgument(
                     f"You do not have a valid Tatsumaki API token. Check `{ctx.clean_prefix}gw integrations` for more info."
+                )
+
+        if vals["amari_level"] or vals["amari_weekly_xp"]:
+            token = await ctx.bot.get_shared_api_tokens("amari")
+            if not token.get("authorization"):
+                raise BadArgument(
+                    f"You do not have a valid Amari API token. Check `{ctx.clean_prefix}gw integrations` for more info."
                 )
 
         if (vals["multi"] or vals["multi-roles"]) and not (vals["multi"] and vals["multi-roles"]):

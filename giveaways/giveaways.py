@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.10.1"
+    __version__ = "0.11.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -453,10 +453,13 @@ class Giveaways(commands.Cog):
         `--tatsu-level`: Integrate with the Tatsumaki's levelling system, must have a valid Tatsumaki API key set.
         `--tatsu-rep`: Integrate with the Tatsumaki's rep system, must have a valid Tatsumaki API key set.
         `--mee6-level`: Integrate with the MEE6 levelling system.
+        `--amari-level`: Integrate with the Amari's levelling system.
+        `--amari-weekly-xp`: Integrate with the Amari's weekly xp system.
 
 
         **API Keys**
         Tatsu's API key can be set with the following command (You must find where this key is yourself): `{prefix}set api tatsumaki authorization <key>`
+        Amari's API key can be set with the following command (Apply [here](https://docs.google.com/forms/d/e/1FAIpQLScQDCsIqaTb1QR9BfzbeohlUJYA3Etwr-iSb0CRKbgjA-fq7Q/viewform)): `{prefix}set api amari authorization <key>`
 
 
         For any integration suggestions, suggest them via the [#support-flare-cogs](https://discord.gg/GET4DVk) channel on the support server or [flare-cogs](https://github.com/flaree/flare-cogs/issues/new/choose) github.""".format(
