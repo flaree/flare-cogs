@@ -12,7 +12,7 @@ from .objects import TriggerObject
 
 class Trigger(commands.Cog):
 
-    __version__ = "0.1.1"
+    __version__ = "0.1.0"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -120,6 +120,7 @@ class Trigger(commands.Cog):
                 "uses": 0,
                 "toggle": True,
                 "case_sensitive": False,
+                "word_boundary": False,
             }
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
 
@@ -221,7 +222,7 @@ class Trigger(commands.Cog):
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
         await ctx.tick()
 
-    @edit.command()
+    @edit.command(name="case", aliases=["casesensitive"])
     async def case_sensitive(self, ctx, trigger_name: str, case_sensitive: bool):
         """
         Toggle case sensitivity for a trigger.
@@ -232,6 +233,20 @@ class Trigger(commands.Cog):
                 await ctx.send("Trigger does not exist.")
                 return
             triggers[trigger_name]["case_sensitive"] = case_sensitive
+            await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
+        await ctx.tick()
+
+    @edit.command(name="boundary", aliases=["wordboundary"])
+    async def word_boundary(self, ctx, trigger_name: str, toggle: bool):
+        """
+        Toggle word boundaries for a trigger.
+        """
+        trigger_name = trigger_name.lower()
+        async with self.config.guild(ctx.guild).triggers() as triggers:
+            if trigger_name not in triggers:
+                await ctx.send("Trigger does not exist.")
+                return
+            triggers[trigger_name]["word_boundary"] = toggle
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
         await ctx.tick()
 
