@@ -228,6 +228,8 @@ class Giveaways(commands.Cog):
     async def end(self, ctx: commands.Context, msgid: int):
         """End a giveaway."""
         if msgid in self.giveaways:
+            if self.giveaways[msgid].guildid != ctx.guild.id:
+                return await ctx.send("Giveaway not found.")
             await self.draw_winner(self.giveaways[msgid])
             del self.giveaways[msgid]
             await ctx.tick()
