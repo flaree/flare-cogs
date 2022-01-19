@@ -28,7 +28,7 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        self.config.register_global(migrated=False)
+        self.config.register_global(migrated=False, min_len=5, max_highlights=10)
         self.config.register_member(blacklist=[], whitelist=[], cooldown=10)
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
@@ -64,7 +64,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.5.4"
+    __version__ = "1.6.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -85,17 +85,21 @@ class Highlight(commands.Cog):
         if await self.config.migrated():
             return
 
-        a = {}
         conf = await self.config.all_channels()
-        for channel in conf:
-            a[channel] = {}
-            for user in conf[channel]["highlight"]:
-                a[channel][user] = {}
-                for highlight in conf[channel]["highlight"][user]:
-                    a[channel][user][highlight] = {
+        a = {
+            channel: {
+                user: {
+                    highlight: {
                         "toggle": conf[channel]["toggle"][user],
                         "bots": False,
                     }
+                    for highlight in conf[channel]["highlight"][user]
+                }
+                for user in conf[channel]["highlight"]
+            }
+            for channel in conf
+        }
+
         group = self.config._get_base_group(self.config.CHANNEL)
         async with group.all() as new_data:
             for channel in a:
@@ -313,6 +317,12 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
+                if len(word) < await self.config.min_len():
+                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    return
+                if len(highlight[f"{ctx.author.id}"]) >= await self.config.max_highlights():
+                    await ctx.send("You have reached the maximum number of highlights.")
+                    return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
                     highlight[f"{ctx.author.id}"][word.lower()] = {
                         "toggle": True,
@@ -617,6 +627,12 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
+                if len(word) < await self.config.min_len():
+                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    return
+                if len(highlight[f"{ctx.author.id}"]) >= await self.config.max_highlights():
+                    await ctx.send("You have reached the maximum number of highlights.")
+                    return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
                     highlight[f"{ctx.author.id}"][word.lower()] = {
                         "toggle": True,
@@ -871,14 +887,27 @@ class Highlight(commands.Cog):
 
         await self.generate_cache()
 
+    @commands.group()
+    @commands.is_owner()
+    async def highlightset(self, ctx):
+        """Manage highlight settings."""
+
+    @highlightset.command(usage="<max number>")
+    async def max(self, ctx, max_num: int):
+        """Set the max number of highlights a user can have."""
+        await self.config.max_highlights.set(max_num)
+        await ctx.send(f"Max number of highlights set to {max_num}.")
+
+    @highlightset.command()
+    async def minlen(self, ctx, min_len):
+        """Set the minimum length of a highlight."""
+        await self.config.men_len.set(min_len)
+        await ctx.send(f"Minimum length of highlight set to {min_len}.")
+
 
 def yes_or_no(boolean: bool):
-    if boolean:
-        return "Yes"
-    return "No"
+    return "Yes" if boolean else "No"
 
 
 def on_or_off(boolean: bool):
-    if boolean:
-        return "On"
-    return "Off"
+    return "On" if boolean else "Off"
