@@ -44,6 +44,7 @@ class Args(Converter):
         parser.add_argument("--congratulate", action="store_true")
         parser.add_argument("--announce", action="store_true")
         parser.add_argument("--ateveryone", action="store_true")
+        parser.add_argument("--athere", action="store_true")
         parser.add_argument("--show-requirements", action="store_true")
 
         # Integrations
@@ -149,7 +150,7 @@ class Args(Converter):
             )
 
         if (
-            vals["ateveryone"]
+            (vals["ateveryone"] or vals["athere"])
             and not ctx.channel.permissions_for(ctx.me).mention_everyone
             and not ctx.channel.permissions_for(ctx.author).mention_everyone
         ):

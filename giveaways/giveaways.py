@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.1"
+    __version__ = "0.11.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -128,7 +128,7 @@ class Giveaways(commands.Cog):
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
-                description=f"Congratulations to the {winners + ' ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}](({msg.jump_url})).\n{txt}",
+                description=f"Congratulations to the {winners + ' ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}]({msg.jump_url}).\n{txt}",
                 color=await self.bot.get_embed_color(channel_obj),
             )
             announce_embed.set_footer(
@@ -278,6 +278,8 @@ class Giveaways(commands.Cog):
         txt = "\n"
         if arguments["ateveryone"]:
             txt += "@everyone "
+        if arguments["athere"]:
+            txt += "@here "
         if arguments["mentions"]:
             for mention in arguments["mentions"]:
                 role = ctx.guild.get_role(mention)
@@ -330,10 +332,11 @@ class Giveaways(commands.Cog):
             user = ctx.guild.get_member(userid)
             msg += f"{user.mention} ({count})\n" if user else f"<{userid}> ({count})\n"
         embeds = []
-        for page in pagify(msg, delims=["\n"]):
+        for page in pagify(msg, delims=["\n"], page_length=800):
             embed = discord.Embed(
                 title="Entrants", description=page, color=await ctx.embed_color()
             )
+            embed.set_footer(text="Total entrants: {}".format(len(count)))
             embeds.append(embed)
 
         if len(embeds) == 1:
@@ -456,17 +459,19 @@ class Giveaways(commands.Cog):
         `--tatsu-rep`: Integrate with the Tatsumaki's rep system, must have a valid Tatsumaki API key set.
         `--mee6-level`: Integrate with the MEE6 levelling system.
         `--amari-level`: Integrate with the Amari's levelling system.
-        `--amari-weekly-xp`: Integrate with the Amari's weekly xp system.
-
-
-        **API Keys**
-        Tatsu's API key can be set with the following command (You must find where this key is yourself): `{prefix}set api tatsumaki authorization <key>`
-        Amari's API key can be set with the following command (Apply [here](https://docs.google.com/forms/d/e/1FAIpQLScQDCsIqaTb1QR9BfzbeohlUJYA3Etwr-iSb0CRKbgjA-fq7Q/viewform)): `{prefix}set api amari authorization <key>`
-
-
-        For any integration suggestions, suggest them via the [#support-flare-cogs](https://discord.gg/GET4DVk) channel on the support server or [flare-cogs](https://github.com/flaree/flare-cogs/issues/new/choose) github.""".format(
+        `--amari-weekly-xp`: Integrate with the Amari's weekly xp system.""".format(
             prefix=ctx.clean_prefix
         )
+        if await self.bot.is_owner(ctx.author):
+            msg += """
+                **API Keys**
+                Tatsu's API key can be set with the following command (You must find where this key is yourself): `{prefix}set api tatsumaki authorization <key>`
+                Amari's API key can be set with the following command (Apply [here](https://docs.google.com/forms/d/e/1FAIpQLScQDCsIqaTb1QR9BfzbeohlUJYA3Etwr-iSb0CRKbgjA-fq7Q/viewform)): `{prefix}set api amari authorization <key>`
+
+
+                For any integration suggestions, suggest them via the [#support-flare-cogs](https://discord.gg/GET4DVk) channel on the support server or [flare-cogs](https://github.com/flaree/flare-cogs/issues/new/choose) github.""".format(
+                prefix=ctx.clean_prefix
+            )
 
         embed = discord.Embed(
             title="3rd Party Integrations", description=msg, color=await ctx.embed_color()
