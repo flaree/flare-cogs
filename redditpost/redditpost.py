@@ -27,7 +27,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -144,11 +144,14 @@ class RedditPost(commands.Cog):
                     response,
                     channel,
                     feed["last_post"],
-                    feed.get("latest", True),
-                    feed.get("webhooks", False),
-                    feed.get("logo", REDDIT_LOGO),
                     url,
-                    feed.get("button", True),
+                    {
+                        "latest": feed.get("latest", True),
+                        "webhooks": feed.get("webhooks", False),
+                        "logo": feed.get("logo", REDDIT_LOGO),
+                        "button": feed.get("button", True),
+                        "image_only": feed.get("image_only", False),
+                    },
                 )
                 if time is not None:
                     async with self.config.channel(channel).reddits() as feeds_data:
@@ -304,11 +307,14 @@ class RedditPost(commands.Cog):
             data,
             channel,
             0,
-            True,
-            feeds[subreddit].get("webhooks", False),
-            feeds[subreddit].get("logo", REDDIT_LOGO),
             subreddit,
-            feeds[subreddit].get("button", True),
+            {
+                "latest": True,
+                "webhooks": feeds[subreddit].get("webhooks", False),
+                "logo": feeds[subreddit].get("logo", REDDIT_LOGO),
+                "button": feeds[subreddit].get("button", True),
+                "image_only": False,
+            },
         )
         await ctx.tick()
 
@@ -348,6 +354,25 @@ class RedditPost(commands.Cog):
 
         await ctx.tick()
 
+    @redditpost.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def imageonly(
+        self, ctx, subreddit: str, on_or_off: bool, channel: discord.TextChannel = None
+    ):
+        """Whether to only post posts that contain an image."""
+        channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            feeds[subreddit]["image_only"] = on_or_off
+
+        await ctx.tick()
+
     @redditpost.command(
         name="webhook", aliases=["webhooks"], usage="<subreddit> <true_or_false> [channel]"
     )
@@ -382,15 +407,16 @@ class RedditPost(commands.Cog):
         except Exception:
             return None
 
-    async def format_send(
-        self, data, channel, last_post, latest, webhook_set, icon, subreddit, button
-    ):
+    async def format_send(self, data, channel, last_post, subreddit, settings):
         timestamps = []
         embeds = []
-        data = data[:1] if latest else data
+        data = data[:1] if settings.get("latest", True) else data
         webhook = None
         try:
-            if webhook_set and channel.permissions_for(channel.guild.me).manage_webhooks:
+            if (
+                settings.get("webhooks", False)
+                and channel.permissions_for(channel.guild.me).manage_webhooks
+            ):
                 for hook in await channel.webhooks():
                     if hook.name == channel.guild.me.name:
                         webhook = hook
@@ -425,10 +451,14 @@ class RedditPost(commands.Cog):
             )
             embed.set_author(name=f"New post on r/{unescape(subreddit)}")
             embed.set_footer(text=f"Submitted by /u/{unescape(feed.author.name)}")
+            images = False
             if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.spoiler:
                 embed.set_image(url=unescape(image))
+                images = True
             elif feed.permalink not in image and validators.url(image):
                 embed.add_field(name="Attachment", value=unescape(image))
+            if settings.get("image_only") and not images:
+                continue
             embeds.append(embed)
         if timestamps:
             if embeds:
@@ -436,7 +466,7 @@ class RedditPost(commands.Cog):
                     for emb in embeds[::-1]:
                         if webhook is None:
                             try:
-                                if button:
+                                if settings.get("button", True):
                                     payload = {"content": "", "embed": emb.to_dict()}
                                     payload["components"] = [
                                         {
@@ -463,7 +493,9 @@ class RedditPost(commands.Cog):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
                             await webhook.send(
-                                username=f"r/{feed.subreddit}", avatar_url=icon, embed=emb
+                                username=f"r/{feed.subreddit}",
+                                avatar_url=settings.get("icon", REDDIT_LOGO),
+                                embed=emb,
                             )
                 except discord.HTTPException as exc:
                     log.error("Exception in bg_loop while sending message: ", exc_info=exc)
