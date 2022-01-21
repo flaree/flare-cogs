@@ -11,6 +11,7 @@ import asyncprawcore
 import discord
 import tabulate
 import validators
+from discord.http import Route
 from redbot.core import Config, commands
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify, spoiler
@@ -26,7 +27,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -147,6 +148,7 @@ class RedditPost(commands.Cog):
                     feed.get("webhooks", False),
                     feed.get("logo", REDDIT_LOGO),
                     url,
+                    feed.get("button", True),
                 )
                 if time is not None:
                     async with self.config.channel(channel).reddits() as feeds_data:
@@ -306,6 +308,7 @@ class RedditPost(commands.Cog):
             feeds[subreddit].get("webhooks", False),
             feeds[subreddit].get("logo", REDDIT_LOGO),
             subreddit,
+            feeds[subreddit].get("button", True),
         )
         await ctx.tick()
 
@@ -323,6 +326,25 @@ class RedditPost(commands.Cog):
                 return
 
             feeds[subreddit]["latest"] = latest
+
+        await ctx.tick()
+
+    @redditpost.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def button(
+        self, ctx, subreddit: str, use_button: bool, channel: discord.TextChannel = None
+    ):
+        """Whether to use buttons for the post URL."""
+        channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            feeds[subreddit]["button"] = use_button
 
         await ctx.tick()
 
@@ -360,7 +382,9 @@ class RedditPost(commands.Cog):
         except Exception:
             return None
 
-    async def format_send(self, data, channel, last_post, latest, webhook_set, icon, subreddit):
+    async def format_send(
+        self, data, channel, last_post, latest, webhook_set, icon, subreddit, button
+    ):
         timestamps = []
         embeds = []
         data = data[:1] if latest else data
@@ -412,9 +436,29 @@ class RedditPost(commands.Cog):
                     for emb in embeds[::-1]:
                         if webhook is None:
                             try:
-                                await channel.send(
-                                    embed=emb
-                                )  # TODO: More approprriate error handling
+                                if button:
+                                    payload = {"content": "", "embed": emb.to_dict()}
+                                    payload["components"] = [
+                                        {
+                                            "type": 1,
+                                            "components": [
+                                                {
+                                                    "label": "Source",
+                                                    "url": emb.url,
+                                                    "style": 5,
+                                                    "type": 2,
+                                                }
+                                            ],
+                                        }
+                                    ]
+                                    r = Route(
+                                        "POST",
+                                        "/channels/{channel_id}/messages",
+                                        channel_id=channel.id,
+                                    )
+                                    await self.bot._connection.http.request(r, json=payload)
+                                else:
+                                    await channel.send(embed=emb)
                             except (discord.Forbidden, discord.HTTPException):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
