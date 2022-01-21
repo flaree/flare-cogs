@@ -901,7 +901,7 @@ class Highlight(commands.Cog):
     @highlightset.command()
     async def minlen(self, ctx, min_len):
         """Set the minimum length of a highlight."""
-        await self.config.men_len.set(min_len)
+        await self.config.min_len.set(min_len)
         await ctx.send(f"Minimum length of highlight set to {min_len}.")
 
 
