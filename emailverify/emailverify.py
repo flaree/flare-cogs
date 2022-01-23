@@ -11,7 +11,7 @@ log = logging.getLogger("red.flare.verifyemail")
 
 class EmailVerify(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -22,7 +22,7 @@ class EmailVerify(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(
-            email=None, password=None, verified_emails=[], log_channel=None, role=None
+            email=None, password=None, verified_emails=[], log_channel=None, role=None, domain=None
         )
         self.config.register_member(code=None, verified=False, email=None)
 
@@ -59,6 +59,11 @@ class EmailVerify(commands.Cog):
             await ctx.send(
                 "The server owner must setup an email for this verification method to work."
             )
+            return
+
+        domain = await self.config.guild(ctx.guild).domain()
+        if domain is not None and not email.endswith(domain):
+            await ctx.send("Your email does not match the domain this server is setup to use.")
             return
 
         if await self.config.member(ctx.author).verified():
@@ -165,6 +170,17 @@ class EmailVerify(commands.Cog):
         """Set the email for verification."""
         await self.config.guild(ctx.guild).email.set(email)
         await self.config.guild(ctx.guild).password.set(password)
+        await ctx.tick()
+
+    @verifyset.command(name="domain")
+    async def verifyset_domain(self, ctx, *, domain: str = None):
+        """Restrict verification to a specific email domain.
+
+        Example:
+        [p]verifyset restrict @mail.dcu.ie
+
+        This will restrict to all @mail.dcu.ie emails"""
+        await self.config.guild(ctx.guild).domain.set(domain)
         await ctx.tick()
 
     async def send_email(self, ctx, email, code):
