@@ -64,7 +64,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.6.0"
+    __version__ = "1.6.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -317,10 +317,10 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
-                if len(word) < await self.config.min_len():
+                if len(word) < int(await self.config.min_len()):
                     await ctx.send("Your highlight does not meet the minimum length requirement.")
                     return
-                if len(highlight[f"{ctx.author.id}"]) >= await self.config.max_highlights():
+                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
                     await ctx.send("You have reached the maximum number of highlights.")
                     return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
@@ -627,10 +627,10 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
-                if len(word) < await self.config.min_len():
+                if len(word) < int(await self.config.min_len()):
                     await ctx.send("Your highlight does not meet the minimum length requirement.")
                     return
-                if len(highlight[f"{ctx.author.id}"]) >= await self.config.max_highlights():
+                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
                     await ctx.send("You have reached the maximum number of highlights.")
                     return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
