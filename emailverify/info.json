@@ -1,0 +1,19 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Thanks for installing crypto, use [p]help EmailVerify for more information..",
+    "name": "VerifyEmail",
+    "disabled": false,
+    "short": "Secure your server by making users verify their account with an email.",
+    "description": "Secure your server by making users verify their account with an email.",
+    "tags": [
+        "email verification",
+        "email",
+        "verification"
+    ],
+    "requirements": [
+        "aiosmtplib"
+    ],
+    "min_bot_version": "3.4.0"
+}
