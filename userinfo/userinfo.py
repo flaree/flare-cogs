@@ -197,13 +197,12 @@ class Userinfo(commands.Cog):
             names, nicks = await mod.get_names_and_nicks(user)
 
             joined_at = user.joined_at
-            since_created = int((ctx.message.created_at - user.created_at).days)
+            int((ctx.message.created_at - user.created_at).days)
             if joined_at is not None:
-                since_joined = int((ctx.message.created_at - joined_at).days)
+                int((ctx.message.created_at - joined_at).days)
                 user_joined = joined_at.strftime("%d %b %Y %H:%M")
             else:
-                since_joined = "?"
-                user_joined = "Unknown"
+                pass
             user_created = user.created_at.strftime("%d %b %Y %H:%M")
             voice_state = user.voice
             member_number = (
@@ -213,7 +212,9 @@ class Userinfo(commands.Cog):
                 + 1
             )
 
-            created_on = "<t:{0}>\n(<t:{0}:R>)".format(int(user.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()))
+            created_on = "<t:{0}>\n(<t:{0}:R>)".format(
+                int(user.created_at.replace(tzinfo=datetime.timezone.utc).timestamp())
+            )
             joined_on = "<t:{0}>\n(<t:{0}:R>)".format(int(joined_at.timestamp()))
             if user.is_on_mobile():
                 statusemoji = self.status_emojis["mobile"] or "\N{MOBILE PHONE}"
