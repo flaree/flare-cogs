@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import discord
@@ -212,12 +213,8 @@ class Userinfo(commands.Cog):
                 + 1
             )
 
-            created_on = "{}\n({} day{} ago)".format(
-                user_created, since_created, "" if since_created == 1 else "s"
-            )
-            joined_on = "{}\n({} day{} ago)".format(
-                user_joined, since_joined, "" if since_joined == 1 else "s"
-            )
+            created_on = "<t:{0}>\n(<t:{0}:R>)".format(int(user.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()))
+            joined_on = "<t:{0}>\n(<t:{0}:R>)".format(int(joined_at.timestamp()))
             if user.is_on_mobile():
                 statusemoji = self.status_emojis["mobile"] or "\N{MOBILE PHONE}"
             elif any(a.type is discord.ActivityType.streaming for a in user.activities):
