@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.2"
+    __version__ = "0.11.3"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -328,9 +328,9 @@ class Giveaways(commands.Cog):
             else:
                 count[entrant] += 1
         msg = ""
-        for userid, count in count.items():
+        for userid, count_int in count.items():
             user = ctx.guild.get_member(userid)
-            msg += f"{user.mention} ({count})\n" if user else f"<{userid}> ({count})\n"
+            msg += f"{user.mention} ({count_int})\n" if user else f"<{userid}> ({count_int})\n"
         embeds = []
         for page in pagify(msg, delims=["\n"], page_length=800):
             embed = discord.Embed(
