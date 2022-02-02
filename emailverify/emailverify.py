@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import secrets
 from email.message import EmailMessage
@@ -50,6 +51,8 @@ class EmailVerify(commands.Cog):
     @verify.command(name="email")
     async def verify_email(self, ctx, email: str):
         """Verify your discord account with your email."""
+        with contextlib.suppress():
+            await ctx.message.delete()
         if await self.config.guild(ctx.guild).role() is None:
             await ctx.send(
                 "The server owner must setup a role for this verification method to work."
