@@ -28,8 +28,10 @@ class Highlight(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        self.config.register_global(migrated=False, min_len=5, max_highlights=10)
-        self.config.register_member(blacklist=[], whitelist=[], cooldown=10)
+        self.config.register_global(
+            migrated=False, min_len=5, max_highlights=10, default_cooldown=60
+        )
+        self.config.register_member(blacklist=[], whitelist=[], cooldown=60)
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.config.register_guild(**default_channel)
@@ -38,6 +40,7 @@ class Highlight(commands.Cog):
         self.cooldowns = {}
         self.recache = {}
         self.guildcache = {}
+        self.cooldown = 60
 
     async def red_get_data_for_user(self, *, user_id: int):
         config = await self.config.all_channels()
@@ -64,7 +67,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.6.1"
+    __version__ = "1.7.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -77,6 +80,7 @@ class Highlight(commands.Cog):
         await self.generate_cache()
 
     async def generate_cache(self):
+        self.cooldown = await self.config.default_cooldown()
         self.highlightcache = await self.config.all_channels()
         self.member_cache = await self.config.all_members()
         self.guildcache = await self.config.all_guilds()
@@ -136,10 +140,14 @@ class Highlight(commands.Cog):
                 seconds = (
                     datetime.now(tz=timezone.utc) - self.cooldowns[int(user)]
                 ).total_seconds()
-                if (
-                    int(user) in self.member_cache.get(message.guild.id, {})
-                    and seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]
-                ):
+                cooldown = (
+                    self.member_cache.get(message.guild.id, {})
+                    .get(int(user), {})
+                    .get("cooldown", self.cooldown)
+                )
+                if cooldown < self.cooldown:
+                    cooldown = self.cooldown
+                if seconds < cooldown:
                     continue
             if self.member_cache.get(message.guild.id, False) and self.member_cache[
                 message.guild.id
@@ -197,7 +205,7 @@ class Highlight(commands.Cog):
                     description="{}".format(context),
                 )
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-                msg = await highlighted_usr.send(
+                await highlighted_usr.send(
                     f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
                     embed=embed,
                 )
@@ -290,6 +298,12 @@ class Highlight(commands.Cog):
             return
         if seconds < 0 or seconds > 600:
             await ctx.send("Cooldown seconds must be greater or equal to 0 or less than 600.")
+            return
+        default = await self.config.default_cooldown()
+        if seconds < default:
+            await ctx.send(
+                f"Cooldown seconds must be greater or equal to the default setting of {default}"
+            )
             return
         await self.config.member(ctx.author).cooldown.set(seconds)
         await ctx.send(f"Your highlight cooldown time has been set to {seconds} seconds.")
@@ -895,14 +909,29 @@ class Highlight(commands.Cog):
     @highlightset.command(usage="<max number>")
     async def max(self, ctx, max_num: int):
         """Set the max number of highlights a user can have."""
+        if max_num < 1:
+            return await ctx.send("Max number must be greater than 0.")
         await self.config.max_highlights.set(max_num)
         await ctx.send(f"Max number of highlights set to {max_num}.")
 
     @highlightset.command()
-    async def minlen(self, ctx, min_len):
+    async def minlen(self, ctx, min_len: int):
         """Set the minimum length of a highlight."""
+        if min_len < 1:
+            return await ctx.send("Minimum length cannot be less than 1.")
         await self.config.min_len.set(min_len)
         await ctx.send(f"Minimum length of highlight set to {min_len}.")
+
+    @highlightset.command(name="cooldown")
+    async def _cooldown(self, ctx, cooldown: int):
+        """Set the default cooldown of a highlight. (in seconds)
+
+        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined."""
+        if cooldown < 1 or cooldown > 600:
+            return await ctx.send("Cooldown cannot be less than 1 or greater than 600.")
+        await self.config.default_cooldown.set(cooldown)
+        await ctx.send(f"Default cooldown set to {cooldown}.")
+        self.cooldown = cooldown
 
 
 def yes_or_no(boolean: bool):
