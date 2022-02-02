@@ -39,7 +39,7 @@ class F1(commands.Cog):
     async def race_loop(self):
         await self.bot.wait_until_ready()
         while True:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
             tomorrow = (now + datetime.timedelta(days=1)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
