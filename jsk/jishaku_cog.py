@@ -15,7 +15,3 @@ class Jishaku(*STANDARD_FEATURES, *OPTIONAL_FEATURES):
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}\nAuthor: {self.__author__}"
-
-    jsk_load = None
-    jsk_unload = None
-    jsk_shutdown = None
