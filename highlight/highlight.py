@@ -29,7 +29,7 @@ class Highlight(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         self.config.register_global(
-            migrated=False, min_len=5, max_highlights=10, default_cooldown=60
+            migrated=False, min_len=5, max_highlights=10, default_cooldown=60, colour=discord.Color.red().value
         )
         self.config.register_member(blacklist=[], whitelist=[], cooldown=60)
         default_channel = {"highlight": {}}
@@ -198,9 +198,11 @@ class Highlight(commands.Cog):
                 context = "\n".join(f"**{x.author}**: {x.content}" for x in msglist)
                 if len(context) > 2000:
                     context = "**Context omitted due to message size limits.\n**"
+                config = await self.config.all()
+                colour = config.get("colour")
                 embed = discord.Embed(
                     title="Context:",
-                    colour=0xFF0000,
+                    colour=colour,
                     timestamp=message.created_at,
                     description="{}".format(context),
                 )
@@ -932,6 +934,17 @@ class Highlight(commands.Cog):
         await self.config.default_cooldown.set(cooldown)
         await ctx.send(f"Default cooldown set to {cooldown}.")
         self.cooldown = cooldown
+    
+    @highlightset.command(aliases=["color"])
+    async def colour(self, ctx, *, colour: discord.Colour = None):
+        """Set the colour for the highlight embed."""
+
+        if colour is None:
+            await self.config.colour.set(discord.Color.red().value)
+            await ctx.send("The color has been reset.")
+        else:
+            await self.config.colour.set(colour.value)
+            await ctx.send("The color has been set.")
 
 
 def yes_or_no(boolean: bool):
