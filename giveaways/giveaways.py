@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.3"
+    __version__ = "0.11.4"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -46,6 +46,8 @@ class Giveaways(commands.Cog):
         data = await self.config.custom(GIVEAWAY_KEY).all()
         for _, giveaways in data.items():
             for msgid, giveaway in giveaways.items():
+                if giveaway.get("ended", False):
+                    continue
                 if datetime.now(timezone.utc) > datetime.fromtimestamp(
                     giveaway["endtime"]
                 ).replace(tzinfo=timezone.utc):
@@ -81,6 +83,9 @@ class Giveaways(commands.Cog):
             if giveaway.endtime < datetime.now(timezone.utc):
                 await self.draw_winner(giveaway)
                 to_clear.append(msgid)
+                gw = await self.config.custom(GIVEAWAY_KEY, giveaway.guild_id, str(msgid)).all()
+                gw["ended"] = True
+                await self.config.custom(GIVEAWAY_KEY, giveaway.guild_id, str(msgid)).set(gw)
         for msgid in to_clear:
             del self.giveaways[msgid]
 
@@ -232,6 +237,9 @@ class Giveaways(commands.Cog):
                 return await ctx.send("Giveaway not found.")
             await self.draw_winner(self.giveaways[msgid])
             del self.giveaways[msgid]
+            gw = await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(msgid)).all()
+            gw["ended"] = True
+            await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(msgid)).set(gw)
             await ctx.tick()
         else:
             await ctx.send("Giveaway not found.")
