@@ -15,10 +15,9 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.3.1"
 
     def format_help_for_context(self, ctx):
-        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
@@ -126,11 +125,12 @@ class Userinfo(commands.Cog):
                 log.info(error)
             self.bot.add_command(_old_userinfo)
 
-    @commands.group(hidden=True)
+    @commands.group()
+    @commands.is_owner()
     async def uinfoset(self, ctx):
         """Manage userinfo settings."""
 
-    @uinfoset.command()
+    @uinfoset.command(hidden=True)
     async def setemoji(self, ctx, status_or_badge: str, type: str, emoji_id: int):
         """Set status or badge emoji"""
         if status_or_badge not in ["status", "badge"]:
@@ -372,13 +372,10 @@ except ImportError:
 
 
 async def setup(bot):
-    if discord.version_info <= (1, 4):
-        raise CogLoadError("This cog requires d.py 1.4+ to work.")
     uinfo = Userinfo(bot)
     if "Mod" not in bot.cogs:
         raise CogLoadError("This cog requires the Mod cog to be loaded.")
     global _old_userinfo
-    _old_userinfo = bot.get_command("userinfo")
-    if _old_userinfo:
+    if _old_userinfo := bot.get_command("userinfo"):
         bot.remove_command(_old_userinfo.name)
     bot.add_cog(uinfo)
