@@ -11,6 +11,7 @@ import tabulate
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from redbot.core.utils.mod import is_mod_or_superior
 from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
@@ -20,6 +21,14 @@ def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i : i + n]
+
+
+async def restrictedhighlight_check(ctx):
+    cog = ctx.bot.get_cog("Highlight")
+    if cog is None:
+        return False
+    restricted = await cog.config.restricted()
+    return await is_mod_or_superior(ctx.bot, ctx.author) if restricted else True
 
 
 class Highlight(commands.Cog):
@@ -34,6 +43,7 @@ class Highlight(commands.Cog):
             max_highlights=10,
             default_cooldown=60,
             colour=discord.Color.red().value,
+            restricted=False,
         )
         self.config.register_member(blacklist=[], whitelist=[], cooldown=60)
         default_channel = {"highlight": {}}
@@ -44,6 +54,7 @@ class Highlight(commands.Cog):
         self.cooldowns = {}
         self.recache = {}
         self.guildcache = {}
+        self.global_conf = {}
         self.cooldown = 60
 
     async def red_get_data_for_user(self, *, user_id: int):
@@ -71,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.7.0"
+    __version__ = "1.8.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -85,6 +96,7 @@ class Highlight(commands.Cog):
 
     async def generate_cache(self):
         self.cooldown = await self.config.default_cooldown()
+        self.global_conf = await self.config.all()
         self.highlightcache = await self.config.all_channels()
         self.member_cache = await self.config.all_members()
         self.guildcache = await self.config.all_guilds()
@@ -139,6 +151,10 @@ class Highlight(commands.Cog):
                     highlighted_dict[key][val] = value[val]
         for user in highlighted_dict:
             if int(user) == message.author.id:
+                continue
+            if self.global_conf.get("restricted") and not await is_mod_or_superior(
+                self.bot, message.guild.get_member(int(user))
+            ):
                 continue
             if self.cooldowns.get(int(user)):
                 seconds = (
@@ -202,11 +218,9 @@ class Highlight(commands.Cog):
                 context = "\n".join(f"**{x.author}**: {x.content}" for x in msglist)
                 if len(context) > 2000:
                     context = "**Context omitted due to message size limits.\n**"
-                config = await self.config.all()
-                colour = config.get("colour")
                 embed = discord.Embed(
                     title="Context:",
-                    colour=colour,
+                    colour=self.global_conf.get("colour", 0xFFFFFF),
                     timestamp=message.created_at,
                     description="{}".format(context),
                 )
@@ -225,6 +239,7 @@ class Highlight(commands.Cog):
 
     @commands.guild_only()
     @commands.group(autohelp=True)
+    @commands.check(restrictedhighlight_check)
     async def highlight(self, ctx: commands.Context):
         """Highlighting Commands."""
 
@@ -949,6 +964,18 @@ class Highlight(commands.Cog):
         else:
             await self.config.colour.set(colour.value)
             await ctx.send("The color has been set.")
+        await self.update_cache()
+
+    @highlightset.command()
+    async def restrict(self, ctx, toggle: bool):
+        """Restrict the use of highlights to users with mod/admin permissions."""
+
+        await self.config.restricted.set(toggle)
+        if toggle:
+            await ctx.send("Highlights can now only be used by users with mod/admin permissions.")
+        else:
+            await ctx.send("Highlights can now be used by all users.")
+        await self.generate_cache()
 
 
 def yes_or_no(boolean: bool):
