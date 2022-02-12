@@ -15,7 +15,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.3.1"
+    __version__ = "0.3.2"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -167,12 +167,15 @@ class Userinfo(commands.Cog):
 
     @uinfoset.command()
     async def banner(self, ctx):
-        """Toggle banner on userinfo."""
+        """Toggle banner on userinfo.
+
+        Note: This causes a fetch request which can be a heavy operation."""
         await self.config.banner.set(not await self.config.banner())
         await ctx.tick()
 
     @commands.command()
     @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True)
     async def userinfo(self, ctx, *, user: discord.Member = None):
         """Show userinfo with some more detail."""
