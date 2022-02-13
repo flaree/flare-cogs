@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.4"
+    __version__ = "0.11.5"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -83,9 +83,9 @@ class Giveaways(commands.Cog):
             if giveaway.endtime < datetime.now(timezone.utc):
                 await self.draw_winner(giveaway)
                 to_clear.append(msgid)
-                gw = await self.config.custom(GIVEAWAY_KEY, giveaway.guild_id, str(msgid)).all()
+                gw = await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(msgid)).all()
                 gw["ended"] = True
-                await self.config.custom(GIVEAWAY_KEY, giveaway.guild_id, str(msgid)).set(gw)
+                await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(msgid)).set(gw)
         for msgid in to_clear:
             del self.giveaways[msgid]
 
