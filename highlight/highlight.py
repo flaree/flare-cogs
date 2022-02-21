@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.8.0"
+    __version__ = "1.9.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
