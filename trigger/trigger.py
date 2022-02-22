@@ -12,7 +12,7 @@ from .objects import TriggerObject
 
 class Trigger(commands.Cog):
 
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -74,7 +74,7 @@ class Trigger(commands.Cog):
         for trigger in self.triggers.get(guild.id, {}):
             obj = self.triggers[guild.id][trigger]
             if obj.check(message):
-                await obj.respond(message.channel)
+                await obj.respond(message)
 
     @commands.group()
     @commands.guild_only()
@@ -88,6 +88,16 @@ class Trigger(commands.Cog):
     async def create(self, ctx, trigger_name: str, *, triggered_by: str):
         """
         Create a trigger.
+
+        Variables can be used within the responses.
+        user: The user that triggered the trigger.
+        channel: The channel the trigger was triggered in.
+        message: The message that triggered the trigger.
+        guild: The guild the trigger was triggered in.
+        uses: The number of times the trigger has been used.
+        trigger: The name of the trigger that was triggered.
+
+        Example: `{user} has triggered the trigger {trigger} in {channel} {uses} times.`
         """
         trigger_name = trigger_name.lower()
         triggers = await self.config.guild(ctx.guild).triggers()
