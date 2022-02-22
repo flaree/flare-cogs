@@ -45,7 +45,7 @@ class Highlight(commands.Cog):
             colour=discord.Color.red().value,
             restricted=False,
         )
-        self.config.register_member(blacklist=[], whitelist=[], cooldown=60)
+        self.config.register_member(blacklist=[], whitelist=[], cooldown=60, channel_blacklist=[])
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.config.register_guild(**default_channel)
@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.8.0"
+    __version__ = "1.9.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -184,6 +184,12 @@ class Highlight(commands.Cog):
                     in self.member_cache[message.guild.id][int(user)]["blacklist"]
                 ):
                     continue
+                elif (
+                    self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
+                    and message.channel.id
+                    in self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
+                ):
+                    continue
             highlighted_words = []
             for word in highlighted_dict[user]:
                 if not highlighted_dict[user][word]["toggle"]:
@@ -277,19 +283,31 @@ class Highlight(commands.Cog):
         whitelist = await self.config.member(ctx.author).whitelist()
         if not whitelist:
             return await ctx.send("Your whitelist is empty.")
-        msg = "".join(f" - {_id}\n" for _id in whitelist)
-        for page in pagify(msg):
-            await ctx.send(box(page))
+        embed = discord.Embed(
+            title="Whitelist",
+            colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
+        )
+        embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in whitelist))
+        await ctx.send(embed=embed)
 
     @blacklist.command(name="list")
     async def blacklist_list(self, ctx: commands.Context):
-        """List those in your blacklist."""
+        """List your blacklist."""
         blacklist = await self.config.member(ctx.author).blacklist()
-        if not blacklist:
+        channel_blacklist = await self.config.member(ctx.author).channel_blacklist()
+        if not blacklist and not channel_blacklist:
             return await ctx.send("Your blacklist is empty.")
-        msg = "".join(f" - {_id}\n" for _id in blacklist)
-        for page in pagify(msg):
-            await ctx.send(box(page))
+        embed = discord.Embed(
+            title="Blacklist",
+            colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
+        )
+        if blacklist:
+            embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist))
+        if channel_blacklist:
+            embed.add_field(
+                name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist)
+            )
+        await ctx.send(embed=embed)
 
     @blacklist.command(name="user")
     async def blacklist_addremove(self, ctx: commands.Context, user: discord.Member):
@@ -307,9 +325,29 @@ class Highlight(commands.Cog):
                 await ctx.send(f"{ctx.author.name} has added {user} to their highlight blacklist.")
         await self.generate_cache()
 
+    @blacklist.command(name="channel")
+    async def channel_blacklist_addremove(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
+        """Add or remove a channel from highlight blacklist.
+
+        This is per guild."""
+        async with self.config.member(ctx.author).channel_blacklist() as blacklist:
+            if channel.id in blacklist:
+                blacklist.remove(channel.id)
+                await ctx.send(
+                    f"{ctx.author.name} has removed {channel} from their highlight blacklist."
+                )
+            else:
+                blacklist.append(channel.id)
+                await ctx.send(
+                    f"{ctx.author.name} has added {channel} to their highlight blacklist."
+                )
+        await self.generate_cache()
+
     @highlight.command(name="cooldown")
     async def cooldown(self, ctx: commands.Context, seconds: int = None):
-        """Set the cooldown for highlighted messages to be sent. Default is 10 seconds.
+        """Set the cooldown for highlighted messages to be sent. Default is 60 seconds.
 
         This is per guild.
         Not providing a value will send the current set value."""
