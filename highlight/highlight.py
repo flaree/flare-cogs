@@ -304,7 +304,9 @@ class Highlight(commands.Cog):
         if blacklist:
             embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist))
         if channel_blacklist:
-            embed.add_field(name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist))
+            embed.add_field(
+                name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist)
+            )
         await ctx.send(embed=embed)
 
     @blacklist.command(name="user")
@@ -324,7 +326,9 @@ class Highlight(commands.Cog):
         await self.generate_cache()
 
     @blacklist.command(name="channel")
-    async def channel_blacklist_addremove(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def channel_blacklist_addremove(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Add or remove a channel from highlight blacklist.
 
         This is per guild."""
