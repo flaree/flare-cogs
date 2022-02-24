@@ -351,7 +351,9 @@ class Userinfo(commands.Cog):
                                 pass
                         if adventure_bank:
                             adventure_user_balance = await adventure_bank.bank.get_balance(user)
-                            adventure_currency_name = await adventure_bank.bank.get_currency_name(ctx.guild)
+                            adventure_currency_name = await adventure_bank.bank.get_currency_name(
+                                ctx.guild
+                            )
                             balance_count += 1
                             bankstat += f"**Adventure**: {humanize_number(adventure_user_balance)} {adventure_currency_name}"
 
