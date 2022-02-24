@@ -350,9 +350,10 @@ class Userinfo(commands.Cog):
                             except:
                                 pass
                         if adventure_bank:
-                            adventure_currency = await adventure_bank.get_balance(user)
+                            adventure_user_balance = await adventure_bank.bank.get_balance(user)
+                            adventure_currency_name = await adventure_bank.bank.get_currency_name(ctx.guild)
                             balance_count += 1
-                            bankstat += f"**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}"
+                            bankstat += f"**Adventure**: {humanize_number(adventure_user_balance)} {adventure_currency_name}"
 
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
             if await self.config.banner():
