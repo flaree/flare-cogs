@@ -15,5 +15,6 @@
         "post"
     ],
     "hidden": false,
-    "min_bot_version": "3.4.0"
+    "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99"
 }

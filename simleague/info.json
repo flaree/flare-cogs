@@ -21,5 +21,6 @@
         "leveler": "https://github.com/fixator10/Fixator10-Cogs"
     },
     "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99",
     "hidden": true
 }
