@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.9.0"
+    __version__ = "1.9.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -972,6 +972,7 @@ class Highlight(commands.Cog):
             return await ctx.send("Max number must be greater than 0.")
         await self.config.max_highlights.set(max_num)
         await ctx.send(f"Max number of highlights set to {max_num}.")
+        await self.generate_cache()
 
     @highlightset.command()
     async def minlen(self, ctx, min_len: int):
@@ -980,6 +981,7 @@ class Highlight(commands.Cog):
             return await ctx.send("Minimum length cannot be less than 1.")
         await self.config.min_len.set(min_len)
         await ctx.send(f"Minimum length of highlight set to {min_len}.")
+        await self.generate_cache()
 
     @highlightset.command(name="cooldown")
     async def _cooldown(self, ctx, cooldown: int):
@@ -1002,7 +1004,7 @@ class Highlight(commands.Cog):
         else:
             await self.config.colour.set(colour.value)
             await ctx.send("The color has been set.")
-        await self.update_cache()
+        await self.generate_cache()
 
     @highlightset.command()
     async def restrict(self, ctx, toggle: bool):
