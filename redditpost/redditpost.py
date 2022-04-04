@@ -77,18 +77,18 @@ class RedditPost(commands.Cog):
                 user_agent=f"{self.bot.user.name} Discord Bot",
             )
 
-            self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
+            self.bg_loop_task = asyncio.create_task(self.bg_loop())
         except Exception as exc:
             log.error("Exception in init: ", exc_info=exc)
             await self.bot.send_to_owners(
                 "An exception occured in the authenthication. Please ensure the client id and secret are set correctly.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`"
             )
 
-    def cog_unload(self):
+    async def cog_unload(self):
         if self.bg_loop_task:
             self.bg_loop_task.cancel()
-        self.bot.loop.create_task(self.session.close())
-        self.bot.loop.create_task(self.client.close())
+        await self.session.close()
+        await self.client.close()
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
@@ -149,7 +149,6 @@ class RedditPost(commands.Cog):
                         "latest": feed.get("latest", True),
                         "webhooks": feed.get("webhooks", False),
                         "logo": feed.get("logo", REDDIT_LOGO),
-                        "button": feed.get("button", True),
                         "image_only": feed.get("image_only", False),
                     },
                 )
@@ -311,7 +310,6 @@ class RedditPost(commands.Cog):
                 "latest": True,
                 "webhooks": feeds[subreddit].get("webhooks", False),
                 "logo": feeds[subreddit].get("logo", REDDIT_LOGO),
-                "button": feeds[subreddit].get("button", True),
                 "image_only": False,
             },
         )
@@ -331,25 +329,6 @@ class RedditPost(commands.Cog):
                 return
 
             feeds[subreddit]["latest"] = latest
-
-        await ctx.tick()
-
-    @redditpost.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def button(
-        self, ctx, subreddit: str, use_button: bool, channel: discord.TextChannel = None
-    ):
-        """Whether to use buttons for the post URL."""
-        channel = channel or ctx.channel
-        subreddit = self._clean_subreddit(subreddit)
-        if not subreddit:
-            return await ctx.send("That doesn't look like a subreddit name to me.")
-        async with self.config.channel(channel).reddits() as feeds:
-            if subreddit not in feeds:
-                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
-                return
-
-            feeds[subreddit]["button"] = use_button
 
         await ctx.tick()
 
@@ -466,27 +445,9 @@ class RedditPost(commands.Cog):
                     for emb in embeds[::-1]:
                         if webhook is None:
                             try:
-                                if settings.get("button", True):
-                                    payload = {"content": "", "embed": emb.to_dict()}
-                                    payload["components"] = [
-                                        {
-                                            "type": 1,
-                                            "components": [
-                                                {
-                                                    "label": "Source",
-                                                    "url": emb.url,
-                                                    "style": 5,
-                                                    "type": 2,
-                                                }
-                                            ],
-                                        }
-                                    ]
-                                    r = Route(
-                                        "POST",
-                                        "/channels/{channel_id}/messages",
-                                        channel_id=channel.id,
-                                    )
-                                    await self.bot._connection.http.request(r, json=payload)
+                                await channel.send(
+                                    embed=emb
+                                )  # TODO: More approprriate error handling
                                 else:
                                     await channel.send(embed=emb)
                             except (discord.Forbidden, discord.HTTPException):

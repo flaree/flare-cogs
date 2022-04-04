@@ -296,7 +296,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         embed = discord.Embed(
             colour=discord.Color.green(), description=line, timestamp=ctx.message.created_at
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
             try:
@@ -347,7 +347,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         embed = discord.Embed(
             colour=discord.Color.green(), description=line, timestamp=ctx.message.created_at
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
             try:
@@ -393,7 +393,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 ),
                 timestamp=ctx.message.created_at,
             )
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
             return await ctx.send(embed=embed)
         modifier = roll()
         stolen = random.randint(1, int(userbalance * modifier))
@@ -404,7 +404,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             ),
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         try:
             await self.walletdeposit(ctx, ctx.author, stolen)
             await self.walletremove(user, stolen)
