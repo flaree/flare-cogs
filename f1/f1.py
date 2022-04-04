@@ -33,7 +33,7 @@ class F1(commands.Cog):
         self.config.register_guild(channel=None, role=None)
         self.loop = self.bot.loop.create_task(self.race_loop())
 
-    async def cog_unload(self):
+    def cog_unload(self):
         self.loop.cancel()
 
     async def race_loop(self):
