@@ -13,5 +13,5 @@
     "requirements": [
         "git+https://github.com/flaree/jishaku"
     ],
-    "min_bot_version": "3.5.0.dev1"
+    "min_bot_version": "3.5.0"
 }

@@ -7,5 +7,5 @@ __red_end_user_data_statement__ = (
 )
 
 
-def setup(bot):
+async def setup(bot):
     await bot.add_cog(Unbelievaboat(bot))

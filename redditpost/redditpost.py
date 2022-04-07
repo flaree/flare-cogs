@@ -448,8 +448,6 @@ class RedditPost(commands.Cog):
                                 await channel.send(
                                     embed=emb
                                 )  # TODO: More approprriate error handling
-                                else:
-                                    await channel.send(embed=emb)
                             except (discord.Forbidden, discord.HTTPException):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:
