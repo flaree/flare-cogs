@@ -184,7 +184,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 colour=discord.Color.red(),
                 description=f"\N{NEGATIVE SQUARED CROSS MARK} You were caught by the police and fined {amount}. You did not have enough cash to pay the fine and are now bankrupt.",
             )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         await ctx.send(embed=embed)
 
     async def cdnotice(self, user, cooldown, job):
@@ -196,7 +196,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             "deposit": f"\N{NEGATIVE SQUARED CROSS MARK} You cannot deposit any more cash for another {cooldown}.",
         }
         embed = discord.Embed(colour=discord.Color.red(), description=response[job])
-        embed.set_author(name=user, icon_url=user.avatar_url)
+        embed.set_author(name=user, icon_url=user.display_avatar)
         return embed
 
     @checks.admin_or_permissions(manage_guild=True)
@@ -296,7 +296,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         embed = discord.Embed(
             colour=discord.Color.green(), description=line, timestamp=ctx.message.created_at
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
             try:
@@ -347,7 +347,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         embed = discord.Embed(
             colour=discord.Color.green(), description=line, timestamp=ctx.message.created_at
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         embed.set_footer(text="Reply #{}".format(linenum))
         if not await self.walletdisabledcheck(ctx):
             try:
@@ -393,7 +393,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 ),
                 timestamp=ctx.message.created_at,
             )
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
             return await ctx.send(embed=embed)
         modifier = roll()
         stolen = random.randint(1, int(userbalance * modifier))
@@ -404,7 +404,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             ),
             timestamp=ctx.message.created_at,
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
         try:
             await self.walletdeposit(ctx, ctx.author, stolen)
             await self.walletremove(user, stolen)
