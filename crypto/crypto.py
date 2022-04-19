@@ -162,7 +162,7 @@ class Crypto(commands.Cog):
                     f'You only have {coins[coin_data["name"]]["amount"]}.'
                 )
             coins[coin_data["name"]]["amount"] -= amount
-            coins[coin_data["name"]]["totalcost"] -= int(coins[coin_data["name"]]["amount"] * (coin_data["quote"]["USD"]["price"] * 10))
+            coins[coin_data["name"]]["totalcost"] -= (int(amount * (coin_data["quote"]["USD"]["price"] * 10)))
             if coins[coin_data["name"]]["amount"] == 0:
                 del coins[coin_data["name"]]
         bal = await bank.deposit_credits(
