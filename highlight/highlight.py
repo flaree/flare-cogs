@@ -200,6 +200,8 @@ class Highlight(commands.Cog):
                 highlighted_usr = message.guild.get_member(int(user))
                 if highlighted_usr is None:
                     continue
+                if not await self.bot.allowed_by_whitelist_blacklist(highlighted_usr):
+                    continue
                 if not message.channel.permissions_for(highlighted_usr).read_messages:
                     continue
                 if message.author.bot and not highlighted_dict[user][word]["bots"]:
