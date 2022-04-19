@@ -40,8 +40,8 @@ class SettingsMixin(MixinMeta):
         if job not in ["work", "crime", "rob", "deposit", "withdraw"]:
             return await ctx.send("Invalid job.")
         seconds = time.total_seconds()
-        if seconds < 30:
-            return await ctx.send("The miniumum interval is 30 seconds.")
+        if seconds < 10:
+            return await ctx.send("The miniumum interval is 10 seconds.")
         conf = await self.configglobalcheck(ctx)
         async with conf.cooldowns() as cooldowns:
             jobcd = {

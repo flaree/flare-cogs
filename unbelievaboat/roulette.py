@@ -91,29 +91,29 @@ class Roulette(MixinMeta):
             pass
         if isinstance(_type, int):
             if _type < 0 or _type > 36:
-                return {"failed": "Bet must be between 0 and 36."}
+                return {"failed": f"{ctx.author.display_name}, your bet must be between 0 and 36."}
             if _type == 0:
                 for better in self.roulettegames[ctx.guild.id]["zero"]:
                     if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
-                        return {"failed": "You cannot make duplicate bets."}
+                        return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
                 try:
                     await self.roulettewithdraw(ctx, bet)
                 except ValueError:
-                    return {"failed": "You do not have enough funds to complete this bet."}
+                    return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
                 return {"sucess": 200}
             for better in self.roulettegames[ctx.guild.id]["number"]:
                 if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
-                    return {"failed": "You cannot make duplicate bets."}
+                    return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
             try:
                 await self.roulettewithdraw(ctx, bet)
             except ValueError:
-                return {"failed": "You do not have enough funds to complete this bet."}
+                return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
             return {"sucess": 200}
         if _type.lower() in BET_TYPES:
             for better in self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]]:
@@ -121,16 +121,16 @@ class Roulette(MixinMeta):
                     better.get(_type.lower(), False)
                     and better[_type.lower()]["user"] == ctx.author.id
                 ):
-                    return {"failed": "You cannot make duplicate bets."}
+                    return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
             try:
                 await self.roulettewithdraw(ctx, bet)
             except ValueError:
-                return {"failed": "You do not have enough funds to complete this bet."}
+                return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
             self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
             return {"sucess": 200}
-        return {"failed": "Not a valid option"}
+        return {"failed": f"{ctx.author.display_name}, not a valid option"}
 
     async def payout(self, ctx, winningnum, bets):
         msg = []
@@ -162,7 +162,7 @@ class Roulette(MixinMeta):
         payout_types = {
             "zero": winningnum,
             "color": color,
-            "single": winningnum,
+            "number": winningnum,
             "odd_or_even": odd_even,
             "halfs": half,
             "dozen": dozen,
@@ -174,6 +174,14 @@ class Roulette(MixinMeta):
                 if bet_type == value:
                     betinfo = list(bet.values())[0]
                     user = ctx.guild.get_member(betinfo["user"])
+                    print("---------")
+                    print("BetInfo:")
+                    print(betinfo)
+                    print("BetType:")
+                    print(bettype)
+                    print("Payouts:")
+                    print(payouts)
+                    print("---------")
                     payout = betinfo["amount"] + (betinfo["amount"] * payouts[bettype])
                     if not await self.walletdisabledcheck(ctx):
                         user_conf = await self.configglobalcheckuser(user)
@@ -208,47 +216,24 @@ class Roulette(MixinMeta):
         - This is based on the English version of the roulette wheel.
         """
         if ctx.guild.id not in self.roulettegames:
-            return await ctx.send(
-                "Start a roulette game using {}roulette start".format(ctx.prefix)
-            )
+            await self.roulette_start(ctx)
         if self.roulettegames[ctx.guild.id]["started"]:
-            return await ctx.send("The wheel is already spinning.")
+            return await ctx.send(f"{ctx.author.display_name}, the wheel is already spinning.")
         conf = await self.configglobalcheck(ctx)
         betting = await conf.betting()
         minbet, maxbet = betting["min"], betting["max"]
         if amount < minbet:
-            return await ctx.send(f"Your bet must be greater than {humanize_number(minbet)}.")
+            return await ctx.send(f"{ctx.author.display_name}, your bet must be greater than {humanize_number(minbet)}.")
         if amount > maxbet:
-            return await ctx.send(f"Your bet must be less than {humanize_number(maxbet)}.")
+            return await ctx.send(f"{ctx.author.display_name}, your bet must be less than {humanize_number(maxbet)}.")
         betret = await self.betting(ctx, amount, bet)
         if betret.get("failed") is not None:
             return await ctx.send(betret["failed"])
         await ctx.send(
-            f"You've placed a {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)} bet on {bet}."
+            f"{ctx.author.name} placed a {humanize_number(amount)} {await bank.get_currency_name(ctx.guild)} bet on {bet}."
         )
 
-    @roulette_disabled_check()
-    @roulette.command(name="start")
-    async def roulette_start(self, ctx):
-        """Start a game of roulette."""
-        if ctx.guild.id not in self.roulettegames:
-            self.roulettegames[ctx.guild.id] = {
-                "zero": [],
-                "color": [],
-                "number": [],
-                "dozen": [],
-                "odd_or_even": [],
-                "halfs": [],
-                "column": [],
-                "started": False,
-            }
-        else:
-            return await ctx.send("There is already a roulette game on.")
-        conf = await self.configglobalcheck(ctx)
-        time = await conf.roulette_time()
-        await ctx.send(
-            "The roulette wheel will be spun in {} seconds.".format(time), delete_after=time
-        )
+    async def roulette_spin(self, ctx, time):
         async with ctx.typing():
             await asyncio.sleep(time)
         self.roulettegames[ctx.guild.id]["started"] = True
@@ -279,6 +264,30 @@ class Roulette(MixinMeta):
         )
         await msg.edit(embed=emb)
         del self.roulettegames[ctx.guild.id]
+
+    @roulette_disabled_check()
+    @roulette.command(name="start")
+    async def roulette_start(self, ctx):
+        """Start a game of roulette."""
+        if ctx.guild.id not in self.roulettegames:
+            self.roulettegames[ctx.guild.id] = {
+                "zero": [],
+                "color": [],
+                "number": [],
+                "dozen": [],
+                "odd_or_even": [],
+                "halfs": [],
+                "column": [],
+                "started": False,
+            }
+        else:
+            return await ctx.send("There is already a roulette game on.")
+        conf = await self.configglobalcheck(ctx)
+        time = await conf.roulette_time()
+        await ctx.send(
+            "The roulette wheel will be spun in {} seconds.".format(time), delete_after=time
+        )
+        asyncio.create_task(self.roulette_spin(ctx, time))
 
     @checks.admin_or_permissions(manage_guild=True)
     @check_global_setting_admin()
@@ -337,10 +346,10 @@ class Roulette(MixinMeta):
         halfs
         column
         """
-        types = ["zero", "single", "color", "dozen", "odd_or_even", "halfs", "column"]
+        types = ["zero", "number", "color", "dozen", "odd_or_even", "halfs", "column"]
         if type not in types:
             return await ctx.send(
-                f"That's not a valid payout type. The available types are `{', '.join(types)}`"
+                f"{ctx.author.display_name}, that's not a valid payout type. The available types are `{', '.join(types)}`"
             )
         conf = await self.configglobalcheck(ctx)
         async with conf.roulette_payouts() as payouts:
