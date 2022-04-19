@@ -133,8 +133,6 @@ class Highlight(commands.Cog):
             return
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
-        if not await self.bot.allowed_by_whitelist_blacklist(message.author):
-            return
         highlight, highlightguild = (
             self.highlightcache.get(message.channel.id),
             self.guildcache.get(message.guild.id),
@@ -201,6 +199,8 @@ class Highlight(commands.Cog):
 
                 highlighted_usr = message.guild.get_member(int(user))
                 if highlighted_usr is None:
+                    continue
+                if not await self.bot.allowed_by_whitelist_blacklist(highlighted_usr):
                     continue
                 if not message.channel.permissions_for(highlighted_usr).read_messages:
                     continue
