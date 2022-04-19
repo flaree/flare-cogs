@@ -95,25 +95,33 @@ class Roulette(MixinMeta):
             if _type == 0:
                 for better in self.roulettegames[ctx.guild.id]["zero"]:
                     if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
-                        return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
+                        return {
+                            "failed": f"{ctx.author.display_name}, you cannot make duplicate bets."
+                        }
                 try:
                     await self.roulettewithdraw(ctx, bet)
                 except ValueError:
-                    return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
+                    return {
+                        "failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."
+                    }
                 self.roulettegames[ctx.guild.id]["zero"].append(
                     {_type: {"user": ctx.author.id, "amount": bet}}
                 )
                 return {"sucess": 200}
             for better in self.roulettegames[ctx.guild.id]["number"]:
                 if better.get(_type, False) and better[_type]["user"] == ctx.author.id:
-                    return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
+                    return {
+                        "failed": f"{ctx.author.display_name}, you cannot make duplicate bets."
+                    }
             self.roulettegames[ctx.guild.id]["number"].append(
                 {_type: {"user": ctx.author.id, "amount": bet}}
             )
             try:
                 await self.roulettewithdraw(ctx, bet)
             except ValueError:
-                return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
+                return {
+                    "failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."
+                }
             return {"sucess": 200}
         if _type.lower() in BET_TYPES:
             for better in self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]]:
@@ -121,11 +129,15 @@ class Roulette(MixinMeta):
                     better.get(_type.lower(), False)
                     and better[_type.lower()]["user"] == ctx.author.id
                 ):
-                    return {"failed": f"{ctx.author.display_name}, you cannot make duplicate bets."}
+                    return {
+                        "failed": f"{ctx.author.display_name}, you cannot make duplicate bets."
+                    }
             try:
                 await self.roulettewithdraw(ctx, bet)
             except ValueError:
-                return {"failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."}
+                return {
+                    "failed": f"{ctx.author.display_name}, you do not have enough funds to complete this bet."
+                }
             self.roulettegames[ctx.guild.id][BET_TYPES[_type.lower()]].append(
                 {_type.lower(): {"user": ctx.author.id, "amount": bet}}
             )
@@ -223,9 +235,13 @@ class Roulette(MixinMeta):
         betting = await conf.betting()
         minbet, maxbet = betting["min"], betting["max"]
         if amount < minbet:
-            return await ctx.send(f"{ctx.author.display_name}, your bet must be greater than {humanize_number(minbet)}.")
+            return await ctx.send(
+                f"{ctx.author.display_name}, your bet must be greater than {humanize_number(minbet)}."
+            )
         if amount > maxbet:
-            return await ctx.send(f"{ctx.author.display_name}, your bet must be less than {humanize_number(maxbet)}.")
+            return await ctx.send(
+                f"{ctx.author.display_name}, your bet must be less than {humanize_number(maxbet)}."
+            )
         betret = await self.betting(ctx, amount, bet)
         if betret.get("failed") is not None:
             return await ctx.send(betret["failed"])
