@@ -17,7 +17,7 @@ class Palette(commands.Cog):
     This is a collection of commands that are used to show colour palettes.
     """
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -48,14 +48,13 @@ class Palette(commands.Cog):
                     }
                 return {"error": resp.status}
 
-    @commands.command(aliases=["pfppalette"])
+    @commands.command()
     async def palette(
         self,
         ctx,
         img: Optional[ImageFinder] = None,
         amount: Optional[int] = 10,
-        show_hex=False,
-        sorted=False,
+        sorted: bool = False,
     ):
         """Colour palette of an image
 
@@ -68,6 +67,32 @@ class Palette(commands.Cog):
             img = await self.get_img(ctx, str(img))
         if isinstance(img, dict):
             return await ctx.send(img["error"])
+        image = await self.create_palette(img, amount, False, sorted)
+        await ctx.send(file=image)
+
+    @commands.command()
+    async def hexpalette(
+        self,
+        ctx,
+        img: Optional[ImageFinder] = None,
+        amount: Optional[int] = 10,
+        sorted: bool = False,
+    ):
+        """Colour palette of an image with hex values
+
+        By default it is sorted by prominence, but you can sort it by rgb by passing true."""
+        if amount > 50:
+            return await ctx.send("Too many colours, please limit to 50.")
+        if img is None:
+            img = str(ctx.author.avatar_url_as(format="png"))
+        async with ctx.typing():
+            img = await self.get_img(ctx, str(img))
+        if isinstance(img, dict):
+            return await ctx.send(img["error"])
+        image = await self.create_palette(img, amount, False, sorted)
+        await ctx.send(file=image)
+
+    async def create_palette(self, img: BytesIO, amount: int, show_hex: bool, sorted: bool):
         colors = colorgram.extract(img, amount)
         if sorted:
             colors.sort(key=lambda c: c.rgb)
@@ -76,8 +101,9 @@ class Palette(commands.Cog):
         final = Image.new("RGBA", dimensions)
         a = ImageDraw.Draw(final)
         start = 0
-        font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
-        name_fnt = ImageFont.truetype(font_file, 52, encoding="utf-8")
+        if show_hex:
+            font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
+            name_fnt = ImageFont.truetype(font_file, 52, encoding="utf-8")
         for color in colors:
             a.rectangle(
                 [(start, 0), (start + dimensions[1], 450 if show_hex else 100)], fill=color.rgb
@@ -93,9 +119,8 @@ class Palette(commands.Cog):
                 )
             start = start + dimensions[1]
         final = final.resize((500 * len(colors), 500), resample=Image.ANTIALIAS)
-        file = BytesIO()
-        final.save(file, "png")
-        file.name = "palette.png"
-        file.seek(0)
-        image = discord.File(file)
-        await ctx.send(file=image)
+        fileObj = BytesIO()
+        final.save(fileObj, "png")
+        fileObj.name = "palette.png"
+        fileObj.seek(0)
+        return discord.File(fileObj)
