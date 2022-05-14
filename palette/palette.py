@@ -59,6 +59,8 @@ class Palette(commands.Cog):
         """Colour palette of an image
 
         By default it is sorted by prominence, but you can sort it by rgb by passing true."""
+        if amount < 1:
+            return await ctx.send("Colours should be at least 1.")
         if amount > 50:
             return await ctx.send("Too many colours, please limit to 50.")
         if img is None:
@@ -91,7 +93,7 @@ class Palette(commands.Cog):
             img = await self.get_img(ctx, str(img))
         if isinstance(img, dict):
             return await ctx.send(img["error"])
-        image = await self.create_palette(img, amount, False, sorted)
+        image = await self.create_palette(img, amount, True, sorted)
         await ctx.send(file=image)
 
     async def create_palette(self, img: BytesIO, amount: int, show_hex: bool, sorted: bool):
