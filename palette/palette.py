@@ -81,6 +81,8 @@ class Palette(commands.Cog):
         """Colour palette of an image with hex values
 
         By default it is sorted by prominence, but you can sort it by rgb by passing true."""
+        if amount < 1:
+            return await ctx.send("Colours should be at least 1.")
         if amount > 50:
             return await ctx.send("Too many colours, please limit to 50.")
         if img is None:
