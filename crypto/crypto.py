@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 
+import discord
 import aiohttp
 from redbot.core import Config, bank, commands
 from redbot.core.utils.chat_formatting import box, humanize_number
@@ -174,15 +175,33 @@ class Crypto(commands.Cog):
         )
 
     @crypto.command(name="list")
-    async def _list(self, ctx):
-        """List your crypto"""
+    async def _list(self, ctx, user: discord.Member = None):
+        """Lists the crypto of a user, defaults to self
+        
+        Example:
+            - `[p]crypto list`
+            - `[p]crypto balance @Bird`
+
+        **Arguments**
+
+        - `<user>` The user to check the crypto balance of. If omitted, default to your own balance.
+        """
+        selfrequest = False
+
+        if user is None:
+            user = ctx.author
+            selfrequest = True
+
         coin_data = await self.all_coins()
         if coin_data == {}:
             return await ctx.send("Failed to fetch all coin data.")
         coin_list = {coin["name"]: coin for coin in coin_data["data"]}
-        data = await self.config.user(ctx.author).crypto()
+        data = await self.config.user(user).crypto()
         if not data:
-            return await ctx.send("You do not have any crypto bought.")
+            if selfrequest:
+                return await ctx.send("You do not have any crypto bought.")
+            else:
+                return await ctx.send("They do not have any crypto bought.")
         enddata = []
         for coin in data:
             totalprice = (
