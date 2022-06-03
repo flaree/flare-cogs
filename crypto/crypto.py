@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
-import discord
 import aiohttp
+import discord
 from redbot.core import Config, bank, commands
 from redbot.core.utils.chat_formatting import box, humanize_number
 from tabulate import tabulate
@@ -177,7 +177,7 @@ class Crypto(commands.Cog):
     @crypto.command(name="list")
     async def _list(self, ctx, user: discord.Member = None):
         """Lists the crypto of a user, defaults to self
-        
+
         Example:
             - `[p]crypto list`
             - `[p]crypto balance @Bird`
