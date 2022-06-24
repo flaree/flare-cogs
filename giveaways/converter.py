@@ -37,6 +37,8 @@ class Args(Converter):
         parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
         parser.add_argument("--description", dest="description", default=[], nargs="*")
         parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
+        parser.add_argument("--image", dest="image", default=None, nargs="*")
+        parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
 
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")

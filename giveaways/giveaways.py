@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.6"
+    __version__ = "0.12.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -271,6 +271,8 @@ class Giveaways(commands.Cog):
                 "notify",
                 "announce",
                 "emoji",
+                "thumbnail",
+                "image",
             }:
                 if arguments[kwarg]:
                     description += f"\n**{kwarg.title()}:** {arguments[kwarg]}"
@@ -283,6 +285,10 @@ class Giveaways(commands.Cog):
             description=f"{description}\n\nReact with {emoji} to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
+        if arguments["image"] is not None:
+            embed.set_image(url=arguments["image"])
+        if arguments["thumbnail"] is not None:
+            embed.set_thumbnail(url=arguments["thumbnail"])
         txt = "\n"
         if arguments["ateveryone"]:
             txt += "@everyone "
