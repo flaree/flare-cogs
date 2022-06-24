@@ -6,7 +6,7 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.8"
+    __version__ = "1.2.9"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -63,6 +63,7 @@ class Forward(commands.Cog):
             return
         if message.author.id in await self.config.blacklist():
             return
+        msg = ""
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
@@ -91,7 +92,7 @@ class Forward(commands.Cog):
             embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
         for embed in embeds:
-            await self._destination(msg=None, embed=embed)
+            await self._destination(msg=msg, embed=embed)
 
     @checks.is_owner()
     @commands.group()
