@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.5"
+    __version__ = "0.11.6"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -500,7 +500,10 @@ class Giveaways(commands.Cog):
                 await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
             except GiveawayEnterError as e:
                 if giveaway.kwargs.get("notify", False):
-                    await payload.member.send(e.message)
+                    try:
+                        await payload.member.send(e.message)
+                    except discord.Forbidden:
+                        pass
                 return
             except GiveawayExecError as e:
                 log.exception("Error while adding user to giveaway", exc_info=e)
