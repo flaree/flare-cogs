@@ -201,5 +201,6 @@ class Args(Converter):
                 raise BadArgument(
                     "Invalid end date. Use `--end` or `-e`. Ensure to pass a timezone, otherwise it defaults to UTC."
                 )
-
+        vals["image"] = " ".join(vals["prize"]) if vals["image"] else None
+        vals["thumbnail"] = " ".join(vals["thumbnail"]) if vals["thumbnail"] else None
         return vals
