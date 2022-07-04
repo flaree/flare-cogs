@@ -6,7 +6,7 @@ ci:
     autoupdate_schedule: quarterly
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.3.0
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
@@ -33,11 +33,11 @@ repos:
         args: ['--in-place', '--remove-unused-variable']
 
 -   repo: https://github.com/psf/black
-    rev: '22.3.0'
+    rev: '22.6.0'
     hooks:
       - id: black
 -   repo: https://github.com/Pierre-Sassoulas/black-disable-checker
-    rev: '1.0.1'
+    rev: 'v1.1.0'
     hooks:
       - id: black-disable-checker
 -   repo: https://github.com/pycqa/isort
