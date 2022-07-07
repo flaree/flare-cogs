@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.1"
+    __version__ = "0.12.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -435,6 +435,8 @@ class Giveaways(commands.Cog):
         `--winners`: How many winners to draw. Must be a positive number.
         `--mentions`: Roles to mention in the giveaway notice.
         `--description`: Description of the giveaway.
+        `--image`: Image URL to use for the giveaway embed.
+        `--thumbnail`: Thumbnail URL to use for the giveaway embed.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
