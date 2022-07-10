@@ -18,7 +18,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -75,7 +75,7 @@ class F1(commands.Cog):
                             role = guild.get_role(data[guild_id]["role"])
                             if role is not None:
                                 msg += f"{role.mention}, "
-                        msg += f"**Race Day**!\n**{circuit['raceName']}** (Round {circuit['round']}) at **{circuit['Circuit']['circuitName']}** is starting today!\n**Race Start**: <t:{int(time.timestamp())}:F>"
+                        msg += f"**Race Day**!\n**{circuit['raceName']}** (Round {circuit['round']}) at **{circuit['Circuit']['circuitName']}** is starting today!\n**Race Start**:\n<t:{int(time.timestamp())}:F>\n<t:{int(time.timestamp())}:R>"
                         await channel.send(msg, allowed_mentions=AllowedMentions.all())
                     except Exception as e:
                         log.exception(e)
