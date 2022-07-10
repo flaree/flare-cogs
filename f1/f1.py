@@ -415,7 +415,7 @@ class F1(commands.Cog):
                 embed.set_footer(text="Race Date:")
                 embed.add_field(
                     name="Information",
-                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n**Start**: <t:{int(time.timestamp())}:F>',
+                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n**Start**:\n<t:{int(time.timestamp())}:F>\n<t:{int(time.timestamp())}:R>',
                 )
                 await ctx.send(embed=embed)
                 return
