@@ -210,9 +210,9 @@ class Highlight(commands.Cog):
                 if message.author.bot and message.embeds:
                     content = ""
                     for embed in message.embeds:
-                        content += embed.description
+                        content += embed.description if embed.description else ""
                         for field in embed.fields:
-                            content += field.value
+                            content += field.value if field.value else ""
 
                 if highlighted_dict[user][word].get("boundary", False):
                     if word.lower() in self.recache:
