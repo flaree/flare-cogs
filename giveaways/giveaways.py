@@ -128,9 +128,7 @@ class Giveaways(commands.Cog):
                 content="🎉 Giveaway Ended 🎉",
                 embed=embed,
             )
-        except discord.NotFound:
-            return
-        except discord.Forbidden:
+        except discord.NotFound, discord.Forbidden:
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
