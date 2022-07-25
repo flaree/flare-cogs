@@ -134,7 +134,9 @@ class Giveaways(commands.Cog):
             ).entrants() as entrants:
                 entrants = [x for x in entrants if x != winner]
             del self.giveaways[giveaway.messageid]
-            gw = await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(giveaway.messageid)).all()
+            gw = await self.config.custom(
+                GIVEAWAY_KEY, ctx.guild.id, str(giveaway.messageid)
+            ).all()
             gw["ended"] = True
             await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(giveaway.messageid)).set(gw)
             return
