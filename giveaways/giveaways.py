@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.3"
+    __version__ = "0.12.4"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -145,9 +145,10 @@ class Giveaways(commands.Cog):
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
-                description=f"Congratulations to the {str(winners) + ' ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}]({msg.jump_url}).\n{txt}",
+                description=f"Congratulations to the {f'{str(winners)} ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}]({msg.jump_url}).\n{txt}",
                 color=await self.bot.get_embed_color(channel_obj),
             )
+
             announce_embed.set_footer(
                 text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid}"
             )
@@ -162,12 +163,10 @@ class Giveaways(commands.Cog):
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
-                    try:
+                    with contextlib.suppress(discord.Forbidden):
                         await winner.send(
                             f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
                         )
-                    except discord.Forbidden:
-                        pass
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
@@ -312,7 +311,7 @@ class Giveaways(commands.Cog):
                 if role is not None:
                     txt += f"{role.mention} "
         msg = await channel.send(
-            content="🎉 Giveaway 🎉" + txt,
+            content=f"🎉 Giveaway 🎉{txt}",
             embed=embed,
             allowed_mentions=discord.AllowedMentions(
                 roles=bool(arguments["mentions"]),
@@ -362,7 +361,7 @@ class Giveaways(commands.Cog):
             embed = discord.Embed(
                 title="Entrants", description=page, color=await ctx.embed_color()
             )
-            embed.set_footer(text="Total entrants: {}".format(len(count)))
+            embed.set_footer(text=f"Total entrants: {len(count)}")
             embeds.append(embed)
 
         if len(embeds) == 1:
@@ -520,10 +519,8 @@ class Giveaways(commands.Cog):
                 await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
             except GiveawayEnterError as e:
                 if giveaway.kwargs.get("notify", False):
-                    try:
+                    with contextlib.suppress(discord.Forbidden):
                         await payload.member.send(e.message)
-                    except discord.Forbidden:
-                        pass
                 return
             except GiveawayExecError as e:
                 log.exception("Error while adding user to giveaway", exc_info=e)
