@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.2"
+    __version__ = "0.12.3"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -135,10 +135,12 @@ class Giveaways(commands.Cog):
                 entrants = [x for x in entrants if x != winner]
             del self.giveaways[giveaway.messageid]
             gw = await self.config.custom(
-                GIVEAWAY_KEY, ctx.guild.id, str(giveaway.messageid)
+                GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
             ).all()
             gw["ended"] = True
-            await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(giveaway.messageid)).set(gw)
+            await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(
+                gw
+            )
             return
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
