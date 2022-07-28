@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.4"
+    __version__ = "0.12.5"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -199,7 +199,7 @@ class Giveaways(commands.Cog):
         end = datetime.now(timezone.utc) + time
         embed = discord.Embed(
             title=f"{prize}",
-            description=f"\nReact with 🎉 to enter\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"\nReact with 🎉 to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         msg = await channel.send(embed=embed)
@@ -293,7 +293,7 @@ class Giveaways(commands.Cog):
             emoji = self.bot.get_emoji(emoji)
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"{description}\n\nReact with {emoji} to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"{description}\n\nReact with {emoji} to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         if arguments["image"] is not None:
