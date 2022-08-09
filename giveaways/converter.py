@@ -186,11 +186,12 @@ class Args(Converter):
             tc = TimedeltaConverter()
             try:
                 duration = await tc.convert(ctx, " ".join(vals["duration"]))
-                if duration.total_seconds() < 60:
-                    raise BadArgument("Duration must be greater than 60 seconds.")
                 vals["duration"] = duration
             except BadArgument:
                 raise BadArgument("Invalid duration. Use `--duration` or `-d`")
+            else:
+                if duration.total_seconds() < 60:
+                    raise BadArgument("Duration must be greater than 60 seconds.")
         else:
             try:
                 time = dateparser.parse(" ".join(vals["end"]))

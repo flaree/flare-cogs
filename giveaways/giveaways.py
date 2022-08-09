@@ -421,6 +421,7 @@ class Giveaways(commands.Cog):
 
         msg = """
         Giveaway advanced creation.
+        NOTE: Giveaways are checked every 20 seconds, this means that the giveaway may end up being slightly longer than the specified duration.
 
         Giveaway advanced contains many different flags that can be used to customize the giveaway.
         The flags are as follows:
