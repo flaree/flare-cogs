@@ -184,10 +184,11 @@ class Args(Converter):
         vals["prize"] = " ".join(vals["prize"])
         if vals["duration"]:
             tc = TimedeltaConverter()
-            if tc.total_seconds() < 60:
-                raise BadArgument("Duration must be at least 1 minute.")
             try:
-                vals["duration"] = await tc.convert(ctx, " ".join(vals["duration"]))
+                duration = await tc.convert(ctx, " ".join(vals["duration"]))
+                if duration.total_seconds() < 60:
+                    raise BadArgument("Duration must be greater than 60 seconds.")
+                vals["duration"] = duration
             except BadArgument:
                 raise BadArgument("Invalid duration. Use `--duration` or `-d`")
         else:
