@@ -184,6 +184,8 @@ class Args(Converter):
         vals["prize"] = " ".join(vals["prize"])
         if vals["duration"]:
             tc = TimedeltaConverter()
+            if tc.total_seconds() < 60:
+                raise BadArgument("Duration must be at least 1 minute.")
             try:
                 vals["duration"] = await tc.convert(ctx, " ".join(vals["duration"]))
             except BadArgument:
@@ -197,6 +199,8 @@ class Args(Converter):
                     raise BadArgument("End date must be in the future.")
                 time = time - datetime.now(timezone.utc)
                 vals["duration"] = time
+                if time.total_seconds() < 60:
+                    raise BadArgument("End date must be at least 1 minute in the future.")
             except Exception:
                 raise BadArgument(
                     "Invalid end date. Use `--end` or `-e`. Ensure to pass a timezone, otherwise it defaults to UTC."

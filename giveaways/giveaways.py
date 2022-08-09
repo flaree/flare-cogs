@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.5"
+    __version__ = "0.12.6"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -69,7 +69,7 @@ class Giveaways(commands.Cog):
                 await self.check_giveaways()
             except Exception as exc:
                 log.error("Exception in giveaway loop: ", exc_info=exc)
-            await asyncio.sleep(60)
+            await asyncio.sleep(20)
 
     def cog_unload(self) -> None:
         with contextlib.suppress(Exception):
