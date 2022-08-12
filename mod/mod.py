@@ -8,7 +8,7 @@ import discord
 from redbot.cogs.mod import Mod as ModClass
 from redbot.cogs.mod.utils import is_allowed_by_hierarchy
 from redbot.core import Config, checks, commands, modlog
-from redbot.core.utils.chat_formatting import bold, box, humanize_timedelta, pagify
+from redbot.core.utils.chat_formatting import bold, box
 from redbot.core.utils.mod import get_audit_reason
 
 log = logging.getLogger("red.flarecogs.mod")
