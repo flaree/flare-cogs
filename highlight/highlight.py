@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.10.0"
+    __version__ = "1.10.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -1029,6 +1029,19 @@ class Highlight(commands.Cog):
             await ctx.send("Highlights can now only be used by users with mod/admin permissions.")
         else:
             await ctx.send("Highlights can now be used by all users.")
+        await self.generate_cache()
+
+    @highlightset.command()
+    async def wipe(self, ctx, user: discord.Member):
+        """Wipe all highlights for a user."""
+        async with self.config.guild(ctx.guild).highlight() as highlight_guild:
+            if str(user.id) in highlight_guild:
+                del highlight_guild[str(user.id)]
+        for channel in ctx.guild.text_channels:
+            async with self.config.channel(channel).highlight() as highlight_chann:
+                if str(user.id) in highlight_chann:
+                    del highlight_chann[str(user.id)]
+        await ctx.send(f"Highlights for {user} have been wiped.")
         await self.generate_cache()
 
 
