@@ -458,7 +458,7 @@ class Mod(ModClass):
                 until=None,
                 channel=None,
             )
-            message = await self.config.guild(ctx.guild).kick_message()
+            message = await self._config.guild(ctx.guild).kick_message()
             objects = {
                 "user": member,
                 "moderator": author,
