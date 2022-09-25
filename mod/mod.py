@@ -633,7 +633,7 @@ class Mod(ModClass):
                 until=None,
                 channel=None,
             )
-            message = await self.config.guild(ctx.guild).unban_message()
+            message = await self._config.guild(ctx.guild).unban_message()
             objects = {
                 "user": ban_entry.user,
                 "moderator": author,
