@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
@@ -64,10 +65,8 @@ class Snipe(commands.Cog):
 
                 if i > 0:
                     for _ in range(i):
-                        try:
+                        with contextlib.suppress(IndexError):
                             queue.popleft()
-                        except IndexError:
-                            pass
 
     async def snipe_loop(self):
         await self.bot.wait_until_ready()
@@ -116,18 +115,18 @@ class Snipe(commands.Cog):
         guild = message.guild
         if not guild or message.author.bot:
             return True
-        config = self.config_cache.get(guild.id)
-        if not config:
+        if config := self.config_cache.get(guild.id):
+            return (
+                True
+                if any(
+                    x
+                    for x in [message.author.id, message.channel.id]
+                    if x in config.get("ignore", set())
+                )
+                else not config["toggle"]
+            )
+        else:
             return True
-        if any(
-            [
-                x
-                for x in [message.author.id, message.channel.id]
-                if x in config.get("ignore", set())
-            ]
-        ):
-            return True
-        return not config["toggle"]
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):

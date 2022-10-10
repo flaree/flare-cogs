@@ -298,17 +298,16 @@ class F1(commands.Cog):
         if not results:
             await ctx.send("No data available.")
             return
-        data = []
-        for driver in results:
-            data.append(
-                [
-                    driver["positionText"],
-                    driver["points"],
-                    driver["wins"],
-                    driver["Driver"]["givenName"] + " " + driver["Driver"]["familyName"],
-                    driver["Constructors"][0]["name"],
-                ]
-            )
+        data = [
+            [
+                driver["positionText"],
+                driver["points"],
+                driver["wins"],
+                driver["Driver"]["givenName"] + " " + driver["Driver"]["familyName"],
+                driver["Constructors"][0]["name"],
+            ]
+            for driver in results
+        ]
 
         msg = tabulate.tabulate(
             data,
@@ -327,16 +326,15 @@ class F1(commands.Cog):
         if not results:
             await ctx.send("No data available.")
             return
-        data = []
-        for driver in results:
-            data.append(
-                [
-                    driver["positionText"],
-                    driver["points"],
-                    driver["wins"],
-                    driver["Constructor"]["name"],
-                ]
-            )
+        data = [
+            [
+                driver["positionText"],
+                driver["points"],
+                driver["wins"],
+                driver["Constructor"]["name"],
+            ]
+            for driver in results
+        ]
 
         msg = tabulate.tabulate(
             data, headers=["Position", "Points", "Wins", "Constructor"], tablefmt="plainfmt"

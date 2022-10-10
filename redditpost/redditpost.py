@@ -221,7 +221,7 @@ class RedditPost(commands.Cog):
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
             )
-        logo = REDDIT_LOGO if not subreddit_info.icon_img else subreddit_info.icon_img
+        logo = subreddit_info.icon_img or REDDIT_LOGO
 
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit in feeds:
