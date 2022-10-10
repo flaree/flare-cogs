@@ -64,12 +64,11 @@ class DmInvite(commands.Cog):
         toggle = toggle or await self.config.toggle()
         if toggle:
             await self.config.toggle.set(False)
-            await ctx.send(
-                "{} will no longer auto-respond to invites sent in DMs.".format(ctx.me.name)
-            )
+            await ctx.send(f"{ctx.me.name} will no longer auto-respond to invites sent in DMs.")
+
         else:
             await self.config.toggle.set(True)
-            await ctx.send("{} will auto-respond to invites sent in DMs.".format(ctx.me.name))
+            await ctx.send(f"{ctx.me.name} will auto-respond to invites sent in DMs.")
 
     @dminvite.command()
     @commands.is_owner()
@@ -103,8 +102,7 @@ class DmInvite(commands.Cog):
         if message.author.bot:
             return
         if await self.config.toggle():
-            link_res = INVITE_URL_RE.findall(message.content)
-            if link_res:
+            if link_res := INVITE_URL_RE.findall(message.content):
                 msg = await self.config.message()
                 if "{link}" in msg:
                     msg = msg.format(link=await self.invite_url())

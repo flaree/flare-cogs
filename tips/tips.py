@@ -140,7 +140,7 @@ class Tips(commands.Cog):
                 return await ctx.send("That is already a response.")
             replies.append(tip)
             ind = replies.index(tip)
-        await ctx.send("Your tip has been added and is tip ID #{}".format(ind))
+        await ctx.send(f"Your tip has been added and is tip ID #{ind}")
         await self.generate_cache()
 
     @commands.is_owner()

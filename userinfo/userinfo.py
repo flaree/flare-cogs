@@ -139,20 +139,18 @@ class Userinfo(commands.Cog):
             async with self.config.status_emojis() as emojis:
                 if type not in emojis:
                     await ctx.send(
-                        "That emoji doesn't exist. Valid emoji types are: {}".format(
-                            ", ".join(emojis.keys())
-                        )
+                        f"""That emoji doesn't exist. Valid emoji types are: {", ".join(emojis.keys())}"""
                     )
+
                     return
                 emojis[type] = emoji_id
         else:
             async with self.config.badge_emojis() as emojis:
                 if type not in emojis:
                     await ctx.send(
-                        "That emoji doesn't exist. Valid emoji types are: {}".format(
-                            ", ".join(emojis.keys())
-                        )
+                        f"""That emoji doesn't exist. Valid emoji types are: {", ".join(emojis.keys())}"""
                     )
+
                     return
                 emojis[type] = emoji_id
         await self.gen_emojis()

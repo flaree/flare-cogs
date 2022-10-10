@@ -169,8 +169,7 @@ class Trigger(commands.Cog):
             if len(msg) > 2000:
                 msg = f"**Triggered By:** {triggers[trigger]['trigger']}\n**Uses:** {triggers[trigger]['uses']}\n**Cooldown:** {triggers[trigger]['cooldown']} seconds\n**Responses:**\n *Responses Truncated*"
             embed = discord.Embed(title=trigger, description=msg, color=await ctx.embed_color())
-            user = ctx.guild.get_member(triggers[trigger]["owner"])
-            if user:
+            if user := ctx.guild.get_member(triggers[trigger]["owner"]):
                 footer = f"Created by {user}"
             else:
                 footer = f"Created by <Unknown User {triggers[trigger]['owner']}>"

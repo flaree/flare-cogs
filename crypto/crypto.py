@@ -36,10 +36,7 @@ class Crypto(commands.Cog):
         Dict[str, str]
     ]:  # Original function taken from TrustyJAID with permission, https://github.com/TrustyJAID/Trusty-cogs/blob/ffdb8f77ed888d5bbbfcc3805d860e8dab80741b/conversions/conversions.py#L177
         api_key = (await self.bot.get_shared_api_tokens("coinmarketcap")).get("api_key")
-        if api_key:
-            return {"X-CMC_PRO_API_KEY": api_key}
-        else:
-            return None
+        return {"X-CMC_PRO_API_KEY": api_key} if api_key else None
 
     async def checkcoins(
         self, base: str
@@ -50,18 +47,20 @@ class Crypto(commands.Cog):
                 data = await resp.json()
                 if resp.status in [400, 401, 403, 429, 500]:
                     return data
-        for coin in data["data"]:
-            if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower():
-                return coin
-        return {}
+        return next(
+            (
+                coin
+                for coin in data["data"]
+                if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower()
+            ),
+            {},
+        )
 
     async def all_coins(self):
         url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=await self.get_header()) as resp:
-                if resp.status == 200:
-                    return await resp.json()
-                return {}
+                return await resp.json() if resp.status == 200 else {}
 
     @commands.group()
     @commands.check(tokencheck)
