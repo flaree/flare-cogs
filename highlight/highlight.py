@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.10.1"
+    __version__ = "1.11.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -205,14 +205,15 @@ class Highlight(commands.Cog):
                 if not message.channel.permissions_for(highlighted_usr).read_messages:
                     continue
                 content = message.content.lower()
-                if message.author.bot and not highlighted_dict[user][word]["bots"]:
-                    continue
-                if message.author.bot and message.embeds:
-                    content = ""
-                    for embed in message.embeds:
-                        content += embed.description if embed.description else ""
-                        for field in embed.fields:
-                            content += field.value if field.value else ""
+                if message.author.bot:
+                    if not highlighted_dict[user][word]["bots"]:
+                        continue
+                    if message.embeds:
+                        content = ""
+                        for embed in message.embeds:
+                            content += embed.description or ""
+                            for field in embed.fields:
+                                content += field.value or ""
 
                 if highlighted_dict[user][word].get("boundary", False):
                     if word.lower() in self.recache:
@@ -1043,6 +1044,18 @@ class Highlight(commands.Cog):
                     del highlight_chann[str(user.id)]
         await ctx.send(f"Highlights for {user} have been wiped.")
         await self.generate_cache()
+
+    @highlightset.command(aliases=["settings", "showsettings"])
+    async def show(self, ctx):
+        """Show the current highlight settings."""
+        max_highlights = await self.config.max_highlights()
+        min_len = await self.config.min_len()
+        cooldown = await self.config.default_cooldown()
+        colour = str(await self.config.colour())
+        restricted = await self.config.restricted()
+        msg = f"""```ini\n[Max Highlights] = {max_highlights}\n[Min Length] = {min_len}\n[Cooldown] = {cooldown}\n[Colour] = {discord.Colour.from_rgb(int(colour[:2]), int(colour[2:5]), int(colour[4:]))}\n[Restricted] = {restricted}```"""
+
+        await ctx.send(msg)
 
 
 def yes_or_no(boolean: bool):
