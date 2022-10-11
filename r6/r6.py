@@ -134,11 +134,11 @@ class R6(commands.Cog):
 
     @r6.command()
     async def user(self, ctx, user: discord.Member = None):
-        """Check if a user has linked his R6 account."""
+        """Check if a user has linked their R6 account."""
         user = user or ctx.author
         username = await self.config.user(user).username()
         if username is None:
-            await ctx.send("User has not linked his profile with the bot.")
+            await ctx.send("User has not linked their profile with the bot.")
             return
         platform = await self.config.user(user).platform()
         region = await self.config.user(user).region()
