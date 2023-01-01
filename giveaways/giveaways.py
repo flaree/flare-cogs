@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.6"
+    __version__ = "0.12.7"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -69,7 +69,7 @@ class Giveaways(commands.Cog):
                 await self.check_giveaways()
             except Exception as exc:
                 log.error("Exception in giveaway loop: ", exc_info=exc)
-            await asyncio.sleep(20)
+            await asyncio.sleep(15)
 
     def cog_unload(self) -> None:
         with contextlib.suppress(Exception):
@@ -128,7 +128,8 @@ class Giveaways(commands.Cog):
                 content="🎉 Giveaway Ended 🎉",
                 embed=embed,
             )
-        except (discord.NotFound, discord.Forbidden):
+        except (discord.NotFound, discord.Forbidden) as exc:
+            log.error("Error editing giveaway message: ", exc_info=exc)
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
