@@ -4,7 +4,7 @@
     ],
     "install_msg": "This cog ports the Jishaku module to Red. No support is given for this cog, nor am I responsibile for anything that can go wrong as from you misuing the tools. Note that some of these may be useless on Red. [p]help Jishaku or [p]help jsk",
     "name": "Jsk",
-    "hidden": true,
+    "hidden": false,
     "short": "Jishaku ported to Red.",
     "description": "Jishaku ported to Red.",
     "tags": [
