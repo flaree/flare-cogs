@@ -175,7 +175,7 @@ class Giveaways(commands.Cog):
         return
 
     @commands.group(aliases=["gw"])
-    @commands.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True, embed_links=True)
     @commands.has_permissions(manage_guild=True)
     async def giveaway(self, ctx: commands.Context):
         """
