@@ -79,17 +79,17 @@ class JoinMessage(commands.Cog):
             discord.utils.find(lambda x: x.name in CHANNELS, guild.text_channels)
             or guild.system_channel
             or next(
-                (x for x in guild.text_channels if x.permissions_for(guild.me).send_messages), None
+                (x for x in guild.text_channels if x.permissions_for(guild).send_messages), None
             )
         )
         if channel is None:
             log.debug("Couldn't find a channel to send join message in %s", guild)
             return
-        if not channel.permissions_for(guild.me).send_messages:
+        if not channel.permissions_for(guild).send_messages:
             return
-        if await self.config.embed() and channel.permissions_for(guild.me).embed_links:
+        if await self.config.embed() and channel.permissions_for(guild).embed_links:
             embed = discord.Embed(
-                title=f"Thanks for inviting {guild.me.name}!",
+                title=f"Thanks for joining {guild}!",
                 description=msg,
                 colour=await self.bot.get_embed_colour(location=channel),
             )
@@ -175,9 +175,9 @@ class JoinMessage(commands.Cog):
             log.info("No message setup, please set one up via the joinmessage message command.")
             return
         channel, guild = ctx.channel, ctx.guild
-        if await self.config.embed() and channel.permissions_for(guild.me).embed_links:
+        if await self.config.embed() and channel.permissions_for(guild).embed_links:
             embed = discord.Embed(
-                title=f"Thanks for inviting {guild.me.name}!",
+                title=f"Thanks for joining {guild}!",
                 description=msg,
                 colour=await self.bot.get_embed_colour(location=channel),
             )
