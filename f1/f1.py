@@ -386,7 +386,6 @@ class F1(commands.Cog):
 
         datetimes = []
         for circuit in circuits:
-
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
             ).replace(tzinfo=datetime.timezone.utc)

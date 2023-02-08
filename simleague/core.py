@@ -655,7 +655,6 @@ class SimHelper(MixinMeta):
         return image
 
     async def walkout(self, ctx, team1, home_or_away):
-
         font_bold_file = f"{bundled_data_path(self)}/font_bold.ttf"
         name_fnt = ImageFont.truetype(font_bold_file, 22)
         header_u_fnt = ImageFont.truetype(font_bold_file, 18)

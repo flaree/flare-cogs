@@ -125,7 +125,6 @@ class RedditPost(commands.Cog):
         feeds = {}
         channel_data = await self.config.all_channels()
         for channel_id, data in channel_data.items():
-
             channel = self.bot.get_channel(channel_id)
             if not channel:
                 continue

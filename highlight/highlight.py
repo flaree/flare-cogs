@@ -1002,7 +1002,8 @@ class Highlight(commands.Cog):
     async def _cooldown(self, ctx, cooldown: int):
         """Set the default cooldown of a highlight. (in seconds)
 
-        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined."""
+        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined.
+        """
         if cooldown < 1 or cooldown > 600:
             return await ctx.send("Cooldown cannot be less than 1 or greater than 600.")
         await self.config.default_cooldown.set(cooldown)

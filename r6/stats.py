@@ -881,7 +881,6 @@ class Stats:
         )
         y = 760
         for ability in opdata["abilities"]:
-
             draw.text(
                 (520, y),
                 "{}: {}".format(ability["ability"], ability["value"]),

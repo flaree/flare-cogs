@@ -11,7 +11,6 @@ log = logging.getLogger("red.flare.verifyemail")
 
 
 class EmailVerify(commands.Cog):
-
     __version__ = "0.1.1"
     __author__ = "flare"
 

@@ -69,7 +69,6 @@ class Faceit(commands.Cog):
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ):
-
         await self.config.user_from_id(user_id).clear()
 
     def cog_unload(self):
