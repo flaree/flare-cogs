@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.11.0"
+    __version__ = "1.11.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -247,7 +247,7 @@ class Highlight(commands.Cog):
 
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
                 await highlighted_usr.send(
-                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
+                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
                     embed=embed,
                 )
                 self.cooldowns[highlighted_usr.id] = datetime.now(tz=timezone.utc)
