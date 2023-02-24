@@ -44,7 +44,7 @@ class CommandStats(commands.Cog):
         self.config.register_global(**default_global)
         self.cache = {"guild": {}, "session": Counter({}), "automated": Counter({})}
         self.session = Counter()
-        self.session_time = datetime.datetime.utcnow()
+        self.session_time = datetime.datetime.now(datetime.timezone.utc)
         self.bg_loop_task = self.bot.loop.create_task(self.bg_loop())
 
     async def red_get_data_for_user(self, *, user_id: int):

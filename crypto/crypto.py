@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 
 import aiohttp
+import discord
 from redbot.core import Config, bank, commands
 from redbot.core.utils.chat_formatting import box, humanize_number
 from tabulate import tabulate
@@ -35,10 +36,7 @@ class Crypto(commands.Cog):
         Dict[str, str]
     ]:  # Original function taken from TrustyJAID with permission, https://github.com/TrustyJAID/Trusty-cogs/blob/ffdb8f77ed888d5bbbfcc3805d860e8dab80741b/conversions/conversions.py#L177
         api_key = (await self.bot.get_shared_api_tokens("coinmarketcap")).get("api_key")
-        if api_key:
-            return {"X-CMC_PRO_API_KEY": api_key}
-        else:
-            return None
+        return {"X-CMC_PRO_API_KEY": api_key} if api_key else None
 
     async def checkcoins(
         self, base: str
@@ -49,18 +47,20 @@ class Crypto(commands.Cog):
                 data = await resp.json()
                 if resp.status in [400, 401, 403, 429, 500]:
                     return data
-        for coin in data["data"]:
-            if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower():
-                return coin
-        return {}
+        return next(
+            (
+                coin
+                for coin in data["data"]
+                if base.upper() == coin["symbol"].upper() or base.lower() == coin["name"].lower()
+            ),
+            {},
+        )
 
     async def all_coins(self):
         url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=await self.get_header()) as resp:
-                if resp.status == 200:
-                    return await resp.json()
-                return {}
+                return await resp.json() if resp.status == 200 else {}
 
     @commands.group()
     @commands.check(tokencheck)
@@ -174,15 +174,33 @@ class Crypto(commands.Cog):
         )
 
     @crypto.command(name="list")
-    async def _list(self, ctx):
-        """List your crypto"""
+    async def _list(self, ctx, user: discord.Member = None):
+        """Lists the crypto of a user, defaults to self
+
+        Example:
+            - `[p]crypto list`
+            - `[p]crypto balance @Bird`
+
+        **Arguments**
+
+        - `<user>` The user to check the crypto balance of. If omitted, default to your own balance.
+        """
+        selfrequest = False
+
+        if user is None:
+            user = ctx.author
+            selfrequest = True
+
         coin_data = await self.all_coins()
         if coin_data == {}:
             return await ctx.send("Failed to fetch all coin data.")
         coin_list = {coin["name"]: coin for coin in coin_data["data"]}
-        data = await self.config.user(ctx.author).crypto()
+        data = await self.config.user(user).crypto()
         if not data:
-            return await ctx.send("You do not have any crypto bought.")
+            if selfrequest:
+                return await ctx.send("You do not have any crypto bought.")
+            else:
+                return await ctx.send("They do not have any crypto bought.")
         enddata = []
         for coin in data:
             totalprice = (

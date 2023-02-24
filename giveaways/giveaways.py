@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.11.5"
+    __version__ = "0.12.7"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -69,7 +69,7 @@ class Giveaways(commands.Cog):
                 await self.check_giveaways()
             except Exception as exc:
                 log.error("Exception in giveaway loop: ", exc_info=exc)
-            await asyncio.sleep(60)
+            await asyncio.sleep(15)
 
     def cog_unload(self) -> None:
         with contextlib.suppress(Exception):
@@ -128,14 +128,28 @@ class Giveaways(commands.Cog):
                 content="🎉 Giveaway Ended 🎉",
                 embed=embed,
             )
-        except discord.NotFound:
+        except (discord.NotFound, discord.Forbidden) as exc:
+            log.error("Error editing giveaway message: ", exc_info=exc)
+            async with self.config.custom(
+                GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
+            ).entrants() as entrants:
+                entrants = [x for x in entrants if x != winner]
+            del self.giveaways[giveaway.messageid]
+            gw = await self.config.custom(
+                GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
+            ).all()
+            gw["ended"] = True
+            await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(
+                gw
+            )
             return
         if giveaway.kwargs.get("announce"):
             announce_embed = discord.Embed(
                 title="Giveaway Ended",
-                description=f"Congratulations to the {str(winners) + ' ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}]({msg.jump_url}).\n{txt}",
+                description=f"Congratulations to the {f'{str(winners)} ' if winners > 1 else ''}winner{'s' if winners > 1 else ''} of [{giveaway.prize}]({msg.jump_url}).\n{txt}",
                 color=await self.bot.get_embed_color(channel_obj),
             )
+
             announce_embed.set_footer(
                 text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid}"
             )
@@ -150,12 +164,10 @@ class Giveaways(commands.Cog):
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
-                    try:
+                    with contextlib.suppress(discord.Forbidden):
                         await winner.send(
                             f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
                         )
-                    except discord.Forbidden:
-                        pass
             async with self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
             ).entrants() as entrants:
@@ -163,7 +175,7 @@ class Giveaways(commands.Cog):
         return
 
     @commands.group(aliases=["gw"])
-    @commands.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True, embed_links=True)
     @commands.has_permissions(manage_guild=True)
     async def giveaway(self, ctx: commands.Context):
         """
@@ -188,7 +200,7 @@ class Giveaways(commands.Cog):
         end = datetime.now(timezone.utc) + time
         embed = discord.Embed(
             title=f"{prize}",
-            description=f"\nReact with 🎉 to enter\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"\nReact with 🎉 to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         msg = await channel.send(embed=embed)
@@ -271,6 +283,8 @@ class Giveaways(commands.Cog):
                 "notify",
                 "announce",
                 "emoji",
+                "thumbnail",
+                "image",
             }:
                 if arguments[kwarg]:
                     description += f"\n**{kwarg.title()}:** {arguments[kwarg]}"
@@ -280,9 +294,13 @@ class Giveaways(commands.Cog):
             emoji = self.bot.get_emoji(emoji)
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"{description}\n\nReact with {emoji} to enter\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"{description}\n\nReact with {emoji} to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
+        if arguments["image"] is not None:
+            embed.set_image(url=arguments["image"])
+        if arguments["thumbnail"] is not None:
+            embed.set_thumbnail(url=arguments["thumbnail"])
         txt = "\n"
         if arguments["ateveryone"]:
             txt += "@everyone "
@@ -294,7 +312,7 @@ class Giveaways(commands.Cog):
                 if role is not None:
                     txt += f"{role.mention} "
         msg = await channel.send(
-            content="🎉 Giveaway 🎉" + txt,
+            content=f"🎉 Giveaway 🎉{txt}",
             embed=embed,
             allowed_mentions=discord.AllowedMentions(
                 roles=bool(arguments["mentions"]),
@@ -344,7 +362,7 @@ class Giveaways(commands.Cog):
             embed = discord.Embed(
                 title="Entrants", description=page, color=await ctx.embed_color()
             )
-            embed.set_footer(text="Total entrants: {}".format(len(count)))
+            embed.set_footer(text=f"Total entrants: {len(count)}")
             embeds.append(embed)
 
         if len(embeds) == 1:
@@ -404,6 +422,7 @@ class Giveaways(commands.Cog):
 
         msg = """
         Giveaway advanced creation.
+        NOTE: Giveaways are checked every 20 seconds, this means that the giveaway may end up being slightly longer than the specified duration.
 
         Giveaway advanced contains many different flags that can be used to customize the giveaway.
         The flags are as follows:
@@ -429,6 +448,8 @@ class Giveaways(commands.Cog):
         `--winners`: How many winners to draw. Must be a positive number.
         `--mentions`: Roles to mention in the giveaway notice.
         `--description`: Description of the giveaway.
+        `--image`: Image URL to use for the giveaway embed.
+        `--thumbnail`: Thumbnail URL to use for the giveaway embed.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
@@ -500,7 +521,8 @@ class Giveaways(commands.Cog):
                 await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
             except GiveawayEnterError as e:
                 if giveaway.kwargs.get("notify", False):
-                    await payload.member.send(e.message)
+                    with contextlib.suppress(discord.Forbidden):
+                        await payload.member.send(e.message)
                 return
             except GiveawayExecError as e:
                 log.exception("Error while adding user to giveaway", exc_info=e)

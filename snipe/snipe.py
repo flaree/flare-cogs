@@ -1,8 +1,9 @@
 import asyncio
+import contextlib
 import logging
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import discord
 from redbot.core import Config, commands
@@ -19,7 +20,7 @@ CacheType = Literal["edit", "delete"]
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -27,7 +28,7 @@ class Snipe(commands.Cog):
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
     def __init__(self, bot):
-        defaults_guild = {"toggle": False, "timeout": 30, "max": 1}
+        defaults_guild = {"toggle": False, "timeout": 30, "max": 1, "ignore": []}
         self.config = Config.get_conf(self, identifier=95932766180343808, force_registration=True)
         self.config.register_guild(**defaults_guild)
         self.config.register_global(timer=60)
@@ -64,10 +65,8 @@ class Snipe(commands.Cog):
 
                 if i > 0:
                     for _ in range(i):
-                        try:
+                        with contextlib.suppress(IndexError):
                             queue.popleft()
-                        except IndexError:
-                            pass
 
     async def snipe_loop(self):
         await self.bot.wait_until_ready()
@@ -82,6 +81,8 @@ class Snipe(commands.Cog):
 
     async def generate_cache(self):
         self.config_cache = await self.config.all_guilds()
+        for guild in self.config_cache:
+            self.config_cache[guild]["ignore"] = set(self.config_cache[guild]["ignore"])
 
     def add_delete_cache_entry(self, message: discord.Message):
         if self.delete_cache[message.guild.id].get(message.channel.id) is None:
@@ -114,10 +115,18 @@ class Snipe(commands.Cog):
         guild = message.guild
         if not guild or message.author.bot:
             return True
-        config = self.config_cache.get(guild.id)
-        if not config:
+        if config := self.config_cache.get(guild.id):
+            return (
+                True
+                if any(
+                    x
+                    for x in [message.author.id, message.channel.id]
+                    if x in config.get("ignore", set())
+                )
+                else not config["toggle"]
+            )
+        else:
             return True
-        return not config["toggle"]
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
@@ -344,3 +353,15 @@ class Snipe(commands.Cog):
         duration = time.total_seconds()
         await self.config.timer.set(duration)
         await ctx.tick()
+
+    @snipeset.command()
+    async def ignore(self, ctx, user_or_channel: Union[discord.Member, discord.TextChannel]):
+        """Add a user or channel to the ignore list."""
+        async with self.config.guild(ctx.guild).ignore() as ignored:
+            if user_or_channel.id not in ignored:
+                ignored.append(user_or_channel.id)
+                await ctx.send(f"{user_or_channel} has been added to the ignore list.")
+            else:
+                ignored.remove(user_or_channel.id)
+                await ctx.send(f"{user_or_channel} has been removed from the ignore list.")
+        await self.generate_cache()

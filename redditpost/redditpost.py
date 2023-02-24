@@ -27,7 +27,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -160,8 +160,7 @@ class RedditPost(commands.Cog):
     @staticmethod
     def _clean_subreddit(subreddit: str):
         subreddit = subreddit.lstrip("/")
-        match = REDDIT_REGEX.fullmatch(subreddit)
-        if match:
+        if match := REDDIT_REGEX.fullmatch(subreddit):
             return match.groups()[-1].lower()
         return None
 
@@ -222,7 +221,7 @@ class RedditPost(commands.Cog):
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
             )
-        logo = REDDIT_LOGO if not subreddit_info.icon_img else subreddit_info.icon_img
+        logo = subreddit_info.icon_img or REDDIT_LOGO
 
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit in feeds:
@@ -434,12 +433,12 @@ class RedditPost(commands.Cog):
             timestamps.append(timestamp)
             desc = unescape(feed.selftext)
             image = feed.url
-            link = "https://reddit.com" + feed.permalink
+            link = f"https://reddit.com{feed.permalink}"
             title = feed.title
             if len(desc) > 2000:
-                desc = desc[:2000] + "..."
+                desc = f"{desc[:2000]}..."
             if len(title) > 252:
-                title = title[:252] + "..."
+                title = f"{title[:252]}..."
             if feed.spoiler:
                 desc = "(spoiler)\n" + spoiler(desc)
             embed = discord.Embed(
@@ -450,7 +449,8 @@ class RedditPost(commands.Cog):
                 timestamp=datetime.utcfromtimestamp(feed.created_utc),
             )
             embed.set_author(name=f"New post on r/{unescape(subreddit)}")
-            embed.set_footer(text=f"Submitted by /u/{unescape(feed.author.name)}")
+            if feed.author:
+                embed.set_footer(text=f"Submitted by /u/{unescape(feed.author.name)}")
             images = False
             if image.endswith(("png", "jpg", "jpeg", "gif")) and not feed.spoiler:
                 embed.set_image(url=unescape(image))

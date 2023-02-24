@@ -83,7 +83,7 @@ class JoinMessage(commands.Cog):
             )
         )
         if channel is None:
-            log.debug("Couldn't find a channel to send join message in {}".format(guild))
+            log.debug("Couldn't find a channel to send join message in %s", guild)
             return
         if not channel.permissions_for(guild.me).send_messages:
             return
@@ -100,7 +100,7 @@ class JoinMessage(commands.Cog):
         else:
             await channel.send(msg)
         await self.config.guild(guild).notified.set(True)
-        log.debug("Guild welcome message sent in {}".format(guild))
+        log.debug("Guild welcome message sent in %s", guild)
 
     @commands.group()
     @commands.is_owner()
@@ -162,10 +162,10 @@ class JoinMessage(commands.Cog):
             if msg is None:
                 await ctx.send_help()
                 return
-            await ctx.send("Your current message being sent is:\n{}".format(msg))
+            await ctx.send(f"Your current message being sent is:\n{msg}")
             return
         await self.config.message.set(message)
-        await ctx.send("Your message will be sent as:\n{}".format(message))
+        await ctx.send(f"Your message will be sent as:\n{message}")
 
     @joinmessage.command()
     async def test(self, ctx):

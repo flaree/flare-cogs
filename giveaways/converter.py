@@ -37,6 +37,8 @@ class Args(Converter):
         parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
         parser.add_argument("--description", dest="description", default=[], nargs="*")
         parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
+        parser.add_argument("--image", dest="image", default=None, nargs="*")
+        parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
 
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
@@ -183,9 +185,13 @@ class Args(Converter):
         if vals["duration"]:
             tc = TimedeltaConverter()
             try:
-                vals["duration"] = await tc.convert(ctx, " ".join(vals["duration"]))
+                duration = await tc.convert(ctx, " ".join(vals["duration"]))
+                vals["duration"] = duration
             except BadArgument:
                 raise BadArgument("Invalid duration. Use `--duration` or `-d`")
+            else:
+                if duration.total_seconds() < 60:
+                    raise BadArgument("Duration must be greater than 60 seconds.")
         else:
             try:
                 time = dateparser.parse(" ".join(vals["end"]))
@@ -195,9 +201,12 @@ class Args(Converter):
                     raise BadArgument("End date must be in the future.")
                 time = time - datetime.now(timezone.utc)
                 vals["duration"] = time
+                if time.total_seconds() < 60:
+                    raise BadArgument("End date must be at least 1 minute in the future.")
             except Exception:
                 raise BadArgument(
                     "Invalid end date. Use `--end` or `-e`. Ensure to pass a timezone, otherwise it defaults to UTC."
                 )
-
+        vals["image"] = " ".join(vals["image"]) if vals["image"] else None
+        vals["thumbnail"] = " ".join(vals["thumbnail"]) if vals["thumbnail"] else None
         return vals

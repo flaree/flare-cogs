@@ -2,15 +2,13 @@
     "author": [
         "flare(flare#0001)"
     ],
-    "install_msg": "This cog subclasses core Mod and removed the core mute functionality and replaces it with a timed mute which uses roles. This cog is deprecated and no longer receiving updates. A future update to core will hopefully support timed mutes.",
+    "install_msg": "This cog subclasses core Mod. It may be finicky so be warned. This cog implements the features of Red#5532 until it is merged into core Red.",
     "name": "Mod",
     "disabled": false,
-    "short": "Mod with timed role mutes.",
-    "description": "Core mod with the inclusion of timed role mutes. This cog is no longer supported. Unload and load core mutes.",
+    "short": "Mod with custom messages.",
+    "description": "Core mod with the inclusion of custom messages for banning, kicking and unbanning.",
     "tags": [
-        "mute",
-        "temp mute",
-        "rolemute"
+        "mod"
     ],
     "min_bot_version": "3.4.0",
     "hidden": true
