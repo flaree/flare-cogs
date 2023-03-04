@@ -381,4 +381,4 @@ async def setup(bot):
     global _old_userinfo
     if _old_userinfo := bot.get_command("userinfo"):
         bot.remove_command(_old_userinfo.name)
-    bot.add_cog(uinfo)
+    await bot.add_cog(uinfo)

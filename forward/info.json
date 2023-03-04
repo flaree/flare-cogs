@@ -12,7 +12,5 @@
         "forward",
         "forwarding"
     ],
-    "min_bot_version": "3.4.0",
-    "max_bot_version": "3.4.99",
     "hidden": false
 }

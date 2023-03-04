@@ -1,5 +1,5 @@
 from .cashdrop import Cashdrop
 
 
-def setup(bot):
-    bot.add_cog(Cashdrop(bot))
+async def setup(bot):
+    await bot.add_cog(Cashdrop(bot))
