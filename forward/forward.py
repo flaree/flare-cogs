@@ -80,7 +80,7 @@ class Forward(commands.Cog):
                 embeds = [discord.Embed(description=message.content)]
                 embeds[0].set_author(
                     name=f"{message.author} | {message.author.id}",
-                    icon_url=message.author.avatar_url,
+                    icon_url=message.author.display_avatar,
                 )
                 embeds = self._append_attachements(message, embeds)
                 embeds[-1].timestamp = message.created_at
