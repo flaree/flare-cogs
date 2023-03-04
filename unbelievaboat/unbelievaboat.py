@@ -29,7 +29,7 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
 class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=CompositeMetaClass):
     """Unbelievaboat Commands."""
 
-    __version__ = "0.5.9"
+    __version__ = "0.5.10"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -109,7 +109,6 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ):
-
         await self.config.user_from_id(user_id).clear()
         all_members = await self.config.all_members()
         for guild_id, member_dict in all_members.items():
@@ -117,9 +116,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 await self.config.member_from_ids(guild_id, user_id).clear()
 
     async def configglobalcheck(self, ctx):
-        if await bank.is_global():
-            return self.config
-        return self.config.guild(ctx.guild)
+        return self.config if await bank.is_global() else self.config.guild(ctx.guild)
 
     async def configglobalcheckuser(self, user):
         if await bank.is_global():
@@ -133,13 +130,13 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         jobcd = await conf.cooldowns()
         if cd[job] is None:
             async with userconf.cooldowns() as cd:
-                cd[job] = int(datetime.datetime.utcnow().timestamp())
+                cd[job] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
             return True
-        time = int(datetime.datetime.utcnow().timestamp()) - cd[job]
+        time = int(datetime.datetime.now(datetime.timezone.utc).timestamp()) - cd[job]
         if time < jobcd[job]:
             return (False, humanize_timedelta(seconds=jobcd[job] - time))
         async with userconf.cooldowns() as cd:
-            cd[job] = int(datetime.datetime.utcnow().timestamp())
+            cd[job] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         return True
 
     async def fine(self, ctx, job):
@@ -395,9 +392,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
                 return await self.fine(ctx, "rob")
             embed = discord.Embed(
                 colour=discord.Color.red(),
-                description="You steal {}'s wallet but there was nothing of value inside.".format(
-                    user.name
-                ),
+                description=f"You steal {user.name}'s wallet but there was nothing of value inside.",
                 timestamp=ctx.message.created_at,
             )
             embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
@@ -406,9 +401,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
         stolen = random.randint(1, int(userbalance * modifier))
         embed = discord.Embed(
             colour=discord.Color.green(),
-            description="You steal {}'s wallet and find {} inside.".format(
-                user.name, humanize_number(stolen)
-            ),
+            description=f"You steal {user.name}'s wallet and find {humanize_number(stolen)} inside.",
             timestamp=ctx.message.created_at,
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)

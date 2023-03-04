@@ -1,3 +1,4 @@
+import contextlib
 import typing
 from io import BytesIO
 
@@ -48,7 +49,6 @@ class R6(commands.Cog):
         requester: typing.Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ):
-
         await self.config.user_from_id(user_id).clear()
         all_members = await self.config.all_members()
         for guild_id, member_dict in all_members.items():
@@ -105,9 +105,7 @@ class R6(commands.Cog):
                 "The player provided was not found, please check your spelling and platform and try again."
             )
             exceptionstatus = True
-        if exceptionstatus:
-            return None
-        return data
+        return None if exceptionstatus else data
 
     @commands.check(tokencheck)
     @commands.group(autohelp=True)
@@ -135,15 +133,15 @@ class R6(commands.Cog):
 
     @r6.command()
     async def user(self, ctx, user: discord.Member = None):
-        """Check if a user has linked his R6 account."""
+        """Check if a user has linked their R6 account."""
         user = user or ctx.author
         username = await self.config.user(user).username()
         if username is None:
-            await ctx.send("User has not linked his profile with the bot.")
+            await ctx.send("User has not linked their profile with the bot.")
             return
         platform = await self.config.user(user).platform()
         region = await self.config.user(user).region()
-        embed = discord.Embed(color=user.color, description="Profile for {}".format(user))
+        embed = discord.Embed(color=user.color, description=f"Profile for {user}")
         embed.add_field(
             name="Profile Information",
             value=f"**Username**: {username}\n**Platform**: {platform}\n**Region**: {region}",
@@ -178,9 +176,8 @@ class R6(commands.Cog):
                 image = await self.stats.profilecreate(data)
                 await ctx.send(file=image)
             else:
-                embed = discord.Embed(
-                    colour=ctx.author.color, title="R6 Profile for {}".format(profile)
-                )
+                embed = discord.Embed(colour=ctx.author.color, title=f"R6 Profile for {profile}")
+
                 try:
                     wlr = (
                         round(data.general_stats["wins"] / data.general_stats["games_played"], 2)
@@ -226,8 +223,9 @@ class R6(commands.Cog):
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
-                    colour=ctx.author.colour, title="R6 Casual Statistics for {}".format(profile)
+                    colour=ctx.author.colour, title=f"R6 Casual Statistics for {profile}"
                 )
+
                 embed.set_thumbnail(url=data.avatar_url_256)
                 try:
                     wlr = (
@@ -277,8 +275,9 @@ class R6(commands.Cog):
                 await ctx.send(file=image)
             else:
                 embed = discord.Embed(
-                    colour=ctx.author.colour, title="R6 Ranked Statistics for {}".format(profile)
+                    colour=ctx.author.colour, title=f"R6 Ranked Statistics for {profile}"
                 )
+
                 embed.set_thumbnail(url=data.avatar_url_256)
                 try:
                     wlr = (
@@ -326,9 +325,9 @@ class R6(commands.Cog):
             else:
                 data = data.operators[ind]
                 embed = discord.Embed(
-                    colour=ctx.author.colour,
-                    title="{} Statistics for {}".format(operator.title(), profile),
+                    colour=ctx.author.colour, title=f"{operator.title()} Statistics for {profile}"
                 )
+
                 embed.set_thumbnail(url=data["badge_image"])
                 wlr = round(data["wins"] / (data["wins"] + data["losses"]), 2)
                 accstats = f'**Operator**: {operator.title()}\n**Playtime**: {humanize_timedelta(seconds=int(data["playtime"]))}'
@@ -337,15 +336,13 @@ class R6(commands.Cog):
                 embed.add_field(name="Operator Info", value=accstats, inline=False)
                 embed.add_field(name="Match Stats", value=stats, inline=True)
                 embed.add_field(name="Kill Stats", value=killstats, inline=True)
-                try:
+                with contextlib.suppress(KeyError):
                     msg = "".join(
                         f'**{ability["ability"]}**: {ability["value"]}'
                         for ability in data["abilities"]
                     )
 
                     embed.add_field(name="Operator Stats", value=msg)
-                except KeyError:
-                    pass
                 await ctx.send(embed=embed)
 
     async def seasonalstats(self, ctx, profile, platform):
@@ -397,10 +394,9 @@ class R6(commands.Cog):
             else:
                 embed = discord.Embed(
                     colour=ctx.author.colour,
-                    title="{} Statistics for {}".format(
-                        data[0][season].title().replace("_", " "), profile
-                    ),
+                    title=f'{data[0][season].title().replace("_", " ")} Statistics for {profile}',
                 )
+
                 embed.set_thumbnail(url=self.stats.rankurl + ranks[seasondata["rank_text"]])
 
                 accstats = f'**Rank**: {seasondata["rank_text"]}\n**MMR**: {seasondata["mmr"]}\n**Max Rank**: {list(ranks)[seasondata["max_rank"]]}\n**Max MMR**: {seasondata["max_mmr"]}'
@@ -456,10 +452,9 @@ class R6(commands.Cog):
         ]
         if statistic not in stats:
             return await ctx.send(
-                "Invalid Statistic. Please use one of the following:\n```{}```".format(
-                    ", ".join(stats)
-                )
+                f'Invalid Statistic. Please use one of the following:\n```{", ".join(stats)}```'
             )
+
         data = await self.request_data(ctx, "operator", player=profile, platform=platform)
         if data is None:
             return
@@ -548,8 +543,9 @@ class R6(commands.Cog):
             return
         async with ctx.typing():
             embed = discord.Embed(
-                title="General R6S Stats for {}".format(profile), color=ctx.author.colour
+                title=f"General R6S Stats for {profile}", color=ctx.author.colour
             )
+
             for stat in data.general_stats:
                 if stat != "playtime":
                     embed.add_field(
@@ -584,24 +580,15 @@ class R6(commands.Cog):
         data = await self.request_data(ctx, "weaponcategories", player=profile, platform=platform)
         if data is None:
             return
-        embed = discord.Embed(
-            color=ctx.author.colour, title="Weapon Statistics for {}".format(profile)
-        )
+        embed = discord.Embed(color=ctx.author.colour, title=f"Weapon Statistics for {profile}")
+
         weps = data.weapon_categories
         for wep in weps:
             embed.add_field(
                 name=wep["category"],
-                value="**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS%**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
-                    wep["kills"],
-                    wep["deaths"],
-                    wep["kd"],
-                    wep["headshots"],
-                    wep["headshot_percentage"],
-                    wep["times_chosen"],
-                    wep["bullets_fired"],
-                    wep["bullets_hit"],
-                ),
+                value=f'**Kills**: {wep["kills"]}\n**Deaths**: {wep["deaths"]}\n**KD**: {wep["kd"]}\n**Headshots**: {wep["headshots"]}\n**HS%**: {wep["headshot_percentage"]}\n**Times Chosen**: {wep["times_chosen"]}\n**Bullets Fired**: {wep["bullets_fired"]}\n**Bullets Hit**: {wep["bullets_hit"]}',
             )
+
         embed.add_field(name="\N{ZERO WIDTH SPACE}", value="\N{ZERO WIDTH SPACE}")
         await ctx.send(embed=embed)
 
@@ -623,19 +610,10 @@ class R6(commands.Cog):
         ind = weapons.index(weapon.lower())
         embed = discord.Embed(
             colour=ctx.author.colour,
-            title="{} information for {}".format(weapon.upper(), profile),
-            description="**Category**: {}\n**Kills**: {}\n**Deaths**: {}\n**KD**: {}\n**Headshots**: {}\n**HS %**: {}\n**Times Chosen**: {}\n**Bullets Fired**: {}\n**Bullets Hit**: {}".format(
-                data.weapons[ind]["category"],
-                data.weapons[ind]["kills"],
-                data.weapons[ind]["deaths"],
-                data.weapons[ind]["kd"],
-                data.weapons[ind]["headshots"],
-                data.weapons[ind]["headshot_percentage"],
-                data.weapons[ind]["times_chosen"],
-                data.weapons[ind]["bullets_fired"],
-                data.weapons[ind]["bullets_hit"],
-            ),
+            title=f"{weapon.upper()} information for {profile}",
+            description=f'**Category**: {data.weapons[ind]["category"]}\n**Kills**: {data.weapons[ind]["kills"]}\n**Deaths**: {data.weapons[ind]["deaths"]}\n**KD**: {data.weapons[ind]["kd"]}\n**Headshots**: {data.weapons[ind]["headshots"]}\n**HS %**: {data.weapons[ind]["headshot_percentage"]}\n**Times Chosen**: {data.weapons[ind]["times_chosen"]}\n**Bullets Fired**: {data.weapons[ind]["bullets_fired"]}\n**Bullets Hit**: {data.weapons[ind]["bullets_hit"]}',
         )
+
         await ctx.send(embed=embed)
 
     @r6.command()
@@ -694,8 +672,9 @@ class R6(commands.Cog):
             for gm in data.gamemode_stats:
                 embed = discord.Embed(
                     colour=ctx.author.colour,
-                    title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
+                    title=f'{gm.replace("_", " ").title()} statistics for {profile}',
                 )
+
                 for stat in data.gamemode_stats[gm]:
                     if stat == "playtime":
                         embed.add_field(
@@ -734,8 +713,9 @@ class R6(commands.Cog):
             for gm in data.queue_stats:
                 embed = discord.Embed(
                     colour=ctx.author.colour,
-                    title="{} statistics for {}".format(gm.replace("_", " ").title(), profile),
+                    title=f'{gm.replace("_", " ").title()} statistics for {profile}',
                 )
+
                 for stat in data.queue_stats[gm]:
                     if stat == "playtime":
                         embed.add_field(
@@ -766,7 +746,6 @@ class R6(commands.Cog):
     @commands.command()
     async def r6set(self, ctx):
         """Instructions on how to set the api key."""
-        message = "1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{}set api r6stats authorization,your_r6stats_apikey`\n**Until a valid API Key is set, the commands are hidden and won't be accessible.**".format(
-            ctx.prefix
-        )
+        message = f"1. You must retrieve an API key from the R6Stats website.\n2. Copy your api key into `{ctx.prefix}set api r6stats authorization,your_r6stats_apikey`\n**Until a valid API Key is set, the commands are hidden and won't be accessible.**"
+
         await ctx.maybe_send_embed(message)

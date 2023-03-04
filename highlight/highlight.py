@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.9.1"
+    __version__ = "1.11.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -200,19 +200,30 @@ class Highlight(commands.Cog):
                 highlighted_usr = message.guild.get_member(int(user))
                 if highlighted_usr is None:
                     continue
+                if not await self.bot.allowed_by_whitelist_blacklist(highlighted_usr):
+                    continue
                 if not message.channel.permissions_for(highlighted_usr).read_messages:
                     continue
-                if message.author.bot and not highlighted_dict[user][word]["bots"]:
-                    continue
+                content = message.content.lower()
+                if message.author.bot:
+                    if not highlighted_dict[user][word]["bots"]:
+                        continue
+                    if message.embeds:
+                        content = ""
+                        for embed in message.embeds:
+                            content += embed.description or ""
+                            for field in embed.fields:
+                                content += field.value or ""
+
                 if highlighted_dict[user][word].get("boundary", False):
                     if word.lower() in self.recache:
                         pattern = self.recache[word.lower()]
                     else:
                         pattern = re.compile(rf"\b{re.escape(word.lower())}\b", flags=re.I)
                         self.recache[word.lower()] = pattern
-                    if set(pattern.findall(message.content.lower())):
+                    if set(pattern.findall(content)):
                         highlighted_words.append(word)
-                elif word.lower() in message.content.lower():
+                elif word.lower() in content:
                     highlighted_words.append(word)
             if highlighted_words:
                 msglist = [message]
@@ -221,18 +232,22 @@ class Highlight(commands.Cog):
                 ):
                     msglist.append(messages)
                 msglist.reverse()
-                context = "\n".join(f"**{x.author}**: {x.content}" for x in msglist)
+                context = "\n".join(
+                    f"**{x.author}**: {x.content or '**No Content**'}" for x in msglist
+                )
+
                 if len(context) > 2000:
                     context = "**Context omitted due to message size limits.\n**"
                 embed = discord.Embed(
                     title="Context:",
                     colour=self.global_conf.get("colour", 0xFFFFFF),
                     timestamp=message.created_at,
-                    description="{}".format(context),
+                    description=f"{context}",
                 )
+
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
                 await highlighted_usr.send(
-                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
+                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
                     embed=embed,
                 )
                 self.cooldowns[highlighted_usr.id] = datetime.now(tz=timezone.utc)
@@ -987,7 +1002,8 @@ class Highlight(commands.Cog):
     async def _cooldown(self, ctx, cooldown: int):
         """Set the default cooldown of a highlight. (in seconds)
 
-        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined."""
+        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined.
+        """
         if cooldown < 1 or cooldown > 600:
             return await ctx.send("Cooldown cannot be less than 1 or greater than 600.")
         await self.config.default_cooldown.set(cooldown)
@@ -1016,6 +1032,31 @@ class Highlight(commands.Cog):
         else:
             await ctx.send("Highlights can now be used by all users.")
         await self.generate_cache()
+
+    @highlightset.command()
+    async def wipe(self, ctx, user: discord.Member):
+        """Wipe all highlights for a user."""
+        async with self.config.guild(ctx.guild).highlight() as highlight_guild:
+            if str(user.id) in highlight_guild:
+                del highlight_guild[str(user.id)]
+        for channel in ctx.guild.text_channels:
+            async with self.config.channel(channel).highlight() as highlight_chann:
+                if str(user.id) in highlight_chann:
+                    del highlight_chann[str(user.id)]
+        await ctx.send(f"Highlights for {user} have been wiped.")
+        await self.generate_cache()
+
+    @highlightset.command(aliases=["settings", "showsettings"])
+    async def show(self, ctx):
+        """Show the current highlight settings."""
+        max_highlights = await self.config.max_highlights()
+        min_len = await self.config.min_len()
+        cooldown = await self.config.default_cooldown()
+        colour = str(await self.config.colour())
+        restricted = await self.config.restricted()
+        msg = f"""```ini\n[Max Highlights] = {max_highlights}\n[Min Length] = {min_len}\n[Cooldown] = {cooldown}\n[Colour] = {discord.Colour.from_rgb(int(colour[:2]), int(colour[2:5]), int(colour[4:]))}\n[Restricted] = {restricted}```"""
+
+        await ctx.send(msg)
 
 
 def yes_or_no(boolean: bool):

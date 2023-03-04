@@ -18,7 +18,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -75,7 +75,7 @@ class F1(commands.Cog):
                             role = guild.get_role(data[guild_id]["role"])
                             if role is not None:
                                 msg += f"{role.mention}, "
-                        msg += f"**Race Day**!\n**{circuit['raceName']}** (Round {circuit['round']}) at **{circuit['Circuit']['circuitName']}** is starting today!\n**Race Start**: <t:{int(time.timestamp())}:F>"
+                        msg += f"**Race Day**!\n**{circuit['raceName']}** (Round {circuit['round']}) at **{circuit['Circuit']['circuitName']}** is starting today!\n**Race Start**:\n<t:{int(time.timestamp())}:F>\n<t:{int(time.timestamp())}:R>"
                         await channel.send(msg, allowed_mentions=AllowedMentions.all())
                     except Exception as e:
                         log.exception(e)
@@ -298,17 +298,16 @@ class F1(commands.Cog):
         if not results:
             await ctx.send("No data available.")
             return
-        data = []
-        for driver in results:
-            data.append(
-                [
-                    driver["positionText"],
-                    driver["points"],
-                    driver["wins"],
-                    driver["Driver"]["givenName"] + " " + driver["Driver"]["familyName"],
-                    driver["Constructors"][0]["name"],
-                ]
-            )
+        data = [
+            [
+                driver["positionText"],
+                driver["points"],
+                driver["wins"],
+                driver["Driver"]["givenName"] + " " + driver["Driver"]["familyName"],
+                driver["Constructors"][0]["name"],
+            ]
+            for driver in results
+        ]
 
         msg = tabulate.tabulate(
             data,
@@ -327,16 +326,15 @@ class F1(commands.Cog):
         if not results:
             await ctx.send("No data available.")
             return
-        data = []
-        for driver in results:
-            data.append(
-                [
-                    driver["positionText"],
-                    driver["points"],
-                    driver["wins"],
-                    driver["Constructor"]["name"],
-                ]
-            )
+        data = [
+            [
+                driver["positionText"],
+                driver["points"],
+                driver["wins"],
+                driver["Constructor"]["name"],
+            ]
+            for driver in results
+        ]
 
         msg = tabulate.tabulate(
             data, headers=["Position", "Points", "Wins", "Constructor"], tablefmt="plainfmt"
@@ -388,7 +386,6 @@ class F1(commands.Cog):
 
         datetimes = []
         for circuit in circuits:
-
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
             ).replace(tzinfo=datetime.timezone.utc)
@@ -415,7 +412,7 @@ class F1(commands.Cog):
                 embed.set_footer(text="Race Date:")
                 embed.add_field(
                     name="Information",
-                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n**Start**: <t:{int(time.timestamp())}:F>',
+                    value=f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]}\n**Start**:\n<t:{int(time.timestamp())}:F>\n<t:{int(time.timestamp())}:R>',
                 )
                 await ctx.send(embed=embed)
                 return

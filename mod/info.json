@@ -1,0 +1,15 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "This cog subclasses core Mod. It may be finicky so be warned. This cog implements the features of Red#5532 until it is merged into core Red.",
+    "name": "Mod",
+    "disabled": false,
+    "short": "Mod with custom messages.",
+    "description": "Core mod with the inclusion of custom messages for banning, kicking and unbanning.",
+    "tags": [
+        "mod"
+    ],
+    "min_bot_version": "3.4.0",
+    "hidden": true
+}

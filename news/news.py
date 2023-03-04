@@ -62,9 +62,8 @@ class News(commands.Cog):
     @commands.command()
     async def newssetup(self, ctx):
         """Instructions on how to setup news related APIs."""
-        msg = "**News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately.".format(
-            ctx.prefix
-        )
+        msg = f"**News API Setup**\n**1**. Visit https://newsapi.org and register for an API.\n**2**. Use the following command: {ctx.prefix}set api newsapi key <api_key_here>\n**3**. Reload the cog if it doesnt work immediately."
+
         await ctx.maybe_send_embed(msg)
 
     @news.command(hidden=True)
@@ -85,21 +84,24 @@ class News(commands.Cog):
             data = await self.get(
                 self.api.format(
                     "top-headlines",
-                    "q={}".format(query) if query is not None else "",
-                    "&country={}".format(countrycode),
+                    f"q={query}" if query is not None else "",
+                    f"&country={countrycode}",
                     self.newsapikey,
                     "",
                 )
             )
+
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send(
-                "No results found, ensure you're looking up the correct country code. Check {}countrycodes for a list. Alternatively, your query may be returning no results.".format(
-                    ctx.prefix
-                )
+                f"No results found, ensure you're looking up the correct country code. Check {ctx.prefix}countrycodes for a list. Alternatively, your query may be returning no results."
             )
-        await GenericMenu(source=ArticleFormat(data["articles"][:15]), ctx=ctx,).start(
+
+        await GenericMenu(
+            source=ArticleFormat(data["articles"][:15]),
+            ctx=ctx,
+        ).start(
             ctx=ctx,
             wait=False,
         )
@@ -112,13 +114,17 @@ class News(commands.Cog):
         """
         async with ctx.typing():
             data = await self.get(
-                self.api.format("everything", "q={}".format(query), "", self.newsapikey, "")
+                self.api.format("everything", f"q={query}", "", self.newsapikey, "")
             )
+
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
+        await GenericMenu(
+            source=ArticleFormat(data["articles"]),
+            ctx=ctx,
+        ).start(
             ctx=ctx,
             wait=False,
         )
@@ -128,13 +134,17 @@ class News(commands.Cog):
         """Top Headlines from around the world."""
         async with ctx.typing():
             data = await self.get(
-                self.api.format("top-headlines", "q={}".format(query), "", self.newsapikey, "")
+                self.api.format("top-headlines", f"q={query}", "", self.newsapikey, "")
             )
+
         if data.get("failed") is not None:
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
+        await GenericMenu(
+            source=ArticleFormat(data["articles"]),
+            ctx=ctx,
+        ).start(
             ctx=ctx,
             wait=False,
         )

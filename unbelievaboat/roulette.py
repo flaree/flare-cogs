@@ -235,7 +235,7 @@ class Roulette(MixinMeta):
             self.roulettegames[ctx.guild.id] = {
                 "zero": [],
                 "color": [],
-                "number": [],
+                "single": [],
                 "dozen": [],
                 "odd_or_even": [],
                 "halfs": [],

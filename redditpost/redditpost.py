@@ -125,7 +125,6 @@ class RedditPost(commands.Cog):
         feeds = {}
         channel_data = await self.config.all_channels()
         for channel_id, data in channel_data.items():
-
             channel = self.bot.get_channel(channel_id)
             if not channel:
                 continue
@@ -220,7 +219,7 @@ class RedditPost(commands.Cog):
             return await ctx.send(
                 "You're trying to add an NSFW subreddit to a SFW channel. Please edit the channel or try another."
             )
-        logo = REDDIT_LOGO if not subreddit_info.icon_img else subreddit_info.icon_img
+        logo = subreddit_info.icon_img or REDDIT_LOGO
 
         async with self.config.channel(channel).reddits() as feeds:
             if subreddit in feeds:

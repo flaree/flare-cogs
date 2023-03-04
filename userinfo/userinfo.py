@@ -11,6 +11,7 @@ adventure_bank = None
 
 log = logging.getLogger("red.flare.userinfo")
 
+
 # Thanks Preda, core logic is from https://github.com/PredaaA/predacogs/blob/master/serverinfo/serverinfo.py
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
@@ -139,20 +140,18 @@ class Userinfo(commands.Cog):
             async with self.config.status_emojis() as emojis:
                 if type not in emojis:
                     await ctx.send(
-                        "That emoji doesn't exist. Valid emoji types are: {}".format(
-                            ", ".join(emojis.keys())
-                        )
+                        f"""That emoji doesn't exist. Valid emoji types are: {", ".join(emojis.keys())}"""
                     )
+
                     return
                 emojis[type] = emoji_id
         else:
             async with self.config.badge_emojis() as emojis:
                 if type not in emojis:
                     await ctx.send(
-                        "That emoji doesn't exist. Valid emoji types are: {}".format(
-                            ", ".join(emojis.keys())
-                        )
+                        f"""That emoji doesn't exist. Valid emoji types are: {", ".join(emojis.keys())}"""
                     )
+
                     return
                 emojis[type] = emoji_id
         await self.gen_emojis()
@@ -239,7 +238,6 @@ class Userinfo(commands.Cog):
             status_string = mod.get_status_string(user)
 
             if roles:
-
                 role_str = ", ".join([x.mention for x in roles])
                 # 400 BAD REQUEST (error code: 50035): Invalid Form Body
                 # In embed.fields.2.value: Must be 1024 or fewer in length.

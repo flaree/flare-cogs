@@ -1,15 +1,14 @@
 import discord
 from redbot.core import Config, checks, commands
-from redbot.core.utils.chat_formatting import humanize_list, pagify
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 class Forward(commands.Cog):
     """Forward messages sent to the bot to the bot owner or in a specified channel."""
 
-    __version__ = "1.2.7"
+    __version__ = "1.2.9"
 
     def format_help_for_context(self, ctx):
-        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
@@ -64,6 +63,7 @@ class Forward(commands.Cog):
             return
         if message.author.id in await self.config.blacklist():
             return
+        msg = ""
         if message.author == self.bot.user:
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
@@ -71,16 +71,19 @@ class Forward(commands.Cog):
             msg = f"Sent PM to {message.channel.recipient} (`{message.channel.recipient.id}`)"
             if message.embeds:
                 msg += f"\n**Message Content**: {message.content}"
-                embed = discord.Embed.from_dict(
-                    {**message.embeds[0].to_dict(), "timestamp": str(message.created_at)}
-                )
+                embeds = [
+                    discord.Embed.from_dict(
+                        {**message.embeds[0].to_dict(), "timestamp": str(message.created_at)}
+                    )
+                ]
             else:
-                content = list(pagify(message.content, page_length=1000))
-                embed = discord.Embed(description=content[0], timestamp=message.created_at)
-                if len(content) > 1:
-                    for page in content:
-                        embed.add_field(name="Message Continued", value=page)
-            await self._destination(msg, embed)
+                embeds = [discord.Embed(description=message.content)]
+                embeds[0].set_author(
+                    name=f"{message.author} | {message.author.id}",
+                    icon_url=message.author.avatar_url,
+                )
+                embeds = self._append_attachements(message, embeds)
+                embeds[-1].timestamp = message.created_at
         else:
             embeds = [discord.Embed(description=message.content)]
             embeds[0].set_author(
@@ -89,8 +92,8 @@ class Forward(commands.Cog):
             )
             embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
-            for embed in embeds:
-                await self._destination(msg=None, embed=embed)
+        for embed in embeds:
+            await self._destination(msg=msg, embed=embed)
 
     @checks.is_owner()
     @commands.group()
@@ -181,4 +184,4 @@ class Forward(commands.Cog):
             await ctx.send(
                 "Oops. I couldn't deliver your message to {}. They most likely have me blocked or DMs closed!"
             )
-        await ctx.send("Message delivered to {}".format(user))
+        await ctx.send(f"Message delivered to {user}")

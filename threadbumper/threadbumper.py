@@ -8,7 +8,6 @@ log = logging.getLogger("red.flare.threadbumper")
 
 
 class ThreadBumper(commands.Cog):
-
     __version__ = "0.0.1"
     __author__ = "flare#0001"
 
