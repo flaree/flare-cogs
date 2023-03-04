@@ -162,7 +162,7 @@ class Roulette(MixinMeta):
         payout_types = {
             "zero": winningnum,
             "color": color,
-            "number": winningnum,
+            "single": winningnum,
             "odd_or_even": odd_even,
             "halfs": half,
             "dozen": dozen,

@@ -2,7 +2,7 @@
     "author": [
         "flare(flare#0001)"
     ],
-    "install_msg": "Get stick bugged lol. This cog may be usage intensive and not recommender for smaller hosts.",
+    "install_msg": "Get stick bugged lol. This cog may be usage intensive and not recommender for smaller hosts. This cog required ffmpeg to be installed, it will error otherwise.",
     "name": "StickBugged",
     "disabled": false,
     "short": "Get stickbugged.",
@@ -14,5 +14,6 @@
         "get-stick-bugged-lol"
     ],
     "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99",
     "hidden": false
 }

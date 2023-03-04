@@ -46,15 +46,14 @@ class News(commands.Cog):
     async def get(self, url):
         async with self.session.get(url) as response:
             data = await response.json()
-            if response.status == 200:
-                try:
-                    return data
-                except aiohttp.ServerTimeoutError:
-                    return {
-                        "failed": "Their appears to be an issue with the API. Please try again later."
-                    }
-            else:
+            if response.status != 200:
                 return {"failed": data["message"]}
+            try:
+                return data
+            except aiohttp.ServerTimeoutError:
+                return {
+                    "failed": "Their appears to be an issue with the API. Please try again later."
+                }
 
     @commands.group()
     async def news(self, ctx):

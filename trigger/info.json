@@ -1,0 +1,16 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Basic trigger cog, respond to keywords.",
+    "name": "trigger",
+    "disabled": false,
+    "short": "Allow for the creation of triggers to respond to keywords in messages.",
+    "description": "Allow for the creation of triggers to respond to keywords in messages.",
+    "tags": [
+        "trigger"
+    ],
+    "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99",
+    "hidden": false
+}

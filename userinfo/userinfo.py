@@ -15,10 +15,9 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.2.1"
+    __version__ = "0.3.2"
 
     def format_help_for_context(self, ctx):
-        """Thanks Sinbad."""
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
@@ -26,6 +25,7 @@ class Userinfo(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, 95932766180343808, force_registration=True)
         default_global = {
+            "banner": False,
             "status_emojis": {
                 "mobile": 749067110931759185,
                 "online": 749221433552404581,
@@ -125,11 +125,12 @@ class Userinfo(commands.Cog):
                 log.info(error)
             self.bot.add_command(_old_userinfo)
 
-    @commands.group(hidden=True)
+    @commands.group()
+    @commands.is_owner()
     async def uinfoset(self, ctx):
         """Manage userinfo settings."""
 
-    @uinfoset.command()
+    @uinfoset.command(hidden=True)
     async def setemoji(self, ctx, status_or_badge: str, type: str, emoji_id: int):
         """Set status or badge emoji"""
         if status_or_badge not in ["status", "badge"]:
@@ -164,8 +165,17 @@ class Userinfo(commands.Cog):
         await self.gen_emojis()
         await ctx.tick()
 
+    @uinfoset.command()
+    async def banner(self, ctx):
+        """Toggle banner on userinfo.
+
+        Note: This causes a fetch request which can be a heavy operation."""
+        await self.config.banner.set(not await self.config.banner())
+        await ctx.tick()
+
     @commands.command()
     @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True)
     async def userinfo(self, ctx, *, user: discord.Member = None):
         """Show userinfo with some more detail."""
@@ -212,41 +222,17 @@ class Userinfo(commands.Cog):
                 user_joined, since_joined, "" if since_joined == 1 else "s"
             )
             if user.is_on_mobile():
-                statusemoji = (
-                    self.status_emojis["mobile"]
-                    if self.status_emojis["mobile"]
-                    else "\N{MOBILE PHONE}"
-                )
+                statusemoji = self.status_emojis["mobile"] or "\N{MOBILE PHONE}"
             elif any(a.type is discord.ActivityType.streaming for a in user.activities):
-                statusemoji = (
-                    self.status_emojis["streaming"]
-                    if self.status_emojis["streaming"]
-                    else "\N{LARGE PURPLE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["streaming"] or "\N{LARGE PURPLE CIRCLE}"
             elif user.status.name == "online":
-                statusemoji = (
-                    self.status_emojis["online"]
-                    if self.status_emojis["online"]
-                    else "\N{LARGE GREEN CIRCLE}"
-                )
+                statusemoji = self.status_emojis["online"] or "\N{LARGE GREEN CIRCLE}"
             elif user.status.name == "offline":
-                statusemoji = (
-                    self.status_emojis["offline"]
-                    if self.status_emojis["offline"]
-                    else "\N{MEDIUM WHITE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["offline"] or "\N{MEDIUM WHITE CIRCLE}"
             elif user.status.name == "dnd":
-                statusemoji = (
-                    self.status_emojis["dnd"]
-                    if self.status_emojis["dnd"]
-                    else "\N{LARGE RED CIRCLE}"
-                )
+                statusemoji = self.status_emojis["dnd"] or "\N{LARGE RED CIRCLE}"
             elif user.status.name == "idle":
-                statusemoji = (
-                    self.status_emojis["away"]
-                    if self.status_emojis["away"]
-                    else "\N{LARGE ORANGE CIRCLE}"
-                )
+                statusemoji = self.status_emojis["away"] or "\N{LARGE ORANGE CIRCLE}"
             else:
                 statusemoji = "\N{MEDIUM BLACK CIRCLE}\N{VARIATION SELECTOR-16}"
             activity = "Chilling in {} status".format(user.status)
@@ -332,10 +318,7 @@ class Userinfo(commands.Cog):
                     if badge == "verified_bot":
                         emoji1 = self.badge_emojis["verified_bot"]
                         emoji2 = self.badge_emojis["verified_bot2"]
-                        if emoji1:
-                            emoji = f"{emoji1}{emoji2}"
-                        else:
-                            emoji = None
+                        emoji = f"{emoji1}{emoji2}" if emoji1 else None
                     else:
                         emoji = self.badge_emojis[badge]
                     if emoji:
@@ -347,14 +330,16 @@ class Userinfo(commands.Cog):
                 data.add_field(name="Badges" if badge_count > 1 else "Badge", value=badges)
             if "Economy" in self.bot.cogs:
                 balance_count = 1
-                bankstat = f"**Bank**: {str(humanize_number(await bank.get_balance(user)))} {await bank.get_currency_name(ctx.guild)}\n"
+                bankstat = f"**Bank**: {humanize_number(await bank.get_balance(user))} {await bank.get_currency_name(ctx.guild)}\n"
+
                 if "Unbelievaboat" in self.bot.cogs:
                     cog = self.bot.get_cog("Unbelievaboat")
                     state = await cog.walletdisabledcheck(ctx)
                     if not state:
                         balance_count += 1
                         balance = await cog.walletbalance(user)
-                        bankstat += f"**Wallet**: {str(humanize_number(balance))} {await bank.get_currency_name(ctx.guild)}\n"
+                        bankstat += f"**Wallet**: {humanize_number(balance)} {await bank.get_currency_name(ctx.guild)}\n"
+
                 if "Adventure" in self.bot.cogs:
                     cog = self.bot.get_cog("Adventure")
                     if getattr(cog, "_separate_economy", False):
@@ -367,8 +352,19 @@ class Userinfo(commands.Cog):
                         if adventure_bank:
                             adventure_currency = await adventure_bank.get_balance(user)
                             balance_count += 1
-                            bankstat += f"**Adventure**: {str(humanize_number(adventure_currency))} {await adventure_bank.get_currency_name(ctx.guild)}"
+                            bankstat += f"**Adventure**: {humanize_number(adventure_currency)} {await adventure_bank.get_currency_name(ctx.guild)}"
+
                 data.add_field(name="Balances" if balance_count > 1 else "Balance", value=bankstat)
+            if await self.config.banner():
+                banner = (
+                    await self.bot.http.request(discord.http.Route("GET", f"/users/{user.id}"))
+                ).get("banner", None)
+                if banner is not None:
+                    ext = ".gif" if banner.startswith("a_") else ".png"
+                    banner_url = (
+                        f"https://cdn.discordapp.com/banners/{user.id}/{banner}{ext}?size=4096"
+                    )
+                    data.set_image(url=banner_url)
             await ctx.send(embed=data)
 
 
@@ -379,13 +375,10 @@ except ImportError:
 
 
 async def setup(bot):
-    if discord.version_info <= (1, 4):
-        raise CogLoadError("This cog requires d.py 1.4+ to work.")
     uinfo = Userinfo(bot)
     if "Mod" not in bot.cogs:
         raise CogLoadError("This cog requires the Mod cog to be loaded.")
     global _old_userinfo
-    _old_userinfo = bot.get_command("userinfo")
-    if _old_userinfo:
+    if _old_userinfo := bot.get_command("userinfo"):
         bot.remove_command(_old_userinfo.name)
     bot.add_cog(uinfo)

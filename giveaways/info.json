@@ -1,0 +1,21 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Giveaway cog. Currently not fully finished, report any bugs in the 3rd party cog server.",
+    "name": "Giveaways",
+    "disabled": false,
+    "short": "Giveaway cog with features such duration or end timing, multipliers, role only acces, bank integration etc.",
+    "description": "Giveaway cog with features such duration or end timing, multipliers, role only acces, bank integration etc.",
+    "tags": [
+        "giveaway",
+        "giveaways",
+        "raffle"
+    ],
+    "requirements": [
+        "dateparser"
+    ],
+    "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99",
+    "hidden": false
+}

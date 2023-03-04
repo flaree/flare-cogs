@@ -9,8 +9,9 @@ from typing import Literal, Optional
 import discord
 import tabulate
 from redbot.core import Config, commands
-from redbot.core.utils.chat_formatting import box, humanize_list, inline, pagify
+from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from redbot.core.utils.mod import is_mod_or_superior
 from redbot.core.utils.predicates import MessagePredicate
 
 logger = logging.getLogger("red.flare.highlight")
@@ -22,14 +23,29 @@ def chunks(l, n):
         yield l[i : i + n]
 
 
+async def restrictedhighlight_check(ctx):
+    cog = ctx.bot.get_cog("Highlight")
+    if cog is None:
+        return False
+    restricted = await cog.config.restricted()
+    return await is_mod_or_superior(ctx.bot, ctx.author) if restricted else True
+
+
 class Highlight(commands.Cog):
     """Be notified when keywords are sent."""
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
-        self.config.register_global(migrated=False)
-        self.config.register_member(blacklist=[], whitelist=[], cooldown=10)
+        self.config.register_global(
+            migrated=False,
+            min_len=5,
+            max_highlights=10,
+            default_cooldown=60,
+            colour=discord.Color.red().value,
+            restricted=False,
+        )
+        self.config.register_member(blacklist=[], whitelist=[], cooldown=60, channel_blacklist=[])
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.config.register_guild(**default_channel)
@@ -38,6 +54,8 @@ class Highlight(commands.Cog):
         self.cooldowns = {}
         self.recache = {}
         self.guildcache = {}
+        self.global_conf = {}
+        self.cooldown = 60
 
     async def red_get_data_for_user(self, *, user_id: int):
         config = await self.config.all_channels()
@@ -64,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.5.4"
+    __version__ = "1.9.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -77,6 +95,8 @@ class Highlight(commands.Cog):
         await self.generate_cache()
 
     async def generate_cache(self):
+        self.cooldown = await self.config.default_cooldown()
+        self.global_conf = await self.config.all()
         self.highlightcache = await self.config.all_channels()
         self.member_cache = await self.config.all_members()
         self.guildcache = await self.config.all_guilds()
@@ -85,17 +105,21 @@ class Highlight(commands.Cog):
         if await self.config.migrated():
             return
 
-        a = {}
         conf = await self.config.all_channels()
-        for channel in conf:
-            a[channel] = {}
-            for user in conf[channel]["highlight"]:
-                a[channel][user] = {}
-                for highlight in conf[channel]["highlight"][user]:
-                    a[channel][user][highlight] = {
+        a = {
+            channel: {
+                user: {
+                    highlight: {
                         "toggle": conf[channel]["toggle"][user],
                         "bots": False,
                     }
+                    for highlight in conf[channel]["highlight"][user]
+                }
+                for user in conf[channel]["highlight"]
+            }
+            for channel in conf
+        }
+
         group = self.config._get_base_group(self.config.CHANNEL)
         async with group.all() as new_data:
             for channel in a:
@@ -128,13 +152,23 @@ class Highlight(commands.Cog):
         for user in highlighted_dict:
             if int(user) == message.author.id:
                 continue
+            if self.global_conf.get("restricted") and not await is_mod_or_superior(
+                self.bot, message.guild.get_member(int(user))
+            ):
+                continue
             if self.cooldowns.get(int(user)):
                 seconds = (
                     datetime.now(tz=timezone.utc) - self.cooldowns[int(user)]
                 ).total_seconds()
-                if int(user) in self.member_cache.get(message.guild.id, {}):
-                    if seconds < self.member_cache[message.guild.id][int(user)]["cooldown"]:
-                        continue
+                cooldown = (
+                    self.member_cache.get(message.guild.id, {})
+                    .get(int(user), {})
+                    .get("cooldown", self.cooldown)
+                )
+                if cooldown < self.cooldown:
+                    cooldown = self.cooldown
+                if seconds < cooldown:
+                    continue
             if self.member_cache.get(message.guild.id, False) and self.member_cache[
                 message.guild.id
             ].get(int(user), False):
@@ -148,6 +182,12 @@ class Highlight(commands.Cog):
                     self.member_cache[message.guild.id][int(user)]["blacklist"]
                     and message.author.id
                     in self.member_cache[message.guild.id][int(user)]["blacklist"]
+                ):
+                    continue
+                elif (
+                    self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
+                    and message.channel.id
+                    in self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
                 ):
                     continue
             highlighted_words = []
@@ -186,12 +226,12 @@ class Highlight(commands.Cog):
                     context = "**Context omitted due to message size limits.\n**"
                 embed = discord.Embed(
                     title="Context:",
-                    colour=0xFF0000,
+                    colour=self.global_conf.get("colour", 0xFFFFFF),
                     timestamp=message.created_at,
                     description="{}".format(context),
                 )
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-                msg = await highlighted_usr.send(
+                await highlighted_usr.send(
                     f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
                     embed=embed,
                 )
@@ -205,6 +245,7 @@ class Highlight(commands.Cog):
 
     @commands.guild_only()
     @commands.group(autohelp=True)
+    @commands.check(restrictedhighlight_check)
     async def highlight(self, ctx: commands.Context):
         """Highlighting Commands."""
 
@@ -242,19 +283,31 @@ class Highlight(commands.Cog):
         whitelist = await self.config.member(ctx.author).whitelist()
         if not whitelist:
             return await ctx.send("Your whitelist is empty.")
-        msg = "".join(f" - {_id}\n" for _id in whitelist)
-        for page in pagify(msg):
-            await ctx.send(box(page))
+        embed = discord.Embed(
+            title="Whitelist",
+            colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
+        )
+        embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in whitelist))
+        await ctx.send(embed=embed)
 
     @blacklist.command(name="list")
     async def blacklist_list(self, ctx: commands.Context):
-        """List those in your blacklist."""
+        """List your blacklist."""
         blacklist = await self.config.member(ctx.author).blacklist()
-        if not blacklist:
+        channel_blacklist = await self.config.member(ctx.author).channel_blacklist()
+        if not blacklist and not channel_blacklist:
             return await ctx.send("Your blacklist is empty.")
-        msg = "".join(f" - {_id}\n" for _id in blacklist)
-        for page in pagify(msg):
-            await ctx.send(box(page))
+        embed = discord.Embed(
+            title="Blacklist",
+            colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
+        )
+        if blacklist:
+            embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist))
+        if channel_blacklist:
+            embed.add_field(
+                name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist)
+            )
+        await ctx.send(embed=embed)
 
     @blacklist.command(name="user")
     async def blacklist_addremove(self, ctx: commands.Context, user: discord.Member):
@@ -272,9 +325,29 @@ class Highlight(commands.Cog):
                 await ctx.send(f"{ctx.author.name} has added {user} to their highlight blacklist.")
         await self.generate_cache()
 
+    @blacklist.command(name="channel")
+    async def channel_blacklist_addremove(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
+        """Add or remove a channel from highlight blacklist.
+
+        This is per guild."""
+        async with self.config.member(ctx.author).channel_blacklist() as blacklist:
+            if channel.id in blacklist:
+                blacklist.remove(channel.id)
+                await ctx.send(
+                    f"{ctx.author.name} has removed {channel} from their highlight blacklist."
+                )
+            else:
+                blacklist.append(channel.id)
+                await ctx.send(
+                    f"{ctx.author.name} has added {channel} to their highlight blacklist."
+                )
+        await self.generate_cache()
+
     @highlight.command(name="cooldown")
     async def cooldown(self, ctx: commands.Context, seconds: int = None):
-        """Set the cooldown for highlighted messages to be sent. Default is 10 seconds.
+        """Set the cooldown for highlighted messages to be sent. Default is 60 seconds.
 
         This is per guild.
         Not providing a value will send the current set value."""
@@ -284,6 +357,12 @@ class Highlight(commands.Cog):
             return
         if seconds < 0 or seconds > 600:
             await ctx.send("Cooldown seconds must be greater or equal to 0 or less than 600.")
+            return
+        default = await self.config.default_cooldown()
+        if seconds < default:
+            await ctx.send(
+                f"Cooldown seconds must be greater or equal to the default setting of {default}"
+            )
             return
         await self.config.member(ctx.author).cooldown.set(seconds)
         await ctx.send(f"Your highlight cooldown time has been set to {seconds} seconds.")
@@ -311,6 +390,12 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
+                if len(word) < int(await self.config.min_len()):
+                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    return
+                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
+                    await ctx.send("You have reached the maximum number of highlights.")
+                    return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
                     highlight[f"{ctx.author.id}"][word.lower()] = {
                         "toggle": True,
@@ -615,6 +700,12 @@ class Highlight(commands.Cog):
             passed = []
             failed = []
             for word in text:
+                if len(word) < int(await self.config.min_len()):
+                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    return
+                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
+                    await ctx.send("You have reached the maximum number of highlights.")
+                    return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
                     highlight[f"{ctx.author.id}"][word.lower()] = {
                         "toggle": True,
@@ -869,14 +960,67 @@ class Highlight(commands.Cog):
 
         await self.generate_cache()
 
+    @commands.group()
+    @commands.is_owner()
+    async def highlightset(self, ctx):
+        """Manage highlight settings."""
+
+    @highlightset.command(usage="<max number>")
+    async def max(self, ctx, max_num: int):
+        """Set the max number of highlights a user can have."""
+        if max_num < 1:
+            return await ctx.send("Max number must be greater than 0.")
+        await self.config.max_highlights.set(max_num)
+        await ctx.send(f"Max number of highlights set to {max_num}.")
+        await self.generate_cache()
+
+    @highlightset.command()
+    async def minlen(self, ctx, min_len: int):
+        """Set the minimum length of a highlight."""
+        if min_len < 1:
+            return await ctx.send("Minimum length cannot be less than 1.")
+        await self.config.min_len.set(min_len)
+        await ctx.send(f"Minimum length of highlight set to {min_len}.")
+        await self.generate_cache()
+
+    @highlightset.command(name="cooldown")
+    async def _cooldown(self, ctx, cooldown: int):
+        """Set the default cooldown of a highlight. (in seconds)
+
+        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined."""
+        if cooldown < 1 or cooldown > 600:
+            return await ctx.send("Cooldown cannot be less than 1 or greater than 600.")
+        await self.config.default_cooldown.set(cooldown)
+        await ctx.send(f"Default cooldown set to {cooldown}.")
+        self.cooldown = cooldown
+
+    @highlightset.command(aliases=["color"])
+    async def colour(self, ctx, *, colour: discord.Colour = None):
+        """Set the colour for the highlight embed."""
+
+        if colour is None:
+            await self.config.colour.set(discord.Color.red().value)
+            await ctx.send("The color has been reset.")
+        else:
+            await self.config.colour.set(colour.value)
+            await ctx.send("The color has been set.")
+        await self.generate_cache()
+
+    @highlightset.command()
+    async def restrict(self, ctx, toggle: bool):
+        """Restrict the use of highlights to users with mod/admin permissions."""
+
+        await self.config.restricted.set(toggle)
+        if toggle:
+            await ctx.send("Highlights can now only be used by users with mod/admin permissions.")
+        else:
+            await ctx.send("Highlights can now be used by all users.")
+        await self.generate_cache()
+
 
 def yes_or_no(boolean: bool):
-    if boolean:
-        return "Yes"
-    return "No"
+    return "Yes" if boolean else "No"
 
 
 def on_or_off(boolean: bool):
-    if boolean:
-        return "On"
-    return "Off"
+    return "On" if boolean else "Off"

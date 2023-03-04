@@ -1,4 +1,6 @@
+import asyncio
 import functools
+import logging
 import random
 
 import discord
@@ -6,7 +8,19 @@ from redbot.core import commands
 from redbot.core.config import Config
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
+log = logging.getLogger("red.flare.tips")
+
 real_send = commands.Context.send
+
+
+def task_done_callback(task: asyncio.Task):
+    """Properly handle and log errors in the startup task."""
+    try:
+        task.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception as error:
+        log.exception("Failed to initialize the cog.", exc_info=error)
 
 
 def chunks(l, n):
@@ -35,8 +49,13 @@ async def send(self, content=None, **kwargs):
         tips = cog.message_cache or ["No tips configured."]
         tip_msg = random.choice(tips).replace("{prefix}", self.clean_prefix)
         new_content = cog.tip_format.format_map(
-            Default(content=content if content else "", tip_msg=tip_msg, prefix=self.clean_prefix)
+            Default(
+                content=content or "",
+                tip_msg=tip_msg,
+                prefix=self.clean_prefix,
+            )
         )
+
         if len(new_content) <= 2000:
             content = new_content
     return await real_send(self, content, **kwargs)
@@ -45,7 +64,7 @@ async def send(self, content=None, **kwargs):
 class Tips(commands.Cog):
     """Tips - Credit to Jackenmen"""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -61,15 +80,24 @@ class Tips(commands.Cog):
         )
         self.config.register_user(toggle=True)
 
-    async def initialize(self) -> None:
         setattr(commands.Context, "send", send)
+        self.message_cache = []
+        self.chance = 50
+        self.tip_format = ""
+        self.usercache = {}
+
+        self.initialize_task = asyncio.create_task(self.initialize())
+        self.initialize_task.add_done_callback(task_done_callback)
+
+    async def initialize(self) -> None:
         await self.generate_cache()
 
     async def generate_cache(self):
+        data = await self.config.all()
+        self.message_cache = data["tips"]
+        self.chance = data["chance"]
+        self.tip_format = data["tip_format"]
         self.usercache = await self.config.all_users()
-        self.message_cache = await self.config.tips()
-        self.chance = await self.config.chance()
-        self.tip_format = await self.config.tip_format()
 
     def cog_unload(self) -> None:
         setattr(commands.Context, "send", real_send)

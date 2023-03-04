@@ -43,12 +43,13 @@ class EmbedGlobal(MixinMeta):
             msg += f"{embed} - Created by: {user if user is not None else '<unknown user>'}\n"
         embeds = [
             discord.Embed(
-                title=f"Global Embeds",
+                title="Global Embeds",
                 description=page,
                 color=await ctx.embed_colour(),
             )
             for page in pagify(msg)
         ]
+
         if len(embeds) == 1:
             await ctx.send(embed=embeds[0])
             return

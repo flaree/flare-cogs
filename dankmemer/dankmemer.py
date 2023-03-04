@@ -1457,7 +1457,7 @@ class DankMemer(commands.Cog):
     @commands.command()
     async def yomomma(self, ctx):
         """Yo momma!."""
-        data = await self.get(ctx, f"/yomomma", True)
+        data = await self.get(ctx, "/yomomma", True)
         if data.get("error"):
             return await self.send_error(ctx, data)
         await ctx.send(data["text"])

@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import string
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Mapping, Optional
@@ -103,32 +104,12 @@ class InfoJson:
 
     @classmethod
     def from_json(cls, data: dict):
-        author = []
-        description = ""
-        install_msg = "Thanks for installing"
-        short = "Thanks for installing"
         min_bot_version = "3.1.8"
-        max_bot_version = "0.0.0"
-        name = ""
         required_cogs: Mapping = {}
-        requirements = []
-        tags = []
-        hidden = False
-        disabled = False
-        type = "COG"
-        permissions = []
-        min_python_version = []
-        end_user_data_statement = (
-            "This cog does not persistently store data or metadata about users."
-        )
-        if "author" in data:
-            author = data["author"]
-        if "description" in data:
-            description = data["description"]
-        if "install_msg" in data:
-            install_msg = data["install_msg"]
-        if "short" in data:
-            short = data["short"]
+        author = data.get("author", [])
+        description = data.get("description", "")
+        install_msg = data.get("install_msg", "Thanks for installing")
+        short = data.get("short", "Thanks for installing")
         if "bot_version" in data:
             min_bot_version = data["bot_version"]
             if isinstance(min_bot_version, list):
@@ -136,33 +117,24 @@ class InfoJson:
         if "min_bot_version" in data:
             min_bot_version = data["min_bot_version"]
             # min_bot_version = "3.3.0"
-        if "max_bot_version" in data:
-            max_bot_version = data["max_bot_version"]
-            # max_bot_version = "0.0.0"
-        if "name" in data:
-            name = data["name"]
+        max_bot_version = data.get("max_bot_version", "0.0.0")
+        name = data.get("name", "")
         if "required_cogs" in data:
             if isinstance(data["required_cogs"], list):
                 required_cogs = {}
             else:
                 required_cogs = data["required_cogs"]
-        if "requirements" in data:
-            requirements = data["requirements"]
-        if "tags" in data:
-            tags = data["tags"]
-        if "hidden" in data:
-            hidden = data["hidden"]
-        if "disabled" in data:
-            disabled = data["disabled"]
-        if "type" in data:
-            type = data["type"]
-        if "permissions" in data:
-            permissions = data["permissions"]
-        if "min_python_version" in data:
-            min_python_version = data["min_python_version"]
-            # min_python_version = [3, 8, 0]
-        if "end_user_data_statement" in data:
-            end_user_data_statement = data["end_user_data_statement"]
+        requirements = data.get("requirements", [])
+        tags = data.get("tags", [])
+        hidden = data.get("hidden", False)
+        disabled = data.get("disabled", False)
+        type = data.get("type", "COG")
+        permissions = data.get("permissions", [])
+        min_python_version = data.get("min_python_version", [])
+        end_user_data_statement = data.get(
+            "end_user_data_statement",
+            "This cog does not persistently store data or metadata about users.",
+        )
 
         return cls(
             author,
@@ -228,7 +200,9 @@ def makereadme():
     )
     file_content = HEADER.format(body=body)
     with open(f"{ROOT}/README.md", "r") as outfile:
-        if re.sub(" +", " ", outfile.read()) == re.sub(" +", " ", file_content):
+        remove = string.punctuation + string.whitespace
+        mapping = {ord(c): None for c in remove}
+        if outfile.read().rstrip().translate(mapping) == file_content.rstrip().translate(mapping):
             return 1
     with open(f"{ROOT}/README.md", "w") as outfile:
         outfile.write(file_content)

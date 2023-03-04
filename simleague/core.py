@@ -249,9 +249,7 @@ class SimHelper(MixinMeta):
             return color2
 
     def _luminance(self, color):
-        # convert to greyscale
-        luminance = float((0.2126 * color[0]) + (0.7152 * color[1]) + (0.0722 * color[2]))
-        return luminance
+        return float((0.2126 * color[0]) + (0.7152 * color[1]) + (0.0722 * color[2]))
 
     def _contrast_ratio(self, bgcolor, foreground):
         f_lum = float(self._luminance(foreground) + 0.05)
@@ -901,11 +899,12 @@ class SimHelper(MixinMeta):
             fill=(255, 255, 255, 255),
         )
         draw.text(
-            (self._center(0, width, f"Draw:", general_info_fnt), 120),
-            f"Draw:",
+            (self._center(0, width, "Draw:", general_info_fnt), 120),
+            "Draw:",
             font=general_info_fnt,
             fill=(255, 255, 255, 255),
         )
+
         draw.text(
             (self._center(0, width, str(drawodds)[:7], general_info_fnt), 137),
             str(drawodds)[:7],

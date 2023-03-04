@@ -54,17 +54,16 @@ class Covid(commands.Cog):
                 return {
                     "failed": "Their appears to be an issue with the API. Please try again later."
                 }
-            if response.status == 200:
-                try:
-                    if isinstance(data, dict) and data.get("message") is not None:
-                        return {"failed": data["message"]}
-                    return data
-                except aiohttp.ServerTimeoutError:
-                    return {
-                        "failed": "Their appears to be an issue with the API. Please try again later."
-                    }
-            else:
+            if response.status != 200:
                 return {"failed": data["message"]}
+            try:
+                if isinstance(data, dict) and data.get("message") is not None:
+                    return {"failed": data["message"]}
+                return data
+            except aiohttp.ServerTimeoutError:
+                return {
+                    "failed": "Their appears to be an issue with the API. Please try again later."
+                }
 
     @commands.command(hidden=True)
     async def covidcountries(self, ctx):
@@ -478,11 +477,11 @@ class Covid(commands.Cog):
                 color=await self.bot.get_embed_color(ctx.channel),
                 title="Covid-19 Global Vaccine Statistics",
             )
-            msg = ""
-            for day in data:
-                msg += f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data[day])}\n"
-            embed.description = f"```{msg}```"
-            await ctx.send(embed=embed)
+            msg = "".join(
+                f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data[day])}\n"
+                for day in data
+            )
+
         else:
             async with ctx.typing():
                 data = await self.get(self.api + "/vaccine/coverage/countries/{}".format(country))
@@ -490,14 +489,14 @@ class Covid(commands.Cog):
                 return await ctx.send(data.get("failed"))
             if not data:
                 return await ctx.send("No data available.")
-            if not data:
-                return await ctx.send("No data available.")
             embed = discord.Embed(
                 color=await self.bot.get_embed_color(ctx.channel),
                 title=f"Covid-19 {data['country']} Vaccine Statistics",
             )
-            msg = ""
-            for day in data["timeline"]:
-                msg += f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data['timeline'][day])}\n"
-            embed.description = f"```{msg}```"
-            await ctx.send(embed=embed)
+            msg = "".join(
+                f"{datetime.datetime.strptime(day, '%m/%d/%y').strftime('%d-%m-%Y')}: {humanize_number(data['timeline'][day])}\n"
+                for day in data["timeline"]
+            )
+
+        embed.description = f"```{msg}```"
+        await ctx.send(embed=embed)

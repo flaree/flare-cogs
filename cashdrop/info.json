@@ -1,0 +1,24 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Random credits drop, where people can answer questions or pick them up!",
+    "name": "CashDrop",
+    "disabled": false,
+    "short": "Random credits drop, where people can answer questions or pick them up!",
+    "description": "Random credits drop, where people can answer questions or pick them up!",
+    "tags": [
+        "maths",
+        "drop",
+        "credits",
+        "questions",
+        "random",
+        "random-drop",
+        "random-credits",
+        "random-questions",
+        "economy"
+    ],
+    "min_bot_version": "3.4.0",
+    "max_bot_version": "3.4.99",
+    "hidden": false
+}

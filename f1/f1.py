@@ -31,15 +31,15 @@ class F1(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(channel=None, role=None)
-        self.loop = self.bot.loop.create_task(self.race_loop())
+        self.loop = asyncio.create_task(self.race_loop())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.loop.cancel()
 
     async def race_loop(self):
         await self.bot.wait_until_ready()
         while True:
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
             tomorrow = (now + datetime.timedelta(days=1)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
@@ -88,16 +88,15 @@ class F1(commands.Cog):
                 return {
                     "failed": "Their appears to be an issue with the API. Please try again later."
                 }
-            if response.status == 200:
-                try:
-                    return data
-                except aiohttp.ServerTimeoutError:
-                    return {
-                        "failed": "Their appears to be an issue with the API. Please try again later."
-                    }
-            else:
+            if response.status != 200:
                 return {
                     "failed": f"An error occured processing your request and a returned a {response.status} status code."
+                }
+            try:
+                return data
+            except aiohttp.ServerTimeoutError:
+                return {
+                    "failed": "Their appears to be an issue with the API. Please try again later."
                 }
 
     @commands.group()
@@ -109,10 +108,9 @@ class F1(commands.Cog):
         """F1 drivers by season year."""
         if year is None:
             year = datetime.datetime.now().year
-        else:
-            if year > datetime.datetime.now().year:
-                await ctx.send("You cannot view data from the future silly.")
-                return
+        elif year > datetime.datetime.now().year:
+            await ctx.send("You cannot view data from the future silly.")
+            return
         data = await self.get(f"/{year}/drivers.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
@@ -138,10 +136,9 @@ class F1(commands.Cog):
         """F1 constructors by season year."""
         if year is None:
             year = datetime.datetime.now().year
-        else:
-            if year > datetime.datetime.now().year:
-                await ctx.send("You cannot view data from the future silly.")
-                return
+        elif year > datetime.datetime.now().year:
+            await ctx.send("You cannot view data from the future silly.")
+            return
         data = await self.get(f"/{year}/constructors.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
@@ -168,10 +165,9 @@ class F1(commands.Cog):
         """F1 circuits by season year."""
         if year is None:
             year = datetime.datetime.now().year
-        else:
-            if year > datetime.datetime.now().year:
-                await ctx.send("You cannot view data from the future silly.")
-                return
+        elif year > datetime.datetime.now().year:
+            await ctx.send("You cannot view data from the future silly.")
+            return
         data = await self.get(f"/{year}/circuits.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
@@ -200,7 +196,7 @@ class F1(commands.Cog):
     @f1.command()
     async def recent(self, ctx: commands.Context):
         """F1 most recent race result."""
-        data = await self.get(f"/current/last/results.json")
+        data = await self.get("/current/last/results.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -259,10 +255,9 @@ class F1(commands.Cog):
         """F1 schedule by season year."""
         if year is None:
             year = datetime.datetime.now().year
-        else:
-            if year > datetime.datetime.now().year:
-                await ctx.send("You cannot view data from the future silly.")
-                return
+        elif year > datetime.datetime.now().year:
+            await ctx.send("You cannot view data from the future silly.")
+            return
         data = await self.get(f"/{year}.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
@@ -295,7 +290,7 @@ class F1(commands.Cog):
 
     @standings.command(name="drivers")
     async def drivers_standings(self, ctx):
-        data = await self.get(f"/current/driverStandings.json")
+        data = await self.get("/current/driverStandings.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -324,7 +319,7 @@ class F1(commands.Cog):
 
     @standings.command(name="constructors")
     async def constructors_standings(self, ctx):
-        data = await self.get(f"/current/constructorStandings.json")
+        data = await self.get("/current/constructorStandings.json")
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
@@ -401,9 +396,10 @@ class F1(commands.Cog):
             datetimes.append(time)
         try:
             next_date = min(
-                [d for d in datetimes if str(d) > str(datetime.date.today())],
+                (d for d in datetimes if str(d) > str(datetime.date.today())),
                 key=lambda s: s - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc),
             )
+
         except ValueError:
             return await ctx.send("I couldn't find the next F1 race available.")
         for circuit in circuits:
