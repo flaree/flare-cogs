@@ -129,6 +129,7 @@ class CommandStats(commands.Cog):
 
         return list(chunks(stats, 15))
 
+    @commands.guild_only()
     @commands.is_owner()
     @commands.group(invoke_without_command=True)
     async def cmd(self, ctx, *, command: str = None):
