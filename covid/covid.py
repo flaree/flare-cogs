@@ -88,10 +88,7 @@ class Covid(commands.Cog):
                     ctx.prefix
                 )
             )
-        await GenericMenu(
-            source=ArticleFormat(data["articles"]),
-            ctx=ctx,
-        ).start(
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
             ctx=ctx,
             wait=False,
         )

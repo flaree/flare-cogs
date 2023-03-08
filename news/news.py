@@ -98,10 +98,7 @@ class News(commands.Cog):
                 f"No results found, ensure you're looking up the correct country code. Check {ctx.prefix}countrycodes for a list. Alternatively, your query may be returning no results."
             )
 
-        await GenericMenu(
-            source=ArticleFormat(data["articles"][:15]),
-            ctx=ctx,
-        ).start(
+        await GenericMenu(source=ArticleFormat(data["articles"][:15]), ctx=ctx,).start(
             ctx=ctx,
             wait=False,
         )
@@ -121,10 +118,7 @@ class News(commands.Cog):
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        await GenericMenu(
-            source=ArticleFormat(data["articles"]),
-            ctx=ctx,
-        ).start(
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
             ctx=ctx,
             wait=False,
         )
@@ -141,10 +135,7 @@ class News(commands.Cog):
             return await ctx.send(data.get("failed"))
         if data["totalResults"] == 0:
             return await ctx.send("No results found.")
-        await GenericMenu(
-            source=ArticleFormat(data["articles"]),
-            ctx=ctx,
-        ).start(
+        await GenericMenu(source=ArticleFormat(data["articles"]), ctx=ctx,).start(
             ctx=ctx,
             wait=False,
         )
