@@ -32,9 +32,11 @@ class F1(commands.Cog):
         self.config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(channel=None, role=None)
         self.loop = self.bot.loop.create_task(self.race_loop())
+        self.bg_task = self.bot.loop.create_task(self.race_notification_check())
 
     def cog_unload(self):
         self.loop.cancel()
+        self.bg_task.cancel()
 
     async def race_loop(self):
         await self.bot.wait_until_ready()
@@ -447,3 +449,34 @@ class F1(commands.Cog):
         return str(n) + (
             "th" if 4 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
         )
+
+    async def race_notification_check(self):
+        await self.bot.wait_until_ready()
+        while not self.bot.is_closed():
+            now = datetime.datetime.now(datetime.timezone.utc)
+            year = now.year
+            data = await self.get(f"/{year}.json")
+            races = data["MRData"]["RaceTable"]["Races"]
+            
+            for race in races:
+                race_time = datetime.datetime.fromisoformat(
+                    race["date"] + "T" + race["time"].replace("Z", "")
+                ).replace(tzinfo=datetime.timezone.utc)
+                
+                if race_time.date() == now.date():
+                    race_start_in = (race_time - now).total_seconds()
+                    if 0 <= race_start_in <= 3600:  # Notify if the race starts within the next hour
+                        message = f"Race day reminder: {race['raceName']} starts in {race_start_in // 60} minutes."
+                        for guild in self.bot.guilds:
+                            channel_id = await self.config.guild(guild).channel()
+                            role_id = await self.config.guild(guild).role()
+                            if channel_id is not None:
+                                channel = guild.get_channel(channel_id)
+                                role = guild.get_role(role_id) if role_id is not None else None
+                                if channel is not None:
+                                    if role is not None:
+                                        message = f"{role.mention}\n{message}"
+                                    await channel.send(message)
+                        break
+
+            await asyncio.sleep(60)  # Check every minute
