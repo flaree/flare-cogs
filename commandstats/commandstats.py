@@ -40,7 +40,7 @@ class CommandStats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, 1398467138476, force_registration=True)
-        default_global = {"globaldata": Counter({}), "guilddata": {}, "automated": Counter({})}
+        default_global = {"globaldata": {}, "guilddata": {}, "automated": {}}
         self.config.register_global(**default_global)
         self.cache = {"guild": {}, "session": Counter({}), "automated": Counter({})}
         self.session = Counter()
@@ -444,12 +444,12 @@ class CommandStats(commands.Cog):
                 guilddata[guild] = data
 
     async def update_global(self):
-        globaldata = await self.config.globaldata()
+        globaldata = Counter(await self.config.globaldata())
         data = globaldata + self.cache["session"]
         await self.config.globaldata.set(data)
         self.cache["session"] = Counter({})
 
-        autodata = await self.config.automated()
+        autodata = Counter(await self.config.automated())
         data = autodata + self.cache["automated"]
         await self.config.automated.set(data)
         self.cache["automated"] = Counter({})

@@ -46,7 +46,7 @@ class SimHelper(MixinMeta):
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         level_label_fnt = ImageFont.truetype(font_bold_file, 22, encoding="utf-8")
         rank_avatar = BytesIO()
-        await player.avatar_url.save(rank_avatar, seek_begin=True)
+        await player.display_avatar.save(rank_avatar, seek_begin=True)
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         if event != "yellow" or event != "goal":
@@ -501,7 +501,7 @@ class SimHelper(MixinMeta):
         general_info_fnt = ImageFont.truetype(font_bold_file, 15, encoding="utf-8")
         header_u_fnt = ImageFont.truetype(font_bold_file, 18)
         rank_avatar = BytesIO()
-        await user.avatar_url.save(rank_avatar, seek_begin=True)
+        await user.display_avatar.save(rank_avatar, seek_begin=True)
         cog = self.bot.get_cog("SimLeague")
         teams = await cog.config.guild(ctx.guild).teams()
         server_icon = await self.getimg(
@@ -705,7 +705,7 @@ class SimHelper(MixinMeta):
         for player in teams[team1]["members"]:
             player = await self.bot.fetch_user(player)
             rank_avatar = BytesIO()
-            await player.avatar_url.save(rank_avatar, seek_begin=True)
+            await player.display_avatar.save(rank_avatar, seek_begin=True)
             profile_image = Image.open(rank_avatar).convert("RGBA")
             # put in profile picture
             output = ImageOps.fit(profile_image, (raw_length, raw_length), centering=(0.5, 0.5))

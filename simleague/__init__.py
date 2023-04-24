@@ -18,4 +18,4 @@ async def setup(bot):
             "A mongodb instance and leveler by fixator/aikaterna is **REQUIRED** for this cog to function."
         )
     cog = SimLeague(bot)
-    bot.add_cog(cog)
+    await bot.add_cog(cog)

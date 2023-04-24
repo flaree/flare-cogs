@@ -304,7 +304,7 @@ class Userinfo(commands.Cog):
             name = " ~ ".join((name, user.nick)) if user.nick else name
             name = filter_invites(name)
 
-            avatar = user.avatar_url_as(static_format="png")
+            avatar = user.display_avatar.replace(static_format="png").url
             data.title = f"{statusemoji} {name}"
             data.set_thumbnail(url=avatar)
 
@@ -379,4 +379,4 @@ async def setup(bot):
     global _old_userinfo
     if _old_userinfo := bot.get_command("userinfo"):
         bot.remove_command(_old_userinfo.name)
-    bot.add_cog(uinfo)
+    await bot.add_cog(uinfo)

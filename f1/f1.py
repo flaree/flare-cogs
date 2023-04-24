@@ -31,9 +31,9 @@ class F1(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(channel=None, role=None)
-        self.loop = self.bot.loop.create_task(self.race_loop())
+        self.loop = asyncio.create_task(self.race_loop())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.loop.cancel()
 
     async def race_loop(self):
