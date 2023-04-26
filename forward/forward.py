@@ -57,7 +57,15 @@ class Forward(commands.Cog):
     async def on_message_without_command(self, message):
         if message.guild is not None:
             return
-        if message.channel.recipient.id in self.bot.owner_ids:
+        recipient = message.channel.recipient
+        if recipient is None:
+            chan = self.bot.get_channel(message.channel.id)
+            if chan is None:
+                chan = await self.bot.fetch_channel(message.channel.id)
+            if not isinstance(chan, discord.DMChannel):
+                return
+            recipient = chan.recipient
+        if recipient.id in self.bot.owner_ids:
             return
         if not await self.bot.allowed_by_whitelist_blacklist(message.author):
             return
@@ -68,7 +76,7 @@ class Forward(commands.Cog):
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
                     return
-            msg = f"Sent PM to {message.channel.recipient} (`{message.channel.recipient.id}`)"
+            msg = f"Sent PM to {recipient} (`{recipient.id}`)"
             if message.embeds:
                 msg += f"\n**Message Content**: {message.content}"
                 embeds = [
