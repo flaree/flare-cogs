@@ -16,7 +16,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.3.2"
+    __version__ = "0.3.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -318,7 +318,7 @@ class Userinfo(commands.Cog):
                         emoji2 = self.badge_emojis["verified_bot2"]
                         emoji = f"{emoji1}{emoji2}" if emoji1 else None
                     else:
-                        emoji = self.badge_emojis[badge]
+                        emoji = self.badge_emojis.get(badge)
                     if emoji:
                         badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
                     else:
