@@ -4,7 +4,7 @@ from typing import Literal
 
 import aiohttp
 import discord
-from redbot.core import Config, commands
+from redbot.core import Config, app_commands, commands
 from redbot.core.utils.chat_formatting import humanize_timedelta
 from redbot.core.utils.menus import DEFAULT_CONTROLS, close_menu, menu, next_page, prev_page
 
@@ -160,6 +160,7 @@ class Faceit(commands.Cog):
         """Faceit Commands."""
 
     @faceit.command(name="set")
+    @app_commands.describe(name="Your faceit username.")
     async def _set(self, ctx, *, name: str = None):
         """Set your faceit username."""
         if name is None:
@@ -176,6 +177,7 @@ class Faceit(commands.Cog):
         await self.config.user(ctx.author).name.set(uname)
 
     @faceit.command()
+    @app_commands.describe(user="The user to check. Discord or Faceit user.")
     async def profile(self, ctx, *, user: StrUser = None):
         """Faceit Profile Stats."""
         name = await self.get_user(ctx, user)
@@ -216,6 +218,7 @@ class Faceit(commands.Cog):
         )
 
     @faceit.command()
+    @app_commands.describe(user="The user to check. Discord or Faceit user.")
     async def matches(self, ctx, *, user: StrUser = None):
         """Faceit Match Stats."""
         name = await self.get_user(ctx, user)
@@ -256,6 +259,9 @@ class Faceit(commands.Cog):
             await ctx.send("No information for previous matches found.")
 
     @faceit.command()
+    @app_commands.describe(
+        match_id="The match ID to check. Can be found in the match room URL or matches command."
+    )
     async def match(self, ctx, match_id):
         """In-depth stats for a match."""
         match = await self.get("/matches/{}/stats".format(match_id))
@@ -307,6 +313,10 @@ class Faceit(commands.Cog):
             await ctx.send("No information for match found.")
 
     @faceit.command()
+    @app_commands.describe(
+        game="The game to check. Can be found in the game URL or games command.",
+        user="The user to check. Discord or Faceit user.",
+    )
     async def stats(self, ctx, game, *, user: StrUser = None):
         """In-depth stats for any faceit supported game."""
         name = await self.get_user(ctx, user)
@@ -353,6 +363,7 @@ class Faceit(commands.Cog):
             await ctx.send("No information found.")
 
     @faceit.command()
+    @app_commands.describe(user="The user to check. Discord or Faceit user.")
     async def ongoing(self, ctx, *, user: StrUser = None):
         """Check if a user has an ongoing game."""
         name = await self.get_user(ctx, user)

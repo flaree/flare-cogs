@@ -12,7 +12,7 @@ import discord
 import tabulate
 import validators
 from discord.http import Route
-from redbot.core import Config, commands
+from redbot.core import Config, app_commands, commands
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify, spoiler
 
@@ -193,6 +193,7 @@ class RedditPost(commands.Cog):
         )
 
     @redditpost.command()
+    @app_commands.describe(subreddit="The subreddit to add.", channel="The channel to post in.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Add a subreddit to post new content from."""
@@ -243,6 +244,7 @@ class RedditPost(commands.Cog):
             await ctx.tick()
 
     @redditpost.command()
+    @app_commands.describe(channel="The channel to list subreddits for.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def list(self, ctx, channel: discord.TextChannel = None):
         """Lists the current subreddits for the current channel, or a provided one."""
@@ -265,6 +267,9 @@ class RedditPost(commands.Cog):
             )
 
     @redditpost.command(name="remove")
+    @app_commands.describe(
+        subreddit="The subreddit to remove.", channel="The channel to remove from."
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def remove_feed(
         self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None
@@ -284,6 +289,7 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command(name="force")
+    @app_commands.describe(subreddit="The subreddit to force.", channel="The channel to force in.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Force the latest post."""
@@ -320,6 +326,10 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command(name="latest")
+    @app_commands.describe(
+        subreddit="The subreddit to check for latest posts.",
+        channel="The channel for the subreddit.",
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
         """Whether to fetch all posts or just the latest post."""
@@ -337,6 +347,11 @@ class RedditPost(commands.Cog):
         await ctx.tick()
 
     @redditpost.command()
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        on_or_off="Whether to enable or disable images only.",
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def imageonly(
         self, ctx, subreddit: str, on_or_off: bool, channel: discord.TextChannel = None
@@ -357,6 +372,11 @@ class RedditPost(commands.Cog):
 
     @redditpost.command(
         name="webhook", aliases=["webhooks"], usage="<subreddit> <true_or_false> [channel]"
+    )
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        webhook="Whether to enable or disable webhooks.",
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_webhooks=True)
     async def webhook(

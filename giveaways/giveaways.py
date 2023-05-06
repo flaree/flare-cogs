@@ -7,7 +7,7 @@ from typing import Optional
 
 import aiohttp
 import discord
-from redbot.core import Config, commands
+from redbot.core import Config, app_commands, commands
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
@@ -183,6 +183,11 @@ class Giveaways(commands.Cog):
         """
 
     @giveaway.command()
+    @app_commands.describe(
+        channel="The channel in which to start the giveaway.",
+        time="The time the giveaway should last.",
+        prize="The prize for the giveaway.",
+    )
     async def start(
         self,
         ctx: commands.Context,
@@ -222,6 +227,7 @@ class Giveaways(commands.Cog):
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
+    @app_commands.describe(msgid="The message ID of the giveaway to end.")
     async def reroll(self, ctx: commands.Context, msgid: int):
         """Reroll a giveaway."""
         data = await self.config.custom(GIVEAWAY_KEY, ctx.guild.id).all()
@@ -244,6 +250,7 @@ class Giveaways(commands.Cog):
             await ctx.tick()
 
     @giveaway.command()
+    @app_commands.describe(msgid="The message ID of the giveaway to end.")
     async def end(self, ctx: commands.Context, msgid: int):
         """End a giveaway."""
         if msgid in self.giveaways:
@@ -259,6 +266,9 @@ class Giveaways(commands.Cog):
             await ctx.send("Giveaway not found.")
 
     @giveaway.command(aliases=["adv"])
+    @app_commands.describe(
+        arguments="The arguments for the giveaway. See `[p]gw explain` for more info."
+    )
     async def advanced(self, ctx: commands.Context, *, arguments: Args):
         """Advanced creation of Giveaways.
 
@@ -344,6 +354,7 @@ class Giveaways(commands.Cog):
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
+    @app_commands.describe(msgid="The message ID of the giveaway to edit.")
     async def entrants(self, ctx: commands.Context, msgid: int):
         """List all entrants for a giveaway."""
         if msgid not in self.giveaways:
@@ -374,6 +385,7 @@ class Giveaways(commands.Cog):
         return await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @giveaway.command()
+    @app_commands.describe(msgid="The message ID of the giveaway to edit.")
     async def info(self, ctx: commands.Context, msgid: int):
         """Information about a giveaway."""
         if msgid not in self.giveaways:
