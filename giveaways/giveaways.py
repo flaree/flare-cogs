@@ -24,7 +24,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.12.7"
+    __version__ = "0.13.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -174,7 +174,7 @@ class Giveaways(commands.Cog):
                 entrants = [x for x in entrants if x != winner]
         return
 
-    @commands.group(aliases=["gw"])
+    @commands.hybrid_group(aliases=["gw"])
     @commands.bot_has_permissions(add_reactions=True, embed_links=True)
     @commands.has_permissions(manage_guild=True)
     async def giveaway(self, ctx: commands.Context):
@@ -213,6 +213,8 @@ class Giveaways(commands.Cog):
             "🎉",
             **{"congratulate": True, "notify": True},
         )
+        if ctx.interaction:
+            await ctx.send("Giveaway created!", ephemeral=True)
         self.giveaways[msg.id] = giveaway_obj
         await msg.add_reaction("🎉")
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
@@ -319,6 +321,8 @@ class Giveaways(commands.Cog):
                 everyone=bool(arguments["ateveryone"]),
             ),
         )
+        if ctx.interaction:
+            await ctx.send("Giveaway created!", ephemeral=True)
 
         giveaway_obj = Giveaway(
             ctx.guild.id,

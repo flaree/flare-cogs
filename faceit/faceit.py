@@ -41,7 +41,7 @@ profile_controls_ongoing = {
 class Faceit(commands.Cog):
     """CS:GO Faceit Statistics."""
 
-    __version__ = "0.1.1"
+    __version__ = "0.2.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -154,7 +154,7 @@ class Faceit(commands.Cog):
         )
         await ctx.maybe_send_embed(msg)
 
-    @commands.group()
+    @commands.hybrid_group()
     @commands.check(tokencheck)
     async def faceit(self, ctx):
         """Faceit Commands."""

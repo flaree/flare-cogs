@@ -27,7 +27,7 @@ REDDIT_REGEX = re.compile(
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.4.1"
+    __version__ = "0.5.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -164,7 +164,7 @@ class RedditPost(commands.Cog):
 
     @commands.admin_or_permissions(manage_channels=True)
     @commands.guild_only()
-    @commands.group(aliases=["redditfeed"])
+    @commands.hybrid_group(aliases=["redditfeed"])
     async def redditpost(self, ctx):
         """Reddit auto-feed posting."""
 
@@ -237,7 +237,10 @@ class RedditPost(commands.Cog):
                 "logo": logo,
                 "webhooks": False,
             }
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Subreddit added.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -300,6 +303,8 @@ class RedditPost(commands.Cog):
         data = await self.fetch_feed(feeds[subreddit]["subreddit"])
         if data is None:
             return await ctx.send("No post could be found.")
+        if ctx.interaction:
+            await ctx.send("Post sent.", ephemeral=True)
         await self.format_send(
             data,
             channel,

@@ -18,7 +18,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -99,7 +99,7 @@ class F1(commands.Cog):
                     "failed": "Their appears to be an issue with the API. Please try again later."
                 }
 
-    @commands.group()
+    @commands.hybrid_group()
     async def f1(self, ctx: commands.Context):
         """F1 Group Command"""
 

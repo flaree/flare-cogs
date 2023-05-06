@@ -20,7 +20,7 @@ CacheType = Literal["edit", "delete"]
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.4.0"
+    __version__ = "0.5.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -193,7 +193,7 @@ class Snipe(commands.Cog):
     @commands.guild_only()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.channel)
     @commands.bot_has_permissions(embed_links=True)
-    @commands.command()
+    @commands.hybrid_command()
     async def snipe(
         self,
         ctx: commands.Context,
