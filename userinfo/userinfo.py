@@ -344,7 +344,7 @@ class Userinfo(commands.Cog):
                         global adventure_bank
                         if adventure_bank is None:
                             try:
-                                from adventure import bank as adventure_bank
+                                from adventure.bank import bank as adventure_bank
                             except:
                                 pass
                         if adventure_bank:
