@@ -56,7 +56,7 @@ class TriggerObject:
                     embed_dict_list.append(embed.to_dict())
                 if self.pattern is None:
                     self.pattern = re.compile(rf"{re.escape(self.trigger.lower())}", flags=re.I)
-                if self.pattern.findall(str(embed_dict_list)):
+                if self.pattern.search(str(embed_dict_list)):
                     return True
         return False
 
