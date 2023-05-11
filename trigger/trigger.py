@@ -131,6 +131,7 @@ class Trigger(commands.Cog):
                 "toggle": True,
                 "case_sensitive": False,
                 "word_boundary": False,
+                "embed_search": False,
             }
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
 
@@ -256,6 +257,20 @@ class Trigger(commands.Cog):
                 await ctx.send("Trigger does not exist.")
                 return
             triggers[trigger_name]["word_boundary"] = toggle
+            await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
+        await ctx.tick()
+
+    @edit.command(name="embeds", aliases=["embedsearch"])
+    async def embed_search(self, ctx, trigger_name: str, toggle: bool):
+        """
+        Toggle searching within embeds for the trigger.
+        """
+        trigger_name = trigger_name.lower()
+        async with self.config.guild(ctx.guild).triggers() as triggers:
+            if trigger_name not in triggers:
+                await ctx.send("Trigger does not exist.")
+                return
+            triggers[trigger_name]["embed_search"] = toggle
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
         await ctx.tick()
 
