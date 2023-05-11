@@ -702,7 +702,7 @@ class Highlight(commands.Cog):
 
     @guild.command(name="add")
     async def guild_add(self, ctx: commands.Context, *text: str):
-        """Add a word to be highlighted on for thhe guild.
+        """Add a word to be highlighted on for the guild.
 
         Text will be converted to lowercase.\nCan also provide an optional channel argument for
         the highlight to be applied to that channel.
