@@ -16,7 +16,7 @@ log = logging.getLogger("red.flare.userinfo")
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -344,7 +344,7 @@ class Userinfo(commands.Cog):
                         global adventure_bank
                         if adventure_bank is None:
                             try:
-                                from adventure import bank as adventure_bank
+                                from adventure.bank import bank as adventure_bank
                             except:
                                 pass
                         if adventure_bank:
