@@ -1,0 +1,19 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "This cog is a basic permission checker, used to check if a user/role/channel has a set permission.",
+    "name": "PermChecker",
+    "disabled": false,
+    "short": "This cog is a basic permission checker, used to check if a user/role/channel has a set permission.",
+    "description": "This cog is a basic permission checker, used to check if a user/role/channel has a set permission.",
+    "tags": [
+        "permissions",
+        "checker",
+        "permissionchecker",
+        "permchecker",
+        "perm",
+        "perms"
+    ],
+    "min_bot_version": "3.5.0"
+}

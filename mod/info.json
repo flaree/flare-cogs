@@ -11,5 +11,5 @@
         "mod"
     ],
     "min_bot_version": "3.5.0",
-    "hidden": true
+    "hidden": false
 }
