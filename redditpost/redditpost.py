@@ -156,7 +156,7 @@ class RedditPost(commands.Cog):
                         "logo": feed.get("logo", REDDIT_LOGO),
                         "image_only": feed.get("image_only", False),
                         "source_button": feed.get("source_button", True),
-                        "publish": feed.get("publish", True),
+                        "publish": feed.get("publish", False),
                     },
                 )
                 if time is not None:
