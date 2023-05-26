@@ -76,7 +76,9 @@ class Trigger(commands.Cog):
                 await obj.respond(message)
 
     @commands.Cog.listener()
-    async def on_message_edit(self, before_message: discord.Message, after_message: discord.Message):
+    async def on_message_edit(
+        self, before_message: discord.Message, after_message: discord.Message
+    ):
         if after_message.author.bot:
             return
         if after_message.guild is None:
