@@ -75,6 +75,21 @@ class Trigger(commands.Cog):
             if obj.check(message):
                 await obj.respond(message)
 
+    @commands.Cog.listener()
+    async def on_message_edit(
+        self, before_message: discord.Message, after_message: discord.Message
+    ):
+        if after_message.author.bot:
+            return
+        if after_message.guild is None:
+            return
+        guild = after_message.guild
+        for trigger in self.triggers.get(guild.id, {}):
+            obj = self.triggers[guild.id][trigger]
+            if obj.embed_search:
+                if obj.check(after_message):
+                    await obj.respond(after_message)
+
     @commands.group()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
