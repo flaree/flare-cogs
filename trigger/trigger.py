@@ -76,19 +76,23 @@ class Trigger(commands.Cog):
                 await obj.respond(message)
 
     @commands.Cog.listener()
-    async def on_message_edit(
-        self, before_message: discord.Message, after_message: discord.Message
-    ):
-        if after_message.author.bot:
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
+        if any(item in payload.data for item in ["content", "guild_id"]):
             return
-        if after_message.guild is None:
+        guild = self.bot.get_guild(int(payload.data["guild_id"]))
+        if not guild:
             return
-        guild = after_message.guild
+        channel = guild.get_channel(int(payload.data["channel_id"]))
+        try:
+            message = await channel.fetch_message(int(payload.data["id"]))
+        except Exception:
+            return
+        if message.author.bot:
+            return
         for trigger in self.triggers.get(guild.id, {}):
             obj = self.triggers[guild.id][trigger]
-            if obj.embed_search:
-                if obj.check(after_message):
-                    await obj.respond(after_message)
+            if obj.embed_search and obj.check(message):
+                await obj.respond(message)
 
     @commands.group()
     @commands.guild_only()
