@@ -195,7 +195,7 @@ class Userinfo(commands.Cog):
                 }
             )
             roles = user.roles[-1:0:-1]
-            names, nicks = await mod.get_names_and_nicks(user)
+            usernames, display_names, nicks = await mod.get_names(user)
 
             joined_at = user.joined_at
             since_created = int((ctx.message.created_at - user.created_at).days)
@@ -284,10 +284,14 @@ class Userinfo(commands.Cog):
             data.add_field(name="Joined this server on", value=joined_on)
             if role_str is not None:
                 data.add_field(name="Roles", value=role_str, inline=False)
-            if names:
+            if usernames:
                 # May need sanitizing later, but mentions do not ping in embeds currently
-                val = filter_invites(", ".join(names))
-                data.add_field(name="Previous Names", value=val, inline=False)
+                val = filter_invites(", ".join(usernames))
+                data.add_field(name="Previous Usernames", value=val, inline=False)
+            if display_names:
+                # May need sanitizing later, but mentions do not ping in embeds currently
+                val = filter_invites(", ".join(display_names))
+                data.add_field(name="Previous Display Names", value=val, inline=False)
             if nicks:
                 # May need sanitizing later, but mentions do not ping in embeds currently
                 val = filter_invites(", ".join(nicks))
