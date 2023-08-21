@@ -14,6 +14,6 @@
     "requirements": [
         "validators"
     ],
-    "min_bot_version": "3.5.0",
-    "hidden": false
+    "min_bot_version": "3.4.99",
+    "hidden": true
 }

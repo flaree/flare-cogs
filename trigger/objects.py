@@ -48,7 +48,6 @@ class TriggerObject:
         elif trigger in content:
             return True
         elif self.embed_search:
-            print("Entered")
             embeds = message.embeds
             if len(embeds) > 0:
                 embed_dict_list = []
