@@ -701,7 +701,7 @@ class Mod(ModClass):
             message = self.transform_message(message, objects)
             await ctx.send(message)
 
-        if await self._config.guild(guild).reinvite_on_unban():
+        if await self.config.guild(guild).reinvite_on_unban():
             user = ctx.bot.get_user(user_id)
             if not user:
                 await ctx.send(
