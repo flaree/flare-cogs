@@ -6,7 +6,7 @@
     "name": "AntiSpam",
     "disabled": false,
     "short": "Block users who spam commands for a defined period of time.",
-    "description": "Block users who spam commands for a defined period of time..",
+    "description": "Block users who spam commands for a defined period of time.",
     "tags": [
         "blacklist",
         "antispam"
