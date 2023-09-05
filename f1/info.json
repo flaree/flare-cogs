@@ -2,7 +2,7 @@
     "author": [
         "flare(flare#0001)"
     ],
-    "install_msg": "Data related to Formula F1.",
+    "install_msg": "Data related to Formula 1.",
     "name": "F1",
     "disabled": false,
     "short": "Data related to F1.",
