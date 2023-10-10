@@ -34,7 +34,7 @@ class DmInvite(commands.Cog):
         app_info = await self.bot.application_info()
         perms = await self.bot._config.invite_perm()
         permissions = discord.Permissions(perms)
-        return discord.utils.oauth_url(app_info.id, permissions)
+        return discord.utils.oauth_url(app_info.id, permissions=permissions)
 
     @commands.group()
     @commands.is_owner()
