@@ -12,7 +12,7 @@ import discord
 import tabulate
 import validators
 from discord.http import Route
-from redbot.core import Config, commands
+from redbot.core import Config, app_commands, commands
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import box, humanize_timedelta, pagify, spoiler
 
@@ -24,10 +24,16 @@ REDDIT_REGEX = re.compile(
 )
 
 
+class Source(discord.ui.View):
+    def __init__(self, url: str):
+        super().__init__()
+        self.add_item(discord.ui.Button(label="Source", url=url))
+
+
 class RedditPost(commands.Cog):
     """A reddit auto posting cog."""
 
-    __version__ = "0.4.1"
+    __version__ = "0.6.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -84,11 +90,11 @@ class RedditPost(commands.Cog):
                 "An exception occured in the authenthication. Please ensure the client id and secret are set correctly.\nTo setup the cog create an application via https://www.reddit.com/prefs/apps/. Once this is done, copy the client ID found under the name and the secret found inside.\nYou can then setup this cog by using `[p]set api redditpost clientid CLIENT_ID_HERE clientsecret CLIENT_SECRET_HERE`"
             )
 
-    def cog_unload(self):
+    async def cog_unload(self):
         if self.bg_loop_task:
             self.bg_loop_task.cancel()
-        self.bot.loop.create_task(self.session.close())
-        self.bot.loop.create_task(self.client.close())
+        await self.session.close()
+        await self.client.close()
 
     @commands.Cog.listener()
     async def on_red_api_tokens_update(self, service_name, api_tokens):
@@ -125,7 +131,6 @@ class RedditPost(commands.Cog):
         feeds = {}
         channel_data = await self.config.all_channels()
         for channel_id, data in channel_data.items():
-
             channel = self.bot.get_channel(channel_id)
             if not channel:
                 continue
@@ -149,8 +154,9 @@ class RedditPost(commands.Cog):
                         "latest": feed.get("latest", True),
                         "webhooks": feed.get("webhooks", False),
                         "logo": feed.get("logo", REDDIT_LOGO),
-                        "button": feed.get("button", True),
                         "image_only": feed.get("image_only", False),
+                        "source_button": feed.get("source_button", True),
+                        "publish": feed.get("publish", False),
                     },
                 )
                 if time is not None:
@@ -166,7 +172,7 @@ class RedditPost(commands.Cog):
 
     @commands.admin_or_permissions(manage_channels=True)
     @commands.guild_only()
-    @commands.group(aliases=["redditfeed"])
+    @commands.hybrid_group(aliases=["redditfeed"])
     async def redditpost(self, ctx):
         """Reddit auto-feed posting."""
 
@@ -189,12 +195,14 @@ class RedditPost(commands.Cog):
         """Set the delay used to check for new content."""
         seconds = time.total_seconds()
         await self.config.delay.set(seconds)
-        await ctx.tick()
+        if not ctx.interaction:
+            await ctx.tick()
         await ctx.send(
             f"The {humanize_timedelta(seconds=seconds)} delay will come into effect on the next loop."
         )
 
     @redditpost.command()
+    @app_commands.describe(subreddit="The subreddit to add.", channel="The channel to post in.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def add(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Add a subreddit to post new content from."""
@@ -239,9 +247,13 @@ class RedditPost(commands.Cog):
                 "logo": logo,
                 "webhooks": False,
             }
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Subreddit added.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command()
+    @app_commands.describe(channel="The channel to list subreddits for.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def list(self, ctx, channel: discord.TextChannel = None):
         """Lists the current subreddits for the current channel, or a provided one."""
@@ -264,6 +276,9 @@ class RedditPost(commands.Cog):
             )
 
     @redditpost.command(name="remove")
+    @app_commands.describe(
+        subreddit="The subreddit to remove.", channel="The channel to remove from."
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def remove_feed(
         self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None
@@ -279,10 +294,13 @@ class RedditPost(commands.Cog):
                 return
 
             del feeds[subreddit]
-
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Subreddit removed.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command(name="force")
+    @app_commands.describe(subreddit="The subreddit to force.", channel="The channel to force in.")
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def force(self, ctx, subreddit: str, channel: Optional[discord.TextChannel] = None):
         """Force the latest post."""
@@ -302,6 +320,8 @@ class RedditPost(commands.Cog):
         data = await self.fetch_feed(feeds[subreddit]["subreddit"])
         if data is None:
             return await ctx.send("No post could be found.")
+        if ctx.interaction:
+            await ctx.send("Post sent.", ephemeral=True)
         await self.format_send(
             data,
             channel,
@@ -311,13 +331,21 @@ class RedditPost(commands.Cog):
                 "latest": True,
                 "webhooks": feeds[subreddit].get("webhooks", False),
                 "logo": feeds[subreddit].get("logo", REDDIT_LOGO),
-                "button": feeds[subreddit].get("button", True),
                 "image_only": False,
+                "source_button": True,
+                "publish": False,
             },
         )
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Post sent.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command(name="latest")
+    @app_commands.describe(
+        subreddit="The subreddit to check for latest posts.",
+        channel="The channel for the subreddit.",
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def latest(self, ctx, subreddit: str, latest: bool, channel: discord.TextChannel = None):
         """Whether to fetch all posts or just the latest post."""
@@ -331,29 +359,17 @@ class RedditPost(commands.Cog):
                 return
 
             feeds[subreddit]["latest"] = latest
-
-        await ctx.tick()
-
-    @redditpost.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def button(
-        self, ctx, subreddit: str, use_button: bool, channel: discord.TextChannel = None
-    ):
-        """Whether to use buttons for the post URL."""
-        channel = channel or ctx.channel
-        subreddit = self._clean_subreddit(subreddit)
-        if not subreddit:
-            return await ctx.send("That doesn't look like a subreddit name to me.")
-        async with self.config.channel(channel).reddits() as feeds:
-            if subreddit not in feeds:
-                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
-                return
-
-            feeds[subreddit]["button"] = use_button
-
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Subreddit updated.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command()
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        on_or_off="Whether to enable or disable images only.",
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def imageonly(
         self, ctx, subreddit: str, on_or_off: bool, channel: discord.TextChannel = None
@@ -369,11 +385,75 @@ class RedditPost(commands.Cog):
                 return
 
             feeds[subreddit]["image_only"] = on_or_off
+        if ctx.interaction:
+            await ctx.send("Subreddit updated.", ephemeral=True)
+        else:
+            await ctx.tick()
 
-        await ctx.tick()
+    @redditpost.command()
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        on_or_off="Whether to enable or disable source button.",
+    )
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def source(
+        self, ctx, subreddit: str, on_or_off: bool, channel: discord.TextChannel = None
+    ):
+        """Whether to include a Source button.."""
+        channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            feeds[subreddit]["source_button"] = on_or_off
+        if ctx.interaction:
+            await ctx.send("Subreddit updated.", ephemeral=True)
+        else:
+            await ctx.tick()
+
+    @redditpost.command()
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        on_or_off="Whether to enable or disable publishing of messages.",
+    )
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def publish(
+        self, ctx, subreddit: str, on_or_off: bool, channel: discord.TextChannel = None
+    ):
+        """Whether to publish posts - must be a news channel."""
+        channel = channel or ctx.channel
+        subreddit = self._clean_subreddit(subreddit)
+        if not subreddit:
+            return await ctx.send("That doesn't look like a subreddit name to me.")
+        async with self.config.channel(channel).reddits() as feeds:
+            if subreddit not in feeds:
+                await ctx.send(f"No subreddit named {subreddit} in {channel.mention}.")
+                return
+
+            if not channel.permissions_for(ctx.me).manage_messages:
+                return await ctx.send("I need manage messages permissions to publish messages.")
+            if not channel.is_news():
+                return await ctx.send("I can only publish messages in news channels.")
+
+            feeds[subreddit]["publish"] = on_or_off
+        if ctx.interaction:
+            await ctx.send("Subreddit updated.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     @redditpost.command(
         name="webhook", aliases=["webhooks"], usage="<subreddit> <true_or_false> [channel]"
+    )
+    @app_commands.describe(
+        subreddit="The subreddit name",
+        channel="The channel for the subreddit.",
+        webhook="Whether to enable or disable webhooks.",
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_webhooks=True)
     async def webhook(
@@ -396,7 +476,10 @@ class RedditPost(commands.Cog):
         else:
             await ctx.send(f"New posts from r/{subreddit} will be sent as bot messages.")
 
-        await ctx.tick()
+        if ctx.interaction:
+            await ctx.send("Subreddit updated.", ephemeral=True)
+        else:
+            await ctx.tick()
 
     async def fetch_feed(self, subreddit: str):
         try:
@@ -466,29 +549,19 @@ class RedditPost(commands.Cog):
                     for emb in embeds[::-1]:
                         if webhook is None:
                             try:
-                                if settings.get("button", True):
-                                    payload = {"content": "", "embed": emb.to_dict()}
-                                    payload["components"] = [
-                                        {
-                                            "type": 1,
-                                            "components": [
-                                                {
-                                                    "label": "Source",
-                                                    "url": emb.url,
-                                                    "style": 5,
-                                                    "type": 2,
-                                                }
-                                            ],
-                                        }
-                                    ]
-                                    r = Route(
-                                        "POST",
-                                        "/channels/{channel_id}/messages",
-                                        channel_id=channel.id,
-                                    )
-                                    await self.bot._connection.http.request(r, json=payload)
-                                else:
-                                    await channel.send(embed=emb)
+                                msg = await channel.send(
+                                    embed=emb,
+                                    view=Source(link)
+                                    if settings.get("source_button", True)
+                                    else None,
+                                )  # TODO: More approprriate error handling
+                                if settings.get("publish", False):
+                                    try:
+                                        await msg.publish()
+                                    except discord.Forbidden:
+                                        log.info(
+                                            f"Error publishing message feed in {channel}. Bypassing"
+                                        )
                             except (discord.Forbidden, discord.HTTPException):
                                 log.info(f"Error sending message feed in {channel}. Bypassing")
                         else:

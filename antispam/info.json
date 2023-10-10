@@ -6,12 +6,11 @@
     "name": "AntiSpam",
     "disabled": false,
     "short": "Block users who spam commands for a defined period of time.",
-    "description": "Block users who spam commands for a defined period of time..",
+    "description": "Block users who spam commands for a defined period of time.",
     "tags": [
         "blacklist",
         "antispam"
     ],
-    "min_bot_version": "3.4.0",
-    "max_bot_version": "3.4.99",
+    "min_bot_version": "3.5.0",
     "hidden": false
 }

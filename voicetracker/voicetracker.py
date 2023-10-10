@@ -13,7 +13,6 @@ log = logging.getLogger("red.flare.voicetracker")
 
 
 class VoiceTracker(commands.Cog):
-
     __version__ = "0.0.2"
     __author__ = "flare#0001"
 

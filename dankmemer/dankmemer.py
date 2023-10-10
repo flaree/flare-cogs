@@ -145,7 +145,7 @@ class DankMemer(commands.Cog):
     async def abort(self, ctx, image: ImageFinder = None):
         """All the reasons why X was aborted."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/aborted?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -157,7 +157,7 @@ class DankMemer(commands.Cog):
     async def affect(self, ctx, image: ImageFinder = None):
         """It won't affect my baby."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/affect?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -169,7 +169,7 @@ class DankMemer(commands.Cog):
     async def airpods(self, ctx, image: ImageFinder = None):
         """Flex with airpods."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/airpods?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -181,7 +181,7 @@ class DankMemer(commands.Cog):
     async def america(self, ctx, image: ImageFinder = None):
         """Americafy a picture."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/america?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -222,8 +222,8 @@ class DankMemer(commands.Cog):
         data = await self.get(
             ctx,
             "/bed?avatar1={}{}".format(
-                user.avatar_url_as(static_format="png"),
-                f"&avatar2={user2.avatar_url_as(static_format='png')}"
+                user.display_avatar.replace(static_format="png").url,
+                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
                 if user2 is not None
                 else "",
             ),
@@ -238,7 +238,7 @@ class DankMemer(commands.Cog):
     async def bongocat(self, ctx, image: ImageFinder = None):
         """Bongocat-ify your image."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/bongocat?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -278,7 +278,7 @@ class DankMemer(commands.Cog):
     async def brazzers(self, ctx, image: ImageFinder = None):
         """Brazzerfy your image."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/brazzers?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -303,7 +303,7 @@ class DankMemer(commands.Cog):
 
         data = await self.get(
             ctx,
-            f"/byemom?avatar1={user.avatar_url_as(static_format='png')}&username1={user.name}&text={text}",
+            f"/byemom?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -315,7 +315,7 @@ class DankMemer(commands.Cog):
     async def cancer(self, ctx, image: ImageFinder = None):
         """Squidward sign."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/cancer?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -380,7 +380,7 @@ class DankMemer(commands.Cog):
     async def communism(self, ctx, image: ImageFinder = None):
         """Communism-ify your picture."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/communism?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -406,7 +406,7 @@ class DankMemer(commands.Cog):
     async def corporate(self, ctx, image: ImageFinder = None):
         """Corporate meme."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/corporate?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -432,7 +432,7 @@ class DankMemer(commands.Cog):
     async def dab(self, ctx, image: ImageFinder = None):
         """Hit a dab."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/dab?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -444,7 +444,7 @@ class DankMemer(commands.Cog):
     async def dank(self, ctx, image: ImageFinder = None):
         """Dank, noscope 420."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/dank?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -456,7 +456,7 @@ class DankMemer(commands.Cog):
     async def deepfried(self, ctx, image: ImageFinder = None):
         """Deepfry an image."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/deepfry?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -468,7 +468,7 @@ class DankMemer(commands.Cog):
     async def delete(self, ctx, image: ImageFinder = None):
         """Delete Meme."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/delete?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -480,7 +480,7 @@ class DankMemer(commands.Cog):
     async def disability(self, ctx, image: ImageFinder = None):
         """Disability Meme."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/disability?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -506,7 +506,7 @@ class DankMemer(commands.Cog):
     async def door(self, ctx, image: ImageFinder = None):
         """Kick down the door meme."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/door?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -518,7 +518,7 @@ class DankMemer(commands.Cog):
     async def egg(self, ctx, image: ImageFinder = None):
         """Turn your picture into an egg."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/egg?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -572,7 +572,7 @@ class DankMemer(commands.Cog):
     async def failure(self, ctx, image: ImageFinder = None):
         """You're a failure meme."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/failure?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -584,7 +584,7 @@ class DankMemer(commands.Cog):
     async def fakenews(self, ctx, image: ImageFinder = None):
         """Fake News."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/fakenews?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -596,7 +596,7 @@ class DankMemer(commands.Cog):
     async def fedora(self, ctx, image: ImageFinder = None):
         """*Tips Fedora*."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/fedora?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -619,7 +619,8 @@ class DankMemer(commands.Cog):
         text = self.parse_text(text)
         user = user or ctx.author
         data = await self.get(
-            ctx, f"/floor?avatar1={user.avatar_url_as(static_format='png')}&text={text}"
+            ctx,
+            f"/floor?avatar1={user.display_avatar.replace(static_format='png').url}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -655,7 +656,8 @@ class DankMemer(commands.Cog):
         user = user or ctx.author
         text = self.parse_text(text)
         data = await self.get(
-            ctx, f"/garfield?avatar1={user.avatar_url_as(static_format='png')}&text={text}"
+            ctx,
+            f"/garfield?avatar1={user.display_avatar.replace(static_format='png').url}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -667,7 +669,7 @@ class DankMemer(commands.Cog):
     async def lgbt(self, ctx, image: ImageFinder = None):
         """Rainbow-fy your picture."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/gay?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -679,7 +681,7 @@ class DankMemer(commands.Cog):
     async def goggles(self, ctx, image: ImageFinder = None):
         """Remember, safety goggles on."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/goggles?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -691,7 +693,7 @@ class DankMemer(commands.Cog):
     async def hitler(self, ctx, image: ImageFinder = None):
         """Worse than hitler?."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/hitler?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -725,7 +727,7 @@ class DankMemer(commands.Cog):
     async def invertcolour(self, ctx, image: ImageFinder = None):
         """Invert the colour of an image."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/invert?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -737,7 +739,7 @@ class DankMemer(commands.Cog):
     async def ipad(self, ctx, image: ImageFinder = None):
         """Put your picture on an ipad."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/ipad?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -749,7 +751,7 @@ class DankMemer(commands.Cog):
     async def jail(self, ctx, image: ImageFinder = None):
         """Send yourself to jail."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/jail?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -777,7 +779,7 @@ class DankMemer(commands.Cog):
     async def kimborder(self, ctx, image: ImageFinder = None):
         """Place yourself under mighty kim."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/kimborder?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -819,7 +821,7 @@ class DankMemer(commands.Cog):
     async def laid(self, ctx, image: ImageFinder = None):
         """Do you get laid?"""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/laid?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -860,8 +862,8 @@ class DankMemer(commands.Cog):
         data = await self.get(
             ctx,
             "/madethis?avatar1={}{}".format(
-                user.avatar_url_as(static_format="png"),
-                f"&avatar2={user2.avatar_url_as(static_format='png')}"
+                user.display_avatar.replace(static_format="png").url,
+                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
                 if user2 is not None
                 else "",
             ),
@@ -876,7 +878,7 @@ class DankMemer(commands.Cog):
     async def magickify(self, ctx, image: ImageFinder = None):
         """Peform magik."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/magik?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -920,7 +922,7 @@ class DankMemer(commands.Cog):
         top_text = urllib.parse.quote(top_text)
         bottom_text = urllib.parse.quote(bottom_text)
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         fnt = f"&font={font}" if font else ""
         clr = f"&color={urllib.parse.quote(color)}" if color else ""
         data = await self.get(
@@ -1017,7 +1019,7 @@ class DankMemer(commands.Cog):
         text = self.parse_text(text)
         data = await self.get(
             ctx,
-            f"/quote?avatar1={user.avatar_url_as(static_format='png')}&username1={user.name}&text={text}",
+            f"/quote?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1029,7 +1031,7 @@ class DankMemer(commands.Cog):
     async def radialblur(self, ctx, image: ImageFinder = None):
         """Radiarblur-ify your picture.."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/radialblur?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1041,7 +1043,7 @@ class DankMemer(commands.Cog):
     async def tombstone(self, ctx, image: ImageFinder = None):
         """Give a lucky person a tombstone."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/rip?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1053,7 +1055,7 @@ class DankMemer(commands.Cog):
     async def roblox(self, ctx, image: ImageFinder = None):
         """Turn yourself into a roblox character."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/roblox?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1065,7 +1067,7 @@ class DankMemer(commands.Cog):
     async def salty(self, ctx, image: ImageFinder = None):
         """Add some salt."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/salty?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1077,7 +1079,7 @@ class DankMemer(commands.Cog):
     async def satan(self, ctx, image: ImageFinder = None):
         """Place your picture over Satan."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/satan?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1107,8 +1109,8 @@ class DankMemer(commands.Cog):
         data = await self.get(
             ctx,
             "/screams?avatar1={}{}".format(
-                user.avatar_url_as(static_format="png"),
-                f"&avatar2={user2.avatar_url_as(static_format='png')}"
+                user.display_avatar.replace(static_format="png").url,
+                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
                 if user2 is not None
                 else "",
             ),
@@ -1134,7 +1136,7 @@ class DankMemer(commands.Cog):
     async def sickban(self, ctx, image: ImageFinder = None):
         """Ban this sick filth!"""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/sickban?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1150,8 +1152,8 @@ class DankMemer(commands.Cog):
         data = await self.get(
             ctx,
             "/slap?avatar1={}{}".format(
-                user.avatar_url_as(static_format="png"),
-                f"&avatar2={user2.avatar_url_as(static_format='png')}"
+                user.display_avatar.replace(static_format="png").url,
+                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
                 if user2 is not None
                 else "",
             ),
@@ -1195,8 +1197,8 @@ class DankMemer(commands.Cog):
         data = await self.get(
             ctx,
             "/spank?avatar1={}{}".format(
-                user.avatar_url_as(static_format="png"),
-                f"&avatar2={user2.avatar_url_as(static_format='png')}"
+                user.display_avatar.replace(static_format="png").url,
+                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
                 if user2 is not None
                 else "",
             ),
@@ -1249,7 +1251,7 @@ class DankMemer(commands.Cog):
 
         data = await self.get(
             ctx,
-            f"/sword?avatar1={user.avatar_url_as(static_format='png')}&username1={user.name}&text={text}",
+            f"/sword?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1272,7 +1274,7 @@ class DankMemer(commands.Cog):
     async def trash(self, ctx, image: ImageFinder = None):
         """Peter Parker trash."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/trash?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1284,7 +1286,7 @@ class DankMemer(commands.Cog):
     async def trigger(self, ctx, image: ImageFinder = None):
         """Triggerfied."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/trigger?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1309,7 +1311,7 @@ class DankMemer(commands.Cog):
         user = user or ctx.author
         data = await self.get(
             ctx,
-            f"/tweet?avatar1={user.avatar_url_as(static_format='png')}&username1={user.display_name}&username2={user.name}&text={text}",
+            f"/tweet?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.display_name}&username2={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1321,7 +1323,7 @@ class DankMemer(commands.Cog):
     async def ugly(self, ctx, image: ImageFinder = None):
         """Make a user ugly."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/ugly?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1342,7 +1344,7 @@ class DankMemer(commands.Cog):
         text = self.parse_text(text)
         data = await self.get(
             ctx,
-            f"/unpopular?avatar1={user.avatar_url_as(static_format='png')}&username1={user.name}&text={text}",
+            f"/unpopular?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1401,7 +1403,7 @@ class DankMemer(commands.Cog):
     async def wanted(self, ctx, image: ImageFinder = None):
         """Heard you're a wanted fugitive?"""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/wanted?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1413,7 +1415,7 @@ class DankMemer(commands.Cog):
     async def warp(self, ctx, image: ImageFinder = None):
         """Warp?."""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/warp?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1425,7 +1427,7 @@ class DankMemer(commands.Cog):
     async def whodidthis(self, ctx, image: ImageFinder = None):
         """Who did this?"""
         if image is None:
-            image = ctx.author.avatar_url_as(static_format="png")
+            image = ctx.author.display_avatar.replace(static_format="png").url
         data = await self.get(ctx, f"/whodidthis?avatar1={image}")
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1443,7 +1445,8 @@ class DankMemer(commands.Cog):
         """who this is."""
         user = user or ctx.author
         data = await self.get(
-            ctx, f"/whothisis?avatar1={user.avatar_url_as(static_format='png')}&text={username}"
+            ctx,
+            f"/whothisis?avatar1={user.display_avatar.replace(static_format='png').url}&text={username}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1473,7 +1476,7 @@ class DankMemer(commands.Cog):
         text = self.parse_text(text)
         data = await self.get(
             ctx,
-            f"/youtube?avatar1={user.avatar_url_as(static_format='png')}&username1={user.name}&text={text}",
+            f"/youtube?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.name}&text={text}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)
@@ -1558,7 +1561,7 @@ class DankMemer(commands.Cog):
         user = user or ctx.author
         data = await self.get(
             ctx,
-            f"/obama?avatar1={user.avatar_url_as(static_format='png')}&username1={user.display_name}",
+            f"/obama?avatar1={user.display_avatar.replace(static_format='png').url}&username1={user.display_name}",
         )
         if isinstance(data, dict):
             return await self.send_error(ctx, data)

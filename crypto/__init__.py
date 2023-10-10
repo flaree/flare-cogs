@@ -1,5 +1,5 @@
 from .crypto import Crypto
 
 
-def setup(bot):
-    bot.add_cog(Crypto(bot))
+async def setup(bot):
+    await bot.add_cog(Crypto(bot))

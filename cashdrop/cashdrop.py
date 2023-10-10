@@ -8,7 +8,6 @@ from redbot.core.utils.predicates import MessagePredicate
 
 
 class Cashdrop(commands.Cog):
-
     __version__ = "0.1.2"
     __author__ = "flare(flare#0001)"
 

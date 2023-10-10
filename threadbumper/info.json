@@ -2,12 +2,12 @@
     "author": [
         "flare(flare#0001)"
     ],
-    "install_msg": "This cog will ONLY work on the alpha discord.py which is not ready for Red use as of yet. Do not use this cog otherwise for testing purposes.\n",
+    "install_msg": "Bump threads to keep them alive forever.",
     "name": "ThreadBumper",
     "disabled": false,
-    "hidden": true,
+    "hidden": false,
     "short": "Bump threads to keep them alive forever.",
-    "description": "Bump threads to keep them alive forever..",
+    "description": "Bump threads to keep them alive forever.",
     "tags": [
         "threads",
         "bump",

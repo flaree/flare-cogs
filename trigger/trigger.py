@@ -11,7 +11,6 @@ from .objects import TriggerObject
 
 
 class Trigger(commands.Cog):
-
     __version__ = "0.2.0"
     __author__ = "flare(flare#0001)"
 
@@ -76,6 +75,25 @@ class Trigger(commands.Cog):
             if obj.check(message):
                 await obj.respond(message)
 
+    @commands.Cog.listener()
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
+        if any(item in payload.data for item in ["content", "guild_id"]):
+            return
+        guild = self.bot.get_guild(int(payload.data["guild_id"]))
+        if not guild:
+            return
+        channel = guild.get_channel(int(payload.data["channel_id"]))
+        try:
+            message = await channel.fetch_message(int(payload.data["id"]))
+        except Exception:
+            return
+        if message.author.bot:
+            return
+        for trigger in self.triggers.get(guild.id, {}):
+            obj = self.triggers[guild.id][trigger]
+            if obj.embed_search and obj.check(message):
+                await obj.respond(message)
+
     @commands.group()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
@@ -132,6 +150,7 @@ class Trigger(commands.Cog):
                 "toggle": True,
                 "case_sensitive": False,
                 "word_boundary": False,
+                "embed_search": False,
             }
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
 
@@ -257,6 +276,20 @@ class Trigger(commands.Cog):
                 await ctx.send("Trigger does not exist.")
                 return
             triggers[trigger_name]["word_boundary"] = toggle
+            await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
+        await ctx.tick()
+
+    @edit.command(name="embeds", aliases=["embedsearch"])
+    async def embed_search(self, ctx, trigger_name: str, toggle: bool):
+        """
+        Toggle searching within embeds for the trigger.
+        """
+        trigger_name = trigger_name.lower()
+        async with self.config.guild(ctx.guild).triggers() as triggers:
+            if trigger_name not in triggers:
+                await ctx.send("Trigger does not exist.")
+                return
+            triggers[trigger_name]["embed_search"] = toggle
             await self.update_trigger(ctx.guild, trigger_name, triggers[trigger_name])
         await ctx.tick()
 

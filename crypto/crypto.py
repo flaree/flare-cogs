@@ -18,7 +18,7 @@ async def tokencheck(ctx):
 class Crypto(commands.Cog):
     """Buy and Sell Crypto"""
 
-    __version__ = "0.0.1"
+    __version__ = "0.1.0"
     __author__ = "flare, Flame and TrustyJAID."
 
     def format_help_for_context(self, ctx):
@@ -62,7 +62,7 @@ class Crypto(commands.Cog):
             async with session.get(url, headers=await self.get_header()) as resp:
                 return await resp.json() if resp.status == 200 else {}
 
-    @commands.group()
+    @commands.hybrid_group()
     @commands.check(tokencheck)
     async def crypto(self, ctx):
         """Group command for buying/selling crypto

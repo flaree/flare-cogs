@@ -93,7 +93,6 @@ class SimLeague(
         requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ):
-
         await self.config.user_from_id(user_id).clear()
 
     def cog_unload(self):
@@ -715,7 +714,6 @@ class SimLeague(
                                     stats["reds"][playerYellow[1]] = 1
                                     stats["yellows"][playerYellow[1]] += 1
                                 else:
-
                                     stats["yellows"][playerYellow[1]] += 1
                                     stats["reds"][playerYellow[1]] += 1
                             events = True

@@ -10,6 +10,6 @@
     "tags": [
         "mod"
     ],
-    "min_bot_version": "3.4.0",
-    "hidden": true
+    "min_bot_version": "3.5.0",
+    "hidden": false
 }

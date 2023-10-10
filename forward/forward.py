@@ -57,7 +57,15 @@ class Forward(commands.Cog):
     async def on_message_without_command(self, message):
         if message.guild is not None:
             return
-        if message.channel.recipient.id in self.bot.owner_ids:
+        recipient = message.channel.recipient
+        if recipient is None:
+            chan = self.bot.get_channel(message.channel.id)
+            if chan is None:
+                chan = await self.bot.fetch_channel(message.channel.id)
+            if not isinstance(chan, discord.DMChannel):
+                return
+            recipient = chan.recipient
+        if recipient.id in self.bot.owner_ids:
             return
         if not await self.bot.allowed_by_whitelist_blacklist(message.author):
             return
@@ -68,7 +76,7 @@ class Forward(commands.Cog):
             async with self.config.toggles() as toggle:
                 if not toggle["botmessages"]:
                     return
-            msg = f"Sent PM to {message.channel.recipient} (`{message.channel.recipient.id}`)"
+            msg = f"Sent PM to {recipient} (`{recipient.id}`)"
             if message.embeds:
                 msg += f"\n**Message Content**: {message.content}"
                 embeds = [
@@ -80,14 +88,15 @@ class Forward(commands.Cog):
                 embeds = [discord.Embed(description=message.content)]
                 embeds[0].set_author(
                     name=f"{message.author} | {message.author.id}",
-                    icon_url=message.author.avatar_url,
+                    icon_url=message.author.display_avatar,
                 )
                 embeds = self._append_attachements(message, embeds)
                 embeds[-1].timestamp = message.created_at
         else:
             embeds = [discord.Embed(description=message.content)]
             embeds[0].set_author(
-                name=f"{message.author} | {message.author.id}", icon_url=message.author.avatar_url
+                name=f"{message.author} | {message.author.id}",
+                icon_url=message.author.display_avatar.url,
             )
             embeds = self._append_attachements(message, embeds)
             embeds[-1].timestamp = message.created_at
@@ -169,10 +178,10 @@ class Forward(commands.Cog):
         """
         em = discord.Embed(colour=discord.Colour.red(), description=message)
 
-        if ctx.bot.user.avatar_url:
+        if ctx.bot.user.display_avatar:
             em.set_author(
                 name=f"Message from {ctx.author} | {ctx.author.id}",
-                icon_url=ctx.bot.user.avatar_url,
+                icon_url=ctx.bot.user.display_avatar,
             )
         else:
             em.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")

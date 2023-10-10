@@ -18,7 +18,6 @@ log = logging.getLogger("red.flare.stick")
 
 
 class StickBugged(commands.Cog):
-
     __version__ = "0.0.1"
     __author__ = "flare#0001"
 

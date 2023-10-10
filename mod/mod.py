@@ -7,7 +7,7 @@ from typing import Literal, Optional, Tuple, Union
 import discord
 from redbot.cogs.mod import Mod as ModClass
 from redbot.cogs.mod.utils import is_allowed_by_hierarchy
-from redbot.core import Config, checks, commands, modlog
+from redbot.core import Config, app_commands, checks, commands, modlog
 from redbot.core.utils.chat_formatting import bold, box
 from redbot.core.utils.mod import get_audit_reason
 
@@ -18,6 +18,8 @@ from discord.ext.commands import BadArgument
 
 ID_REGEX = re.compile(r"([0-9]{15,20})")
 USER_MENTION_REGEX = re.compile(r"<@!?([0-9]{15,21})>$")
+
+
 # https://github.com/flaree/Red-DiscordBot/blob/FR-custom-bankick-msgs/redbot/core/commands/converter.py#L207
 class RawUserIdConverter(dpy_commands.Converter):
     """
@@ -47,7 +49,7 @@ class Mod(ModClass):
 
     modset = ModClass.modset.copy()
 
-    __version__ = "1.0.0"
+    __version__ = "1.1.0"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -184,7 +186,8 @@ class Mod(ModClass):
 
     kick = None
 
-    @commands.command()
+    @commands.hybrid_command()
+    @app_commands.describe(member="The member to kick.", reason="The reason for kicking the user.")
     @commands.guild_only()
     @commands.bot_has_permissions(kick_members=True)
     @checks.admin_or_permissions(kick_members=True)
@@ -270,7 +273,13 @@ class Mod(ModClass):
 
     tempban = None
 
-    @commands.command()
+    @commands.hybrid_command()
+    @app_commands.describe(
+        member="The member to tempban.",
+        reason="The reason for tempbanning the user.",
+        duration="The duration of the tempban.",
+        days="The number of days of messages to delete.",
+    )
     @commands.guild_only()
     @commands.bot_has_permissions(ban_members=True)
     @checks.admin_or_permissions(ban_members=True)
@@ -379,7 +388,10 @@ class Mod(ModClass):
 
     softban = None
 
-    @commands.command()
+    @commands.hybrid_command()
+    @app_commands.describe(
+        member="The member to softban.", reason="The reason for softbanning the user."
+    )
     @commands.guild_only()
     @commands.bot_has_permissions(ban_members=True)
     @checks.admin_or_permissions(ban_members=True)
@@ -467,6 +479,49 @@ class Mod(ModClass):
             }
             message = self.transform_message(message, objects)
             await ctx.send(message)
+
+    @commands.hybrid_command()
+    @app_commands.describe(
+        user="The member to ban.",
+        reason="The reason for banning the user.",
+        days="The number of days of messages to delete.",
+    )
+    @commands.guild_only()
+    @commands.bot_has_permissions(ban_members=True)
+    @commands.admin_or_permissions(ban_members=True)
+    async def ban(
+        self,
+        ctx: commands.Context,
+        user: discord.Member,
+        days: Optional[int] = None,
+        *,
+        reason: str = None,
+    ):
+        """Ban a user from this server and optionally delete days of messages.
+
+        `days` is the amount of days of messages to cleanup on ban.
+
+        Examples:
+           - `[p]ban 428675506947227648 7 Continued to spam after told to stop.`
+            This will ban the user with ID 428675506947227648 and it will delete 7 days worth of messages.
+           - `[p]ban @Twentysix 7 Continued to spam after told to stop.`
+            This will ban Twentysix and it will delete 7 days worth of messages.
+
+        A user ID should be provided if the user is not a member of this server.
+        If days is not a number, it's treated as the first word of the reason.
+        Minimum 0 days, maximum 7. If not specified, the defaultdays setting will be used instead.
+        """
+        guild = ctx.guild
+        if days is None:
+            days = await self.config.guild(guild).default_days()
+        if isinstance(user, int):
+            user = self.bot.get_user(user) or discord.Object(id=user)
+
+        success_, message = await self.ban_user(
+            user=user, ctx=ctx, days=days, reason=reason, create_modlog_case=True
+        )
+
+        await ctx.send(message)
 
     ban_user = None
 
@@ -596,7 +651,10 @@ class Mod(ModClass):
 
     unban = None
 
-    @commands.command()
+    @commands.hybrid_command()
+    @app_commands.describe(
+        user_id="The ID of the user to unban.", reason="The reason for unbanning the user."
+    )
     @commands.guild_only()
     @commands.bot_has_permissions(ban_members=True)
     @checks.admin_or_permissions(ban_members=True)
@@ -643,7 +701,7 @@ class Mod(ModClass):
             message = self.transform_message(message, objects)
             await ctx.send(message)
 
-        if await self._config.guild(guild).reinvite_on_unban():
+        if await self.config.guild(guild).reinvite_on_unban():
             user = ctx.bot.get_user(user_id)
             if not user:
                 await ctx.send(

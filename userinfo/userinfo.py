@@ -11,11 +11,12 @@ adventure_bank = None
 
 log = logging.getLogger("red.flare.userinfo")
 
+
 # Thanks Preda, core logic is from https://github.com/PredaaA/predacogs/blob/master/serverinfo/serverinfo.py
 class Userinfo(commands.Cog):
     """Replace original Red userinfo command with more details."""
 
-    __version__ = "0.3.2"
+    __version__ = "0.4.1"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -171,7 +172,7 @@ class Userinfo(commands.Cog):
         await self.config.banner.set(not await self.config.banner())
         await ctx.tick()
 
-    @commands.command()
+    @commands.hybrid_command()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True)
@@ -194,7 +195,7 @@ class Userinfo(commands.Cog):
                 }
             )
             roles = user.roles[-1:0:-1]
-            names, nicks = await mod.get_names_and_nicks(user)
+            usernames, display_names, nicks = await mod.get_names(user)
 
             joined_at = user.joined_at
             since_created = int((ctx.message.created_at - user.created_at).days)
@@ -237,7 +238,6 @@ class Userinfo(commands.Cog):
             status_string = mod.get_status_string(user)
 
             if roles:
-
                 role_str = ", ".join([x.mention for x in roles])
                 # 400 BAD REQUEST (error code: 50035): Invalid Form Body
                 # In embed.fields.2.value: Must be 1024 or fewer in length.
@@ -284,10 +284,14 @@ class Userinfo(commands.Cog):
             data.add_field(name="Joined this server on", value=joined_on)
             if role_str is not None:
                 data.add_field(name="Roles", value=role_str, inline=False)
-            if names:
+            if usernames:
                 # May need sanitizing later, but mentions do not ping in embeds currently
-                val = filter_invites(", ".join(names))
-                data.add_field(name="Previous Names", value=val, inline=False)
+                val = filter_invites(", ".join(usernames))
+                data.add_field(name="Previous Usernames", value=val, inline=False)
+            if display_names:
+                # May need sanitizing later, but mentions do not ping in embeds currently
+                val = filter_invites(", ".join(display_names))
+                data.add_field(name="Previous Display Names", value=val, inline=False)
             if nicks:
                 # May need sanitizing later, but mentions do not ping in embeds currently
                 val = filter_invites(", ".join(nicks))
@@ -304,7 +308,7 @@ class Userinfo(commands.Cog):
             name = " ~ ".join((name, user.nick)) if user.nick else name
             name = filter_invites(name)
 
-            avatar = user.avatar_url_as(static_format="png")
+            avatar = user.display_avatar.replace(static_format="png").url
             data.title = f"{statusemoji} {name}"
             data.set_thumbnail(url=avatar)
 
@@ -318,7 +322,7 @@ class Userinfo(commands.Cog):
                         emoji2 = self.badge_emojis["verified_bot2"]
                         emoji = f"{emoji1}{emoji2}" if emoji1 else None
                     else:
-                        emoji = self.badge_emojis[badge]
+                        emoji = self.badge_emojis.get(badge)
                     if emoji:
                         badges += f"{emoji} {badge.replace('_', ' ').title()}\n"
                     else:
@@ -344,7 +348,7 @@ class Userinfo(commands.Cog):
                         global adventure_bank
                         if adventure_bank is None:
                             try:
-                                from adventure import bank as adventure_bank
+                                from adventure.bank import bank as adventure_bank
                             except:
                                 pass
                         if adventure_bank:
@@ -379,4 +383,4 @@ async def setup(bot):
     global _old_userinfo
     if _old_userinfo := bot.get_command("userinfo"):
         bot.remove_command(_old_userinfo.name)
-    bot.add_cog(uinfo)
+    await bot.add_cog(uinfo)

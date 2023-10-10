@@ -16,6 +16,7 @@ class TriggerObject:
         self.toggle = kwargs.get("toggle", False)
         self.case_sensitive = kwargs.get("case_sensitive", True)
         self.word_boundary = kwargs.get("word_boundary", False)
+        self.embed_search = kwargs.get("embed_search", False)
         self.pattern = None
 
     def check(self, message):
@@ -28,33 +29,34 @@ class TriggerObject:
             trigger = trigger.lower()
             content = content.lower()
 
+        if self.cooldown > 0:
+            if self.timestamp is None:
+                self.timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
+            else:
+                now = datetime.datetime.now(tz=datetime.timezone.utc)
+                diff = now - self.timestamp
+                if diff.total_seconds() < self.cooldown:
+                    return False
+                else:
+                    self.timestamp = now
+
         if self.word_boundary:
             if self.pattern is None:
                 self.pattern = re.compile(rf"\b{re.escape(self.trigger.lower())}\b", flags=re.I)
-            if set(self.pattern.findall(content)):
-                if self.cooldown > 0:
-                    if self.timestamp is None:
-                        self.timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
-                    else:
-                        now = datetime.datetime.now(tz=datetime.timezone.utc)
-                        diff = now - self.timestamp
-                        if diff.total_seconds() < self.cooldown:
-                            return False
-                        else:
-                            self.timestamp = now
+            if self.pattern.search(content):
                 return True
         elif trigger in content:
-            if self.cooldown > 0:
-                if self.timestamp is None:
-                    self.timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
-                else:
-                    now = datetime.datetime.now(tz=datetime.timezone.utc)
-                    diff = now - self.timestamp
-                    if diff.total_seconds() < self.cooldown:
-                        return False
-                    else:
-                        self.timestamp = now
             return True
+        elif self.embed_search:
+            embeds = message.embeds
+            if len(embeds) > 0:
+                embed_dict_list = []
+                for embed in embeds:
+                    embed_dict_list.append(embed.to_dict())
+                if self.pattern is None:
+                    self.pattern = re.compile(rf"{re.escape(self.trigger.lower())}", flags=re.I)
+                if self.pattern.search(str(embed_dict_list)):
+                    return True
         return False
 
     async def respond(self, message):

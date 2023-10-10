@@ -28,18 +28,26 @@ class ImageFinder(Converter):
                 user = ctx.guild.get_member(int(mention.group(1)))
                 if user is not None:
                     if user.is_avatar_animated():
-                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="gif")))
+                        url = IMAGE_LINKS.search(
+                            str(user.display_avatar.replace(static_format="gif").url)
+                        )
                     else:
-                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="png")))
+                        url = IMAGE_LINKS.search(
+                            str(user.display_avatar.replace(static_format="png").url)
+                        )
                     urls.append(url.group(1))
         if not urls and ids:
             for possible_id in ids:
                 user = ctx.guild.get_member(int(possible_id.group(0)))
                 if user:
                     if user.is_avatar_animated():
-                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="gif")))
+                        url = IMAGE_LINKS.search(
+                            str(user.display_avatar.replace(static_format="gif").url)
+                        )
                     else:
-                        url = IMAGE_LINKS.search(str(user.avatar_url_as(format="png")))
+                        url = IMAGE_LINKS.search(
+                            str(user.display_avatar.replace(static_format="png").url)
+                        )
                     urls.append(url.group(1))
         if attachments:
             for attachment in attachments:
@@ -50,9 +58,9 @@ class ImageFinder(Converter):
             if not user:
                 raise BadArgument("No images provided.")
             if user.is_avatar_animated():
-                url = user.avatar_url_as(format="gif")
+                url = user.display_avatar.replace(static_format="gif").url
             else:
-                url = user.avatar_url_as(format="png")
+                url = user.display_avatar.replace(static_format="png").url
             urls.append(url)
         if not urls:
             raise BadArgument("No images provided.")

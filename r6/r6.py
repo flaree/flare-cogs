@@ -49,7 +49,6 @@ class R6(commands.Cog):
         requester: typing.Literal["discord_deleted_user", "owner", "user", "user_strict"],
         user_id: int,
     ):
-
         await self.config.user_from_id(user_id).clear()
         all_members = await self.config.all_members()
         for guild_id, member_dict in all_members.items():

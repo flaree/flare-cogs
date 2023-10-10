@@ -64,7 +64,7 @@ class Palette(commands.Cog):
         if amount > 50:
             return await ctx.send("Too many colours, please limit to 50.")
         if img is None:
-            img = str(ctx.author.avatar_url_as(format="png"))
+            img = str(ctx.author.display_avatar)
         async with ctx.typing():
             img = await self.get_img(ctx, str(img))
         if isinstance(img, dict):
@@ -88,7 +88,7 @@ class Palette(commands.Cog):
         if amount > 50:
             return await ctx.send("Too many colours, please limit to 50.")
         if img is None:
-            img = str(ctx.author.avatar_url_as(format="png"))
+            img = str(ctx.author.display_avatar)
         async with ctx.typing():
             img = await self.get_img(ctx, str(img))
         if isinstance(img, dict):

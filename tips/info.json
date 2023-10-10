@@ -4,12 +4,11 @@
     ],
     "install_msg": "Append a message to the beginning of X bot messages randomly\nThis cog relies on the core code of SmileySend by Jack1142\n[p]help tips.\n",
     "name": "Tips",
-    "disabled": false,
+    "disabled": true,
     "short": "Append a message to a bot message.",
     "description": "Randomly apply a tip message to a bot message randomly.",
     "tags": [
         "tips"
     ],
-    "min_bot_version": "3.4.4",
-    "max_bot_version": "3.4.99"
+    "min_bot_version": "3.5.0"
 }

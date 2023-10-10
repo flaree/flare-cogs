@@ -16,6 +16,5 @@
         "validators",
         "iso8601"
     ],
-    "min_bot_version": "3.4.0",
-    "max_bot_version": "3.4.99"
+    "min_bot_version": "3.5.0"
 }

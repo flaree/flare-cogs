@@ -14,7 +14,7 @@ log = logging.getLogger("red.flare.antispam")
 class AntiSpam(commands.Cog):
     """Blacklist those who spam commands."""
 
-    __version__ = "0.0.10"
+    __version__ = "0.1.0"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx):
@@ -118,7 +118,7 @@ class AntiSpam(commands.Cog):
                         )
 
     @commands.is_owner()
-    @commands.group()
+    @commands.hybrid_group()
     async def antispamset(self, ctx):
         """Settings for antispam"""
 

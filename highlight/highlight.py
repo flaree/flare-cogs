@@ -82,7 +82,7 @@ class Highlight(commands.Cog):
                 del highlight[str(user_id)]
         await self.generate_cache()
 
-    __version__ = "1.11.0"
+    __version__ = "1.11.1"
     __author__ = "flare#0001"
 
     def format_help_for_context(self, ctx: commands.Context):
@@ -247,7 +247,7 @@ class Highlight(commands.Cog):
 
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
                 await highlighted_usr.send(
-                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} in {message.guild.name} by {message.author.display_name}.\n",
+                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
                     embed=embed,
                 )
                 self.cooldowns[highlighted_usr.id] = datetime.now(tz=timezone.utc)
@@ -702,7 +702,7 @@ class Highlight(commands.Cog):
 
     @guild.command(name="add")
     async def guild_add(self, ctx: commands.Context, *text: str):
-        """Add a word to be highlighted on for thhe guild.
+        """Add a word to be highlighted on for the guild.
 
         Text will be converted to lowercase.\nCan also provide an optional channel argument for
         the highlight to be applied to that channel.
@@ -1002,7 +1002,8 @@ class Highlight(commands.Cog):
     async def _cooldown(self, ctx, cooldown: int):
         """Set the default cooldown of a highlight. (in seconds)
 
-        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined."""
+        Users can override this by using the `highlight cooldown` command, but cannot go lower that what it defined.
+        """
         if cooldown < 1 or cooldown > 600:
             return await ctx.send("Cooldown cannot be less than 1 or greater than 600.")
         await self.config.default_cooldown.set(cooldown)

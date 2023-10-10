@@ -1,0 +1,16 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Role History. A way to visualize the history of a user's roles.",
+    "name": "RoleHistory",
+    "disabled": false,
+    "short": "Visualize the history of a user's roles.",
+    "description": "Visualize the history of a user's roles.",
+    "tags": [
+        "roles",
+        "history",
+        "rolehistory"
+    ],
+    "min_bot_version": "3.5.0"
+}

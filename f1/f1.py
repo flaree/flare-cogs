@@ -18,7 +18,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -31,9 +31,9 @@ class F1(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(channel=None, role=None)
-        self.loop = self.bot.loop.create_task(self.race_loop())
+        self.loop = asyncio.create_task(self.race_loop())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.loop.cancel()
 
     async def race_loop(self):
@@ -99,7 +99,7 @@ class F1(commands.Cog):
                     "failed": "Their appears to be an issue with the API. Please try again later."
                 }
 
-    @commands.group()
+    @commands.hybrid_group()
     async def f1(self, ctx: commands.Context):
         """F1 Group Command"""
 
@@ -386,7 +386,6 @@ class F1(commands.Cog):
 
         datetimes = []
         for circuit in circuits:
-
             time = datetime.datetime.fromisoformat(
                 circuit["date"] + "T" + circuit["time"].replace("Z", "")
             ).replace(tzinfo=datetime.timezone.utc)
