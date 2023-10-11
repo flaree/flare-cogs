@@ -1,7 +1,7 @@
 import contextlib
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional, Tuple, Union
 
 import discord
@@ -328,7 +328,7 @@ class Mod(ModClass):
 
         if duration is None:
             duration = timedelta(seconds=guild_data["default_tempban_duration"])
-        unban_time = datetime.now(datetime.timezone.utc) + duration
+        unban_time = datetime.now(timezone.utc) + duration
 
         if days is None:
             days = guild_data["default_days"]
