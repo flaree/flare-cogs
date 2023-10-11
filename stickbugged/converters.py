@@ -36,13 +36,17 @@ class ImageFinder(Converter):
             for mention in mentions:
                 user = ctx.guild.get_member(int(mention.group(1)))
                 if user is not None:
-                    url = IMAGE_LINKS.search(str(user.display_avatar.replace(format="png").url))
+                    url = IMAGE_LINKS.search(
+                        str(user.display_avatar.replace(size=512, static_format="png").url)
+                    )
                     urls.append(url.group(1))
         if not urls and ids:
             for possible_id in ids:
                 user = ctx.guild.get_member(int(possible_id.group(0)))
                 if user:
-                    url = IMAGE_LINKS.search(str(user.display_avatar.replace(format="png").url))
+                    url = IMAGE_LINKS.search(
+                        str(user.display_avatar.replace(size=512, static_format="png").url)
+                    )
                     urls.append(url.group(1))
         if attachments:
             for attachment in attachments:
@@ -51,7 +55,9 @@ class ImageFinder(Converter):
         if not urls and ctx.guild:
             user = ctx.guild.get_member_named(argument)
             if user:
-                url = user.display_avatar.replace(format="png").url
+                url = IMAGE_LINKS.search(
+                    str(user.display_avatar.replace(size=512, static_format="png").url)
+                )
                 urls.append(url)
         if not urls:
             raise BadArgument("No images found.")
