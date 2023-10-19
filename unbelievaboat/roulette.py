@@ -216,10 +216,10 @@ class Roulette(MixinMeta):
         conf = await self.configglobalcheck(ctx)
         betting = await conf.betting()
         minbet, maxbet = betting["min"], betting["max"]
-        if !minbet == -1:
+        if minbet != -1:
             if amount < minbet:
                 return await ctx.send(f"Your bet must be greater than {humanize_number(minbet)}.")
-        if !maxbet == -1:
+        if maxbet != -1:
             if amount > maxbet:
                 return await ctx.send(f"Your bet must be less than {humanize_number(maxbet)}.")
         betret = await self.betting(ctx, amount, bet)
