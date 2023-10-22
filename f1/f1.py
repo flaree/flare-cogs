@@ -230,10 +230,11 @@ class F1(commands.Cog):
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
-        results = data["MRData"]["RaceTable"]["Races"][0]
+        results = data["MRData"]["RaceTable"]["Races"]
         if not results:
             await ctx.send("No data available.")
             return
+        results = results[0]
         standings = results["Results"]
 
         embed = discord.Embed(
