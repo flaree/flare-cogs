@@ -398,7 +398,7 @@ class Unbelievaboat(Wallet, Roulette, SettingsMixin, commands.Cog, metaclass=Com
             embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
             return await ctx.send(embed=embed)
         modifier = roll()
-        stolen = random.randint(1, int(userbalance * modifier)+1)
+        stolen = random.randint(1, int(userbalance * modifier) + 1)
         embed = discord.Embed(
             colour=discord.Color.green(),
             description=f"You steal {user.name}'s wallet and find {humanize_number(stolen)} inside.",
