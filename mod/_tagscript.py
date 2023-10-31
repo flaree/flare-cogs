@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 import TagScriptEngine as tse
 from redbot.core import commands

@@ -5,22 +5,21 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional, Tuple, Union
 
 import discord
-from redbot.core.bot import Red
+import TagScriptEngine as tse
 from redbot.cogs.mod.mod import Mod as ModClass
 from redbot.cogs.mod.utils import is_allowed_by_hierarchy
 from redbot.core import Config, app_commands, checks, commands, modlog
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import bold, box, humanize_timedelta
 from redbot.core.utils.mod import get_audit_reason
 
-import TagScriptEngine as tse
-
 from ._tagscript import (
-    kick_message,
+    TagScriptConverter,
     ban_message,
+    kick_message,
+    process_tagscript,
     tempban_message,
     unban_message,
-    TagScriptConverter,
-    process_tagscript,
 )
 
 log = logging.getLogger("red.flarecogs.mod")
