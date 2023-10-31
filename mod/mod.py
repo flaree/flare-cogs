@@ -5,11 +5,22 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional, Tuple, Union
 
 import discord
-from redbot.cogs.mod import Mod as ModClass
+import TagScriptEngine as tse
+from redbot.cogs.mod.mod import Mod as ModClass
 from redbot.cogs.mod.utils import is_allowed_by_hierarchy
 from redbot.core import Config, app_commands, checks, commands, modlog
-from redbot.core.utils.chat_formatting import bold, box
+from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import bold, box, humanize_timedelta
 from redbot.core.utils.mod import get_audit_reason
+
+from ._tagscript import (
+    TagScriptConverter,
+    ban_message,
+    kick_message,
+    process_tagscript,
+    tempban_message,
+    unban_message,
+)
 
 log = logging.getLogger("red.flarecogs.mod")
 
@@ -49,22 +60,22 @@ class Mod(ModClass):
 
     modset = ModClass.modset.copy()
 
-    __version__ = "1.1.0"
+    __version__ = "1.2.0"
 
-    def format_help_for_context(self, ctx):
+    def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}"
 
-    def __init__(self, bot):
+    def __init__(self, bot: Red):
         super().__init__(bot)
-        self.bot = bot
-        self._config = Config.get_conf(self, 95932766180343808, force_registration=True)
+        self.bot: Red = bot
+        self._config: Config = Config.get_conf(self, 95932766180343808, force_registration=True)
         self._config.register_guild(
             **{
-                "kick_message": "Done. That felt good.",
-                "ban_message": "Done. That felt good.",
-                "tempban_message": "Done. Enough chaos for now.",
-                "unban_message": "Unbanned that user from this server.",
+                "kick_message": kick_message,
+                "ban_message": ban_message,
+                "tempban_message": tempban_message,
+                "unban_message": unban_message,
             }
         )
 
@@ -80,95 +91,84 @@ class Mod(ModClass):
     ):
         return None
 
-    # https://github.com/Cog-Creators/Red-DiscordBot/blob/V3/develop/redbot/cogs/customcom/customcom.py#L824
-    @staticmethod
-    def transform_parameter(result, objects) -> str:
-        """
-        For security reasons only specific objects are allowed
-        Internals are ignored
-        """
-        raw_result = "{" + result + "}"
-        if result in objects:
-            return str(objects[result])
-        try:
-            first, second = result.split(".")
-        except ValueError:
-            return raw_result
-        if first in objects and not second.startswith("_"):
-            first = objects[first]
-        else:
-            return raw_result
-        return str(getattr(first, second, raw_result))
-
-    def transform_message(self, message, objects):
-        results = re.findall(r"{([^}]+)\}", message)
-        for result in results:
-            param = self.transform_parameter(result, objects)
-            message = message.replace("{" + result + "}", param)
-        return message
-
     @modset.command()
     @commands.guild_only()
-    async def kickmessage(self, ctx: commands.Context, *, message: str):
+    async def kickmessage(self, ctx: commands.Context, *, message: TagScriptConverter):
         """Set the message sent when a user is kicked.
 
-        Available placeholders:
-            {user} - member that was kicked.
-            {moderator} - moderator that kicked the member.
-            {reason} - reason for the kick.
-            {guild} - server name.
+        **Blocks:**
+        - [Assignment Block](https://seina-cogs.readthedocs.io/en/latest/tags/tse_blocks.html#assignment-block)
+        - [Embed Block](https://seina-cogs.readthedocs.io/en/latest/tags/parsing_blocks.html#embed-block)
+
+        **Variables:**
+        - `{user}`: [member that was kicked.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{moderator}`: [modrator that kicked the member.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{reason}`: reason for the kick.
+        - `{guild}`: [server](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#server-block)
         """
         guild = ctx.guild
         await self._config.guild(guild).kick_message.set(message)
-        await ctx.send("Kick message updated.")
+        await ctx.send("Kick message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
-    async def banmessage(self, ctx: commands.Context, *, message: str):
+    async def banmessage(self, ctx: commands.Context, *, message: TagScriptConverter):
         """Set the message sent when a user is banned.
 
-        Available placeholders:
-            {user} - member that was banned.
-            {moderator} - moderator that banned the member.
-            {reason} - reason for the ban.
-            {guild} - server name.
-            {days} - number of days of messages deleted.
+        **Blocks:**
+        - [Assignment Block](https://seina-cogs.readthedocs.io/en/latest/tags/tse_blocks.html#assignment-block)
+        - [Embed Block](https://seina-cogs.readthedocs.io/en/latest/tags/parsing_blocks.html#embed-block)
+
+        **Variables:**
+        - `{user}`: [member that was banned.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{moderator}`: [modrator that banned the member.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{reason}`: reason for the ban.
+        - `{guild}`: [server](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#server-block)
+        - `{days}`: number of days of messages deleted.
         """
         guild = ctx.guild
         await self._config.guild(guild).ban_message.set(message)
-        await ctx.send("Ban message updated.")
+        await ctx.send("Ban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
-    async def tempbanmessage(self, ctx: commands.Context, *, message: str):
+    async def tempbanmessage(self, ctx: commands.Context, *, message: TagScriptConverter):
         """Set the message sent when a user is tempbanned.
 
-        Available placeholders:
-            {user} - member that was tempbanned.
-            {moderator} - moderator that tempbanned the member.
-            {reason} - reason for the tempban.
-            {guild} - server name.
-            {days} - number of days of messages deleted.
-            {duration} - duration timedelta of the tempban.
+        **Blocks:**
+        - [Assignment Block](https://seina-cogs.readthedocs.io/en/latest/tags/tse_blocks.html#assignment-block)
+        - [Embed Block](https://seina-cogs.readthedocs.io/en/latest/tags/parsing_blocks.html#embed-block)
+
+        **Variables:**
+        - `{user}`: [member that was tempbanned.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{moderator}`: [modrator that tempbanned the member.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{reason}`: reason for the tempban.
+        - `{guild}`: [server](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#server-block)
+        - `{days}`: number of days of messages deleted.
+        - `{duration}`: duration of the tempban.
         """
         guild = ctx.guild
         await self._config.guild(guild).tempban_message.set(message)
-        await ctx.send("Tempban message updated.")
+        await ctx.send("Tempban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
-    async def unbanmessage(self, ctx: commands.Context, *, message: str):
+    async def unbanmessage(self, ctx: commands.Context, *, message: TagScriptConverter):
         """Set the message sent when a user is unbanned.
 
-        Available placeholders:
-            {user} - member that was unbanned.
-            {moderator} - moderator that unbanned the member.
-            {reason} - reason for the unban.
-            {guild} - server name.
+        **Blocks:**
+        - [Assignment Block](https://seina-cogs.readthedocs.io/en/latest/tags/tse_blocks.html#assignment-block)
+        - [Embed Block](https://seina-cogs.readthedocs.io/en/latest/tags/parsing_blocks.html#embed-block)
+
+        **Variables:**
+        - `{user}`: [member that was tempbanned.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{moderator}`: [modrator that tempbanned the member.](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#author-block)
+        - `{reason}`: reason for the tempban.
+        - `{guild}`: [server](https://seina-cogs.readthedocs.io/en/latest/tags/default_variables.html#server-block)
         """
         guild = ctx.guild
         await self._config.guild(guild).unban_message.set(message)
-        await ctx.send("Unban message updated.")
+        await ctx.send("Unban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command(name="showmessages")
     async def modset_showmessages(self, ctx: commands.Context):
@@ -262,14 +262,27 @@ class Mod(ModClass):
                 channel=None,
             )
             message = await self._config.guild(ctx.guild).kick_message()
-            objects = {
-                "user": member,
-                "moderator": author,
-                "reason": reason,
-                "guild": guild,
-            }
-            message = self.transform_message(message, objects)
-            await ctx.send(message)
+            kwargs = process_tagscript(
+                message,
+                {
+                    "user": tse.MemberAdapter(member),
+                    "moderator": tse.MemberAdapter(author),
+                    "reason": tse.StringAdapter(str(reason)),
+                    "guild": tse.GuildAdapter(guild),
+                },
+            )
+            if not kwargs:
+                await self._config.guild(ctx.guild).kick_message.clear()
+                kwargs = process_tagscript(
+                    kick_message,
+                    {
+                        "user": tse.MemberAdapter(member),
+                        "moderator": tse.MemberAdapter(author),
+                        "reason": tse.StringAdapter(str(reason)),
+                        "guild": tse.GuildAdapter(guild),
+                    },
+                )
+            await ctx.send(**kwargs)
 
     tempban = None
 
@@ -375,16 +388,32 @@ class Mod(ModClass):
                 unban_time,
             )
             message = await self._config.guild(ctx.guild).tempban_message()
-            objects = {
-                "user": member,
-                "moderator": author,
-                "reason": reason,
-                "guild": guild,
-                "duration": duration,
-                "days": days,
-            }
-            message = self.transform_message(message, objects)
-            await ctx.send(message)
+            humanized_duration = humanize_timedelta(timedelta=duration)
+            kwargs = process_tagscript(
+                message,
+                {
+                    "user": tse.MemberAdapter(member),
+                    "moderator": tse.MemberAdapter(author),
+                    "reason": tse.StringAdapter(str(reason)),
+                    "guild": tse.GuildAdapter(guild),
+                    "duration": tse.StringAdapter(humanized_duration),
+                    "days": tse.IntAdapter(days),
+                },
+            )
+            if not kwargs:
+                await self._config.guild(ctx.guild).tempban_message.clear()
+                kwargs = process_tagscript(
+                    tempban_message,
+                    {
+                        "user": tse.MemberAdapter(member),
+                        "moderator": tse.MemberAdapter(author),
+                        "reason": tse.StringAdapter(str(reason)),
+                        "guild": tse.GuildAdapter(guild),
+                        "duration": tse.StringAdapter(humanized_duration),
+                        "days": tse.IntAdapter(days),
+                    },
+                )
+            await ctx.send(**kwargs)
 
     softban = None
 
@@ -471,14 +500,27 @@ class Mod(ModClass):
                 channel=None,
             )
             message = await self._config.guild(ctx.guild).kick_message()
-            objects = {
-                "user": member,
-                "moderator": author,
-                "reason": reason,
-                "guild": guild,
-            }
-            message = self.transform_message(message, objects)
-            await ctx.send(message)
+            kwargs = process_tagscript(
+                message,
+                {
+                    "user": tse.MemberAdapter(member),
+                    "moderator": tse.MemberAdapter(author),
+                    "reason": tse.StringAdapter(str(reason)),
+                    "guild": tse.GuildAdapter(guild),
+                },
+            )
+            if not kwargs:
+                await self._config.guild(ctx.guild).kick_message.clear()
+                kwargs = process_tagscript(
+                    kick_message,
+                    {
+                        "user": tse.MemberAdapter(member),
+                        "moderator": tse.MemberAdapter(author),
+                        "reason": tse.StringAdapter(str(reason)),
+                        "guild": tse.GuildAdapter(guild),
+                    },
+                )
+            await ctx.send(**kwargs)
 
     @commands.hybrid_command()
     @app_commands.describe(
@@ -517,11 +559,38 @@ class Mod(ModClass):
         if isinstance(user, int):
             user = self.bot.get_user(user) or discord.Object(id=user)
 
-        success_, message = await self.ban_user(
+        success, message = await self.ban_user(
             user=user, ctx=ctx, days=days, reason=reason, create_modlog_case=True
         )
 
-        await ctx.send(message)
+        if not success:
+            await ctx.send(message)
+            return
+
+        kwargs = process_tagscript(
+            message,
+            {
+                "user": tse.MemberAdapter(user),
+                "moderator": tse.MemberAdapter(ctx.author),
+                "reason": tse.StringAdapter(str(reason)),
+                "guild": tse.GuildAdapter(guild),
+                "days": tse.IntAdapter(int(days)),
+            },
+        )
+        if not kwargs:
+            await self._config.guild(ctx.guild).ban_message.clear()
+            kwargs = process_tagscript(
+                ban_message,
+                {
+                    "user": tse.MemberAdapter(user),
+                    "moderator": tse.MemberAdapter(ctx.author),
+                    "reason": tse.StringAdapter(str(reason)),
+                    "guild": tse.GuildAdapter(guild),
+                    "days": tse.IntAdapter(int(days)),
+                },
+            )
+
+        await ctx.send(**kwargs)
 
     ban_user = None
 
@@ -603,8 +672,8 @@ class Mod(ModClass):
                 )
             )
             success_message = (
-                "User with ID {user_id} was upgraded from a temporary to a permanent ban."
-            ).format(user_id=user.id)
+                "User with ID {user(id)} was upgraded from a temporary to a permanent ban."
+            )
         else:
             username = user.name if hasattr(user, "name") else "Unknown"
             try:
@@ -614,15 +683,7 @@ class Mod(ModClass):
                         author.name, author.id, ban_type, username, user.id, str(days)
                     )
                 )
-                message = await self._config.guild(ctx.guild).ban_message()
-                objects = {
-                    "user": user,
-                    "moderator": author,
-                    "reason": reason,
-                    "guild": guild,
-                    "days": days,
-                }
-                success_message = self.transform_message(message, objects)
+                success_message = await self._config.guild(ctx.guild).ban_message()
             except discord.Forbidden:
                 return False, ("I'm not allowed to do that.")
             except discord.NotFound:
@@ -692,14 +753,27 @@ class Mod(ModClass):
                 channel=None,
             )
             message = await self._config.guild(ctx.guild).unban_message()
-            objects = {
-                "user": ban_entry.user,
-                "moderator": author,
-                "reason": reason,
-                "guild": guild,
-            }
-            message = self.transform_message(message, objects)
-            await ctx.send(message)
+            kwargs = process_tagscript(
+                message,
+                {
+                    "user": tse.MemberAdapter(ban_entry.user),
+                    "moderator": tse.MemberAdapter(author),
+                    "reason": tse.StringAdapter(str(reason)),
+                    "guild": tse.GuildAdapter(guild),
+                },
+            )
+            if not kwargs:
+                await self._config.guild(ctx.guild).unban_message.clear()
+                kwargs = process_tagscript(
+                    ban_message,
+                    {
+                        "user": tse.MemberAdapter(user),
+                        "moderator": tse.MemberAdapter(ctx.author),
+                        "reason": tse.StringAdapter(str(reason)),
+                        "guild": tse.GuildAdapter(guild),
+                    },
+                )
+            await ctx.send(**kwargs)
 
         if await self.config.guild(guild).reinvite_on_unban():
             user = ctx.bot.get_user(user_id)
