@@ -109,7 +109,7 @@ class Mod(ModClass):
         """
         guild = ctx.guild
         await self._config.guild(guild).kick_message.set(message)
-        await ctx.send("Kick message updated.")
+        await ctx.send("Kick message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
@@ -129,7 +129,7 @@ class Mod(ModClass):
         """
         guild = ctx.guild
         await self._config.guild(guild).ban_message.set(message)
-        await ctx.send("Ban message updated.")
+        await ctx.send("Ban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
@@ -150,7 +150,7 @@ class Mod(ModClass):
         """
         guild = ctx.guild
         await self._config.guild(guild).tempban_message.set(message)
-        await ctx.send("Tempban message updated.")
+        await ctx.send("Tempban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command()
     @commands.guild_only()
@@ -169,7 +169,7 @@ class Mod(ModClass):
         """
         guild = ctx.guild
         await self._config.guild(guild).unban_message.set(message)
-        await ctx.send("Unban message updated.")
+        await ctx.send("Unban message updated:\n{}".format(box(str(message), lang="json")))
 
     @modset.command(name="showmessages")
     async def modset_showmessages(self, ctx: commands.Context):
