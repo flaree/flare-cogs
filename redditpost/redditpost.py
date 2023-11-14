@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from html import unescape
 from typing import Optional
 
@@ -529,7 +529,7 @@ class RedditPost(commands.Cog):
                 url=unescape(link),
                 description=desc,
                 color=channel.guild.me.color,
-                timestamp=datetime.utcfromtimestamp(feed.created_utc),
+                timestamp=datetime.fromtimestamp(feed.created_utc, tz=timezone.utc),
             )
             embed.set_author(name=f"New post on r/{unescape(subreddit)}")
             if feed.author:
