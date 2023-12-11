@@ -2,25 +2,23 @@ import asyncio
 import datetime
 import operator
 import random
+import json
 
 from redbot.core import Config, bank, commands
 from redbot.core.utils.predicates import MessagePredicate
 
 
 class Cashdrop(commands.Cog):
-    __version__ = "0.1.2"
-    __author__ = "flare(flare#0001)"
-
-    def format_help_for_context(self, ctx):
-        pre_processed = super().format_help_for_context(ctx)
-        return f"{pre_processed}\nCog Version: {self.__version__}\nAuthor: {self.__author__}"
+    __version__ = "0.1.3"
+    __author__ = "flare(flare#0001), aranym"
 
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(
             active=False,
-            maths=True,
+            maths=False,
+            trivia=False,
             chance=1,
             interval=60,
             timestamp=None,
@@ -28,7 +26,19 @@ class Cashdrop(commands.Cog):
             credits_min=50,
         )
         self.cache = {}
+        self.trivia_questions = self.load_trivia_questions()
         asyncio.create_task(self.init_loop())
+
+    def load_trivia_questions(self):
+        try:
+            with open("trivia.json", "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return []
+
+    def random_trivia(self):
+        question_data = random.choice(self.trivia_questions)
+        return f"{question_data['question']}\n", question_data['answer'].lower()
 
     def random_calc(self):
         ops = {
@@ -213,10 +223,34 @@ class Cashdrop(commands.Cog):
         Toggle maths mode
         """
         guild = ctx.guild
+        trivia_mode = await self.config.guild(guild).trivia()
+
+        if trivia_mode and toggle:
+            await ctx.send("Trivia mode is currently enabled. Disable it before enabling maths mode.")
+            return
+
+        await self.config.guild(guild).maths.set(toggle)
         if toggle:
-            await self.config.guild(guild).maths.set(True)
             await ctx.send("Maths mode is now enabled")
         else:
-            await self.config.guild(guild).maths.set(False)
             await ctx.send("Maths mode is now disabled")
+        await self.generate_cache()
+
+    @_cashdrop.command(name="trivia")
+    async def _trivia(self, ctx, toggle: bool):
+        """
+        Toggle trivia mode
+        """
+        guild = ctx.guild
+        maths_mode = await self.config.guild(guild).maths()
+
+        if maths_mode and toggle:
+            await ctx.send("Maths mode is currently enabled. Disable it before enabling trivia mode.")
+            return
+
+        await self.config.guild(guild).trivia.set(toggle)
+        if toggle:
+            await ctx.send("Trivia mode is now enabled")
+        else:
+            await ctx.send("Trivia mode is now disabled")
         await self.generate_cache()
