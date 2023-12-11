@@ -100,7 +100,7 @@ class Cashdrop(commands.Cog):
                 pred = MessagePredicate.lower_contained_in(
                     str(answer), channel=message.channel, user=None
                 )
-                await self.bot.wait_for("message", check=pred, timeout=10)
+                await self.bot.wait_for("message", check=pred, timeout=60)
             except asyncio.TimeoutError:
                 await msg.edit(content="Too slow!")
                 return
