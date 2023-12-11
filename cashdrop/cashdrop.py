@@ -1,8 +1,8 @@
 import asyncio
 import datetime
+import json
 import operator
 import random
-import json
 
 from redbot.core import Config, bank, commands
 from redbot.core.utils.predicates import MessagePredicate
@@ -11,10 +11,10 @@ from redbot.core.utils.predicates import MessagePredicate
 class Cashdrop(commands.Cog):
     __version__ = "0.1.3"
     __author__ = "flare(flare#0001), aranym"
+
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}\nAuthor: {self.__author__}"
-
 
     def __init__(self, bot):
         self.bot = bot
@@ -42,7 +42,7 @@ class Cashdrop(commands.Cog):
 
     def random_trivia(self):
         question_data = random.choice(self.trivia_questions)
-        return f"{question_data['question']}\n", question_data['answer'].lower()
+        return f"{question_data['question']}\n", question_data["answer"].lower()
 
     def random_calc(self):
         ops = {
@@ -230,7 +230,9 @@ class Cashdrop(commands.Cog):
         trivia_mode = await self.config.guild(guild).trivia()
 
         if trivia_mode and toggle:
-            await ctx.send("Trivia mode is currently enabled. Disable it before enabling maths mode.")
+            await ctx.send(
+                "Trivia mode is currently enabled. Disable it before enabling maths mode."
+            )
             return
 
         await self.config.guild(guild).maths.set(toggle)
@@ -249,7 +251,9 @@ class Cashdrop(commands.Cog):
         maths_mode = await self.config.guild(guild).maths()
 
         if maths_mode and toggle:
-            await ctx.send("Maths mode is currently enabled. Disable it before enabling trivia mode.")
+            await ctx.send(
+                "Maths mode is currently enabled. Disable it before enabling trivia mode."
+            )
             return
 
         await self.config.guild(guild).trivia.set(toggle)
