@@ -237,6 +237,11 @@ class Mod(ModClass):
                     value=reason if reason is not None else ("No reason was given."),
                     inline=False,
                 )
+                em.add_field(
+                    name=("**Moderator**"),
+                    value=author.name if author is not None else ("No moderator was given."),
+                    inline=False,
+                )
                 await member.send(embed=em)
         try:
             await guild.kick(member, reason=audit_reason)
@@ -357,8 +362,12 @@ class Mod(ModClass):
 
         with contextlib.suppress(discord.HTTPException):
             # We don't want blocked DMs preventing us from banning
-            msg = ("You have been temporarily banned from {server_name} until {date}.").format(
-                server_name=guild.name, date=discord.utils.format_dt(unban_time)
+            msg = (
+                "You have been temporarily banned from {server_name} until {date} by {mod}."
+            ).format(
+                server_name=guild.name,
+                date=discord.utils.format_dt(unban_time),
+                mod=author.display_name,
             )
             if guild_data["dm_on_kickban"] and reason:
                 msg += ("\n\n**Reason:** {reason}").format(reason=reason)
@@ -456,6 +465,8 @@ class Mod(ModClass):
                     "You have been banned and "
                     "then unbanned as a quick way to delete your messages.\n"
                     "You can now join the server again. {invite_link}"
+                    f"\n\n**Reason:** {reason}"
+                    f"\n\n**Moderator:** {author.display_name}"
                 ).format(invite_link=invite)
             )
         except discord.HTTPException:
@@ -560,7 +571,12 @@ class Mod(ModClass):
             user = self.bot.get_user(user) or discord.Object(id=user)
 
         success, message = await self.ban_user(
-            user=user, ctx=ctx, days=days, reason=reason, create_modlog_case=True
+            user=user,
+            ctx=ctx,
+            days=days,
+            reason=reason,
+            create_modlog_case=True,
+            moderator=ctx.author,
         )
 
         if not success:
@@ -601,6 +617,7 @@ class Mod(ModClass):
         days: int = 0,
         reason: str = None,
         create_modlog_case=False,
+        moderator: Optional[discord.Member] = None,
     ) -> Tuple[bool, str]:
         author = ctx.author
         guild = ctx.guild
@@ -638,6 +655,11 @@ class Mod(ModClass):
                     em.add_field(
                         name=("**Reason**"),
                         value=reason if reason is not None else ("No reason was given."),
+                        inline=False,
+                    )
+                    em.add_field(
+                        name=("**Moderator**"),
+                        value=author.name if author is not None else ("No moderator was given."),
                         inline=False,
                     )
                     await user.send(embed=em)
