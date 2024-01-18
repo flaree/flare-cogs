@@ -131,6 +131,9 @@ class Highlight(commands.Cog):
     async def on_message(self, message: discord.Message):
         if isinstance(message.channel, discord.abc.PrivateChannel):
             return
+        if isinstance(message.channel, discord.Thread):
+            if message.channel.parent_id == 1059224729019498546:
+                return
         if await self.bot.cog_disabled_in_guild(self, message.guild):
             return
         highlight, highlightguild = (
