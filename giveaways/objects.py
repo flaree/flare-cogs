@@ -20,6 +20,10 @@ class GiveawayEnterError(GiveawayError):
     pass
 
 
+class AlreadyEnteredError(GiveawayError):
+    pass
+
+
 class Giveaway:
     def __init__(
         self,
@@ -46,7 +50,8 @@ class Giveaway:
         self, user: discord.Member, *, bot, session
     ) -> Tuple[bool, GiveawayError]:
         if not self.kwargs.get("multientry", False) and user.id in self.entrants:
-            raise GiveawayEnterError("You have already entered this giveaway.")
+            self.entrants.remove(user.id)
+            raise AlreadyEnteredError("You have already entered this giveaway.")
         if self.kwargs.get("roles", []) and all(
             int(role) not in [x.id for x in user.roles] for role in self.kwargs.get("roles", [])
         ):

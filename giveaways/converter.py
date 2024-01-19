@@ -6,6 +6,8 @@ from discord.ext.commands.converter import EmojiConverter, RoleConverter, TextCh
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
 
+from .menu import BUTTON_STYLE
+
 
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
@@ -36,6 +38,8 @@ class Args(Converter):
         parser.add_argument("--winners", dest="winners", default=None, type=int, nargs="?")
         parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
         parser.add_argument("--description", dest="description", default=[], nargs="*")
+        parser.add_argument("--button-text", dest="button-text", default=[], nargs="*")
+        parser.add_argument("--button-style", dest="button-style", default=[], nargs="*")
         parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
         parser.add_argument("--image", dest="image", default=None, nargs="*")
         parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
@@ -164,6 +168,18 @@ class Args(Converter):
             vals["description"] = " ".join(vals["description"])
             if len(vals["description"]) > 1000:
                 raise BadArgument("Description must be less than 1000 characters.")
+
+        if vals["button-text"]:
+            vals["button-text"] = " ".join(vals["button-text"])
+            if len(vals["button-text"]) > 80:
+                raise BadArgument("Button text must be less than 80 characters.")
+
+        if vals["button-style"]:
+            vals["button-style"] = " ".join(vals["button-style"]).lower()
+            if vals["button-style"] not in BUTTON_STYLE.keys():
+                raise BadArgument(
+                    f"Button style must be one of the following: {', '.join(BUTTON_STYLE.keys())}"
+                )
 
         if vals["emoji"]:
             vals["emoji"] = " ".join(vals["emoji"]).rstrip().lstrip()
