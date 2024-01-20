@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.0.0"
+    __version__ = "1.0.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -160,8 +160,6 @@ class Giveaways(commands.Cog):
                 else "",
                 embed=announce_embed,
             )
-        if channel_obj.permissions_for(guild.me).manage_messages:
-            await msg.clear_reactions()
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
@@ -207,7 +205,7 @@ class Giveaways(commands.Cog):
         end = datetime.now(timezone.utc) + time
         embed = discord.Embed(
             title=f"{prize}",
-            description=f"\nReact with 🎉 to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"\nClick the button below to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         # clear view items before adding new ones
@@ -320,7 +318,7 @@ class Giveaways(commands.Cog):
             emoji = self.bot.get_emoji(emoji)
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"{description}\n\nReact with {emoji} to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"{description}\n\nClick the button below to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
         if arguments["image"] is not None:
