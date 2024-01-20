@@ -24,8 +24,10 @@ BUTTON_STYLE = {
 
 
 class GiveawayButton(Button):
-    def __init__(self, label, style, emoji, cog):
+    def __init__(self, label, style, emoji, cog, update=False):
         super().__init__(label=label, style=BUTTON_STYLE[style], emoji=emoji)
+        self.default_label = label
+        self.update = update
         self.cog = cog
 
     async def callback(self, interaction: discord.Interaction):
@@ -54,3 +56,7 @@ class GiveawayButton(Button):
                 f"You have been entered into the giveaway for {giveaway.prize}.",
                 ephemeral=True,
             )
+            if self.update:
+                if len(giveaway.entrants) >= 1:
+                    self.label = f"{self.default_label} ({len(giveaway.entrants)})"
+                await interaction.message.edit(view=self.view)

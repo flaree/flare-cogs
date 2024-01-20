@@ -60,6 +60,7 @@ class Args(Converter):
         parser.add_argument("--ateveryone", action="store_true")
         parser.add_argument("--athere", action="store_true")
         parser.add_argument("--show-requirements", action="store_true")
+        parser.add_argument("--update-button", action="store_true")
 
         # Integrations
         parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
@@ -179,8 +180,8 @@ class Args(Converter):
 
         if vals["button-text"]:
             vals["button-text"] = " ".join(vals["button-text"])
-            if len(vals["button-text"]) > 80:
-                raise BadArgument("Button text must be less than 80 characters.")
+            if len(vals["button-text"]) > 70:
+                raise BadArgument("Button text must be less than 70 characters.")
 
         if vals["button-style"]:
             vals["button-style"] = " ".join(vals["button-style"]).lower()

@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.1.0"
+    __version__ = "1.2.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -343,6 +343,7 @@ class Giveaways(commands.Cog):
                 style=arguments["button-style"] or "green",
                 emoji=emoji,
                 cog=self,
+                update=arguments.get("update-button", False),
             )
         )
         msg = await channel.send(
@@ -505,6 +506,8 @@ class Giveaways(commands.Cog):
         `--announce`: Whether to post a seperate message when the giveaway ends. Not passing will default to off.
         `--ateveryone`: Whether to tag @everyone in the giveaway notice.
         `--show-requirements`: Whether to show the requirements of the giveaway.
+        `--athere`: Whether to tag @here in the giveaway notice.
+        `--update-button`: Whether to update the button with the number of entrants.
 
 
         3rd party integrations:
