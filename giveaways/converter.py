@@ -2,7 +2,13 @@ import argparse
 from datetime import datetime, timezone
 
 import dateparser
-from discord.ext.commands.converter import EmojiConverter, RoleConverter, TextChannelConverter
+from discord.ext.commands.converter import (
+    ColourConverter,
+    EmojiConverter,
+    MemberConverter,
+    RoleConverter,
+    TextChannelConverter,
+)
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
 
@@ -43,6 +49,8 @@ class Args(Converter):
         parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
         parser.add_argument("--image", dest="image", default=None, nargs="*")
         parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
+        parser.add_argument("--hosted-by", dest="hosted-by", default=None, nargs="*")
+        parser.add_argument("--colour", dest="colour", default=None, nargs="*")
 
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
@@ -180,6 +188,20 @@ class Args(Converter):
                 raise BadArgument(
                     f"Button style must be one of the following: {', '.join(BUTTON_STYLE.keys())}"
                 )
+
+        if vals["hosted-by"]:
+            vals["hosted-by"] = " ".join(vals["hosted-by"])
+            user = await MemberConverter().convert(ctx, vals["hosted-by"])
+            if user is None:
+                raise BadArgument("Invalid user.")
+            vals["hosted-by"] = user.id
+
+        if vals["colour"]:
+            vals["colour"] = " ".join(vals["colour"]).lower()
+            try:
+                vals["colour"] = await ColourConverter().convert(ctx, vals["colour"])
+            except Exception:
+                raise BadArgument("Invalid colour.")
 
         if vals["emoji"]:
             vals["emoji"] = " ".join(vals["emoji"]).rstrip().lstrip()

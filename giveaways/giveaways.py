@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.0.1"
+    __version__ = "1.1.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -316,10 +316,11 @@ class Giveaways(commands.Cog):
         emoji = arguments["emoji"] or "🎉"
         if isinstance(emoji, int):
             emoji = self.bot.get_emoji(emoji)
+        hosted_by = ctx.guild.get_member(arguments.get("hosted-by", ctx.author.id)) or ctx.author
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"{description}\n\nClick the button below to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
-            color=await ctx.embed_color(),
+            description=f"{description}\n\nClick the button below to enter\n\n**Hosted by:** {hosted_by.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
+            color=arguments.get("colour", await ctx.embed_color()),
         )
         if arguments["image"] is not None:
             embed.set_image(url=arguments["image"])
@@ -372,6 +373,7 @@ class Giveaways(commands.Cog):
         self.giveaways[msg.id] = giveaway_obj
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        del giveaway_dict["kwargs"]["colour"]
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
@@ -493,6 +495,8 @@ class Giveaways(commands.Cog):
         `--button-style`: Style to use for the button.
         `--image`: Image URL to use for the giveaway embed.
         `--thumbnail`: Thumbnail URL to use for the giveaway embed.
+        `--hosted-by`: User of the user hosting the giveaway. Defaults to the author of the command.
+        `--colour`: Colour to use for the giveaway embed.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
@@ -515,6 +519,45 @@ class Giveaways(commands.Cog):
             title="Giveaway Advanced Explanation", description=msg, color=await ctx.embed_color()
         )
         await ctx.send(embed=embed)
+
+    @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
+    async def edit(self, ctx, msgid: int, *, flags: Args):
+        """Edit a giveaway.
+
+        See `[p]gw explain` for more info on the flags.
+        """
+        if msgid not in self.giveaways:
+            return await ctx.send("Giveaway not found.")
+        giveaway = self.giveaways[msgid]
+        if giveaway.guildid != ctx.guild.id:
+            return await ctx.send("Giveaway not found.")
+        for flag in flags:
+            if flags[flag]:
+                if flag in ["prize", "duration", "end", "channel", "emoji"]:
+                    setattr(giveaway, flag, flags[flag])
+                elif flag in ["roles", "multi_roles", "blacklist", "mentions"]:
+                    giveaway.kwargs[flag] = [x.id for x in flags[flag]]
+                else:
+                    giveaway.kwargs[flag] = flags[flag]
+        giveaway.endtime = datetime.now(timezone.utc) + giveaway.duration
+        self.giveaways[msgid] = giveaway
+        giveaway_dict = deepcopy(giveaway.__dict__)
+        giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        giveaway_dict["duration"] = giveaway_dict["duration"].total_seconds()
+        del giveaway_dict["kwargs"]["colour"]
+        await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(msgid)).set(giveaway_dict)
+        message = ctx.guild.get_channel(giveaway.channelid).get_partial_message(giveaway.messageid)
+        hosted_by = (
+            ctx.guild.get_member(giveaway.kwargs.get("hosted-by", ctx.author.id)) or ctx.author
+        )
+        new_embed = discord.Embed(
+            title=f"{giveaway.prize}",
+            description=f"\nClick the button below to enter\n\n**Hosted by:** {hosted_by.mention}\n\nEnds: <t:{int(giveaway_dict['endtime'])}:R>",
+            color=flags.get("colour", await ctx.embed_color()),
+        )
+        await message.edit(embed=new_embed)
+        await ctx.tick()
 
     @giveaway.command()
     @commands.has_permissions(manage_guild=True)
