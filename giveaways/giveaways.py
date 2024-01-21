@@ -343,7 +343,7 @@ class Giveaways(commands.Cog):
                 style=arguments["button-style"] or "green",
                 emoji=emoji,
                 cog=self,
-                update=arguments.get("update-button", False),
+                update=arguments.get("update_button", False),
             )
         )
         msg = await channel.send(
