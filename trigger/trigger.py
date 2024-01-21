@@ -11,7 +11,7 @@ from .objects import TriggerObject
 
 
 class Trigger(commands.Cog):
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -77,9 +77,9 @@ class Trigger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
-        if any(item in payload.data for item in ["content", "guild_id"]):
+        if payload.guild_id is None:
             return
-        guild = self.bot.get_guild(int(payload.data["guild_id"]))
+        guild = self.bot.get_guild(payload.guild_id)
         if not guild:
             return
         channel = guild.get_channel(int(payload.data["channel_id"]))
