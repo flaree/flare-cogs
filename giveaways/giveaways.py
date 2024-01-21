@@ -113,7 +113,7 @@ class Giveaways(commands.Cog):
                 if winner_obj is None:
                     txt += f"{winner} (Not Found)\n"
                 else:
-                    txt += f"{winner_obj.mention} ({winner.display_name})\n"
+                    txt += f"{winner_obj.mention} ({winner_obj.display_name})\n"
                     winner_objs.append(winner_obj)
 
         msg = channel_obj.get_partial_message(giveaway.messageid)
