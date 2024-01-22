@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.3.0"
+    __version__ = "1.3.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -608,8 +608,8 @@ class Giveaways(commands.Cog):
             )
         if args.get("multi"):
             msg += f"**Multiplier:** {args['multi']}\n"
-        if args.get("multi_roles"):
-            msg += f"**Multiplier Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['multi_roles']])}\n"
+        if args.get("multi-roles"):
+            msg += f"**Multiplier Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['multi-roles']])}\n"
         if args.get("cost"):
             msg += f"**Cost:** {args['cost']}\n"
         if args.get("joined"):
@@ -634,7 +634,7 @@ class Giveaways(commands.Cog):
             msg += f"**Level Requirement:** {args['level_req']}\n"
         if args.get("rep_req"):
             msg += f"**Rep Requirement:** {args['rep_req']}\n"
-        if args.get("bypass_roles"):
-            msg += f"**Bypass Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['bypass_roles']])} ({args['bypass_type']})\n"
+        if args.get("bypass-roles"):
+            msg += f"**Bypass Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['bypass-roles']])} ({args['bypass-type']})\n"
 
         return msg
