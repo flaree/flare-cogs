@@ -25,7 +25,9 @@ BUTTON_STYLE = {
 
 class GiveawayButton(Button):
     def __init__(self, label, style, emoji, cog, update=False):
-        super().__init__(label=label, style=BUTTON_STYLE[style], emoji=emoji)
+        super().__init__(
+            label=label, style=BUTTON_STYLE[style], emoji=emoji, custom_id="giveaway_button"
+        )
         self.default_label = label
         self.update = update
         self.cog = cog
@@ -48,6 +50,7 @@ class GiveawayButton(Button):
                 await interaction.followup.send(
                     "You have been removed from the giveaway.", ephemeral=True
                 )
+                await self.update_label(giveaway, interaction)
                 return
             await self.cog.config.custom(
                 "giveaways", interaction.guild_id, interaction.message.id
@@ -56,7 +59,10 @@ class GiveawayButton(Button):
                 f"You have been entered into the giveaway for {giveaway.prize}.",
                 ephemeral=True,
             )
-            if self.update:
-                if len(giveaway.entrants) >= 1:
-                    self.label = f"{self.default_label} ({len(giveaway.entrants)})"
-                await interaction.message.edit(view=self.view)
+            await self.update_label(giveaway, interaction)
+
+    async def update_label(self, giveaway, interaction):
+        if self.update:
+            if len(giveaway.entrants) >= 1:
+                self.label = f"{self.default_label} ({len(giveaway.entrants)})"
+            await interaction.message.edit(view=self.view)
