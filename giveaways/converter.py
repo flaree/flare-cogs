@@ -51,7 +51,8 @@ class Args(Converter):
         parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
         parser.add_argument("--hosted-by", dest="hosted-by", default=None, nargs="*")
         parser.add_argument("--colour", dest="colour", default=None, nargs="*")
-
+        parser.add_argument("--bypass-roles", nargs="*", dest="bypass-roles", default=[])
+        parser.add_argument("--bypass-type", dest="bypass-type", default=None, nargs="?")
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
         parser.add_argument("--notify", action="store_true")
@@ -102,6 +103,21 @@ class Args(Converter):
             except BadArgument:
                 raise BadArgument(f"The role {role} does not exist within this server.")
         vals["multi-roles"] = valid_multi_roles
+
+        valid_bypass_roles = []
+        for role in vals["bypass-roles"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_bypass_roles.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["bypass-roles"] = valid_bypass_roles
+
+        if vals["bypass-type"]:
+            if vals["bypass-type"] not in ["or", "and"]:
+                raise BadArgument("Bypass type must be either `or` or `and` - default is `or`")
+        else:
+            vals["bypass-type"] = "or"
 
         valid_exclusive_roles = []
         for role in vals["roles"]:
@@ -182,6 +198,8 @@ class Args(Converter):
             vals["button-text"] = " ".join(vals["button-text"])
             if len(vals["button-text"]) > 70:
                 raise BadArgument("Button text must be less than 70 characters.")
+        else:
+            vals["button-text"] = "Join Giveaway"
 
         if vals["button-style"]:
             vals["button-style"] = " ".join(vals["button-style"]).lower()
@@ -189,6 +207,8 @@ class Args(Converter):
                 raise BadArgument(
                     f"Button style must be one of the following: {', '.join(BUTTON_STYLE.keys())}"
                 )
+        else:
+            vals["button-style"] = "green"
 
         if vals["hosted-by"]:
             vals["hosted-by"] = " ".join(vals["hosted-by"])

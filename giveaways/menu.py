@@ -24,9 +24,17 @@ BUTTON_STYLE = {
 
 
 class GiveawayButton(Button):
-    def __init__(self, label, style, emoji, cog, update=False):
+    def __init__(
+        self,
+        label: str,
+        style: str,
+        emoji,
+        cog,
+        id,
+        update=False,
+    ):
         super().__init__(
-            label=label, style=BUTTON_STYLE[style], emoji=emoji, custom_id="giveaway_button"
+            label=label, style=BUTTON_STYLE[style], emoji=emoji, custom_id=f"giveaway_button:{id}"
         )
         self.default_label = label
         self.update = update
@@ -50,19 +58,25 @@ class GiveawayButton(Button):
                 await interaction.followup.send(
                     "You have been removed from the giveaway.", ephemeral=True
                 )
+                await self.update_entrant(giveaway, interaction)
                 await self.update_label(giveaway, interaction)
                 return
-            await self.cog.config.custom(
-                "giveaways", interaction.guild_id, interaction.message.id
-            ).entrants.set(self.cog.giveaways[interaction.message.id].entrants)
+            await self.update_entrant(giveaway, interaction)
             await interaction.followup.send(
                 f"You have been entered into the giveaway for {giveaway.prize}.",
                 ephemeral=True,
             )
             await self.update_label(giveaway, interaction)
 
+    async def update_entrant(self, giveaway, interaction):
+        await self.cog.config.custom(
+            "giveaways", interaction.guild_id, interaction.message.id
+        ).entrants.set(self.cog.giveaways[interaction.message.id].entrants)
+
     async def update_label(self, giveaway, interaction):
         if self.update:
             if len(giveaway.entrants) >= 1:
                 self.label = f"{self.default_label} ({len(giveaway.entrants)})"
+            if len(giveaway.entrants) == 0:
+                self.label = self.default_label
             await interaction.message.edit(view=self.view)
