@@ -82,11 +82,12 @@ class Trigger(commands.Cog):
         guild = self.bot.get_guild(payload.guild_id)
         if not guild:
             return
-        channel = guild.get_channel(int(payload.data["channel_id"]))
+        # channel = guild.get_channel(int(payload.data["channel_id"]))
         if payload.cached_message is not None:
             message = payload.cached_message
         else:
-            message = discord.Message(state=channel._state, channel=channel, data=payload.data)
+            return
+            # message = discord.Message(state=channel._state, channel=channel, data=payload.data)
         if message.author.bot:
             return
         for trigger in self.triggers.get(guild.id, {}):
