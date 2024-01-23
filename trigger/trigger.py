@@ -11,7 +11,7 @@ from .objects import TriggerObject
 
 
 class Trigger(commands.Cog):
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -83,10 +83,10 @@ class Trigger(commands.Cog):
         if not guild:
             return
         channel = guild.get_channel(int(payload.data["channel_id"]))
-        try:
-            message = await channel.fetch_message(int(payload.data["id"]))
-        except Exception:
-            return
+        if payload.cached_message is not None:
+            message = payload.cached_message
+        else:
+            message = discord.Message(state=channel._state, channel=channel, data=payload.data)
         if message.author.bot:
             return
         for trigger in self.triggers.get(guild.id, {}):
