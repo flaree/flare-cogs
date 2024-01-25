@@ -3,12 +3,13 @@ import datetime
 import operator
 import random
 
+import discord
 from redbot.core import Config, bank, commands
 from redbot.core.utils.predicates import MessagePredicate
 
 
 class Cashdrop(commands.Cog):
-    __version__ = "0.1.2"
+    __version__ = "0.2.0"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -26,6 +27,7 @@ class Cashdrop(commands.Cog):
             timestamp=None,
             credits_max=550,
             credits_min=50,
+            channel=None,
         )
         self.cache = {}
         asyncio.create_task(self.init_loop())
@@ -79,13 +81,17 @@ class Cashdrop(commands.Cog):
         ).total_seconds() < self.cache[message.guild.id]["interval"]:
             return
         self.cache[message.guild.id]["timestamp"] = datetime.datetime.now(tz=datetime.timezone.utc)
+        if self.cache[message.guild.id]["channel"] is not None:
+            channel = message.guild.get_channel(self.cache[message.guild.id]["channel"])
+            if channel is None:
+                channel = message.channel
+        else:
+            channel = message.channel
         if self.cache[message.guild.id]["maths"]:
             string, answer = self.random_calc()
-            msg = await message.channel.send(string)
+            msg = await channel.send(string)
             try:
-                pred = MessagePredicate.lower_contained_in(
-                    str(answer), channel=message.channel, user=None
-                )
+                pred = MessagePredicate.lower_contained_in(str(answer), channel=channel, user=None)
                 await self.bot.wait_for("message", check=pred, timeout=10)
             except asyncio.TimeoutError:
                 await msg.edit(content="Too slow!")
@@ -100,12 +106,10 @@ class Cashdrop(commands.Cog):
                 )
                 await bank.deposit_credits(message.author, creds)
         else:
-            msg = await message.channel.send(
+            msg = await channel.send(
                 f"Some {await bank.get_currency_name(guild=message.guild)} have fallen, type `pickup` to pick them up!"
             )
-            pred = MessagePredicate.lower_contained_in(
-                "pickup", channel=message.channel, user=None
-            )
+            pred = MessagePredicate.lower_contained_in("pickup", channel=channel, user=None)
             try:
                 await self.bot.wait_for("message", check=pred, timeout=10)
             except asyncio.TimeoutError:
@@ -219,4 +223,14 @@ class Cashdrop(commands.Cog):
         else:
             await self.config.guild(guild).maths.set(False)
             await ctx.send("Maths mode is now disabled")
+        await self.generate_cache()
+
+    @_cashdrop.command(name="channel")
+    async def _channel(self, ctx, channel: discord.TextChannel):
+        """
+        Set the channel for the cashdrop
+        """
+        guild = ctx.guild
+        await self.config.guild(guild).channel.set(channel.id)
+        await ctx.send(f"Channel set to {channel.mention}")
         await self.generate_cache()
