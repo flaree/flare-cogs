@@ -53,7 +53,7 @@ class Giveaway:
         self, user: discord.Member, *, bot, session
     ) -> Tuple[bool, GiveawayError]:
         if not self.kwargs.get("multientry", False) and user.id in self.entrants:
-            self.entrants.remove(user.id)
+            self.remove_entrant(user.id)
             raise AlreadyEnteredError("You have already entered this giveaway.")
         bypass = self.does_entrant_bypass(user)
         if bypass is False:

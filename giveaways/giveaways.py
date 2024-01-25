@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.3.1"
+    __version__ = "1.3.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
