@@ -9,7 +9,7 @@ from redbot.core.utils.predicates import MessagePredicate
 
 
 class Cashdrop(commands.Cog):
-    __version__ = "0.2.0"
+    __version__ = "0.2.1"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
