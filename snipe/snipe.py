@@ -20,7 +20,7 @@ CacheType = Literal["edit", "delete"]
 class Snipe(commands.Cog):
     """Snipe the last message from a server."""
 
-    __version__ = "0.5.0"
+    __version__ = "0.6.0"
 
     def format_help_for_context(self, ctx):
         """Thanks Sinbad."""
@@ -235,6 +235,36 @@ class Snipe(commands.Cog):
                 embed.set_author(name="Removed Member")
             embeds.append(embed)
         await self.reply(ctx, embeds=embeds)
+
+    @commands.guild_only()
+    @commands.cooldown(rate=1, per=5, type=commands.BucketType.channel)
+    @commands.bot_has_permissions(embed_links=True)
+    async def clearsnipes(self, ctx, type: str = "delete"):
+        """Clears snipes from the current channel by the current user."""
+        guild: discord.Guild = ctx.guild
+        if not await self.config.guild(guild).toggle():
+            await self.reply(
+                ctx,
+                f"Sniping is not allowed in this server! An admin may turn it on by typing `{ctx.clean_prefix}snipeset enable true`.",
+            )
+            return
+
+        cache = self.delete_cache if type == "delete" else self.edit_cache
+        if cache[guild.id].get(ctx.channel.id) is None:
+            await self.reply(ctx, "There's nothing to clear!")
+            return
+
+        author_id = ctx.author.id
+        snipes = []
+        for snipe in cache[guild.id][ctx.channel.id]:
+            if snipe["author"] == author_id:
+                snipes.append(snipe)
+        if not snipes:
+            await self.reply(ctx, "There's nothing to clear!")
+            return
+        for snipe in snipes:
+            cache[guild.id][ctx.channel.id].remove(snipe)
+        await self.reply(ctx, f"{len(snipes)} snipes cleared.")
 
     @staticmethod
     def get_content(content: str, limit: int = 1024):

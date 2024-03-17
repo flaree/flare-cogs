@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import logging
+from typing import Union
 
 import aiohttp
 import discord
@@ -18,7 +19,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -55,9 +56,14 @@ class F1(commands.Cog):
         if not circuits:
             return
         for circuit in circuits:
-            time = datetime.datetime.fromisoformat(
-                circuit["date"] + "T" + circuit["time"].replace("Z", "")
-            ).replace(tzinfo=datetime.timezone.utc)
+            if circuit.get("time"):
+                time = datetime.datetime.fromisoformat(
+                    circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                ).replace(tzinfo=datetime.timezone.utc)
+            else:
+                time = datetime.datetime.fromisoformat(
+                    circuit["date"] + "T" + "12:00:00Z"
+                ).replace(tzinfo=datetime.timezone.utc)
             if time.date() == datetime.datetime.now().date():
                 data = await self.config.all_guilds()
                 for guild_id in data:
@@ -230,10 +236,11 @@ class F1(commands.Cog):
         if data.get("failed"):
             await ctx.send(data["failed"])
             return
-        results = data["MRData"]["RaceTable"]["Races"][0]
+        results = data["MRData"]["RaceTable"]["Races"]
         if not results:
             await ctx.send("No data available.")
             return
+        results = results[0]
         standings = results["Results"]
 
         embed = discord.Embed(
@@ -272,10 +279,15 @@ class F1(commands.Cog):
         )
         msg = ""
         for circuit in circuits:
-            time = datetime.datetime.fromisoformat(
-                circuit["date"] + "T" + circuit["time"].replace("Z", "")
-            ).replace(tzinfo=datetime.timezone.utc)
-            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **<t:{int(time.timestamp())}:F>**\n'
+            if circuit.get("time"):
+                time = datetime.datetime.fromisoformat(
+                    circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                ).replace(tzinfo=datetime.timezone.utc)
+            else:
+                time = datetime.datetime.fromisoformat(circuit["date"]).replace(
+                    tzinfo=datetime.timezone.utc
+                )
+            msg += f'Round {circuit["round"]}: [{circuit["raceName"]}]({circuit["url"]}) - {circuit["Circuit"]["circuitName"]} | **<t:{int(time.timestamp())}:F>** {"Time to be confirmed" if circuit.get("time") else ""}\n'
         if len(msg) > 2048:
             for page in pagify(msg, page_length=1024):
                 embed.add_field(name="-", value=page, inline=False)
@@ -386,9 +398,14 @@ class F1(commands.Cog):
 
         datetimes = []
         for circuit in circuits:
-            time = datetime.datetime.fromisoformat(
-                circuit["date"] + "T" + circuit["time"].replace("Z", "")
-            ).replace(tzinfo=datetime.timezone.utc)
+            if circuit.get("time"):
+                time = datetime.datetime.fromisoformat(
+                    circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                ).replace(tzinfo=datetime.timezone.utc)
+            else:
+                time = datetime.datetime.fromisoformat(circuit["date"]).replace(
+                    tzinfo=datetime.timezone.utc
+                )
             circuit["datetime"] = time
             datetimes.append(time)
         try:
@@ -401,9 +418,14 @@ class F1(commands.Cog):
             return await ctx.send("I couldn't find the next F1 race available.")
         for circuit in circuits:
             if circuit["datetime"] == next_date:
-                time = datetime.datetime.fromisoformat(
-                    circuit["date"] + "T" + circuit["time"].replace("Z", "")
-                ).replace(tzinfo=datetime.timezone.utc)
+                if circuit.get("time"):
+                    time = datetime.datetime.fromisoformat(
+                        circuit["date"] + "T" + circuit["time"].replace("Z", "")
+                    ).replace(tzinfo=datetime.timezone.utc)
+                else:
+                    time = datetime.datetime.fromisoformat(circuit["date"]).replace(
+                        tzinfo=datetime.timezone.utc
+                    )
                 embed = discord.Embed(
                     color=await ctx.embed_colour(),
                     title=f"F1 Next Race - {circuit['raceName']}",
@@ -419,7 +441,7 @@ class F1(commands.Cog):
 
     @f1.command()
     @commands.admin_or_permissions(manage_guild=True)
-    async def subscribe(self, ctx, channel: discord.TextChannel = None):
+    async def subscribe(self, ctx, channel: Union[discord.TextChannel, discord.Thread] = None):
         """Subscribe a channel to F1 Race Day notifications."""
         if channel is None:
             await self.config.guild(ctx.guild).channel.set(None)

@@ -13,6 +13,7 @@ from redbot.core.utils.chat_formatting import pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .converter import Args
+from .menu import GiveawayButton, GiveawayView
 from .objects import Giveaway, GiveawayEnterError, GiveawayExecError
 
 log = logging.getLogger("red.flare.giveaways")
@@ -24,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "0.13.0"
+    __version__ = "1.3.2"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -40,30 +41,43 @@ class Giveaways(commands.Cog):
         self.session = aiohttp.ClientSession()
         with contextlib.suppress(Exception):
             self.bot.add_dev_env_value("giveaways", lambda x: self)
+        self.view = GiveawayView(self)
+        bot.add_view(self.view)
 
     async def init(self) -> None:
         await self.bot.wait_until_ready()
         data = await self.config.custom(GIVEAWAY_KEY).all()
-        for _, giveaways in data.items():
-            for msgid, giveaway in giveaways.items():
-                if giveaway.get("ended", False):
-                    continue
-                if datetime.now(timezone.utc) > datetime.fromtimestamp(
-                    giveaway["endtime"]
-                ).replace(tzinfo=timezone.utc):
-                    continue
-                self.giveaways[int(msgid)] = Giveaway(
-                    guildid=giveaway["guildid"],
-                    channelid=giveaway["channelid"],
-                    messageid=msgid,
-                    endtime=datetime.fromtimestamp(giveaway["endtime"]).replace(
+        for _, guild in data.items():
+            for msgid, giveaway in guild.items():
+                try:
+                    if giveaway.get("ended", False):
+                        continue
+                    giveaway["endtime"] = datetime.fromtimestamp(giveaway["endtime"]).replace(
                         tzinfo=timezone.utc
-                    ),
-                    prize=giveaway["prize"],
-                    emoji=giveaway.get("emoji", "🎉"),
-                    entrants=giveaway["entrants"],
-                    **giveaway["kwargs"],
-                )
+                    )
+                    giveaway_obj = Giveaway(
+                        giveaway["guildid"],
+                        giveaway["channelid"],
+                        giveaway["messageid"],
+                        giveaway["endtime"],
+                        giveaway["prize"],
+                        giveaway["emoji"],
+                        **giveaway["kwargs"],
+                    )
+                    self.giveaways[int(msgid)] = giveaway_obj
+                    view = GiveawayView(self)
+                    view.add_item(
+                        GiveawayButton(
+                            label=giveaway["kwargs"].get("button-text", "Join Giveaway"),
+                            style=giveaway["kwargs"].get("button-style", "green"),
+                            emoji=giveaway["emoji"],
+                            cog=self,
+                            id=giveaway["messageid"],
+                        )
+                    )
+                    self.bot.add_view(view)
+                except Exception as exc:
+                    log.error(f"Error loading giveaway {msgid}: ", exc_info=exc)
         while True:
             try:
                 await self.check_giveaways()
@@ -79,7 +93,8 @@ class Giveaways(commands.Cog):
 
     async def check_giveaways(self) -> None:
         to_clear = []
-        for msgid, giveaway in self.giveaways.items():
+        giveaways = deepcopy(self.giveaways)
+        for msgid, giveaway in giveaways.items():
             if giveaway.endtime < datetime.now(timezone.utc):
                 await self.draw_winner(giveaway)
                 to_clear.append(msgid)
@@ -109,7 +124,7 @@ class Giveaways(commands.Cog):
                 if winner_obj is None:
                     txt += f"{winner} (Not Found)\n"
                 else:
-                    txt += f"{winner_obj.mention}\n"
+                    txt += f"{winner_obj.mention} ({winner_obj.display_name})\n"
                     winner_objs.append(winner_obj)
 
         msg = channel_obj.get_partial_message(giveaway.messageid)
@@ -124,10 +139,7 @@ class Giveaways(commands.Cog):
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
         )
         try:
-            await msg.edit(
-                content="🎉 Giveaway Ended 🎉",
-                embed=embed,
-            )
+            await msg.edit(content="🎉 Giveaway Ended 🎉", embed=embed, view=None)
         except (discord.NotFound, discord.Forbidden) as exc:
             log.error("Error editing giveaway message: ", exc_info=exc)
             async with self.config.custom(
@@ -159,8 +171,6 @@ class Giveaways(commands.Cog):
                 else "",
                 embed=announce_embed,
             )
-        if channel_obj.permissions_for(guild.me).manage_messages:
-            await msg.clear_reactions()
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
@@ -183,6 +193,7 @@ class Giveaways(commands.Cog):
         """
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(
         channel="The channel in which to start the giveaway.",
         time="The time the giveaway should last.",
@@ -205,10 +216,23 @@ class Giveaways(commands.Cog):
         end = datetime.now(timezone.utc) + time
         embed = discord.Embed(
             title=f"{prize}",
-            description=f"\nReact with 🎉 to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
+            description=f"\nClick the button below to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
             color=await ctx.embed_color(),
         )
+        view = GiveawayView(self)
+
         msg = await channel.send(embed=embed)
+        view.add_item(
+            GiveawayButton(
+                label="Join Giveaway",
+                style="green",
+                emoji="🎉",
+                cog=self,
+                id=msg.id,
+            )
+        )
+        self.bot.add_view(view)
+        await msg.edit(view=view)
         giveaway_obj = Giveaway(
             ctx.guild.id,
             channel.id,
@@ -221,12 +245,12 @@ class Giveaways(commands.Cog):
         if ctx.interaction:
             await ctx.send("Giveaway created!", ephemeral=True)
         self.giveaways[msg.id] = giveaway_obj
-        await msg.add_reaction("🎉")
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(msgid="The message ID of the giveaway to end.")
     async def reroll(self, ctx: commands.Context, msgid: int):
         """Reroll a giveaway."""
@@ -250,6 +274,7 @@ class Giveaways(commands.Cog):
             await ctx.tick()
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(msgid="The message ID of the giveaway to end.")
     async def end(self, ctx: commands.Context, msgid: int):
         """End a giveaway."""
@@ -266,6 +291,7 @@ class Giveaways(commands.Cog):
             await ctx.send("Giveaway not found.")
 
     @giveaway.command(aliases=["adv"])
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(
         arguments="The arguments for the giveaway. See `[p]gw explain` for more info."
     )
@@ -283,31 +309,16 @@ class Giveaways(commands.Cog):
         end = datetime.now(timezone.utc) + duration
         description = arguments["description"] or ""
         if arguments["show_requirements"]:
-            description += "\n\n**Requirements**:"
-            for kwarg in set(arguments) - {
-                "show_requirements",
-                "prize",
-                "duration",
-                "channel",
-                "winners",
-                "description",
-                "congratulate",
-                "notify",
-                "announce",
-                "emoji",
-                "thumbnail",
-                "image",
-            }:
-                if arguments[kwarg]:
-                    description += f"\n**{kwarg.title()}:** {arguments[kwarg]}"
+            description += "\n\n**Requirements:**\n" + self.generate_settings_text(ctx, arguments)
 
         emoji = arguments["emoji"] or "🎉"
         if isinstance(emoji, int):
             emoji = self.bot.get_emoji(emoji)
+        hosted_by = ctx.guild.get_member(arguments.get("hosted-by", ctx.author.id)) or ctx.author
         embed = discord.Embed(
             title=f"{f'{winners}x ' if winners > 1 else ''}{prize}",
-            description=f"{description}\n\nReact with {emoji} to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
-            color=await ctx.embed_color(),
+            description=f"{description}\n\nClick the button below to enter\n\n**Hosted by:** {hosted_by.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
+            color=arguments.get("colour", await ctx.embed_color()),
         )
         if arguments["image"] is not None:
             embed.set_image(url=arguments["image"])
@@ -323,6 +334,8 @@ class Giveaways(commands.Cog):
                 role = ctx.guild.get_role(mention)
                 if role is not None:
                     txt += f"{role.mention} "
+
+        view = GiveawayView(self)
         msg = await channel.send(
             content=f"🎉 Giveaway 🎉{txt}",
             embed=embed,
@@ -331,6 +344,18 @@ class Giveaways(commands.Cog):
                 everyone=bool(arguments["ateveryone"]),
             ),
         )
+        view.add_item(
+            GiveawayButton(
+                label=arguments["button-text"] or "Join Giveaway",
+                style=arguments["button-style"] or "green",
+                emoji=emoji,
+                cog=self,
+                update=arguments.get("update_button", False),
+                id=msg.id,
+            )
+        )
+        self.bot.add_view(view)
+        await msg.edit(view=view)
         if ctx.interaction:
             await ctx.send("Giveaway created!", ephemeral=True)
 
@@ -348,12 +373,13 @@ class Giveaways(commands.Cog):
             },
         )
         self.giveaways[msg.id] = giveaway_obj
-        await msg.add_reaction(emoji)
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
         giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        del giveaway_dict["kwargs"]["colour"]
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(msgid="The message ID of the giveaway to edit.")
     async def entrants(self, ctx: commands.Context, msgid: int):
         """List all entrants for a giveaway."""
@@ -385,6 +411,7 @@ class Giveaways(commands.Cog):
         return await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     @app_commands.describe(msgid="The message ID of the giveaway to edit.")
     async def info(self, ctx: commands.Context, msgid: int):
         """Information about a giveaway."""
@@ -406,6 +433,7 @@ class Giveaways(commands.Cog):
         await ctx.send(embed=embed)
 
     @giveaway.command(name="list")
+    @commands.has_permissions(manage_guild=True)
     async def _list(self, ctx: commands.Context):
         """List all giveaways in the server."""
         if not self.giveaways:
@@ -433,6 +461,7 @@ class Giveaways(commands.Cog):
         return await menu(ctx, embeds, DEFAULT_CONTROLS)
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     async def explain(self, ctx: commands.Context):
         """Explanation of giveaway advanced and the arguements it supports."""
 
@@ -464,8 +493,14 @@ class Giveaways(commands.Cog):
         `--winners`: How many winners to draw. Must be a positive number.
         `--mentions`: Roles to mention in the giveaway notice.
         `--description`: Description of the giveaway.
+        `--button-text`: Text to use for the button.
+        `--button-style`: Style to use for the button.
         `--image`: Image URL to use for the giveaway embed.
         `--thumbnail`: Thumbnail URL to use for the giveaway embed.
+        `--hosted-by`: User of the user hosting the giveaway. Defaults to the author of the command.
+        `--colour`: Colour to use for the giveaway embed.
+        `--bypass-roles`: Roles that bypass the requirements. If the role contains a space, use their ID.
+        `--bypass-type`: Type of bypass to use. Must be one of `or` or `and`. Defaults to `or`.
 
         Setting Arguments:
         `--congratulate`: Whether or not to congratulate the winner. Not passing will default to off.
@@ -474,6 +509,8 @@ class Giveaways(commands.Cog):
         `--announce`: Whether to post a seperate message when the giveaway ends. Not passing will default to off.
         `--ateveryone`: Whether to tag @everyone in the giveaway notice.
         `--show-requirements`: Whether to show the requirements of the giveaway.
+        `--athere`: Whether to tag @here in the giveaway notice.
+        `--update-button`: Whether to update the button with the number of entrants.
 
 
         3rd party integrations:
@@ -490,6 +527,46 @@ class Giveaways(commands.Cog):
         await ctx.send(embed=embed)
 
     @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
+    async def edit(self, ctx, msgid: int, *, flags: Args):
+        """Edit a giveaway.
+
+        See `[p]gw explain` for more info on the flags.
+        """
+        if msgid not in self.giveaways:
+            return await ctx.send("Giveaway not found.")
+        giveaway = self.giveaways[msgid]
+        if giveaway.guildid != ctx.guild.id:
+            return await ctx.send("Giveaway not found.")
+        for flag in flags:
+            if flags[flag]:
+                if flag in ["prize", "duration", "end", "channel", "emoji"]:
+                    setattr(giveaway, flag, flags[flag])
+                elif flag in ["roles", "multi_roles", "blacklist", "mentions"]:
+                    giveaway.kwargs[flag] = [x.id for x in flags[flag]]
+                else:
+                    giveaway.kwargs[flag] = flags[flag]
+        giveaway.endtime = datetime.now(timezone.utc) + giveaway.duration
+        self.giveaways[msgid] = giveaway
+        giveaway_dict = deepcopy(giveaway.__dict__)
+        giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        giveaway_dict["duration"] = giveaway_dict["duration"].total_seconds()
+        del giveaway_dict["kwargs"]["colour"]
+        await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(msgid)).set(giveaway_dict)
+        message = ctx.guild.get_channel(giveaway.channelid).get_partial_message(giveaway.messageid)
+        hosted_by = (
+            ctx.guild.get_member(giveaway.kwargs.get("hosted-by", ctx.author.id)) or ctx.author
+        )
+        new_embed = discord.Embed(
+            title=f"{giveaway.prize}",
+            description=f"\nClick the button below to enter\n\n**Hosted by:** {hosted_by.mention}\n\nEnds: <t:{int(giveaway_dict['endtime'])}:R>",
+            color=flags.get("colour", await ctx.embed_color()),
+        )
+        await message.edit(embed=new_embed)
+        await ctx.tick()
+
+    @giveaway.command()
+    @commands.has_permissions(manage_guild=True)
     async def integrations(self, ctx: commands.Context):
         """Various 3rd party integrations for giveaways."""
 
@@ -523,26 +600,41 @@ class Giveaways(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        if payload.user_id == self.bot.user.id:
-            return
-        if payload.message_id in self.giveaways:
-            giveaway = self.giveaways[payload.message_id]
-            if payload.emoji.is_custom_emoji() and str(payload.emoji) != giveaway.emoji:
-                return
-            elif payload.emoji.is_unicode_emoji() and str(payload.emoji) != giveaway.emoji:
-                return
-            try:
-                await giveaway.add_entrant(payload.member, bot=self.bot, session=self.session)
-            except GiveawayEnterError as e:
-                if giveaway.kwargs.get("notify", False):
-                    with contextlib.suppress(discord.Forbidden):
-                        await payload.member.send(e.message)
-                return
-            except GiveawayExecError as e:
-                log.exception("Error while adding user to giveaway", exc_info=e)
-                return
-            await self.config.custom(
-                GIVEAWAY_KEY, payload.guild_id, payload.message_id
-            ).entrants.set(self.giveaways[payload.message_id].entrants)
+    def generate_settings_text(self, ctx: commands.Context, args):
+        msg = ""
+        if args.get("roles"):
+            msg += (
+                f"**Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['roles']])}\n"
+            )
+        if args.get("multi"):
+            msg += f"**Multiplier:** {args['multi']}\n"
+        if args.get("multi-roles"):
+            msg += f"**Multiplier Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['multi-roles']])}\n"
+        if args.get("cost"):
+            msg += f"**Cost:** {args['cost']}\n"
+        if args.get("joined"):
+            msg += f"**Joined:** {args['joined']} days\n"
+        if args.get("created"):
+            msg += f"**Created:** {args['created']} days\n"
+        if args.get("blacklist"):
+            msg += f"**Blacklist:** {', '.join([ctx.guild.get_role(x).mention for x in args['blacklist']])}\n"
+        if args.get("winners"):
+            msg += f"**Winners:** {args['winners']}\n"
+        if args.get("mee6_level"):
+            msg += f"**MEE6 Level:** {args['mee6_level']}\n"
+        if args.get("amari_level"):
+            msg += f"**Amari Level:** {args['amari_level']}\n"
+        if args.get("amari_weekly_xp"):
+            msg += f"**Amari Weekly XP:** {args['amari_weekly_xp']}\n"
+        if args.get("tatsu_level"):
+            msg += f"**Tatsu Level:** {args['tatsu_level']}\n"
+        if args.get("tatsu_rep"):
+            msg += f"**Tatsu Rep:** {args['tatsu_rep']}\n"
+        if args.get("level_req"):
+            msg += f"**Level Requirement:** {args['level_req']}\n"
+        if args.get("rep_req"):
+            msg += f"**Rep Requirement:** {args['rep_req']}\n"
+        if args.get("bypass-roles"):
+            msg += f"**Bypass Roles:** {', '.join([ctx.guild.get_role(x).mention for x in args['bypass-roles']])} ({args['bypass-type']})\n"
+
+        return msg

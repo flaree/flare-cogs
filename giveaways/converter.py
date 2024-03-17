@@ -2,9 +2,17 @@ import argparse
 from datetime import datetime, timezone
 
 import dateparser
-from discord.ext.commands.converter import EmojiConverter, RoleConverter, TextChannelConverter
+from discord.ext.commands.converter import (
+    ColourConverter,
+    EmojiConverter,
+    MemberConverter,
+    RoleConverter,
+    TextChannelConverter,
+)
 from redbot.core.commands import BadArgument, Converter
 from redbot.core.commands.converter import TimedeltaConverter
+
+from .menu import BUTTON_STYLE
 
 
 class NoExitParser(argparse.ArgumentParser):
@@ -36,10 +44,15 @@ class Args(Converter):
         parser.add_argument("--winners", dest="winners", default=None, type=int, nargs="?")
         parser.add_argument("--mentions", dest="mentions", nargs="*", default=[])
         parser.add_argument("--description", dest="description", default=[], nargs="*")
+        parser.add_argument("--button-text", dest="button-text", default=[], nargs="*")
+        parser.add_argument("--button-style", dest="button-style", default=[], nargs="*")
         parser.add_argument("--emoji", dest="emoji", default=None, nargs="*")
         parser.add_argument("--image", dest="image", default=None, nargs="*")
         parser.add_argument("--thumbnail", dest="thumbnail", default=None, nargs="*")
-
+        parser.add_argument("--hosted-by", dest="hosted-by", default=None, nargs="*")
+        parser.add_argument("--colour", dest="colour", default=None, nargs="*")
+        parser.add_argument("--bypass-roles", nargs="*", dest="bypass-roles", default=[])
+        parser.add_argument("--bypass-type", dest="bypass-type", default=None, nargs="?")
         # Setting arguments
         parser.add_argument("--multientry", action="store_true")
         parser.add_argument("--notify", action="store_true")
@@ -48,6 +61,7 @@ class Args(Converter):
         parser.add_argument("--ateveryone", action="store_true")
         parser.add_argument("--athere", action="store_true")
         parser.add_argument("--show-requirements", action="store_true")
+        parser.add_argument("--update-button", action="store_true")
 
         # Integrations
         parser.add_argument("--cost", dest="cost", default=None, type=int, nargs="?")
@@ -89,6 +103,21 @@ class Args(Converter):
             except BadArgument:
                 raise BadArgument(f"The role {role} does not exist within this server.")
         vals["multi-roles"] = valid_multi_roles
+
+        valid_bypass_roles = []
+        for role in vals["bypass-roles"]:
+            try:
+                role = await RoleConverter().convert(ctx, role)
+                valid_bypass_roles.append(role.id)
+            except BadArgument:
+                raise BadArgument(f"The role {role} does not exist within this server.")
+        vals["bypass-roles"] = valid_bypass_roles
+
+        if vals["bypass-type"]:
+            if vals["bypass-type"] not in ["or", "and"]:
+                raise BadArgument("Bypass type must be either `or` or `and` - default is `or`")
+        else:
+            vals["bypass-type"] = "or"
 
         valid_exclusive_roles = []
         for role in vals["roles"]:
@@ -164,6 +193,36 @@ class Args(Converter):
             vals["description"] = " ".join(vals["description"])
             if len(vals["description"]) > 1000:
                 raise BadArgument("Description must be less than 1000 characters.")
+
+        if vals["button-text"]:
+            vals["button-text"] = " ".join(vals["button-text"])
+            if len(vals["button-text"]) > 70:
+                raise BadArgument("Button text must be less than 70 characters.")
+        else:
+            vals["button-text"] = "Join Giveaway"
+
+        if vals["button-style"]:
+            vals["button-style"] = " ".join(vals["button-style"]).lower()
+            if vals["button-style"] not in BUTTON_STYLE.keys():
+                raise BadArgument(
+                    f"Button style must be one of the following: {', '.join(BUTTON_STYLE.keys())}"
+                )
+        else:
+            vals["button-style"] = "green"
+
+        if vals["hosted-by"]:
+            vals["hosted-by"] = " ".join(vals["hosted-by"])
+            user = await MemberConverter().convert(ctx, vals["hosted-by"])
+            if user is None:
+                raise BadArgument("Invalid user.")
+            vals["hosted-by"] = user.id
+
+        if vals["colour"]:
+            vals["colour"] = " ".join(vals["colour"]).lower()
+            try:
+                vals["colour"] = await ColourConverter().convert(ctx, vals["colour"])
+            except Exception:
+                raise BadArgument("Invalid colour.")
 
         if vals["emoji"]:
             vals["emoji"] = " ".join(vals["emoji"]).rstrip().lstrip()
