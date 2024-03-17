@@ -92,7 +92,9 @@ class Cashdrop(commands.Cog):
             msg = await channel.send(string)
             try:
                 pred = MessagePredicate.lower_contained_in(str(answer), channel=channel, user=None)
-                answer_msg: discord.Message = await self.bot.wait_for("message", check=pred, timeout=10)
+                answer_msg: discord.Message = await self.bot.wait_for(
+                    "message", check=pred, timeout=10
+                )
             except asyncio.TimeoutError:
                 await msg.edit(content="Too slow!")
                 return
@@ -111,7 +113,9 @@ class Cashdrop(commands.Cog):
             )
             pred = MessagePredicate.lower_contained_in("pickup", channel=channel, user=None)
             try:
-                pickup_msg: discord.Message = await self.bot.wait_for("message", check=pred, timeout=10)
+                pickup_msg: discord.Message = await self.bot.wait_for(
+                    "message", check=pred, timeout=10
+                )
             except asyncio.TimeoutError:
                 await msg.edit(content="Too slow!")
                 return
