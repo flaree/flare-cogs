@@ -1,0 +1,21 @@
+{
+    "author": [
+        "flare(flare#0001)"
+    ],
+    "install_msg": "Thank you for installing TikTokReposter! Please make sure to run `[p]tiktokset` to set up the cog.",
+    "name": "TikTokReposter",
+    "disabled": false,
+    "short": "Repost TikToks from TikTok to Discord!",
+    "description": "Repost TikToks from TikTok to Discord automatically or manually!",
+    "tags": [
+        "tiktok",
+        "repost",
+        "video",
+        "media"
+    ],
+    "requirements": [
+        "yt-dlp[default]"
+    ],
+    "min_bot_version": "3.5.0",
+    "hidden": false
+}
