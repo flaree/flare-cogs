@@ -54,7 +54,7 @@ class GiveawayButton(Button):
             except GiveawayExecError as e:
                 log.exception("Error while adding user to giveaway", exc_info=e)
                 return
-            except AlreadyEnteredError as e:
+            except AlreadyEnteredError:
                 await interaction.followup.send(
                     "You have been removed from the giveaway.", ephemeral=True
                 )
