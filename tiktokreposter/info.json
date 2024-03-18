@@ -2,7 +2,7 @@
     "author": [
         "flare(flare#0001)"
     ],
-    "install_msg": "Thank you for installing TikTokReposter! Please make sure to run `[p]tiktokset` to set up the cog.",
+    "install_msg": "Thank you for installing TikTokReposter! Please make sure to run `[p]tiktokset` to set up the cog.\nThis cog requires yt-dlp to be installed, please ensure its up to date, this cog also requires ffmpeg which must be installed seperately.\nThis cog downloads each video and then transcodes them before uploading to discord, this can be IO heavy at times.",
     "name": "TikTokReposter",
     "disabled": false,
     "short": "Repost TikToks from TikTok to Discord!",

@@ -15,7 +15,7 @@ log = getLogger("red.flare.tiktokreposter")
 class TikTokReposter(commands.Cog):
     """Repost TikTok videos to a channel."""
 
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -25,12 +25,12 @@ class TikTokReposter(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890)
         self.config.register_guild(
-            auto_repost=False,
-            channels=[],
-            interval=0,
+            auto_repost=False, channels=[], interval=0, reply=True, delete=False, suppress=True
         )
         self.path = data_manager.cog_data_path(self)
-        self.pattern = re.compile(r"\bhttps?://.*[(tiktok|douyin)]\S+")
+        self.pattern = re.compile(
+            r"^.*https:\/\/(?:m|www|vm)?\.?tiktok\.com\/((?:.*\b(?:(?:usr|v|embed|user|video)\/|\?shareId=|\&item_id=)(\d+))|\w+)"
+        )
         self.cache = {}
         self.ytdl_opts = {
             "format": "best",
@@ -46,7 +46,9 @@ class TikTokReposter(commands.Cog):
     async def initialize(self):
         self.cache = await self.config.all_guilds()
 
-    async def dl_tiktok(self, channel, url):
+    async def dl_tiktok(
+        self, channel, url, *, message=None, reply=True, delete=False, suppress=True
+    ):
         with self.ytdl as ytdl:
             try:
                 ytdl.download([url])
@@ -60,10 +62,26 @@ class TikTokReposter(commands.Cog):
             self.convert_video, f"{self.path}/{video_id}.mp4", f"{self.path}/{video_id}_conv.mp4"
         )
         video = await self.bot.loop.run_in_executor(None, task)
-        await channel.send(
-            file=discord.File(video, filename=video_id + ".mp4"),
-            content=f'Video from <{url}>\n{info["title"]}',
-        )
+        if message is None:
+            await channel.send(
+                file=discord.File(video, filename=video_id + ".mp4"),
+                content=f'Video from <{url}>\n{info["title"]}',
+            )
+        else:
+            if reply:
+                if suppress:
+                    if message.guild.me.guild_permissions.manage_messages:
+                        await message.edit(suppress=True)
+                await message.reply(
+                    file=discord.File(video, filename=video_id + ".mp4"),
+                    content=f'Video from <{url}>\n{info["title"]}',
+                )
+            elif delete:
+                await message.delete()
+                await channel.send(
+                    file=discord.File(video, filename=video_id + ".mp4"),
+                    content=f'Video from <{url}>\n{info["title"]}',
+                )
         log.debug(f"Reposted TikTok video from {url}")
 
         # delete the video
@@ -83,7 +101,8 @@ class TikTokReposter(commands.Cog):
     @commands.command()
     async def tiktok(self, ctx, url: str):
         """Download and repost a TikTok video."""
-        await self.dl_tiktok(ctx.channel, url)
+        async with ctx.typing():
+            await self.dl_tiktok(ctx.channel, url)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -96,9 +115,18 @@ class TikTokReposter(commands.Cog):
         channels = self.cache.get(message.guild.id, {}).get("channels", [])
         if message.channel.id not in channels:
             return
-        link = re.findall(self.pattern, message.content)
+        link = re.match(self.pattern, message.content)
         if link:
-            await self.dl_tiktok(message.channel, link[0])
+            log.debug(link)
+            link = link.group(0)
+            await self.dl_tiktok(
+                message.channel,
+                link,
+                message=message,
+                reply=self.cache.get(message.guild.id, {}).get("reply", True),
+                delete=self.cache.get(message.guild.id, {}).get("delete", False),
+                suppress=self.cache.get(message.guild.id, {}).get("suppress", True),
+            )
 
     # setting commands
 
@@ -132,6 +160,44 @@ class TikTokReposter(commands.Cog):
                 f"{channel.mention} added to the list of channels to repost TikTok links."
             )
         await self.config.guild(ctx.guild).channels.set(channels)
+        await self.initialize()
+
+    @tiktokset.command()
+    async def reply(self, ctx):
+        """Toggle replying to TikTok links."""
+        reply = await self.config.guild(ctx.guild).reply()
+        await self.config.guild(ctx.guild).reply.set(not reply)
+        delete = await self.config.guild(ctx.guild).delete()
+        if delete:
+            await ctx.send("Replying cannot be enabled while deleting messages is enabled.")
+            return
+        await ctx.send(
+            f"Replying to TikTok links is now {'enabled' if not reply else 'disabled'}."
+        )
+        await self.initialize()
+
+    @tiktokset.command()
+    async def delete(self, ctx):
+        """Toggle deleting messages with TikTok links."""
+        delete = await self.config.guild(ctx.guild).delete()
+        await self.config.guild(ctx.guild).delete.set(not delete)
+        reply = await self.config.guild(ctx.guild).reply()
+        if reply:
+            await ctx.send("Deleting messages cannot be enabled while replying is enabled.")
+            return
+        await ctx.send(
+            f"Deleting messages with TikTok links is now {'enabled' if not delete else 'disabled'}."
+        )
+        await self.initialize()
+
+    @tiktokset.command()
+    async def suppress(self, ctx):
+        """Toggle suppressing the embed message."""
+        suppress = await self.config.guild(ctx.guild).suppress()
+        await self.config.guild(ctx.guild).suppress.set(not suppress)
+        await ctx.send(
+            f"Suppressing the message embed is now {'enabled' if not suppress else 'disabled'}."
+        )
         await self.initialize()
 
     @tiktokset.command()
