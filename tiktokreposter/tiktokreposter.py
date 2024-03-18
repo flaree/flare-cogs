@@ -15,7 +15,7 @@ log = getLogger("red.flare.tiktokreposter")
 class TikTokReposter(commands.Cog):
     """Repost TikTok videos to a channel."""
 
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -205,7 +205,10 @@ class TikTokReposter(commands.Cog):
         """Show the current settings for TikTokReposter."""
         auto_repost = await self.config.guild(ctx.guild).auto_repost()
         channels = await self.config.guild(ctx.guild).channels()
-        channels = [ctx.guild.get_channel(c).mention for c in channels]
+        channels = [ctx.guild.get_channel(c).mention for c in channels if ctx.guild.get_channel(c)]
+        reply = await self.config.guild(ctx.guild).reply()
+        delete = await self.config.guild(ctx.guild).delete()
+        suppress = await self.config.guild(ctx.guild).suppress()
         await ctx.send(
-            f"Automatic reposting: {'enabled' if auto_repost else 'disabled'}\nChannels: {', '.join(channels)}"
+            f"Automatic reposting: {'enabled' if auto_repost else 'disabled'}\nChannels: {', '.join(channels)}\nReplying: {'enabled' if reply else 'disabled'}\nDeleting: {'enabled' if delete else 'disabled'}\nSuppressing: {'enabled' if suppress else 'disabled'}"
         )
