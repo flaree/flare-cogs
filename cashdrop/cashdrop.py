@@ -9,7 +9,7 @@ from redbot.core.utils.predicates import MessagePredicate
 
 
 class Cashdrop(commands.Cog):
-    __version__ = "0.2.1"
+    __version__ = "0.2.2"
     __author__ = "flare(flare#0001)"
 
     def format_help_for_context(self, ctx):
@@ -91,7 +91,7 @@ class Cashdrop(commands.Cog):
             string, answer = self.random_calc()
             msg = await channel.send(string)
             try:
-                pred = MessagePredicate.lower_contained_in(str(answer), channel=channel, user=None)
+                pred = MessagePredicate.equal_to(str(answer), channel=channel, user=None)
                 answer_msg: discord.Message = await self.bot.wait_for(
                     "message", check=pred, timeout=10
                 )
@@ -111,7 +111,7 @@ class Cashdrop(commands.Cog):
             msg = await channel.send(
                 f"Some {await bank.get_currency_name(guild=message.guild)} have fallen, type `pickup` to pick them up!"
             )
-            pred = MessagePredicate.lower_contained_in("pickup", channel=channel, user=None)
+            pred = MessagePredicate.equal_to("pickup", channel=channel, user=None)
             try:
                 pickup_msg: discord.Message = await self.bot.wait_for(
                     "message", check=pred, timeout=10
