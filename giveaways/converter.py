@@ -135,7 +135,7 @@ class Args(Converter):
                 valid_blacklist_roles.append(role.id)
             except BadArgument:
                 raise BadArgument(f"The role {role} does not exist within this server.")
-        vals["blacklist"] = valid_blacklist_roles = []
+        vals["blacklist"] = valid_blacklist_roles
 
         valid_mentions = []
         for role in vals["mentions"]:
