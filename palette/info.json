@@ -4,7 +4,7 @@
     ],
     "install_msg": "Thanks for this installing the Palette cog. This cog comes bundled with a font file.",
     "name": "Palette",
-    "disabled": false,
+    "disabled": true,
     "short": "Show colour palette of images, avatars etc.",
     "description": "Show colour palette of images, avatars, emojis etc",
     "tags": [
