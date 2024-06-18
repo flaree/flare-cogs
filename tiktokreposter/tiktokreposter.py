@@ -1,6 +1,7 @@
 import functools
 import os
 import re
+import sys
 from io import BytesIO
 from logging import getLogger
 
@@ -10,6 +11,26 @@ from redbot.core import Config, commands, data_manager
 from yt_dlp import YoutubeDL
 
 log = getLogger("red.flare.tiktokreposter")
+
+if sys.version_info < (3, 9):
+    import asyncio
+    import contextvars
+    from typing import TypeVar, Callable
+    from typing_extensions import ParamSpec
+
+    T = TypeVar("T")
+    P = ParamSpec("P")
+
+    # backport of 3.9's asyncio.to_thread
+    async def to_thread(
+        func: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs
+    ) -> T:
+        loop = asyncio.get_running_loop()
+        ctx = contextvars.copy_context()
+        func_call = functools.partial(ctx.run, func, *args, **kwargs)
+        return await loop.run_in_executor(None, func_call)  # type: ignore
+else:
+    from asyncio import to_thread
 
 
 class TikTokReposter(commands.Cog):
@@ -46,22 +67,25 @@ class TikTokReposter(commands.Cog):
     async def initialize(self):
         self.cache = await self.config.all_guilds()
 
+    def extract_info_and_convert(self, url: str) -> "tuple[dict, BytesIO]":
+        with self.ytdl as ytdl:
+            info = ytdl.extract_info(url, download=True)
+            if info is None:
+                raise Exception("Failed to extract video info")
+        video_id = info["id"]
+        return info, self.convert_video(
+            f"{self.path}/{video_id}.mp4", f"{self.path}/{video_id}_conv.mp4"
+        )
+
     async def dl_tiktok(
         self, channel, url, *, message=None, reply=True, delete=False, suppress=True
     ):
-        with self.ytdl as ytdl:
-            try:
-                ytdl.download([url])
-            except Exception as e:
-                log.error(f"Error downloading TikTok video: {e}")
-                return
-        log.debug(f"Downloaded TikTok video from {url}")
-        info = ytdl.extract_info(url, download=False)
+        try:
+            info, video = await to_thread(self.extract_info_and_convert, url)
+        except Exception as e:
+            log.error(f"Error downloading TikTok video: {e}")
+            return
         video_id = info["id"]
-        task = functools.partial(
-            self.convert_video, f"{self.path}/{video_id}.mp4", f"{self.path}/{video_id}_conv.mp4"
-        )
-        video = await self.bot.loop.run_in_executor(None, task)
         if message is None:
             await channel.send(
                 file=discord.File(video, filename=video_id + ".mp4"),
