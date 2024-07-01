@@ -223,9 +223,11 @@ class DankMemer(commands.Cog):
             ctx,
             "/bed?avatar1={}{}".format(
                 user.display_avatar.replace(static_format="png").url,
-                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
-                if user2 is not None
-                else "",
+                (
+                    f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
+                    if user2 is not None
+                    else ""
+                ),
             ),
         )
         if isinstance(data, dict):
@@ -863,9 +865,11 @@ class DankMemer(commands.Cog):
             ctx,
             "/madethis?avatar1={}{}".format(
                 user.display_avatar.replace(static_format="png").url,
-                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
-                if user2 is not None
-                else "",
+                (
+                    f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
+                    if user2 is not None
+                    else ""
+                ),
             ),
         )
         if isinstance(data, dict):
@@ -1110,9 +1114,11 @@ class DankMemer(commands.Cog):
             ctx,
             "/screams?avatar1={}{}".format(
                 user.display_avatar.replace(static_format="png").url,
-                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
-                if user2 is not None
-                else "",
+                (
+                    f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
+                    if user2 is not None
+                    else ""
+                ),
             ),
         )
         if isinstance(data, dict):
@@ -1153,9 +1159,11 @@ class DankMemer(commands.Cog):
             ctx,
             "/slap?avatar1={}{}".format(
                 user.display_avatar.replace(static_format="png").url,
-                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
-                if user2 is not None
-                else "",
+                (
+                    f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
+                    if user2 is not None
+                    else ""
+                ),
             ),
         )
         if isinstance(data, dict):
@@ -1198,9 +1206,11 @@ class DankMemer(commands.Cog):
             ctx,
             "/spank?avatar1={}{}".format(
                 user.display_avatar.replace(static_format="png").url,
-                f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
-                if user2 is not None
-                else "",
+                (
+                    f"&avatar2={user2.display_avatar.replace(static_format='png').url}"
+                    if user2 is not None
+                    else ""
+                ),
             ),
         )
         if isinstance(data, dict):

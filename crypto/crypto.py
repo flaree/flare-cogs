@@ -40,7 +40,9 @@ class Crypto(commands.Cog):
 
     async def checkcoins(
         self, base: str
-    ) -> dict:  # Attribution to TrustyJAID, https://github.com/TrustyJAID/Trusty-cogs/blob/ffdb8f77ed888d5bbbfcc3805d860e8dab80741b/conversions/conversions.py#L211
+    ) -> (
+        dict
+    ):  # Attribution to TrustyJAID, https://github.com/TrustyJAID/Trusty-cogs/blob/ffdb8f77ed888d5bbbfcc3805d860e8dab80741b/conversions/conversions.py#L211
         url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=await self.get_header()) as resp:

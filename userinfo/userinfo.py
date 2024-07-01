@@ -273,10 +273,11 @@ class Userinfo(commands.Cog):
             else:
                 role_str = None
             data = discord.Embed(
-                description=(status_string or activity)
-                + f"\n\n{len(sharedguilds)} shared servers."
-                if len(sharedguilds) > 1
-                else f"\n\n{len(sharedguilds)} shared server.",
+                description=(
+                    (status_string or activity) + f"\n\n{len(sharedguilds)} shared servers."
+                    if len(sharedguilds) > 1
+                    else f"\n\n{len(sharedguilds)} shared server."
+                ),
                 colour=user.colour,
             )
 

@@ -303,9 +303,11 @@ class SettingsMixin(MixinMeta):
         walletsettings = data["disable_wallet"]
         embed.add_field(
             name="Wallet Settings",
-            value="Disabled."
-            if not walletsettings
-            else f"**Max Balance**: {humanize_number(data['wallet_max'])}\n**Withdraw Cooldown**: {humanize_timedelta(seconds=cooldowns['withdrawcd'])}\n**Deposit Cooldown**: {humanize_timedelta(seconds=cooldowns['depositcd'])}",
+            value=(
+                "Disabled."
+                if not walletsettings
+                else f"**Max Balance**: {humanize_number(data['wallet_max'])}\n**Withdraw Cooldown**: {humanize_timedelta(seconds=cooldowns['withdrawcd'])}\n**Deposit Cooldown**: {humanize_timedelta(seconds=cooldowns['depositcd'])}"
+            ),
             inline=True,
         )
         minbet = humanize_number(data["betting"]["min"])
