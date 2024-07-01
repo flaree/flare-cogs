@@ -6,7 +6,7 @@ ci:
     autoupdate_schedule: quarterly
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
@@ -33,7 +33,7 @@ repos:
         args: ['--in-place', '--remove-unused-variable']
 
 -   repo: https://github.com/psf/black
-    rev: '23.12.1'
+    rev: '24.4.2'
     hooks:
       - id: black
 -   repo: https://github.com/Pierre-Sassoulas/black-disable-checker
