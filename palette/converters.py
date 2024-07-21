@@ -30,9 +30,7 @@ class ImageFinder(Converter):
                 else:
                     try:
                         """https://github.com/glasnt/emojificate/blob/master/emojificate/filter.py"""
-                        cdn_fmt = (
-                            "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{codepoint:x}.png"
-                        )
+                        cdn_fmt = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{codepoint:x}.png"
                         urls.append(cdn_fmt.format(codepoint=ord(str(emoji))))
                     except TypeError:
                         continue
