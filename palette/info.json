@@ -1,10 +1,11 @@
 {
     "author": [
-        "flare(flare#0001)"
+        "flare(flare#0001)",
+        "Kuro"
     ],
     "install_msg": "Thanks for this installing the Palette cog. This cog comes bundled with a font file.",
     "name": "Palette",
-    "disabled": true,
+    "disabled": false,
     "short": "Show colour palette of images, avatars etc.",
     "description": "Show colour palette of images, avatars, emojis etc",
     "tags": [
@@ -18,7 +19,8 @@
     ],
     "requirements": [
         "pillow",
-        "colorgram.py"
+        "colorgram.py==1.2.0",
+        "tabulate"
     ],
     "min_bot_version": "3.5.0"
 }

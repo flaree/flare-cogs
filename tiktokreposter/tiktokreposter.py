@@ -15,20 +15,20 @@ log = getLogger("red.flare.tiktokreposter")
 if sys.version_info < (3, 9):
     import asyncio
     import contextvars
-    from typing import TypeVar, Callable
+    from typing import Callable, TypeVar
+
     from typing_extensions import ParamSpec
 
     T = TypeVar("T")
     P = ParamSpec("P")
 
     # backport of 3.9's asyncio.to_thread
-    async def to_thread(
-        func: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs
-    ) -> T:
+    async def to_thread(func: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
         loop = asyncio.get_running_loop()
         ctx = contextvars.copy_context()
         func_call = functools.partial(ctx.run, func, *args, **kwargs)
         return await loop.run_in_executor(None, func_call)  # type: ignore
+
 else:
     from asyncio import to_thread
 
