@@ -1,10 +1,7 @@
-# Taken and modified from Trustys NotSoBot cog.
+# Taken and modified from Trusty's NotSoBot cog.
 import re
 
 from redbot.core.commands import BadArgument, Converter
-
-_id_regex = re.compile(r"([0-9]{15,21})$")
-_mention_regex = re.compile(r"<@!?([0-9]{15,21})>$")
 
 IMAGE_LINKS = re.compile(r"(https?:\/\/[^\"\'\s]*\.(?:png|jpg|jpeg|gif|png|svg)(\?size=[0-9]*)?)")
 EMOJI_REGEX = re.compile(r"(<(a)?:[a-zA-Z0-9\_]+:([0-9]+)>)")
@@ -28,7 +25,7 @@ class ImageFinder(Converter):
         if emojis:
             for emoji in emojis:
                 ext = "gif" if emoji.group(2) else "png"
-                url = "https://cdn.discordapp.com/emojis/{id}.{ext}?v=1".format(
+                url = "https://cdn.discordapp.com/emojis/{id}.{ext}?v=1&quality=lossless".format(
                     id=emoji.group(3), ext=ext
                 )
                 urls.append(url)

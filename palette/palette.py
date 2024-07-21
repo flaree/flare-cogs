@@ -1,13 +1,14 @@
-import asyncio
 from io import BytesIO
 from typing import Optional
 
 import aiohttp
 import colorgram
 import discord
-from PIL import Image, ImageDraw, ImageFile, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from redbot.core import commands
 from redbot.core.data_manager import bundled_data_path
+from redbot.core.utils.chat_formatting import box
+from tabulate import tabulate
 
 from .converters import ImageFinder
 
@@ -17,8 +18,8 @@ class Palette(commands.Cog):
     This is a collection of commands that are used to show colour palettes.
     """
 
-    __version__ = "0.0.2"
-    __author__ = "flare(flare#0001)"
+    __version__ = "0.1.0"
+    __author__ = "flare(flare#0001) and Kuro"
 
     def format_help_for_context(self, ctx):
         pre_processed = super().format_help_for_context(ctx)
@@ -28,11 +29,11 @@ class Palette(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
-    def cog_unload(self):
-        asyncio.create_task(self.session.close())
+    async def cog_unload(self):
+        await self.session.close()
 
     def rgb_to_hex(self, rgb):
-        return "%02x%02x%02x" % rgb
+        return "#%02x%02x%02x" % rgb
 
     async def get_img(self, ctx, url):
         async with ctx.typing():
@@ -52,79 +53,86 @@ class Palette(commands.Cog):
     async def palette(
         self,
         ctx,
-        img: Optional[ImageFinder] = None,
-        amount: Optional[int] = 10,
-        sorted: bool = False,
+        image: Optional[ImageFinder] = None,
+        amount: Optional[commands.Range[int, 1, 50]] = 10,
+        detailed: bool = False,
+        sort: bool = False,
     ):
-        """Colour palette of an image
+        """Get the colour palette of an image.
 
-        By default it is sorted by prominence, but you can sort it by rgb by passing true."""
+        **Arguments**
+        - `[image]` The image to get the palette from. If not provided, the author's avatar will be used. You can also provide an attachment.
+        - `[amount]` The amount of colours to get. Must be between 1 and 50. Defaults to 10.
+        - `[detailed]` Whether to show the colours in a detailed format (with rgb and hex). Defaults to False.
+        - `[sort]` Whether to sort the colours by rgb. Defaults to False.
+        """
         if amount < 1:
             return await ctx.send("Colours should be at least 1.")
         if amount > 50:
             return await ctx.send("Too many colours, please limit to 50.")
-        if img is None:
-            img = str(ctx.author.display_avatar)
+        if image is None:
+            image = str(ctx.author.display_avatar)
         async with ctx.typing():
-            img = await self.get_img(ctx, str(img))
+            img = await self.get_img(ctx, str(image))
         if isinstance(img, dict):
             return await ctx.send(img["error"])
-        image = await self.create_palette(img, amount, False, sorted)
-        await ctx.send(file=image)
 
-    @commands.command()
-    async def hexpalette(
-        self,
-        ctx,
-        img: Optional[ImageFinder] = None,
-        amount: Optional[int] = 10,
-        sorted: bool = False,
-    ):
-        """Colour palette of an image with hex values
+        colors, file = await self.bot.loop.run_in_executor(
+            None, self.create_palette, img, amount, detailed, sort
+        )
+        if not detailed:
+            return await ctx.send(file=file)
 
-        By default it is sorted by prominence, but you can sort it by rgb by passing true."""
-        if amount < 1:
-            return await ctx.send("Colours should be at least 1.")
-        if amount > 50:
-            return await ctx.send("Too many colours, please limit to 50.")
-        if img is None:
-            img = str(ctx.author.display_avatar)
-        async with ctx.typing():
-            img = await self.get_img(ctx, str(img))
-        if isinstance(img, dict):
-            return await ctx.send(img["error"])
-        image = await self.create_palette(img, amount, True, sorted)
-        await ctx.send(file=image)
+        table = []
+        for i, color in enumerate(colors, start=1):
+            row = [f"{color.rgb.r}, {color.rgb.g}, {color.rgb.b}", self.rgb_to_hex(color.rgb)]
+            if len(colors) > 1:
+                row.insert(0, str(i))
+            table.append(row)
+        headers = ["#", "RGB", "Hex"] if len(colors) > 1 else ["RGB", "Hex"]
 
-    async def create_palette(self, img: BytesIO, amount: int, show_hex: bool, sorted: bool):
-        colors = colorgram.extract(img, amount)
-        if sorted:
+        embed = discord.Embed(
+            color=await ctx.embed_color(),
+            title="Colour Palette",
+            description=box(tabulate(table, headers), lang="css"),
+        )
+        embed.set_thumbnail(url=image)
+        embed.set_image(url=f"attachment://{file.filename}")
+        await ctx.send(
+            embed=embed,
+            file=file,
+            reference=ctx.message.to_reference(fail_if_not_exists=False),
+            mention_author=False,
+        )
+
+    def create_palette(self, fp: BytesIO, amount: int, detailed: bool, sort: bool):
+        colors = colorgram.extract(fp, amount)
+        if sort:
             colors.sort(key=lambda c: c.rgb)
 
-        dimensions = (500 * len(colors), 500) if show_hex else (100 * len(colors), 100)
+        dimensions = (500 * len(colors), 500) if detailed else (100 * len(colors), 100)
         final = Image.new("RGBA", dimensions)
         a = ImageDraw.Draw(final)
         start = 0
-        if show_hex:
+        if detailed:
             font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
-            name_fnt = ImageFont.truetype(font_file, 52, encoding="utf-8")
-        for color in colors:
+            name_fnt = ImageFont.truetype(font_file, 60, encoding="utf-8")
+        for i, color in enumerate(colors, start=1):
             a.rectangle(
-                [(start, 0), (start + dimensions[1], 450 if show_hex else 100)], fill=color.rgb
+                [(start, 0), (start + dimensions[1], 440 if detailed else 100)], fill=color.rgb
             )
-            if show_hex:
-                msg = f"#{self.rgb_to_hex(color.rgb)}"
+            if detailed:
                 a.text(
                     (start + dimensions[1] // 2, 500),
-                    msg,
-                    font=name_fnt,
+                    str(i),
                     fill=(255, 255, 255, 255),
+                    font=name_fnt,
                     anchor="mb",
                 )
             start = start + dimensions[1]
-        final = final.resize((500 * len(colors), 500), resample=Image.ANTIALIAS)
+        final = final.resize((500 * len(colors), 500), resample=Image.Resampling.LANCZOS)
         fileObj = BytesIO()
         final.save(fileObj, "png")
         fileObj.name = "palette.png"
         fileObj.seek(0)
-        return discord.File(fileObj)
+        return colors, discord.File(fileObj)
