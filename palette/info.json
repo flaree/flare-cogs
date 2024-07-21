@@ -1,6 +1,7 @@
 {
     "author": [
-        "flare(flare#0001)", "Kuro"
+        "flare(flare#0001)",
+        "Kuro"
     ],
     "install_msg": "Thanks for this installing the Palette cog. This cog comes bundled with a font file.",
     "name": "Palette",
