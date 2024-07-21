@@ -37,19 +37,20 @@ class Palette(commands.Cog):
     def rgb_to_hex(self, rgb):
         return "#%02x%02x%02x" % rgb
 
-    async def get_img(self, ctx, url):
-        async with ctx.typing():
-            async with self.session.get(url) as resp:
-                if resp.status in [200, 201]:
-                    file = await resp.read()
-                    file = BytesIO(file)
-                    file.seek(0)
-                    return file
-                if resp.status == 404:
-                    return {
-                        "error": "Server not found, ensure the correct URL is setup and is reachable. "
-                    }
-                return {"error": resp.status}
+    async def get_img(self, url):
+        async with self.session.get(url) as resp:
+            if resp.status == 404:
+                return {
+                    "error": "Server not found, ensure the correct URL is setup and is reachable. "
+                }
+            if resp.headers.get("Content-Type") not in VALID_CONTENT_TYPES:
+                return {"error": "Invalid image."}
+            if resp.status in [200, 201]:
+                file = await resp.read()
+                file = BytesIO(file)
+                file.seek(0)
+                return file
+            return {"error": resp.status}
 
     @commands.command()
     async def palette(
@@ -77,7 +78,7 @@ class Palette(commands.Cog):
                 if valid_attachments:
                     image = valid_attachments[0].url
         async with ctx.typing():
-            img = await self.get_img(ctx, str(image))
+            img = await self.get_img(image)
         if isinstance(img, dict):
             return await ctx.send(img["error"])
 

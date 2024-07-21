@@ -4,8 +4,8 @@ import re
 import discord
 from redbot.core.commands import BadArgument, Converter
 
-IMAGE_LINKS = re.compile(r"(https?:\/\/[^\"\'\s]*\.(?:png|jpg|jpeg|gif|png|svg)(\?size=[0-9]*)?)")
-EMOJI_REGEX = re.compile(r"(<(a)?:[a-zA-Z0-9\_]+:([0-9]+)>)|(:[a-zA-Z0-9_]+:)")
+IMAGE_LINKS = re.compile(r"(https?:\/\/[^\"\'\s]*\.(?:png|jpg|jpeg|gif)(\?size=[0-9]*)?)")
+EMOJI_REGEX = re.compile(r"(<(a)?:[a-zA-Z0-9\_]+:([0-9]+)>)")
 MENTION_REGEX = re.compile(r"<@!?([0-9]+)>")
 ID_REGEX = re.compile(r"[0-9]{17,}")
 
@@ -27,13 +27,14 @@ class ImageFinder(Converter):
                 partial_emoji = discord.PartialEmoji.from_str(emoji.group(1))
                 if partial_emoji.is_custom_emoji():
                     urls.append(partial_emoji.url)
-                else:
-                    try:
-                        """https://github.com/glasnt/emojificate/blob/master/emojificate/filter.py"""
-                        cdn_fmt = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{codepoint:x}.png"
-                        urls.append(cdn_fmt.format(codepoint=ord(str(emoji))))
-                    except TypeError:
-                        continue
+                # else:
+                #     # Default emoji
+                #     try:
+                #         """https://github.com/glasnt/emojificate/blob/master/emojificate/filter.py"""
+                #         cdn_fmt = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{codepoint:x}.png"
+                #         urls.append(cdn_fmt.format(codepoint=ord(str(emoji))))
+                #     except TypeError:
+                #         continue
         if mentions:
             for mention in mentions:
                 if user := ctx.guild.get_member(int(mention.group(1))):
