@@ -21,7 +21,8 @@ class ImageFinder(Converter):
         ids = ID_REGEX.finditer(argument)
         urls = []
         if matches:
-            urls.extend(match.group(1) for match in matches)
+            # If it's invalid it will be handled by Palette.get_img later
+            urls.extend(match.string for match in matches)
         if emojis:
             for emoji in emojis:
                 partial_emoji = discord.PartialEmoji.from_str(emoji.group(1))
