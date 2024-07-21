@@ -68,12 +68,14 @@ class Palette(commands.Cog):
         - `[detailed]` Whether to show the colours in a detailed format (with rgb and hex). Defaults to False.
         - `[sort]` Whether to sort the colours by rgb. Defaults to False.
         """
-        if not image and (attachments := ctx.message.attachments):
-            valid_attachments = [a for a in attachments if a.content_type in VALID_CONTENT_TYPES]
-            if valid_attachments:
-                image = valid_attachments[0].url
-            else:
-                image = str(ctx.author.display_avatar)
+        if not image:
+            image = str(ctx.author.display_avatar)
+            if attachments := ctx.message.attachments:
+                valid_attachments = [
+                    a for a in attachments if a.content_type in VALID_CONTENT_TYPES
+                ]
+                if valid_attachments:
+                    image = valid_attachments[0].url
         async with ctx.typing():
             img = await self.get_img(ctx, str(image))
         if isinstance(img, dict):

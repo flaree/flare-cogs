@@ -5,7 +5,7 @@ import discord
 from redbot.core.commands import BadArgument, Converter
 
 IMAGE_LINKS = re.compile(r"(https?:\/\/[^\"\'\s]*\.(?:png|jpg|jpeg|gif|png|svg)(\?size=[0-9]*)?)")
-EMOJI_REGEX = re.compile(r"(<(a)?:[a-zA-Z0-9\_]+:([0-9]+)>)")
+EMOJI_REGEX = re.compile(r"(<(a)?:[a-zA-Z0-9\_]+:([0-9]+)>)|(:[a-zA-Z0-9_]+:)")
 MENTION_REGEX = re.compile(r"<@!?([0-9]+)>")
 ID_REGEX = re.compile(r"[0-9]{17,}")
 
