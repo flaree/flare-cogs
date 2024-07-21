@@ -58,8 +58,8 @@ class Palette(commands.Cog):
         ctx,
         image: Optional[ImageFinder] = None,
         amount: Optional[commands.Range[int, 1, 50]] = 10,
-        detailed: bool = False,
-        sort: bool = False,
+        detailed: Optional[bool] = False,
+        sort: Optional[bool] = False,
     ):
         """Get the colour palette of an image.
 
