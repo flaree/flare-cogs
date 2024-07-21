@@ -1,6 +1,7 @@
 # Taken and modified from Trusty's NotSoBot cog.
 import re
 
+import discord
 from redbot.core.commands import BadArgument, Converter
 
 IMAGE_LINKS = re.compile(r"(https?:\/\/[^\"\'\s]*\.(?:png|jpg|jpeg|gif|png|svg)(\?size=[0-9]*)?)")
@@ -14,7 +15,6 @@ class ImageFinder(Converter):
     converter class."""
 
     async def convert(self, ctx, argument):
-        attachments = ctx.message.attachments
         mentions = MENTION_REGEX.finditer(argument)
         matches = IMAGE_LINKS.finditer(argument)
         emojis = EMOJI_REGEX.finditer(argument)
@@ -24,28 +24,29 @@ class ImageFinder(Converter):
             urls.extend(match.group(1) for match in matches)
         if emojis:
             for emoji in emojis:
-                ext = "gif" if emoji.group(2) else "png"
-                url = "https://cdn.discordapp.com/emojis/{id}.{ext}?v=1&quality=lossless".format(
-                    id=emoji.group(3), ext=ext
-                )
-                urls.append(url)
+                partial_emoji = discord.PartialEmoji.from_str(emoji.group(1))
+                if partial_emoji.is_custom_emoji():
+                    urls.append(partial_emoji.url)
+                else:
+                    try:
+                        """https://github.com/glasnt/emojificate/blob/master/emojificate/filter.py"""
+                        cdn_fmt = (
+                            "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{codepoint:x}.png"
+                        )
+                        urls.append(cdn_fmt.format(codepoint=ord(str(emoji))))
+                    except TypeError:
+                        continue
         if mentions:
             for mention in mentions:
-                user = ctx.guild.get_member(int(mention.group(1)))
-                if user is not None:
-                    url = IMAGE_LINKS.search(str(user.display_avatar))
-                    urls.append(url.group(1))
+                if user := ctx.guild.get_member(int(mention.group(1))):
+                    urls.append(str(user.display_avatar))
         if not urls and ids:
             for possible_id in ids:
                 if user := ctx.guild.get_member(int(possible_id.group(0))):
-                    url = IMAGE_LINKS.search(str(user.display_avatar))
-                    urls.append(url.group(1))
-        if attachments:
-            urls.extend(attachment.url for attachment in attachments)
+                    urls.append(str(user.display_avatar))
         if not urls and ctx.guild:
             if user := ctx.guild.get_member_named(argument):
-                url = user.display_avatar
-                urls.append(url)
+                urls.append(str(user.display_avatar))
         if not urls:
             raise BadArgument("No images found.")
         return urls[0]

@@ -12,6 +12,8 @@ from tabulate import tabulate
 
 from .converters import ImageFinder
 
+VALID_CONTENT_TYPES = ("image/png", "image/jpeg", "image/jpg", "image/gif")
+
 
 class Palette(commands.Cog):
     """
@@ -66,12 +68,12 @@ class Palette(commands.Cog):
         - `[detailed]` Whether to show the colours in a detailed format (with rgb and hex). Defaults to False.
         - `[sort]` Whether to sort the colours by rgb. Defaults to False.
         """
-        if amount < 1:
-            return await ctx.send("Colours should be at least 1.")
-        if amount > 50:
-            return await ctx.send("Too many colours, please limit to 50.")
-        if image is None:
-            image = str(ctx.author.display_avatar)
+        if not image and (attachments := ctx.message.attachments):
+            valid_attachments = [a for a in attachments if a.content_type in VALID_CONTENT_TYPES]
+            if valid_attachments:
+                image = valid_attachments[0].url
+            else:
+                image = str(ctx.author.display_avatar)
         async with ctx.typing():
             img = await self.get_img(ctx, str(image))
         if isinstance(img, dict):
@@ -116,19 +118,22 @@ class Palette(commands.Cog):
         start = 0
         if detailed:
             font_file = f"{bundled_data_path(self)}/fonts/RobotoRegular.ttf"
-            name_fnt = ImageFont.truetype(font_file, 60, encoding="utf-8")
+            name_fnt = ImageFont.truetype(font_file, 69, encoding="utf-8")
         for i, color in enumerate(colors, start=1):
             a.rectangle(
-                [(start, 0), (start + dimensions[1], 440 if detailed else 100)], fill=color.rgb
+                [(start, 0), (start + dimensions[1], 431 if detailed else 100)], fill=color.rgb
             )
             if detailed:
-                a.text(
-                    (start + dimensions[1] // 2, 500),
-                    str(i),
-                    fill=(255, 255, 255, 255),
-                    font=name_fnt,
-                    anchor="mb",
-                )
+                # Bold text effect
+                offsets = ((0, 0), (1, 0), (0, 1), (1, 1))
+                for xo, yo in offsets:
+                    a.text(
+                        (start + dimensions[1] // 2 + xo, 499 + yo),
+                        str(i),
+                        fill=(255, 255, 255, 255),
+                        font=name_fnt,
+                        anchor="mb",
+                    )
             start = start + dimensions[1]
         final = final.resize((500 * len(colors), 500), resample=Image.Resampling.LANCZOS)
         fileObj = BytesIO()
