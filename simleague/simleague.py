@@ -193,20 +193,26 @@ class SimLeague(
                     embed.add_field(
                         name="Team {}".format(team),
                         value="{}**Members**:\n{}\n**Captain**: {}\n**Team Level**: ~{}{}{}".format(
-                            "**Full Name**:\n{}\n".format(teams[team]["fullname"])
-                            if teams[team]["fullname"] is not None
-                            else "",
+                            (
+                                "**Full Name**:\n{}\n".format(teams[team]["fullname"])
+                                if teams[team]["fullname"] is not None
+                                else ""
+                            ),
                             "\n".join(mems),
                             list(teams[team]["captain"].values())[0],
                             lvl,
-                            "\n**Role**: {}".format(
-                                ctx.guild.get_role(teams[team]["role"]).mention
-                            )
-                            if teams[team]["role"] is not None
-                            else "",
-                            "\n**Stadium**: {}".format(teams[team]["stadium"])
-                            if teams[team]["stadium"] is not None
-                            else "",
+                            (
+                                "\n**Role**: {}".format(
+                                    ctx.guild.get_role(teams[team]["role"]).mention
+                                )
+                                if teams[team]["role"] is not None
+                                else ""
+                            ),
+                            (
+                                "\n**Stadium**: {}".format(teams[team]["stadium"])
+                                if teams[team]["stadium"] is not None
+                                else ""
+                            ),
                         ),
                         inline=True,
                     )
@@ -241,9 +247,11 @@ class SimLeague(
             embed = discord.Embed(
                 title="{} {}".format(
                     team,
-                    "- {}".format(teams[team]["fullname"])
-                    if teams[team]["fullname"] is not None
-                    else "",
+                    (
+                        "- {}".format(teams[team]["fullname"])
+                        if teams[team]["fullname"] is not None
+                        else ""
+                    ),
                 ),
                 colour=ctx.author.colour,
             )

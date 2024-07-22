@@ -551,9 +551,11 @@ class RedditPost(commands.Cog):
                             try:
                                 msg = await channel.send(
                                     embed=emb,
-                                    view=Source(link)
-                                    if settings.get("source_button", True)
-                                    else None,
+                                    view=(
+                                        Source(link)
+                                        if settings.get("source_button", True)
+                                        else None
+                                    ),
                                 )  # TODO: More approprriate error handling
                                 if settings.get("publish", False):
                                     try:

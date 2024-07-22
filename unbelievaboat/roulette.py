@@ -271,12 +271,14 @@ class Roulette(MixinMeta):
                 NUMBERS[number],
                 number,
                 emoji,
-                box(
-                    tabulate.tabulate(payouts, headers=["Bet", "Amount Won", "User"]),
-                    lang="prolog",
-                )
-                if payouts
-                else "None.",
+                (
+                    box(
+                        tabulate.tabulate(payouts, headers=["Bet", "Amount Won", "User"]),
+                        lang="prolog",
+                    )
+                    if payouts
+                    else "None."
+                ),
             ),
         )
         await msg.edit(embed=emb)

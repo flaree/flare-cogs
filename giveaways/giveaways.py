@@ -162,9 +162,11 @@ class Giveaways(commands.Cog):
                 text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid}"
             )
             await channel_obj.send(
-                content="Congratulations " + ",".join([x.mention for x in winner_objs])
-                if winner_objs is not None
-                else "",
+                content=(
+                    "Congratulations " + ",".join([x.mention for x in winner_objs])
+                    if winner_objs is not None
+                    else ""
+                ),
                 embed=announce_embed,
             )
         if winner_objs is not None:
