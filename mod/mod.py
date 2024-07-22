@@ -185,7 +185,7 @@ class Mod(ModClass):
         )
         await ctx.send(box(msg))
 
-    @modset.command()
+    @modset.command(name="reasons")
     async def modset_require_reason(self, ctx: commands.Context, value: bool):
         """Set whether a reason is required for moderation actions."""
         await self._config.guild(ctx.guild).require_reason.set(value)
