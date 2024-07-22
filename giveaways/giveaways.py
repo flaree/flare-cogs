@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.3.2"
+    __version__ = "1.3.3"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -142,10 +142,6 @@ class Giveaways(commands.Cog):
             await msg.edit(content="🎉 Giveaway Ended 🎉", embed=embed, view=None)
         except (discord.NotFound, discord.Forbidden) as exc:
             log.error("Error editing giveaway message: ", exc_info=exc)
-            async with self.config.custom(
-                GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
-            ).entrants() as entrants:
-                entrants = [x for x in entrants if x != winner]
             del self.giveaways[giveaway.messageid]
             gw = await self.config.custom(
                 GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
@@ -178,10 +174,12 @@ class Giveaways(commands.Cog):
                         await winner.send(
                             f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
                         )
-            async with self.config.custom(
-                GIVEAWAY_KEY, giveaway.guildid, int(giveaway.messageid)
-            ).entrants() as entrants:
-                entrants = [x for x in entrants if x != winner]
+        del self.giveaways[giveaway.messageid]
+        gw = await self.config.custom(
+            GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
+        ).all()
+        gw["ended"] = True
+        await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(gw)
         return
 
     @commands.hybrid_group(aliases=["gw"])

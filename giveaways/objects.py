@@ -202,13 +202,13 @@ class Giveaway:
     def remove_entrant(self, userid: int) -> None:
         self.entrants = [x for x in self.entrants if x != userid]
 
-    def draw_winner(self) -> int:
-        winners = self.kwargs.get("winners") or 1
-        if len(self.entrants) < winners:
+    def draw_winner(self) -> list[int]:
+        winner_count = self.kwargs.get("winners") or 1
+        if len(self.entrants) < winner_count:
             return None
-        winner = random.sample(self.entrants, winners)
-        self.remove_entrant(winner)
-        return winner
+        winners = random.sample(self.entrants, winner_count)
+        self.remove_entrant(winners)
+        return winners
 
     def does_entrant_bypass(self, user: discord.Member) -> bool:
         if not self.kwargs.get("bypass-roles", []):
