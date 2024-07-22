@@ -60,7 +60,7 @@ class Mod(ModClass):
 
     modset = ModClass.modset.copy()
 
-    __version__ = "1.2.0"
+    __version__ = "1.3.0"
 
     def format_help_for_context(self, ctx: commands.Context):
         pre_processed = super().format_help_for_context(ctx)
@@ -76,6 +76,7 @@ class Mod(ModClass):
                 "ban_message": ban_message,
                 "tempban_message": tempban_message,
                 "unban_message": unban_message,
+                "require_reason": False,
             }
         )
 
@@ -184,6 +185,12 @@ class Mod(ModClass):
         )
         await ctx.send(box(msg))
 
+    @modset.command()
+    async def modset_require_reason(self, ctx: commands.Context, value: bool):
+        """Set whether a reason is required for moderation actions."""
+        await self._config.guild(ctx.guild).require_reason.set(value)
+        await ctx.send(f"Reason requirement set to {value}")
+
     kick = None
 
     @commands.hybrid_command()
@@ -202,6 +209,10 @@ class Mod(ModClass):
         If a reason is specified, it will be the reason that shows up
         in the audit log.
         """
+        require_reason = await self._config.guild(ctx.guild).require_reason()
+        if require_reason and reason is None:
+            await ctx.send("You must provide a reason for this action.")
+            return
         author = ctx.author
         guild = ctx.guild
 
@@ -316,6 +327,10 @@ class Mod(ModClass):
            - `[p]tempban 428675506947227648 1d2h15m 5 Evil person`
             This will ban the user with ID 428675506947227648 for 1 day 2 hours 15 minutes and will delete the last 5 days of their messages.
         """
+        require_reason = await self._config.guild(ctx.guild).require_reason()
+        if require_reason and reason is None:
+            await ctx.send("You must provide a reason for this action.")
+            return
         guild = ctx.guild
         author = ctx.author
 
@@ -426,6 +441,10 @@ class Mod(ModClass):
     @checks.admin_or_permissions(ban_members=True)
     async def softban(self, ctx: commands.Context, member: discord.Member, *, reason: str = None):
         """Kick a user and delete 1 day's worth of their messages."""
+        require_reason = await self._config.guild(ctx.guild).require_reason()
+        if require_reason and reason is None:
+            await ctx.send("You must provide a reason for this action.")
+            return
         guild = ctx.guild
         author = ctx.author
 
@@ -553,6 +572,10 @@ class Mod(ModClass):
         If days is not a number, it's treated as the first word of the reason.
         Minimum 0 days, maximum 7. If not specified, the defaultdays setting will be used instead.
         """
+        require_reason = await self._config.guild(ctx.guild).require_reason()
+        if require_reason and reason is None:
+            await ctx.send("You must provide a reason for this action.")
+            return
         guild = ctx.guild
         if days is None:
             days = await self.config.guild(guild).default_days()
@@ -727,6 +750,10 @@ class Mod(ModClass):
          1. Copy it from the mod log case (if one was created), or
          2. enable developer mode, go to Bans in this server's settings, right-
         click the user and select 'Copy ID'."""
+        require_reason = await self._config.guild(ctx.guild).require_reason()
+        if require_reason and reason is None:
+            await ctx.send("You must provide a reason for this action.")
+            return
         guild = ctx.guild
         author = ctx.author
         audit_reason = get_audit_reason(ctx.author, reason, shorten=True)
