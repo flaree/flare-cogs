@@ -70,9 +70,7 @@ class Palette(commands.Cog):
         if not image:
             image = str(ctx.author.display_avatar)
             if attachments := ctx.message.attachments:
-                valid_attachments = [
-                    a for a in attachments if a.content_type.startswith("image/")
-                ]
+                valid_attachments = [a for a in attachments if a.content_type.startswith("image/")]
                 if valid_attachments:
                     image = valid_attachments[0].url
 
@@ -80,7 +78,7 @@ class Palette(commands.Cog):
             img = await self.get_img(image)
             if isinstance(img, dict):
                 return await ctx.send(img["error"])
-    
+
             colors, file = await self.bot.loop.run_in_executor(
                 None, self.create_palette, img, amount, detailed, sort
             )
