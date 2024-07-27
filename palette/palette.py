@@ -12,15 +12,13 @@ from tabulate import tabulate
 
 from .converters import ImageFinder
 
-VALID_CONTENT_TYPES = ("image/png", "image/jpeg", "image/jpg", "image/gif")
-
 
 class Palette(commands.Cog):
     """
     This is a collection of commands that are used to show colour palettes.
     """
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "flare(flare#0001) and Kuro"
 
     def format_help_for_context(self, ctx):
@@ -43,7 +41,7 @@ class Palette(commands.Cog):
                 return {
                     "error": "Server not found, ensure the correct URL is setup and is reachable. "
                 }
-            if resp.headers.get("Content-Type") not in VALID_CONTENT_TYPES:
+            if not str(resp.headers.get("Content-Type")).startswith("image/"):
                 return {"error": "Invalid image."}
             if resp.status in [200, 201]:
                 file = await resp.read()
@@ -52,6 +50,7 @@ class Palette(commands.Cog):
                 return file
             return {"error": resp.status}
 
+    @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command()
     async def palette(
         self,
@@ -72,19 +71,19 @@ class Palette(commands.Cog):
         if not image:
             image = str(ctx.author.display_avatar)
             if attachments := ctx.message.attachments:
-                valid_attachments = [
-                    a for a in attachments if a.content_type in VALID_CONTENT_TYPES
-                ]
+                valid_attachments = [a for a in attachments if a.content_type.startswith("image/")]
                 if valid_attachments:
                     image = valid_attachments[0].url
+
         async with ctx.typing():
             img = await self.get_img(image)
-        if isinstance(img, dict):
-            return await ctx.send(img["error"])
+            if isinstance(img, dict):
+                return await ctx.send(img["error"])
 
-        colors, file = await self.bot.loop.run_in_executor(
-            None, self.create_palette, img, amount, detailed, sort
-        )
+            colors, file = await self.bot.loop.run_in_executor(
+                None, self.create_palette, img, amount, detailed, sort
+            )
+
         if not detailed:
             return await ctx.send(file=file)
 
