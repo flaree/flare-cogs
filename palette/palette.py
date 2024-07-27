@@ -41,7 +41,7 @@ class Palette(commands.Cog):
                 return {
                     "error": "Server not found, ensure the correct URL is setup and is reachable. "
                 }
-            if str(resp.headers.get("Content-Type")).startswith("image/"):
+            if not str(resp.headers.get("Content-Type")).startswith("image/"):
                 return {"error": "Invalid image."}
             if resp.status in [200, 201]:
                 file = await resp.read()
