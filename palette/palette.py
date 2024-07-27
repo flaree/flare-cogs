@@ -18,7 +18,7 @@ class Palette(commands.Cog):
     This is a collection of commands that are used to show colour palettes.
     """
 
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "flare(flare#0001) and Kuro"
 
     def format_help_for_context(self, ctx):
