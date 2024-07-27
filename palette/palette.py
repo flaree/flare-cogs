@@ -50,6 +50,7 @@ class Palette(commands.Cog):
                 return file
             return {"error": resp.status}
 
+    @commands.max_concurrency(1, commands.BucketType.user)
     @commands.command()
     async def palette(
         self,
