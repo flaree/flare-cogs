@@ -202,7 +202,7 @@ class Giveaway:
     def remove_entrant(self, userid: int) -> None:
         self.entrants = [x for x in self.entrants if x != userid]
 
-    def draw_winner(self) -> list[int]:
+    def draw_winner(self):
         winner_count = self.kwargs.get("winners") or 1
         if len(self.entrants) < winner_count:
             return None
