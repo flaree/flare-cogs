@@ -8,6 +8,7 @@ import discord
 import tabulate
 from discord.mentions import AllowedMentions
 from redbot.core import Config, commands
+from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 
 API_URL = "http://ergast.com/api/f1"
@@ -19,7 +20,7 @@ log = logging.getLogger("red.flare.f1")
 class F1(commands.Cog):
     """F1 data."""
 
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -27,15 +28,17 @@ class F1(commands.Cog):
         pre_processed = super().format_help_for_context(ctx)
         return f"{pre_processed}\nCog Version: {self.__version__}\nAuthor: {self.__author__}"
 
-    def __init__(self, bot):
-        self.bot = bot
-        self.session = aiohttp.ClientSession()
-        self.config = Config.get_conf(self, identifier=95932766180343808)
+    def __init__(self, bot: Red) -> None:
+        self.bot: Red = bot
+        self.session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self.config: Config = Config.get_conf(self, identifier=95932766180343808)
         self.config.register_guild(channel=None, role=None)
-        self.loop = asyncio.create_task(self.race_loop())
+        self.loop: asyncio.Task = asyncio.create_task(self.race_loop())
 
     async def cog_unload(self):
         self.loop.cancel()
+        if not self.session.closed:
+            asyncio.create_task(self.session.close())
 
     async def race_loop(self):
         await self.bot.wait_until_ready()
