@@ -1,4 +1,6 @@
 # Flare-Cogs - (flare#0001)
+
+## No longer maintained.
 <p align="center">
   <a href="https://github.com/Cog-Creators/Red-DiscordBot/tree/V3/develop">
     <img src="https://img.shields.io/badge/Red%20DiscordBot-V3-red.svg">
