@@ -11,7 +11,7 @@ from redbot.core import Config, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, pagify
 
-API_URL = "http://ergast.com/api/f1"
+API_URL = "http://api.jolpi.ca/ergast/f1/"
 DATE_SUFFIX = {1: "st", 2: "nd", 3: "rd"}
 
 log = logging.getLogger("red.flare.f1")
