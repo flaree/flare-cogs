@@ -36,16 +36,20 @@ class Highlight(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
+        self.config = Config.get_conf(
+            self, identifier=1398467138476, force_registration=True
+        )
         self.config.register_global(
             migrated=False,
-            min_len=5,
+            min_len=4,
             max_highlights=10,
             default_cooldown=60,
             colour=discord.Color.red().value,
             restricted=False,
         )
-        self.config.register_member(blacklist=[], whitelist=[], cooldown=60, channel_blacklist=[])
+        self.config.register_member(
+            blacklist=[], whitelist=[], cooldown=60, channel_blacklist=[]
+        )
         default_channel = {"highlight": {}}
         self.config.register_channel(**default_channel)
         self.config.register_guild(**default_channel)
@@ -59,13 +63,19 @@ class Highlight(commands.Cog):
 
     async def red_get_data_for_user(self, *, user_id: int):
         config = await self.config.all_channels()
-        data = [channel for channel in config if str(user_id) in config[channel]["highlight"]]
+        data = [
+            channel
+            for channel in config
+            if str(user_id) in config[channel]["highlight"]
+        ]
 
         if data is None:
             return {}
         contents = f"Highlight Data for Discord user with ID {user_id}:\n"
         for highlight in data:
-            contents += f"- Channel: {highlight[0]} | Highlighted Word: {highlight[1]}\n"
+            contents += (
+                f"- Channel: {highlight[0]} | Highlighted Word: {highlight[1]}\n"
+            )
         return {"user_data.txt": BytesIO(contents.encode())}
 
     async def red_delete_data_for_user(
@@ -75,7 +85,11 @@ class Highlight(commands.Cog):
         user_id: int,
     ) -> None:
         config = await self.config.all_channels()
-        data = [channel for channel in config if str(user_id) in config[channel]["highlight"]]
+        data = [
+            channel
+            for channel in config
+            if str(user_id) in config[channel]["highlight"]
+        ]
 
         for channel in data:
             async with self.config.channel_from_id(channel).highlight() as highlight:
@@ -187,7 +201,9 @@ class Highlight(commands.Cog):
                 elif (
                     self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
                     and message.channel.id
-                    in self.member_cache[message.guild.id][int(user)]["channel_blacklist"]
+                    in self.member_cache[message.guild.id][int(user)][
+                        "channel_blacklist"
+                    ]
                 ):
                     continue
             highlighted_words = []
@@ -219,7 +235,9 @@ class Highlight(commands.Cog):
                     if word.lower() in self.recache:
                         pattern = self.recache[word.lower()]
                     else:
-                        pattern = re.compile(rf"\b{re.escape(word.lower())}\b", flags=re.I)
+                        pattern = re.compile(
+                            rf"\b{re.escape(word.lower())}\b", flags=re.I
+                        )
                         self.recache[word.lower()] = pattern
                     if set(pattern.findall(content)):
                         highlighted_words.append(word)
@@ -245,7 +263,9 @@ class Highlight(commands.Cog):
                     description=f"{context}",
                 )
 
-                embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
+                embed.add_field(
+                    name="Jump", value=f"[Click for context]({message.jump_url})"
+                )
                 await highlighted_usr.send(
                     f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
                     embed=embed,
@@ -289,7 +309,9 @@ class Highlight(commands.Cog):
                 )
             else:
                 whitelist.append(user.id)
-                await ctx.send(f"{ctx.author.name} has added {user} to their highlight whitelist.")
+                await ctx.send(
+                    f"{ctx.author.name} has added {user} to their highlight whitelist."
+                )
         await self.generate_cache()
 
     @whitelist.command(name="list")
@@ -302,7 +324,9 @@ class Highlight(commands.Cog):
             title="Whitelist",
             colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
         )
-        embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in whitelist))
+        embed.add_field(
+            name="Users", value="".join(f" - <@{_id}>\n" for _id in whitelist)
+        )
         await ctx.send(embed=embed)
 
     @blacklist.command(name="list")
@@ -317,10 +341,13 @@ class Highlight(commands.Cog):
             colour=self.global_conf.get("colour", await self.bot.get_embed_color(ctx)),
         )
         if blacklist:
-            embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist))
+            embed.add_field(
+                name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist)
+            )
         if channel_blacklist:
             embed.add_field(
-                name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist)
+                name="Channels",
+                value="".join(f" - <#{_id}>\n" for _id in channel_blacklist),
             )
         await ctx.send(embed=embed)
 
@@ -337,7 +364,9 @@ class Highlight(commands.Cog):
                 )
             else:
                 blacklist.append(user.id)
-                await ctx.send(f"{ctx.author.name} has added {user} to their highlight blacklist.")
+                await ctx.send(
+                    f"{ctx.author.name} has added {user} to their highlight blacklist."
+                )
         await self.generate_cache()
 
     @blacklist.command(name="channel")
@@ -371,7 +400,9 @@ class Highlight(commands.Cog):
             await ctx.send(f"Your current cooldown time is {value} seconds.")
             return
         if seconds < 0 or seconds > 600:
-            await ctx.send("Cooldown seconds must be greater or equal to 0 or less than 600.")
+            await ctx.send(
+                "Cooldown seconds must be greater or equal to 0 or less than 600."
+            )
             return
         default = await self.config.default_cooldown()
         if seconds < default:
@@ -380,12 +411,17 @@ class Highlight(commands.Cog):
             )
             return
         await self.config.member(ctx.author).cooldown.set(seconds)
-        await ctx.send(f"Your highlight cooldown time has been set to {seconds} seconds.")
+        await ctx.send(
+            f"Your highlight cooldown time has been set to {seconds} seconds."
+        )
         await self.generate_cache()
 
     @highlight.command()
     async def add(
-        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None, *text: str
+        self,
+        ctx: commands.Context,
+        channel: Optional[discord.TextChannel] = None,
+        *text: str,
     ):
         """Add a word to be highlighted on.
 
@@ -397,7 +433,9 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         async with self.config.channel(channel).highlight() as highlight:
             if str(ctx.author.id) not in highlight:
@@ -406,9 +444,13 @@ class Highlight(commands.Cog):
             failed = []
             for word in text:
                 if len(word) < int(await self.config.min_len()):
-                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    await ctx.send(
+                        "Your highlight does not meet the minimum length requirement."
+                    )
                     return
-                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
+                if len(highlight[f"{ctx.author.id}"]) >= int(
+                    await self.config.max_highlights()
+                ):
                     await ctx.send("You have reached the maximum number of highlights.")
                     return
                 if word.lower() not in highlight[f"{ctx.author.id}"]:
@@ -430,7 +472,10 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def remove(
-        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None, *text: str
+        self,
+        ctx: commands.Context,
+        channel: Optional[discord.TextChannel] = None,
+        *text: str,
     ):
         """Remove highlighting in a channel.
 
@@ -441,12 +486,16 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         async with self.config.channel(channel).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
-                return await ctx.send(f"You don't have any highlights setup in {channel}")
+                return await ctx.send(
+                    f"You don't have any highlights setup in {channel}"
+                )
             passed = []
             failed = []
             for word in text:
@@ -481,7 +530,9 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         if word is None:
             async with self.config.channel(channel).highlight() as highlight:
@@ -509,7 +560,9 @@ class Highlight(commands.Cog):
             if state:
                 await ctx.send(f"The highlight `{word}` has been enabled in {channel}.")
             else:
-                await ctx.send(f"The highlight `{word}` has been disabled in {channel}.")
+                await ctx.send(
+                    f"The highlight `{word}` has been disabled in {channel}."
+                )
         await self.generate_cache()
 
     @highlight.command()
@@ -529,7 +582,9 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         if word is None:
             msg = "enable" if state else "disable"
@@ -553,7 +608,9 @@ class Highlight(commands.Cog):
                 if state:
                     await ctx.send("Bots will now trigger all of your highlights.")
                 else:
-                    await ctx.send("Bots will no longer trigger on any of your highlights.")
+                    await ctx.send(
+                        "Bots will no longer trigger on any of your highlights."
+                    )
 
                 await self.generate_cache()
             else:
@@ -582,7 +639,9 @@ class Highlight(commands.Cog):
         await self.generate_cache()
 
     @highlight.command(name="list")
-    async def _list(self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None):
+    async def _list(
+        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None
+    ):
         """Current highlight settings for a channel.
 
         A channel argument can be supplied to view settings for said channel.
@@ -590,7 +649,9 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         highlight = await self.config.channel(channel).highlight()
         if str(ctx.author.id) in highlight and highlight[f"{ctx.author.id}"]:
@@ -599,7 +660,9 @@ class Highlight(commands.Cog):
                     word,
                     on_or_off(highlight[f"{ctx.author.id}"][word]["toggle"]),
                     yes_or_no(not highlight[f"{ctx.author.id}"][word]["bots"]),
-                    on_or_off(highlight[f"{ctx.author.id}"][word].get("boundary", False)),
+                    on_or_off(
+                        highlight[f"{ctx.author.id}"][word].get("boundary", False)
+                    ),
                 ]
                 for word in highlight[f"{ctx.author.id}"]
             ]
@@ -611,7 +674,12 @@ class Highlight(commands.Cog):
                     description=box(
                         tabulate.tabulate(
                             sorted(page, key=lambda x: x[1], reverse=True),
-                            headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+                            headers=[
+                                "Word",
+                                "Toggle",
+                                "Ignoring Bots",
+                                "Word Boundaries",
+                            ],
                         ),
                         lang="prolog",
                     ),
@@ -622,7 +690,9 @@ class Highlight(commands.Cog):
             else:
                 await menu(ctx, ems, DEFAULT_CONTROLS)
         else:
-            await ctx.send(f"You currently do not have any highlighted words set up in {channel}.")
+            await ctx.send(
+                f"You currently do not have any highlighted words set up in {channel}."
+            )
 
     @highlight.command()
     async def boundary(
@@ -641,7 +711,9 @@ class Highlight(commands.Cog):
         channel = channel or ctx.channel
         check = self.channel_check(ctx, channel)
         if not check:
-            await ctx.send("Either you or the bot does not have permission for that channel.")
+            await ctx.send(
+                "Either you or the bot does not have permission for that channel."
+            )
             return
         if word is None:
             msg = "enable" if state else "disable"
@@ -702,27 +774,51 @@ class Highlight(commands.Cog):
 
     @guild.command(name="add")
     async def guild_add(self, ctx: commands.Context, *text: str):
-        """Add a word to be highlighted on for the guild.
+        """Add a word to be highlighted for the guild.
 
-        Text will be converted to lowercase.\nCan also provide an optional channel argument for
-        the highlight to be applied to that channel.
+        You may optionally mention or name a channel at the end.\n
+        Words are lowercased and must meet the minimum length requirement.
         """
         if not text:
             return await ctx.send_help()
+
+        possible_channel = None
+        if text:
+            last = text[-1]
+            try:
+                possible_channel = await commands.TextChannelConverter().convert(
+                    ctx, last
+                )
+                text = text[:-1]
+            except commands.BadArgument:
+                possible_channel = None
+
+        if possible_channel:
+            if not possible_channel.permissions_for(ctx.author).view_channel:
+                return await ctx.send(
+                    "You do not have permission to view that channel."
+                )
+        channel_id = str(possible_channel.id) if possible_channel else None
+
         async with self.config.guild(ctx.guild).highlight() as highlight:
-            if str(ctx.author.id) not in highlight:
-                highlight[f"{ctx.author.id}"] = {}
+            user_id = str(ctx.author.id)
+            if user_id not in highlight:
+                highlight[user_id] = {}
             passed = []
             failed = []
             for word in text:
+                word = word.lower()
                 if len(word) < int(await self.config.min_len()):
-                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    await ctx.send(
+                        f"The word `{word}` is shorter than the minimum length."
+                    )
                     return
-                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
+                if len(highlight[user_id]) >= int(await self.config.max_highlights()):
                     await ctx.send("You have reached the maximum number of highlights.")
                     return
-                if word.lower() not in highlight[f"{ctx.author.id}"]:
-                    highlight[f"{ctx.author.id}"][word.lower()] = {
+                key = f"{word}:{channel_id}" if channel_id else word
+                if key not in highlight[user_id]:
+                    highlight[user_id][key] = {
                         "toggle": True,
                         "bots": False,
                         "boundary": False,
@@ -730,11 +826,13 @@ class Highlight(commands.Cog):
                     passed.append(word)
                 else:
                     failed.append(word)
+
         msg = ""
+        channel_text = f" in {possible_channel.mention}" if possible_channel else ""
         if passed:
-            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} was added to {ctx.author}'s highlight list for {ctx.guild}.\n"
+            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} were added to your highlight list{channel_text}.\n"
         if failed:
-            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {'are' if len(failed) > 1 else 'is'} already in your highlight list for {ctx.guild}."
+            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {'are' if len(failed) > 1 else 'is'} already in your highlight list{channel_text}."
         await ctx.send(msg)
         await self.generate_cache()
 
@@ -749,7 +847,9 @@ class Highlight(commands.Cog):
         async with self.config.guild(ctx.guild).highlight() as highlight:
             highlights = highlight.get(str(ctx.author.id))
             if not highlights:
-                return await ctx.send(f"You don't have any highlights setup for {ctx.guild}")
+                return await ctx.send(
+                    f"You don't have any highlights setup for {ctx.guild}"
+                )
             passed = []
             failed = []
             for word in text:
@@ -804,9 +904,13 @@ class Highlight(commands.Cog):
                 )
             highlight[str(ctx.author.id)][word]["toggle"] = state
             if state:
-                await ctx.send(f"The highlight `{word}` has been enabled for {ctx.guild}.")
+                await ctx.send(
+                    f"The highlight `{word}` has been enabled for {ctx.guild}."
+                )
             else:
-                await ctx.send(f"The highlight `{word}` has been disabled for {ctx.guild}.")
+                await ctx.send(
+                    f"The highlight `{word}` has been disabled for {ctx.guild}."
+                )
         await self.generate_cache()
 
     @guild.command(name="bots")
@@ -844,7 +948,9 @@ class Highlight(commands.Cog):
                 if state:
                     await ctx.send("Bots will now trigger all of your highlights.")
                 else:
-                    await ctx.send("Bots will no longer trigger on any of your highlights.")
+                    await ctx.send(
+                        "Bots will no longer trigger on any of your highlights."
+                    )
 
                 await self.generate_cache()
             else:
@@ -885,7 +991,9 @@ class Highlight(commands.Cog):
                     word,
                     on_or_off(highlight[f"{ctx.author.id}"][word]["toggle"]),
                     yes_or_no(not highlight[f"{ctx.author.id}"][word]["bots"]),
-                    on_or_off(highlight[f"{ctx.author.id}"][word].get("boundary", False)),
+                    on_or_off(
+                        highlight[f"{ctx.author.id}"][word].get("boundary", False)
+                    ),
                 ]
                 for word in highlight[f"{ctx.author.id}"]
             ]
@@ -897,7 +1005,12 @@ class Highlight(commands.Cog):
                     description=box(
                         tabulate.tabulate(
                             sorted(page, key=lambda x: x[1], reverse=True),
-                            headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+                            headers=[
+                                "Word",
+                                "Toggle",
+                                "Ignoring Bots",
+                                "Word Boundaries",
+                            ],
                         ),
                         lang="prolog",
                     ),
@@ -1028,7 +1141,9 @@ class Highlight(commands.Cog):
 
         await self.config.restricted.set(toggle)
         if toggle:
-            await ctx.send("Highlights can now only be used by users with mod/admin permissions.")
+            await ctx.send(
+                "Highlights can now only be used by users with mod/admin permissions."
+            )
         else:
             await ctx.send("Highlights can now be used by all users.")
         await self.generate_cache()
