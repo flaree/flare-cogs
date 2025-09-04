@@ -633,8 +633,8 @@ class Giveaways(commands.Cog):
             msg += f"**Tatsu Rep:** {args['tatsu_rep']}\n"
         if args.get("level_req"):
             msg += f"**Level Requirement:** {args['level_req']}\n"
-        if args.get("levelup_req"):
-            msg += f"**Level Requirement:** {args['levelup_req']}\n"
+        if args.get("levelupreq"):
+            msg += f"**Level Requirement:** {args['levelupreq']}\n"
         if args.get("rep_req"):
             msg += f"**Rep Requirement:** {args['rep_req']}\n"
         if args.get("bypass-roles"):
