@@ -105,6 +105,17 @@ class Giveaway:
                     raise GiveawayEnterError(
                         f"You do not meet the required level to join this giveaway. You must be level {self.kwargs['levelreq']} or higher."
                     )
+            if self.kwargs.get("levelupreq", None) is not None:
+                cog = bot.get_cog("LevelUp")
+                if cog is None:
+                    raise GiveawayExecError("The LevelUp cog is not installed.")
+                conf = cog.db.get_conf(user.guild)
+                profile = conf.get_profile(user)
+                lvl = profile.level
+                if lvl <= self.kwargs.get("levelupreq", 0):
+                    raise GiveawayEnterError(
+                        f"You do not meet the required level to join this giveaway. You must have {self.kwargs['levelupreq']} or higher."
+                    )
 
             if self.kwargs.get("repreq", None) is not None:
                 cog = bot.get_cog("Leveler")

@@ -25,7 +25,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.3.3"
+    __version__ = "1.4.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -576,6 +576,7 @@ class Giveaways(commands.Cog):
         You can use these integrations to integrate giveaways with other 3rd party services.
 
         `--level-req`: Integrate with the Red Level system Must be Fixator's leveler.
+        `--levelup-req`: Integrate with the LevelUp system. Must be Verts's LevelUp cog.
         `--rep-req`: Integrate with the Red Level Rep system Must be Fixator's leveler.
         `--tatsu-level`: Integrate with the Tatsumaki's levelling system, must have a valid Tatsumaki API key set.
         `--tatsu-rep`: Integrate with the Tatsumaki's rep system, must have a valid Tatsumaki API key set.
