@@ -39,7 +39,7 @@ class Highlight(commands.Cog):
         self.config = Config.get_conf(self, identifier=1398467138476, force_registration=True)
         self.config.register_global(
             migrated=False,
-            min_len=5,
+            min_len=4,
             max_highlights=10,
             default_cooldown=60,
             colour=discord.Color.red().value,
@@ -320,7 +320,8 @@ class Highlight(commands.Cog):
             embed.add_field(name="Users", value="".join(f" - <@{_id}>\n" for _id in blacklist))
         if channel_blacklist:
             embed.add_field(
-                name="Channels", value="".join(f" - <#{_id}>\n" for _id in channel_blacklist)
+                name="Channels",
+                value="".join(f" - <#{_id}>\n" for _id in channel_blacklist),
             )
         await ctx.send(embed=embed)
 
@@ -385,7 +386,10 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def add(
-        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None, *text: str
+        self,
+        ctx: commands.Context,
+        channel: Optional[discord.TextChannel] = None,
+        *text: str,
     ):
         """Add a word to be highlighted on.
 
@@ -430,7 +434,10 @@ class Highlight(commands.Cog):
 
     @highlight.command()
     async def remove(
-        self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None, *text: str
+        self,
+        ctx: commands.Context,
+        channel: Optional[discord.TextChannel] = None,
+        *text: str,
     ):
         """Remove highlighting in a channel.
 
@@ -611,7 +618,12 @@ class Highlight(commands.Cog):
                     description=box(
                         tabulate.tabulate(
                             sorted(page, key=lambda x: x[1], reverse=True),
-                            headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+                            headers=[
+                                "Word",
+                                "Toggle",
+                                "Ignoring Bots",
+                                "Word Boundaries",
+                            ],
                         ),
                         lang="prolog",
                     ),
@@ -702,27 +714,45 @@ class Highlight(commands.Cog):
 
     @guild.command(name="add")
     async def guild_add(self, ctx: commands.Context, *text: str):
-        """Add a word to be highlighted on for the guild.
+        """Add a word to be highlighted for the guild.
 
-        Text will be converted to lowercase.\nCan also provide an optional channel argument for
-        the highlight to be applied to that channel.
+        You may optionally mention or name a channel at the end.\n
+        Words are lowercased and must meet the minimum length requirement.
         """
         if not text:
             return await ctx.send_help()
+
+        possible_channel = None
+        if text:
+            last = text[-1]
+            try:
+                possible_channel = await commands.TextChannelConverter().convert(ctx, last)
+                text = text[:-1]
+            except commands.BadArgument:
+                possible_channel = None
+
+        if possible_channel:
+            if not possible_channel.permissions_for(ctx.author).view_channel:
+                return await ctx.send("You do not have permission to view that channel.")
+        channel_id = str(possible_channel.id) if possible_channel else None
+
         async with self.config.guild(ctx.guild).highlight() as highlight:
-            if str(ctx.author.id) not in highlight:
-                highlight[f"{ctx.author.id}"] = {}
+            user_id = str(ctx.author.id)
+            if user_id not in highlight:
+                highlight[user_id] = {}
             passed = []
             failed = []
             for word in text:
+                word = word.lower()
                 if len(word) < int(await self.config.min_len()):
-                    await ctx.send("Your highlight does not meet the minimum length requirement.")
+                    await ctx.send(f"The word `{word}` is shorter than the minimum length.")
                     return
-                if len(highlight[f"{ctx.author.id}"]) >= int(await self.config.max_highlights()):
+                if len(highlight[user_id]) >= int(await self.config.max_highlights()):
                     await ctx.send("You have reached the maximum number of highlights.")
                     return
-                if word.lower() not in highlight[f"{ctx.author.id}"]:
-                    highlight[f"{ctx.author.id}"][word.lower()] = {
+                key = f"{word}:{channel_id}" if channel_id else word
+                if key not in highlight[user_id]:
+                    highlight[user_id][key] = {
                         "toggle": True,
                         "bots": False,
                         "boundary": False,
@@ -730,11 +760,13 @@ class Highlight(commands.Cog):
                     passed.append(word)
                 else:
                     failed.append(word)
+
         msg = ""
+        channel_text = f" in {possible_channel.mention}" if possible_channel else ""
         if passed:
-            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} was added to {ctx.author}'s highlight list for {ctx.guild}.\n"
+            msg += f"The word{'s' if len(passed) > 1 else ''} {humanize_list(list(map(inline, passed)))} were added to your highlight list{channel_text}.\n"
         if failed:
-            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {'are' if len(failed) > 1 else 'is'} already in your highlight list for {ctx.guild}."
+            msg += f"The word{'s' if len(failed) > 1 else ''} {humanize_list(list(map(inline, failed)))} {'are' if len(failed) > 1 else 'is'} already in your highlight list{channel_text}."
         await ctx.send(msg)
         await self.generate_cache()
 
@@ -897,7 +929,12 @@ class Highlight(commands.Cog):
                     description=box(
                         tabulate.tabulate(
                             sorted(page, key=lambda x: x[1], reverse=True),
-                            headers=["Word", "Toggle", "Ignoring Bots", "Word Boundaries"],
+                            headers=[
+                                "Word",
+                                "Toggle",
+                                "Ignoring Bots",
+                                "Word Boundaries",
+                            ],
                         ),
                         lang="prolog",
                     ),
