@@ -112,7 +112,7 @@ class Giveaway:
                 conf = cog.db.get_conf(user.guild)
                 profile = conf.get_profile(user)
                 lvl = profile.level
-                if lvl <= self.kwargs.get("levelupreq", 0):
+                if lvl < self.kwargs.get("levelupreq", 0):
                     raise GiveawayEnterError(
                         f"You do not meet the required level to join this giveaway. You must have {self.kwargs['levelupreq']} or higher."
                     )
