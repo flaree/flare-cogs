@@ -161,14 +161,17 @@ class Giveaways(commands.Cog):
             announce_embed.set_footer(
                 text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid}"
             )
-            await channel_obj.send(
-                content=(
-                    "Congratulations " + ",".join([x.mention for x in winner_objs])
-                    if winner_objs is not None
-                    else ""
-                ),
-                embed=announce_embed,
-            )
+            try:
+                await channel_obj.send(
+                    content=(
+                        "Congratulations " + ",".join([x.mention for x in winner_objs])
+                        if winner_objs is not None
+                        else ""
+                    ),
+                    embed=announce_embed,
+                )
+            except (discord.NotFound, discord.Forbidden) as exc:
+                log.error("Error sending giveaway announcement: ", exc_info=exc)
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
@@ -181,6 +184,7 @@ class Giveaways(commands.Cog):
             GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
         ).all()
         gw["ended"] = True
+        gw["winners"] = [x.id for x in winner_objs] if winner_objs is not None else []
         await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(gw)
         return
 
