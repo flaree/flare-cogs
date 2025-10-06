@@ -161,12 +161,11 @@ class Args(Converter):
                 raise BadArgument(
                     "This may be the wrong leveling cog. Ensure you are using Fixators."
                 )
-            
+
         if vals["levelupreq"]:
             cog = ctx.bot.get_cog("LevelUp")
             if not cog:
                 raise BadArgument("LevelUp cog not loaded.")
-           
 
         if vals["tatsu_level"] or vals["tatsu_rep"]:
             token = await ctx.bot.get_shared_api_tokens("tatsumaki")
