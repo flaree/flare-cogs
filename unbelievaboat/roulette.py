@@ -51,7 +51,7 @@ NUMBERS = {
     35: "black",
 }
 
-EMOJIS = {"black": "\u2B1B", "red": "\U0001F7E5", "green": "\U0001F7E9"}
+EMOJIS = {"black": "\u2b1b", "red": "\U0001f7e5", "green": "\U0001f7e9"}
 
 COLUMNS = [
     [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
