@@ -7,6 +7,7 @@ from typing import Optional
 
 import aiohttp
 import discord
+from discord.utils import utcnow
 from redbot.core import Config, app_commands, commands
 from redbot.core.commands.converter import TimedeltaConverter
 from redbot.core.utils.chat_formatting import pagify
@@ -25,7 +26,7 @@ GIVEAWAY_KEY = "giveaways"
 class Giveaways(commands.Cog):
     """Giveaway Commands"""
 
-    __version__ = "1.4.0"
+    __version__ = "1.5.0"
     __author__ = "flare"
 
     def format_help_for_context(self, ctx):
@@ -52,9 +53,7 @@ class Giveaways(commands.Cog):
                 try:
                     if giveaway.get("ended", False):
                         continue
-                    giveaway["endtime"] = datetime.fromtimestamp(giveaway["endtime"]).replace(
-                        tzinfo=timezone.utc
-                    )
+                    giveaway["endtime"] = datetime.fromisoformat(giveaway["endtime"])
                     giveaway_obj = Giveaway(
                         giveaway["guildid"],
                         giveaway["channelid"],
@@ -62,6 +61,8 @@ class Giveaways(commands.Cog):
                         giveaway["endtime"],
                         giveaway["prize"],
                         giveaway["emoji"],
+                        giveaway.get("ended", False),
+                        entrants=giveaway["entrants"],
                         **giveaway["kwargs"],
                     )
                     self.giveaways[int(msgid)] = giveaway_obj
@@ -80,12 +81,19 @@ class Giveaways(commands.Cog):
                     log.error(f"Error loading giveaway {msgid}: ", exc_info=exc)
         while True:
             try:
+                log.debug("Checking giveaways...")
                 await self.check_giveaways()
             except Exception as exc:
                 log.error("Exception in giveaway loop: ", exc_info=exc)
             await asyncio.sleep(15)
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
+        for giveaway in self.giveaways.values():
+            giveaway_dict = deepcopy(giveaway.__dict__)
+            giveaway_dict["endtime"] = giveaway_dict["endtime"].isoformat()
+            await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(
+                giveaway_dict
+            )
         with contextlib.suppress(Exception):
             self.bot.remove_dev_env_value("giveaways")
         self.giveaway_bgloop.cancel()
@@ -95,7 +103,9 @@ class Giveaways(commands.Cog):
         to_clear = []
         giveaways = deepcopy(self.giveaways)
         for msgid, giveaway in giveaways.items():
-            if giveaway.endtime < datetime.now(timezone.utc):
+            log.debug(f"Checking giveaway {msgid} with end time {giveaway.endtime}...")
+            if giveaway.endtime < utcnow():
+                log.debug(f"Drawing winner for giveaway {msgid}")
                 await self.draw_winner(giveaway)
                 to_clear.append(msgid)
                 gw = await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(msgid)).all()
@@ -133,7 +143,7 @@ class Giveaways(commands.Cog):
             title=f"{f'{winners}x ' if winners > 1 else ''}{giveaway.prize}",
             description=f"Winner(s):\n{txt}",
             color=await self.bot.get_embed_color(channel_obj),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utcnow(),
         )
         embed.set_footer(
             text=f"Reroll: {(await self.bot.get_prefix(msg))[-1]}gw reroll {giveaway.messageid} | Ended at"
@@ -175,16 +185,15 @@ class Giveaways(commands.Cog):
         if winner_objs is not None:
             if giveaway.kwargs.get("congratulate", False):
                 for winner in winner_objs:
-                    with contextlib.suppress(discord.Forbidden):
+                    with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                         await winner.send(
                             f"Congratulations! You won {giveaway.prize} in the giveaway on {guild}!"
                         )
-        del self.giveaways[giveaway.messageid]
         gw = await self.config.custom(
             GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)
         ).all()
         gw["ended"] = True
-        gw["winners"] = [x.id for x in winner_objs] if winner_objs is not None else []
+        gw["winning_users"] = [x.id for x in winner_objs] if winner_objs is not None else []
         await self.config.custom(GIVEAWAY_KEY, giveaway.guildid, str(giveaway.messageid)).set(gw)
         return
 
@@ -217,7 +226,7 @@ class Giveaways(commands.Cog):
         This by default will DM the winner and also DM a user if they cannot enter the giveaway.
         """
         channel = channel or ctx.channel
-        end = datetime.now(timezone.utc) + time
+        end = utcnow() + time
         embed = discord.Embed(
             title=f"{prize}",
             description=f"\nClick the button below to enter\n\n**Hosted by:** {ctx.author.mention}\n\nEnds: <t:{int(end.timestamp())}:R>",
@@ -244,13 +253,14 @@ class Giveaways(commands.Cog):
             end,
             prize,
             "🎉",
+            False,
             **{"congratulate": True, "notify": True},
         )
         if ctx.interaction:
             await ctx.send("Giveaway created!", ephemeral=True)
         self.giveaways[msg.id] = giveaway_obj
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
-        giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        giveaway_dict["endtime"] = giveaway_dict["endtime"].isoformat()
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
     @giveaway.command()
@@ -266,10 +276,9 @@ class Giveaways(commands.Cog):
                 f"Giveaway already running. Please wait for it to end or end it via `{ctx.clean_prefix}gw end {msgid}`."
             )
         giveaway_dict = data[str(msgid)]
-        giveaway_dict["endtime"] = datetime.fromtimestamp(giveaway_dict["endtime"]).replace(
-            tzinfo=timezone.utc
-        )
+        giveaway_dict["endtime"] = datetime.fromisoformat(giveaway_dict["endtime"])
         giveaway = Giveaway(**giveaway_dict)
+        print(giveaway.entrants)
         try:
             await self.draw_winner(giveaway)
         except GiveawayExecError as e:
@@ -310,7 +319,7 @@ class Giveaways(commands.Cog):
         channel = arguments["channel"] or ctx.channel
 
         winners = arguments.get("winners", 1) or 1
-        end = datetime.now(timezone.utc) + duration
+        end = utcnow() + duration
         description = arguments["description"] or ""
         if arguments["show_requirements"]:
             description += "\n\n**Requirements:**\n" + self.generate_settings_text(ctx, arguments)
@@ -370,6 +379,7 @@ class Giveaways(commands.Cog):
             end,
             prize,
             str(emoji),
+            False,
             **{
                 k: v
                 for k, v in arguments.items()
@@ -378,7 +388,7 @@ class Giveaways(commands.Cog):
         )
         self.giveaways[msg.id] = giveaway_obj
         giveaway_dict = deepcopy(giveaway_obj.__dict__)
-        giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        giveaway_dict["endtime"] = giveaway_dict["endtime"].isoformat()
         del giveaway_dict["kwargs"]["colour"]
         await self.config.custom(GIVEAWAY_KEY, str(ctx.guild.id), str(msg.id)).set(giveaway_dict)
 
@@ -399,9 +409,9 @@ class Giveaways(commands.Cog):
             else:
                 count[entrant] += 1
         msg = ""
-        for userid, count_int in count.items():
+        for userid, count_int in sorted(count.items(), key=lambda item: item[1], reverse=True):
             user = ctx.guild.get_member(userid)
-            msg += f"{user.mention} ({count_int})\n" if user else f"<{userid}> ({count_int})\n"
+            msg += f"{user.mention} ({count_int})\n" if user else f"{userid} ({count_int})\n"
         embeds = []
         for page in pagify(msg, delims=["\n"], page_length=800):
             embed = discord.Embed(
@@ -550,10 +560,10 @@ class Giveaways(commands.Cog):
                     giveaway.kwargs[flag] = [x.id for x in flags[flag]]
                 else:
                     giveaway.kwargs[flag] = flags[flag]
-        giveaway.endtime = datetime.now(timezone.utc) + giveaway.duration
+        giveaway.endtime = utcnow() + giveaway.duration
         self.giveaways[msgid] = giveaway
         giveaway_dict = deepcopy(giveaway.__dict__)
-        giveaway_dict["endtime"] = giveaway_dict["endtime"].timestamp()
+        giveaway_dict["endtime"] = giveaway_dict["endtime"].isoformat()
         giveaway_dict["duration"] = giveaway_dict["duration"].total_seconds()
         del giveaway_dict["kwargs"]["colour"]
         await self.config.custom(GIVEAWAY_KEY, ctx.guild.id, str(msgid)).set(giveaway_dict)

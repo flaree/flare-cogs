@@ -46,7 +46,7 @@ class GiveawayButton(Button):
             await interaction.response.defer()
             try:
                 await giveaway.add_entrant(
-                    interaction.user, bot=self.cog.bot, session=self.cog.session
+                    interaction.user, bot=self.cog.bot, session=self.cog.session, cog=self.cog
                 )
             except GiveawayEnterError as e:
                 await interaction.followup.send(e.message, ephemeral=True)

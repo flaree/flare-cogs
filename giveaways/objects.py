@@ -36,6 +36,7 @@ class Giveaway:
         endtime: datetime,
         prize: str = None,
         emoji: str = "🎉",
+        ended: bool = False,
         *,
         entrants=None,
         **kwargs,
@@ -47,13 +48,13 @@ class Giveaway:
         self.prize = prize
         self.entrants = entrants or []
         self.emoji = emoji
+        self.ended = ended
         self.kwargs = kwargs
 
     async def add_entrant(
-        self, user: discord.Member, *, bot, session
+        self, user: discord.Member, *, bot, session, cog
     ) -> Tuple[bool, GiveawayError]:
         if not self.kwargs.get("multientry", False) and user.id in self.entrants:
-            self.remove_entrant(user.id)
             raise AlreadyEnteredError("You have already entered this giveaway.")
         bypass = self.does_entrant_bypass(user)
         if bypass is False:
@@ -208,6 +209,9 @@ class Giveaway:
         ):
             for _ in range(self.kwargs["multi"] - 1):
                 self.entrants.append(user.id)
+        await cog.config.custom("giveaways", self.guildid, self.messageid).entrants.set(
+            self.entrants
+        )
         return
 
     def remove_entrant(self, userid: int) -> None:
@@ -218,7 +222,6 @@ class Giveaway:
         if len(self.entrants) < winner_count:
             return None
         winners = random.sample(self.entrants, winner_count)
-        self.remove_entrant(winners)
         return winners
 
     def does_entrant_bypass(self, user: discord.Member) -> bool:
