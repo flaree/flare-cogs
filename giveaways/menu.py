@@ -56,10 +56,8 @@ class GiveawayButton(Button):
                 return
             except AlreadyEnteredError:
                 await interaction.followup.send(
-                    "You have been removed from the giveaway.", ephemeral=True
+                    "You are already in the giveaway.", ephemeral=True
                 )
-                await self.update_entrant(giveaway, interaction)
-                await self.update_label(giveaway, interaction)
                 return
             await self.update_entrant(giveaway, interaction)
             await interaction.followup.send(
