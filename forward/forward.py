@@ -176,20 +176,22 @@ class Forward(commands.Cog):
         Separate version of [p]dm but allows for guild owners. This only works for users in the
         guild.
         """
-        em = discord.Embed(colour=discord.Colour.red(), description=message)
-
-        if ctx.bot.user.display_avatar:
-            em.set_author(
-                name=f"Message from {ctx.author} | {ctx.author.id}",
-                icon_url=ctx.bot.user.display_avatar,
-            )
-        else:
-            em.set_author(name=f"Message from {ctx.author} | {ctx.author.id}")
-
+        if user.id == ctx.bot.user.id:
+            await ctx.send("I can't send a DM to myself.")
+            return
+        em = discord.Embed(
+            colour=discord.Colour.red(),
+            description=message,
+        )
+        em.set_author(
+            name=f"Message from {ctx.author} | {ctx.author.id}",
+            icon_url=ctx.bot.user.display_avatar.url if ctx.bot.user.display_avatar else None,
+        )
         try:
             await user.send(embed=em)
-        except discord.Forbidden:
+        except (discord.Forbidden, discord.HTTPException):
             await ctx.send(
-                "Oops. I couldn't deliver your message to {}. They most likely have me blocked or DMs closed!"
+                f"Oops. I couldn't deliver your message to {user}. They most likely have me blocked or DMs closed!"
             )
+            return
         await ctx.send(f"Message delivered to {user}")

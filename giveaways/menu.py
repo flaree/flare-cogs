@@ -55,9 +55,7 @@ class GiveawayButton(Button):
                 log.exception("Error while adding user to giveaway", exc_info=e)
                 return
             except AlreadyEnteredError:
-                await interaction.followup.send(
-                    "You are already in the giveaway.", ephemeral=True
-                )
+                await interaction.followup.send("You are already in the giveaway.", ephemeral=True)
                 return
             await self.update_entrant(giveaway, interaction)
             await interaction.followup.send(
