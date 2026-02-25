@@ -189,7 +189,7 @@ class Forward(commands.Cog):
         )
         try:
             await user.send(embed=em)
-        except discord.Forbidden:
+        except (discord.Forbidden, discord.HTTPException):
             await ctx.send(
                 f"Oops. I couldn't deliver your message to {user}. They most likely have me blocked or DMs closed!"
             )
