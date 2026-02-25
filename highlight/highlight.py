@@ -246,10 +246,18 @@ class Highlight(commands.Cog):
                 )
 
                 embed.add_field(name="Jump", value=f"[Click for context]({message.jump_url})")
-                await highlighted_usr.send(
-                    f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
-                    embed=embed,
-                )
+                try:
+                    await highlighted_usr.send(
+                        f"Your highlighted word{'s' if len(highlighted_words) > 1 else ''} {humanize_list(list(map(inline, highlighted_words)))} was mentioned in {message.channel.mention} by {message.author.display_name}.\n",
+                        embed=embed,
+                    )
+                except discord.Forbidden:
+                    try:
+                        await message.channel.send(
+                            f"{highlighted_usr.mention} I tried to notify you but your DMs are closed."
+                        )
+                    except discord.Forbidden:
+                        pass
                 self.cooldowns[highlighted_usr.id] = datetime.now(tz=timezone.utc)
 
     def channel_check(self, ctx: commands.Context, channel: discord.TextChannel):
